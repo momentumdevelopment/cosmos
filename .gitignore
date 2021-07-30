@@ -1,0 +1,28 @@
+# Eclipse.
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# .idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# Gradle.
+build
+.gradle
+
+# Other.
+eclipse
+run
+
+# Forge.
+forge*changelog.txt
+
+# Useless
+src/main/java/you/are/ratted/
