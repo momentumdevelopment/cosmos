@@ -21,6 +21,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import org.lwjgl.opengl.GL11;
 
+import static net.minecraft.client.renderer.GlStateManager.*;
+
 @SuppressWarnings("unused")
 public class EventManager extends Manager implements Wrapper {
 	public EventManager() {
@@ -61,27 +63,27 @@ public class EventManager extends Manager implements Wrapper {
 			return;
 		}
 		mc.mcProfiler.startSection("cosmos-render");
-		GlStateManager.disableTexture2D();
-		GlStateManager.enableBlend();
-		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-		GlStateManager.shadeModel(GL11.GL_SMOOTH);
-		GlStateManager.disableDepth();
-		GlStateManager.glLineWidth(1f);
+		disableTexture2D();
+		enableBlend();
+		disableAlpha();
+		tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+		shadeModel(GL11.GL_SMOOTH);
+		disableDepth();
+		glLineWidth(1f);
 		Render3DEvent render3dEvent = new Render3DEvent(event.getPartialTicks());
 		ModuleManager.onRender3D(render3dEvent);
-		GlStateManager.glLineWidth(1f);
-		GlStateManager.shadeModel(GL11.GL_FLAT);
-		GlStateManager.disableBlend();
-		GlStateManager.enableAlpha();
-		GlStateManager.enableTexture2D();
-		GlStateManager.enableDepth();
-		GlStateManager.enableCull();
-		GlStateManager.enableCull();
-		GlStateManager.depthMask(true);
-		GlStateManager.enableTexture2D();
-		GlStateManager.enableBlend();
-		GlStateManager.enableDepth();
+		glLineWidth(1f);
+		shadeModel(GL11.GL_FLAT);
+		disableBlend();
+		enableAlpha();
+		enableTexture2D();
+		enableDepth();
+		enableCull();
+		enableCull();
+		depthMask(true);
+		enableTexture2D();
+		enableBlend();
+		enableDepth();
 		mc.mcProfiler.endSection();
 	}
 	
