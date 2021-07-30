@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
@@ -404,7 +405,7 @@ public class AutoCrystal extends Module {
     }
 
     @Override
-    public void onRender3d() {
+    public void onRender3D(Render3DEvent event) {
         if (render.getValue() && !placePosition.getPosition().equals(BlockPos.ORIGIN) && InventoryUtil.isHolding(Items.END_CRYSTAL)) {
             RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(renderColor.getValue()).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, getText(renderText.getValue()));
