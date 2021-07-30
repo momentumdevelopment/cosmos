@@ -1,0 +1,4 @@
+FD: cope/cosmos/asm/mixins/MixinRenderEnderCrystal/ENDER_CRYSTAL_TEXTURES cope/cosmos/asm/mixins/MixinRenderEnderCrystal/field_110787_a
+FD: cope/cosmos/asm/mixins/MixinRenderEnderCrystal/modelEnderCrystal cope/cosmos/asm/mixins/MixinRenderEnderCrystal/field_76995_b
+FD: cope/cosmos/asm/mixins/MixinRenderEnderCrystal/modelEnderCrystalNoBase cope/cosmos/asm/mixins/MixinRenderEnderCrystal/field_188316_g
+FD: cope/cosmos/asm/mixins/MixinRenderLivingBase/mainModel cope/cosmos/asm/mixins/MixinRenderLivingBase/field_77045_g

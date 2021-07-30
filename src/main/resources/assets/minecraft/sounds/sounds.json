@@ -1,0 +1,12 @@
+{
+  "click": {
+    "category": "player",
+    "subtitle": "click",
+    "sounds": [
+      {
+        "name": "cosmos:click.ogg",
+        "stream": false
+      }
+    ]
+  }
+}

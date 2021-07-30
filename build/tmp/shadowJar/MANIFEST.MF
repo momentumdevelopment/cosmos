@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+FMLCorePluginContainsFMLMod: true
+TweakClass: org.spongepowered.asm.launch.MixinTweaker
+ForceLoadAsMod: true
+FMLCorePlugin: cope.cosmos.asm.MixinLoader
+
