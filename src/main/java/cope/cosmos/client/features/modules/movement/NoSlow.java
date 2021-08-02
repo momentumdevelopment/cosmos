@@ -39,6 +39,7 @@ public class NoSlow extends Module {
     public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move while in GUI's", true);
     public static Setting<Boolean> strict = new Setting<>("Strict", "Spoofs slowdown state with packets", false);
     public static Setting<Boolean> airStrict = new Setting<>("AirStrict", "Spoofs slowdown state with packets while in air", false);
+    public static Setting<Boolean> sneak = new Setting<>("Sneak", "Removes the sneak slowdown effect", true);
     public static Setting<Boolean> soulSand = new Setting<>("SoulSand", "Removes the soulsand slowdown effect", true);
     public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slime slowdown effect", true);
 

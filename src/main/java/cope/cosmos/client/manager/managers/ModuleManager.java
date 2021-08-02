@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.*;
 import cope.cosmos.client.features.modules.combat.*;
@@ -78,10 +77,5 @@ public class ModuleManager extends Manager {
 	
 	public static Module getModule(Predicate<? super Module> predicate) {
 		return ModuleManager.modules.stream().filter(predicate).findFirst().orElse(null);
-	}
-
-	// Need this here as a static thing for module dont ask me
-	public static void onRender3D(Render3DEvent event) {
-		modules.stream().filter(Module::isEnabled).forEach(module -> module.onRender3D(event));
 	}
 }

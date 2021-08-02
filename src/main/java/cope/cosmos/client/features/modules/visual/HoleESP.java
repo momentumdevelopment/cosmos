@@ -1,6 +1,5 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -49,13 +48,9 @@ public class HoleESP extends Module {
     public static Timer holeTimer = new Timer();
 
     @Override
-    public void onRender3D(Render3DEvent event) {
+    public void onRender3D() {
         for (Map.Entry<Hole, Color> holeEntry : new HashSet<>(holes.entrySet())) {
-           try {
-               renderHole(holeEntry.getKey(), holeEntry.getValue());
-           } catch (ConcurrentModificationException e) {
-               // Empty Catch block.
-           }
+            renderHole(holeEntry.getKey(), holeEntry.getValue());
         }
     }
 

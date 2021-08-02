@@ -1,10 +1,11 @@
 package cope.cosmos.util.render;
 
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.math.BlockPos;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
+import static net.minecraft.client.renderer.GlStateManager.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class RenderBuilder {
@@ -25,8 +26,8 @@ public class RenderBuilder {
     private Box box = Box.FILL;
 
     public RenderBuilder setup() {
-        GlStateManager.pushMatrix();
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+        pushMatrix();
+        tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
         setup = true;
@@ -35,8 +36,8 @@ public class RenderBuilder {
 
     public RenderBuilder depth(boolean depth) {
         if (depth) {
-            GlStateManager.disableDepth();
-            GlStateManager.depthMask(false);
+            disableDepth();
+            depthMask(false);
         }
 
         this.depth = depth;
@@ -44,25 +45,25 @@ public class RenderBuilder {
     }
 
     public RenderBuilder blend() {
-        GlStateManager.enableBlend();
+        enableBlend();
         blend = true;
         return this;
     }
 
     public RenderBuilder texture() {
-        GlStateManager.disableTexture2D();
+        disableTexture2D();
         texture = true;
         return this;
     }
 
     public RenderBuilder line(float width) {
-        glLineWidth(width);
+        GL11.glLineWidth(width);
         return this;
     }
 
     public RenderBuilder cull(boolean cull) {
         if (cull)
-            GlStateManager.disableCull();
+            disableCull();
 
         this.cull = cull;
         return this;
@@ -70,7 +71,7 @@ public class RenderBuilder {
 
     public RenderBuilder alpha(boolean alpha) {
         if (alpha)
-            GlStateManager.disableAlpha();
+            disableAlpha();
 
         this.alpha = alpha;
         return this;
@@ -78,7 +79,7 @@ public class RenderBuilder {
 
     public RenderBuilder shade(boolean shade) {
         if (shade)
-            GlStateManager.shadeModel(GL_SMOOTH);
+            shadeModel(GL_SMOOTH);
 
         this.shade = shade;
         return this;
@@ -86,29 +87,29 @@ public class RenderBuilder {
 
     public RenderBuilder build() {
         if (depth) {
-            GlStateManager.depthMask(true);
-            GlStateManager.enableDepth();
+            depthMask(true);
+            enableDepth();
         }
 
         if (texture)
-            GlStateManager.enableTexture2D();
+            enableTexture2D();
 
         if (blend)
-            GlStateManager.disableBlend();
+            disableBlend();
+
+        if (cull)
+            enableCull();
+
+        if (alpha)
+            enableAlpha();
+
+        if (shade)
+            shadeModel(GL_FLAT);
 
         if (setup) {
             glDisable(GL_LINE_SMOOTH);
-            GlStateManager.popMatrix();
+            popMatrix();
         }
-
-        if (cull)
-            GlStateManager.enableCull();
-
-        if (alpha)
-            GlStateManager.enableAlpha();
-
-        if (shade)
-            GlStateManager.shadeModel(GL_FLAT);
 
         return this;
     }

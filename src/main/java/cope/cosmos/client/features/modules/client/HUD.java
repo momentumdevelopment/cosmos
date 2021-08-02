@@ -41,7 +41,7 @@ public class HUD extends Module {
     // test for my two way animation manager, will put this into hud editor once it gets made
 
     @Override
-    public void onRender2d() {
+    public void onRender2D() {
         int SCREEN_WIDTH = new ScaledResolution(mc).getScaledWidth();
         int SCREEN_HEIGHT = new ScaledResolution(mc).getScaledHeight();
 

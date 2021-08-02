@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.BlockResetEvent;
 import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -265,7 +264,7 @@ public class SpeedMine extends Module {
     }
 
     @Override
-    public void onRender3D(Render3DEvent event) {
+    public void onRender3D() {
         if (minePosition != BlockPos.ORIGIN && render.getValue())
             RenderUtil.drawBox(new RenderBuilder().position(minePosition).color(mineTimer.passed((long) ((1 - getDigSpeed(mc.world.getBlockState(minePosition), minePosition)) * 2000), Format.SYSTEM) ? renderAir.getValue() : renderMine.getValue()).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
     }

@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.events.BlockBreakEvent;
 import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.features.modules.combat.AutoCrystal.Raytrace;
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -24,10 +23,8 @@ import cope.cosmos.util.world.BlockUtil.BlockResistance;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -136,7 +133,7 @@ public class Surround extends Module {
     }
 
     @Override
-    public void onRender3D(Render3DEvent event) {
+    public void onRender3D() {
         if (render.getValue()) {
             for (Vec3d surroundVectors : surround.getValue().getVectors()) {
                 RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.RESISTANT) || Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.UNBREAKABLE)) ? renderSafe.getValue() : renderUnsafe.getValue()).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());

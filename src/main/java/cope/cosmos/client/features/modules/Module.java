@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
-import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
@@ -136,12 +135,12 @@ public class Module extends Feature implements Wrapper {
 	}
 
 	// runs on the game overlay tick (i.e. once every frame)
-	public void onRender2d() {
+	public void onRender2D() {
 
 	}
 
 	// runs on the global render tick (i.e. once every frame)
-	public void onRender3D(Render3DEvent event) {
+	public void onRender3D() {
 	}
 
 	public String getName() {
