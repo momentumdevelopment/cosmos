@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.client.features.modules.Category;
@@ -163,7 +164,7 @@ public class HoleFill extends Module {
     }
 
     @Override
-    public void onRender3d() {
+    public void onRender3D(Render3DEvent event) {
         if (nullCheck() && fillPosition != BlockPos.ORIGIN && render.getValue()) {
             RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(renderColor.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
         }

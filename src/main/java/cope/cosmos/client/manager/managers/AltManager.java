@@ -31,7 +31,9 @@ public class AltManager extends Manager implements Wrapper {
 				auth.logIn();
 				if(setSession) {
 					Session session = new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
-					((IMinecraft) mc).setSession(session);
+					if (session != null) {
+						((IMinecraft) mc).setSession(session);
+					}
 				}
 			} catch (Exception exception) {
 				exception.printStackTrace();

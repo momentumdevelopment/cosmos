@@ -76,95 +76,6 @@ public class ESP extends Module {
                 if (outlineRadius != null)
                     outlineRadius.set(width.getValue().floatValue());
             });
-        } else if (mode.getValue().equals(Mode.CSGO)) {
-            GlStateManager.disableDepth();
-            float viewerYaw = mc.getRenderManager().playerViewY;
-            mc.world.loadedEntityList.stream()
-                    .filter(Objects::nonNull)
-                    .filter(entity -> mc.player != entity)
-                    .filter(ESP::hasHighlight)
-                    .forEach(entity -> {
-                        GL11.glPushMatrix();
-                        Vec3d interp = InterpolationUtil.getInterpolatedPos(entity, mc.getRenderPartialTicks())
-                                .subtract(InterpolationUtil.getInterpolatedPos(mc.getRenderViewEntity(), mc.getRenderPartialTicks()))
-                                .add(entity.getEntityBoundingBox().getCenter().subtract(entity.getPositionVector()));
-
-                        GlStateManager.translate(interp.x, interp.y, interp.z);
-                        GlStateManager.rotate(-viewerYaw, 0.0f, 1.0f, 0.0f);
-                        GL11.glDisable(GL11.GL_TEXTURE_2D);
-
-                        GL11.glEnable(GL11.GL_LINE_SMOOTH);
-                        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
-                        double w = entity.getEntityBoundingBox().maxX - entity.getEntityBoundingBox().minX + 0.2;
-                        double h = entity.getEntityBoundingBox().maxY - entity.getEntityBoundingBox().minY + 0.2;
-                        GlStateManager.glLineWidth(width.getValue().floatValue());
-                        GL11.glBegin(GL11.GL_LINES);
-                        GL11.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-
-                        GL11.glVertex3d(-w / 2.0, h / 2.0, 0.0);
-                        GL11.glVertex3d(w / 2.0, h / 2.0, 0.0);
-
-                        GL11.glVertex3d(w / 2.0, h / 2.0, 0.0);
-                        GL11.glVertex3d(w / 2.0, -h / 2.0, 0.0);
-
-                        GL11.glVertex3d(w / 2.0, -h / 2.0, 0.0);
-                        GL11.glVertex3d(-w / 2.0, -h / 2.0, 0.0);
-
-                        GL11.glVertex3d(-w / 2.0, -h / 2.0, 0.0);
-                        GL11.glVertex3d(-w / 2.0, h / 2.0, 0.0);
-
-                        GL11.glEnd();
-
-                        GlStateManager.glLineWidth(width.getValue().floatValue() / 2.0f);
-
-                        GL11.glBegin(GL11.GL_LINES);
-                        if (mc.player.canEntityBeSeen(entity)) {
-                            GL11.glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-                        } else {
-                            GL11.glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
-                        }
-                        GL11.glVertex3d(-w / 2.0, h / 2.0, 0.0);
-                        GL11.glVertex3d(w / 2.0, h / 2.0, 0.0);
-
-                        GL11.glVertex3d(w / 2.0, h / 2.0, 0.0);
-                        GL11.glVertex3d(w / 2.0, -h / 2.0, 0.0);
-
-                        GL11.glVertex3d(w / 2.0, -h / 2.0, 0.0);
-                        GL11.glVertex3d(-w / 2.0, -h / 2.0, 0.0);
-
-                        GL11.glVertex3d(-w / 2.0, -h / 2.0, 0.0);
-                        GL11.glVertex3d(-w / 2.0, h / 2.0, 0.0);
-
-                        GL11.glEnd();
-
-                        // Health bar.
-
-                        if (entity instanceof EntityLivingBase) {
-                            float healthPercentage = ((EntityLivingBase) entity).getHealth() / ((EntityLivingBase) entity).getMaxHealth();
-                            float healthBarHeight = (float) h * healthPercentage;
-                            double xOffset = -0.1;
-                            GlStateManager.glLineWidth(width.getValue().floatValue());
-                            GL11.glBegin(GL11.GL_LINES);
-                            GL11.glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-                            GL11.glVertex3d(w / 2.0 - xOffset, h / 2.0, 0.0);
-                            GL11.glVertex3d(w / 2.0 - xOffset, -h / 2.0, 0.0);
-                            GL11.glEnd();
-
-                            GlStateManager.glLineWidth(width.getValue().floatValue() / 2.0f);
-
-                            GL11.glBegin(GL11.GL_LINES);
-                            GL11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-                            GL11.glVertex3d(w / 2.0 - xOffset, -h / 2.0, 0.0);
-                            GL11.glVertex3d(w / 2.0 - xOffset, -h / 2.0 + healthBarHeight, 0.0);
-                            GL11.glEnd();
-                        }
-                        GL11.glDisable(GL11.GL_LINE_SMOOTH);
-
-                        GL11.glPopMatrix();
-
-                    });
-            GlStateManager.enableDepth();
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
         }
     }
 
@@ -220,6 +131,5 @@ public class ESP extends Module {
 
     public enum Mode {
         SHADER,
-        CSGO
     }
 }

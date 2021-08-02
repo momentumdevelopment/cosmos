@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.Render3DEvent;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -106,7 +107,7 @@ public class Aura extends Module {
     }
 
     @Override
-    public void onRender3d() {
+    public void onRender3D(Render3DEvent event) {
         if (auraTarget != null && render.getValue())
             RenderUtil.drawCircle(new RenderBuilder().setup().line(1.5F).depth(true).blend().texture(), InterpolationUtil.getInterpolatedPos(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), color.getValue());
     }
