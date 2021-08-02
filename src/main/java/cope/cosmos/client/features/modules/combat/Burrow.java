@@ -36,8 +36,10 @@ public class Burrow extends Module {
 		super.onEnable();
 
 		Cosmos.INSTANCE.getTickManager().setClientTicks(10);
-		BlockPos originalPos = new BlockPos(mc.player.getPositionVector());
+
 		mc.player.connection.sendPacket(new CPacketPlayer(ThreadLocalRandom.current().nextBoolean()));
+
+		BlockPos originalPos = new BlockPos(mc.player.getPositionVector());
 		int block = -1;
 
 		switch (mode.getValue()) {
@@ -77,8 +79,10 @@ public class Burrow extends Module {
 		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY + 1.16610926093821D, mc.player.posZ);
 
 		int oldSlot = mc.player.inventory.currentItem;
+
 		mc.player.inventory.currentItem = block;
 		mc.player.connection.sendPacket(new CPacketHeldItemChange(block));
+
 		BlockUtil.placeBlock(originalPos, packet.getValue(), false);
 		PlayerUtil.swingArm(swing.getValue());
 
@@ -86,7 +90,9 @@ public class Burrow extends Module {
 
 		mc.player.inventory.currentItem = oldSlot;
 		mc.player.connection.sendPacket(new CPacketHeldItemChange(oldSlot));
+
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));
+
 		Cosmos.INSTANCE.getTickManager().setClientTicks(2500);
 		disable();
 	}

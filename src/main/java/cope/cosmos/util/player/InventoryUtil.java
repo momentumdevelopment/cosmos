@@ -22,6 +22,7 @@ public class InventoryUtil implements Wrapper {
             switch (switchMode) {
                 case NORMAL:
                     mc.player.inventory.currentItem = slot;
+                    mc.player.connection.sendPacket(new CPacketHeldItemChange(slot));
                     break;
                 case PACKET:
                     mc.player.connection.sendPacket(new CPacketHeldItemChange(slot));

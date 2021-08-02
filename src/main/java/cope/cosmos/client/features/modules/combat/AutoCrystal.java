@@ -2,7 +2,6 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
-import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
@@ -48,6 +47,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Mouse;
 
 import java.awt.*;
 import java.util.*;
@@ -133,12 +133,14 @@ public class AutoCrystal extends Module {
 
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
-    private int highestExplodeID = -Integer.MAX_VALUE;
     public static Crystal explodeCrystal = new Crystal(null, 0, 0);
     public static Map<Integer, Integer> attemptedExplosions = new HashMap<>();
 
     private final Timer placeTimer = new Timer();
     public static CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+
+    private EnumHand previousHand = null;
+    private int previousSlot = -1;
 
     private Rotation crystalRotation;
 
@@ -195,13 +197,13 @@ public class AutoCrystal extends Module {
                 }
             }
 
-            double scaledDelay = explodeDelay.getValue();
+            long scaledDelay = explodeDelay.getValue().longValue();
             if (!tps.getValue().equals(TPS.NONE)) {
                 // scale the delay by the current server tps
                 scaledDelay *= (80 * (1 - (Cosmos.INSTANCE.getTickManager().getTPS(tps.getValue()) / 20)));
             }
 
-            if (explodeTimer.passed((long) scaledDelay, Format.SYSTEM) && switchTimer.passed((long) ((double) explodeSwitch.getValue()), Format.SYSTEM)) {
+            if (explodeTimer.passed(scaledDelay, Format.SYSTEM) && switchTimer.passed((long) ((double) explodeSwitch.getValue()), Format.SYSTEM)) {
                 // explode the crystal
                 if (explodeAttacks.getValue() > 1) {
                     for (int explodeAttack = 0; explodeAttack < explodeAttacks.getValue(); explodeAttack++) {
@@ -238,35 +240,50 @@ public class AutoCrystal extends Module {
                     crystalRotation.updateModelRotations();
             }
 
+            // log our previous slot and hand, we'll switch back after placing
+            if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                previousSlot = mc.player.inventory.currentItem;
+
+                if (mc.player.isHandActive())
+                    previousHand = mc.player.getActiveHand();
+            }
+
             // switch to crystals if needed
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
-            // sync the player's held item to the server item
-            ((IPlayerControllerMP) mc.playerController).syncCurrentPlayItem();
-
-            if (placeTimer.passed((long) (placeDelay.getValue() + ThreadLocalRandom.current().nextDouble(placeRandom.getValue() + 1)), Format.SYSTEM) && InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+            if (placeTimer.passed(placeDelay.getValue().longValue() + (long) ThreadLocalRandom.current().nextDouble(placeRandom.getValue() + 1), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
-                RayTraceResult facingResult;
                 EnumFacing placementFacing = EnumFacing.DOWN;
 
-                // if we're not limited to upward placements, we can extend our reach by finiding the closest face to place on
+                // if we're not limited to upward placements, we can extend our reach by finding the closest face to place on
                 if (!placeDirection.getValue()) {
-                    facingResult = mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + (double) mc.player.getEyeHeight(), mc.player.posZ), new Vec3d((double) placePosition.getPosition().getX() + 0.5, (double) placePosition.getPosition().getY() - 0.5, (double) placePosition.getPosition().getZ() + 0.5));
+                    RayTraceResult facingResult = mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + (double) mc.player.getEyeHeight(), mc.player.posZ), new Vec3d((double) placePosition.getPosition().getX() + 0.5, (double) placePosition.getPosition().getY() - 0.5, (double) placePosition.getPosition().getZ() + 0.5));
                     placementFacing = facingResult == null || facingResult.sideHit == null ? EnumFacing.UP : facingResult.sideHit;
                 }
 
                 // place the crystal
-                if (placeAttempts.getValue() > 1) {
-                    for (int placeAttempt = 0; placeAttempt < placeAttempts.getValue(); placeAttempt++) {
+                {
+                    if (placeAttempts.getValue() > 1) {
+                        for (int placeAttempt = 0; placeAttempt < placeAttempts.getValue(); placeAttempt++) {
+                            placeCrystal(placePosition.getPosition(), placeDirection.getValue() ? EnumFacing.UP : placementFacing, placePacket.getValue());
+                        }
+                    }
+
+                    else {
                         placeCrystal(placePosition.getPosition(), placeDirection.getValue() ? EnumFacing.UP : placementFacing, placePacket.getValue());
                     }
                 }
 
-                else {
-                    placeCrystal(placePosition.getPosition(), placeDirection.getValue() ? EnumFacing.UP : placementFacing, placePacket.getValue());
+                PlayerUtil.swingArm(placeHand.getValue());
+
+                // switch back after placing, should only switch serverside
+                if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                    InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+
+                    if (previousHand != null && Mouse.isButtonDown(1))
+                        mc.player.setActiveHand(previousHand);
                 }
 
-                PlayerUtil.swingArm(placeHand.getValue());
                 placeTimer.reset();
             }
         }
@@ -274,7 +291,6 @@ public class AutoCrystal extends Module {
 
     public Crystal searchCrystal() {
         if (explode.getValue()) {
-
             // map of viable crystals
             TreeMap<Float, Crystal> crystalMap = new TreeMap<>();
 
@@ -405,7 +421,7 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onRender3d() {
-        if (render.getValue() && !placePosition.getPosition().equals(BlockPos.ORIGIN) && InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+        if (render.getValue() && !placePosition.getPosition().equals(BlockPos.ORIGIN) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
             RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(renderColor.getValue()).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, getText(renderText.getValue()));
         }
@@ -413,16 +429,6 @@ public class AutoCrystal extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock && InventoryUtil.isHolding(Items.END_CRYSTAL) && entityPrediction.getValue()) {
-            mc.world.loadedEntityList.forEach(entity -> {
-                if (entity.getEntityId() > highestExplodeID)
-                    highestExplodeID = entity.getEntityId();
-            });
-
-            if (highestExplodeID > 0)
-                explodeCrystal(highestExplodeID);
-        }
-
         if ((event.getPacket() instanceof CPacketPlayer) && crystalRotation != null && rotate.getValue().equals(Rotate.PACKET)) {
             // split up the rotation into multiple packets, NCP flags for quick rotations
             if (Math.abs(crystalRotation.getYaw() - mc.player.rotationYaw) >= 20 || Math.abs(crystalRotation.getPitch() - mc.player.rotationPitch) >= 20) {
