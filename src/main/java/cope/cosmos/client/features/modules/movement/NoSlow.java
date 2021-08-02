@@ -104,6 +104,10 @@ public class NoSlow extends Module {
         if (event.getPacket() instanceof CPacketPlayer && strict.getValue() && hasSlowDown()) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, new BlockPos(Math.floor(mc.player.posX), Math.floor(mc.player.posY), Math.floor(mc.player.posZ)), EnumFacing.DOWN));
         }
+
+        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING) && sneak.getValue()) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
