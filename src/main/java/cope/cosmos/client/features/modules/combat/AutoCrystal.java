@@ -421,7 +421,7 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onRender3D() {
-        if (render.getValue() && !placePosition.getPosition().equals(BlockPos.ORIGIN) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
+        if (render.getValue() && placePosition != null && !placePosition.getPosition().equals(BlockPos.ORIGIN) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
             RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(renderColor.getValue()).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, getText(renderText.getValue()));
         }
