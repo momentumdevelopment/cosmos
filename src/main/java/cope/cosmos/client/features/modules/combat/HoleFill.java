@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
+@SuppressWarnings("unused")
 public class HoleFill extends Module {
     public static HoleFill INSTANCE;
 
@@ -49,6 +50,8 @@ public class HoleFill extends Module {
     public static Setting<Double> threshold = new Setting<>(() -> mode.getValue().equals(Filler.TARGETED), "Threshold", "Target's distance from hole for it to be considered fill-able", 0.0, 3.0, 15.0, 1);
     public static Setting<Hand> swing = new Setting<>("Swing", "Hand to swing when placing", Hand.MAINHAND);
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode for switching to block", Switch.NORMAL);
+
+    public static Setting<Boolean> safety = new Setting<>("Safety", "Makes sure you are not the closest player for the current hole fill", false);
     public static Setting<Boolean> doubles = new Setting<>("Doubles", "Fills in double holes", true);
     public static Setting<Boolean> packet = new Setting<>("Packet", "Place with packets", true);
     public static Setting<Boolean> confirm = new Setting<>("Confirm", "Confirm the placement", false);
@@ -71,12 +74,14 @@ public class HoleFill extends Module {
 
     @Override
     public void onThread() {
-        fillPosition = BlockPos.ORIGIN;
+        fillPosition = searchFill();
+    }
 
+    public BlockPos searchFill() {
         fillTarget = (EntityPlayer) TargetUtil.getTargetEntity(targetRange.getValue(), Target.CLOSEST, true, false, false, false);
 
         if (fillTarget == null || EnemyUtil.isDead(fillTarget))
-            return;
+            return null;
 
         TreeMap<Double, BlockPos> fillMap = new TreeMap<>();
         Iterator<BlockPos> potentialHoles = null;
@@ -98,11 +103,17 @@ public class HoleFill extends Module {
             if (!mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(calculatedHole)).isEmpty())
                 continue;
 
+            double targetDistance = distanceTarget.getDistanceSq(calculatedHole);
+            double localDistance = mc.player.getDistanceSq(calculatedHole);
+
+            if (localDistance < targetDistance && safety.getValue())
+                continue;
+
             if (HoleUtil.isBedRockHole(calculatedHole) || HoleUtil.isObsidianHole(calculatedHole))
-                fillMap.put(distanceTarget.getDistanceSq(calculatedHole), calculatedHole);
+                fillMap.put(targetDistance, calculatedHole);
 
             if (doubles.getValue() && (HoleUtil.isDoubleBedrockHoleZ(calculatedHole) || HoleUtil.isDoubleBedrockHoleX(calculatedHole) || HoleUtil.isDoubleObsidianHoleZ(calculatedHole) || HoleUtil.isDoubleObsidianHoleX(calculatedHole)))
-                fillMap.put(distanceTarget.getDistanceSq(calculatedHole), calculatedHole);
+                fillMap.put(targetDistance, calculatedHole);
         }
 
         switch (completion.getValue()) {
@@ -120,18 +131,23 @@ public class HoleFill extends Module {
                 break;
         }
 
-        fillPosition = fillMap.firstEntry().getValue();
+        if (!fillMap.isEmpty()) {
+            return fillMap.firstEntry().getValue();
+        }
+
+        return null;
     }
 
     @Override
     public void onUpdate() {
-        if (fillPosition.equals(BlockPos.ORIGIN)) {
+        if (fillPosition.equals(BlockPos.ORIGIN) || fillPosition == null) {
             fillTarget = null;
             fillPosition = null;
             return;
         }
 
         previousSlot = mc.player.inventory.currentItem;
+
         InventoryUtil.switchToSlot(block.getValue().getItem(), autoSwitch.getValue());
 
         if (fillPosition != null && !rotate.getValue().equals(Rotate.NONE)) {
@@ -177,7 +193,6 @@ public class HoleFill extends Module {
         COMPLETION, TARGET, PERSISTENT
     }
 
-    @SuppressWarnings("unused")
     private enum Block {
         OBSIDIAN(Item.getItemFromBlock(Blocks.OBSIDIAN)), ENDER_CHEST(Item.getItemFromBlock(Blocks.ENDER_CHEST)), PRESSURE_PLATE(Item.getItemFromBlock(Blocks.WOODEN_PRESSURE_PLATE)), WEB(Item.getItemFromBlock(Blocks.WEB));
 
