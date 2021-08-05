@@ -34,6 +34,11 @@ public class WindowGUI extends GuiScreen {
             case 0:
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
+
+                WindowManager.getWindows().forEach(window -> {
+                    window.handleLeftClick();
+                });
+
                 break;
             case 1:
                 mouse.setRightClick(true);

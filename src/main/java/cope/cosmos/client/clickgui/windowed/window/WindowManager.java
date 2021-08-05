@@ -9,7 +9,7 @@ import java.util.List;
 public class WindowManager {
 
     private static final List<Window> windows = Arrays.asList(
-        new ModulesWindow(new Vec2f(40, 60))
+        new ModulesWindow("Configuration", new Vec2f(40, 60))
     );
 
     public static List<Window> getWindows() {
