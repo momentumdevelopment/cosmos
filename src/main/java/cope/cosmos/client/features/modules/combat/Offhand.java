@@ -12,6 +12,7 @@ import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.HoleUtil;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
 public class Offhand extends Module {
@@ -32,11 +33,14 @@ public class Offhand extends Module {
 
     public static Setting<Double> delay = new Setting<>("Delay", "Delay when switching items", 0.0D, 0.0D, 1000.0D, 0);
     public static Setting<Double> health = new Setting<>("Health", "Health considered as critical health", 0.0D, 16.0D, 36.0D, 0);
+
     public static Setting<Boolean> swordGapple = new Setting<>("SwordGapple", "Use a gapple when holding a sword", true);
     public static Setting<Boolean> forceGapple = new Setting<>("ForceGapple", "Use a gapple when holding left click", false);
     public static Setting<Boolean> patchGapple = new Setting<>("Bypass", "Partial Bypass for offhand patched servers", false);
+
     public static Setting<Boolean> recursive = new Setting<>("Recursive", "Allow the use of hotbar items", false);
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", "Stop motion when switching items", false);
+    public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", "Swaps to a totem when you have armor slots empty, prevents totem fails", false);
     public static Setting<Boolean> fallSafe = new Setting<>("FallSafe", "Swaps to a totem when stepping/fast falling, prevents totem fails on crystalpvp.cc", false);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", "When to pause and use a totem", true);
@@ -58,6 +62,15 @@ public class Offhand extends Module {
 
         if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && ReverseStep.INSTANCE.isEnabled() && mc.player.motionY == ReverseStep.speed.getValue() || handlePause())
             offhandItem = Items.TOTEM_OF_UNDYING;
+
+        if (armorSafe.getValue()) {
+            for (ItemStack stack : mc.player.getArmorInventoryList()) {
+                if (stack == null || stack.getItem() == Items.AIR) {
+                    offhandItem = Items.TOTEM_OF_UNDYING;
+                    break;
+                }
+            }
+        }
 
         if (InventoryUtil.isHolding(Items.DIAMOND_SWORD) && swordGapple.getValue() && !forceGapple.getValue() || InventoryUtil.isHolding(Items.DIAMOND_SWORD) && forceGapple.getValue() && Mouse.isButtonDown(1))
             offhandItem = Items.GOLDEN_APPLE;

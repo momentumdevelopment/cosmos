@@ -510,9 +510,9 @@ public class AutoCrystal extends Module {
 
     public void placeCrystal(BlockPos placePos, EnumFacing enumFacing, boolean packet) {
         if (packet)
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, 0.5F, 0.5F, 0.5F));
+            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, (float) mc.player.posX, (float) -mc.player.posY, (float) -mc.player.posZ));
         else
-            mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, new Vec3d(0, 0, 0), mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+            mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, new Vec3d(mc.player.posX, -mc.player.posY, -mc.player.posZ), mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
     }
 
     public void explodeCrystal(EntityEnderCrystal crystal, boolean packet) {
