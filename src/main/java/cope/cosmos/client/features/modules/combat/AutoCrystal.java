@@ -207,7 +207,7 @@ public class AutoCrystal extends Module {
                 scaledDelay *= (80 * (1 - (Cosmos.INSTANCE.getTickManager().getTPS(tps.getValue()) / 20)));
             }
 
-            if (explodeTimer.passed(scaledDelay, Format.SYSTEM) && switchTimer.passed((long) ((double) explodeSwitch.getValue()), Format.SYSTEM)) {
+            if (explodeTimer.passed(scaledDelay, Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
                 {
                     if (explodeAttacks.getValue() > 1) {

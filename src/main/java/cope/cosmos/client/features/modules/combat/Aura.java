@@ -27,6 +27,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.util.math.BlockPos;
@@ -93,9 +94,10 @@ public class Aura extends Module {
     public static Setting<Boolean> render = new Setting<>("Render", "Render a visual over the target", true);
     public static Setting<Color> color = new Setting<>("Color", "Color of the visual", new Color(144, 0, 255, 45)).setParent(render);
 
-    public static Entity auraTarget = null;
-    public static Timer auraTimer = new Timer();
-    public static Rotation auraRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    private Entity auraTarget = null;
+    private final Timer auraTimer = new Timer();
+    private final Timer switchTimer = new Timer();
+    private Rotation auraRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
 
     @Override
     public void onUpdate() {
@@ -156,16 +158,20 @@ public class Aura extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPacketSend(PacketEvent.PacketSendEvent packetSendEvent) {
-        if ((packetSendEvent.getPacket() instanceof CPacketPlayer) && !Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch()) && rotate.getValue().equals(Rotate.PACKET)) {
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        if ((event.getPacket() instanceof CPacketPlayer) && !Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch()) && rotate.getValue().equals(Rotate.PACKET)) {
             if (Math.abs(auraRotation.getYaw() - mc.player.rotationYaw) >= 20 || Math.abs(auraRotation.getPitch() - mc.player.rotationPitch) >= 20) {
                 for (float step = rotateStep.getValue() - 1; step > 0; step--) {
                     mc.player.connection.sendPacket(new CPacketPlayer.Rotation(auraRotation.getYaw() / step + 1, auraRotation.getPitch() / step + 1, mc.player.onGround));
                 }
             }
 
-            ((ICPacketPlayer) packetSendEvent.getPacket()).setYaw(auraRotation.getYaw());
-            ((ICPacketPlayer) packetSendEvent.getPacket()).setPitch(auraRotation.getPitch());
+            ((ICPacketPlayer) event.getPacket()).setYaw(auraRotation.getYaw());
+            ((ICPacketPlayer) event.getPacket()).setPitch(auraRotation.getPitch());
+        }
+
+        if (event.getPacket() instanceof CPacketHeldItemChange) {
+            switchTimer.reset();
         }
     }
 
@@ -173,18 +179,17 @@ public class Aura extends Module {
         if (timing.getValue().equals(Timing.COOLDOWN) || timing.getValue().equals(Timing.SEQUENTIAL)) {
             switch (delayMode.getValue()) {
                 case TPS:
-                    return mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - Cosmos.INSTANCE.getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue();
+                    return mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - Cosmos.INSTANCE.getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue() && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
                 case SWING:
-                    return mc.player.getCooledAttackStrength(0) >= delayFactor.getValue();
+                    return mc.player.getCooledAttackStrength(0) >= delayFactor.getValue() && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
                 case CUSTOM:
                     if (auraTimer.passed((long) ((double) delay.getValue()), Format.SYSTEM)) {
                         auraTimer.reset();
-                        return true;
+                        return switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
                     }
 
-                    break;
                 case TICK:
-                    return auraTimer.passed((long) ((double) delayTicks.getValue()), Format.TICKS);
+                    return auraTimer.passed((long) ((double) delayTicks.getValue()), Format.TICKS) && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
             }
         }
 
@@ -193,9 +198,6 @@ public class Aura extends Module {
 
     public boolean handlePause() {
         if (pause.getValue()) {
-            if (Cosmos.INSTANCE.getSwitchManager().switchAttackReady((long) ((double) delaySwitch.getValue())))
-                return false;
-
             if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || !InventoryUtil.isHolding32k() && weaponThirtyTwoK.getValue())
                 return false;
 

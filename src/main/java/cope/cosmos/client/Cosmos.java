@@ -33,7 +33,6 @@ public class Cosmos {
 
     private CosmosGUI cosmosGUI;
     private TickManager tickManager;
-    private SwitchManager switchManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
     private RotationManager rotationManager;
@@ -69,9 +68,6 @@ public class Cosmos {
 
         rotationManager = new RotationManager();
         progressManager.step("Setting up Rotation Manager");
-
-        switchManager = new SwitchManager();
-        progressManager.step("Setting up Switch Manager");
 
         socialManager = new SocialManager();
         progressManager.step("Setting up Social Manager");
@@ -110,10 +106,6 @@ public class Cosmos {
 
     public TickManager getTickManager() {
         return this.tickManager;
-    }
-
-    public SwitchManager getSwitchManager() {
-        return this.switchManager;
     }
 
     public SocialManager getSocialManager() {
