@@ -68,6 +68,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeRange = new Setting<>("Range", "Range to explode crystals", 0.0, 6.0, 8.0, 1).setParent(explode);
     public static Setting<Double> explodeWall = new Setting<>("WallRange", "Range to explode crystals through walls", 0.0, 3.5, 8.0, 1).setParent(explode);
     public static Setting<Double> explodeDelay = new Setting<>("Delay", "Delay to explode crystals", 0.0, 60.0, 500.0, 0).setParent(explode);
+    public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", "Randomize the delay slightly to simulate real explosions", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
@@ -82,7 +83,6 @@ public class AutoCrystal extends Module {
     public static Setting<Double> placeRange = new Setting<>("Range", "Range to place crystals", 0.0, 5.0, 8.0, 1).setParent(place);
     public static Setting<Double> placeWall = new Setting<>("WallRange", "Range to place crystals through walls", 0.0, 3.5, 8.0, 1).setParent(place);
     public static Setting<Double> placeDelay = new Setting<>("Delay", "Delay to place crystals", 0.0, 20.0, 500.0, 0).setParent(place);
-    public static Setting<Double> placeRandom = new Setting<>("RandomDelay", "Randomize the delay slightly to simulate real placements", 0.0, 0.0, 500.0, 0).setParent(place);
     public static Setting<Double> placeDamage = new Setting<>("Damage", "Required damage to be considered for placement", 0.0, 5.0, 36.0, 1).setParent(place);
     public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(place);
     public static Setting<Double> placeAttempts = new Setting<>("Attempts", "Place attempts per cycle", 1.0, 1.0, 5.0, 0).setParent(place);
@@ -113,7 +113,6 @@ public class AutoCrystal extends Module {
     public static Setting<Boolean> calculations = new Setting<>("Calculations", "Preferences for calculations", true);
     public static Setting<Boolean> prediction = new Setting<>("Prediction", "Attempts to account target's predicted position into the calculations", false).setParent(calculations);
     public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", "Ignores terrain when calculating damage", false).setParent(calculations);
-    public static Setting<Boolean> entityPrediction = new Setting<>("EntityPrediction", "Tries to predict the crystal's entity ID ahead of time", true).setParent(calculations);
     public static Setting<Timing> timing = new Setting<>("Timing", "Optimizes process at the cost of anti-cheat compatibility", Timing.LINEAR).setParent(calculations);
     public static Setting<TPS> tps = new Setting<>("TPS", "Syncs attack timing to current server ticks", TPS.NONE).setParent(calculations);
     public static Setting<Placements> placements = new Setting<>("Placements", "Placement calculations for current version", Placements.NATIVE).setParent(calculations);
@@ -136,12 +135,12 @@ public class AutoCrystal extends Module {
 
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
-    public static Crystal explodeCrystal = new Crystal(null, 0, 0);
-    public static Map<Integer, Integer> attemptedExplosions = new HashMap<>();
+    private Crystal explodeCrystal = new Crystal(null, 0, 0);
+    private final Map<Integer, Integer> attemptedExplosions = new HashMap<>();
     private final List<EntityEnderCrystal> blackListExplosions = new ArrayList<>();
 
     private final Timer placeTimer = new Timer();
-    public static CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+    private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
 
     private EnumHand previousHand = null;
     private int previousSlot = -1;
@@ -207,7 +206,7 @@ public class AutoCrystal extends Module {
                 scaledDelay *= (80 * (1 - (Cosmos.INSTANCE.getTickManager().getTPS(tps.getValue()) / 20)));
             }
 
-            if (explodeTimer.passed(scaledDelay, Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
+            if (explodeTimer.passed(scaledDelay + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
                 {
                     if (explodeAttacks.getValue() > 1) {
@@ -257,7 +256,7 @@ public class AutoCrystal extends Module {
             // switch to crystals if needed
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
-            if (placeTimer.passed(placeDelay.getValue().longValue() + (long) ThreadLocalRandom.current().nextDouble(placeRandom.getValue() + 1), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
+            if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
                 EnumFacing placementFacing = EnumFacing.DOWN;
 

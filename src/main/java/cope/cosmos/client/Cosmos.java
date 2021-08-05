@@ -1,12 +1,10 @@
 package cope.cosmos.client;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
-import cope.cosmos.client.manager.managers.*;
+import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -16,6 +14,9 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.lwjgl.opengl.Display;
+
+import java.util.Arrays;
+import java.util.List;
 
 @SuppressWarnings("unused")
 @Mod(modid = Cosmos.MOD_ID, name = Cosmos.NAME, version = Cosmos.VERSION, acceptedMinecraftVersions = "[1.12.2]")
@@ -32,6 +33,8 @@ public class Cosmos {
     public static Cosmos INSTANCE;
 
     private CosmosGUI cosmosGUI;
+    private WindowGUI windowGUI;
+    
     private TickManager tickManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
@@ -54,7 +57,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 12);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 11);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -76,6 +79,7 @@ public class Cosmos {
         progressManager.step("Setting up Config Manager");
 
         cosmosGUI = new CosmosGUI();
+        windowGUI = new WindowGUI();
         progressManager.step("Setting up GUI's");
 
         reloadManager = new ReloadManager();
@@ -101,47 +105,51 @@ public class Cosmos {
     }
     
     public CosmosGUI getCosmosGUI() {
-    	return this.cosmosGUI;
+    	return cosmosGUI;
+    }
+    
+    public WindowGUI getWindowGUI() {
+        return windowGUI;
     }
 
     public TickManager getTickManager() {
-        return this.tickManager;
+        return tickManager;
     }
 
     public SocialManager getSocialManager() {
-        return this.socialManager;
+        return socialManager;
     }
 
     public PresetManager getPresetManager() {
-        return this.presetManager;
+        return presetManager;
     }
 
     public FontManager getFontManager() {
-        return this.fontManager;
+        return fontManager;
     }
 
     public RotationManager getRotationManager() {
-        return this.rotationManager;
+        return rotationManager;
     }
 
     public ThreadManager getThreadManager() {
-        return this.threadManager;
+        return threadManager;
     }
 
     public ReloadManager getReloadManager() {
-        return this.reloadManager;
+        return reloadManager;
     }
 
     public SafetyHelperManager getSafetyHelperManager() {
-        return this.safetyHelperManager;
+        return safetyHelperManager;
     }
 
     public NotificationManager getNotificationManager() {
-        return this.notificationManager;
+        return notificationManager;
     }
 
     public CommandDispatcher<Object> getCommandDispatcher() {
-        return this.commandDispatcher;
+        return commandDispatcher;
     }
     
     public List<Module> getNullSafeMods() {

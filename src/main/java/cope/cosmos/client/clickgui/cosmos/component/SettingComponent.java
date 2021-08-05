@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.component;
 
 import cope.cosmos.client.clickgui.cosmos.component.components.*;
-import cope.cosmos.client.clickgui.cosmos.util.Util;
+import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;

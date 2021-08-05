@@ -3,7 +3,8 @@ package cope.cosmos.client.clickgui.cosmos;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.cosmos.navigation.navs.ControlNavigation;
 import cope.cosmos.client.clickgui.cosmos.navigation.navs.PlayerNavigation;
-import cope.cosmos.client.clickgui.cosmos.util.Util;
+import cope.cosmos.client.clickgui.util.MousePosition;
+import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.clickgui.cosmos.window.Window;
 import cope.cosmos.client.clickgui.cosmos.window.WindowManager;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
@@ -45,7 +46,7 @@ public class CosmosGUI extends GuiScreen implements Util {
             window.drawWindow();
 
             if (mouseOver(((CategoryWindow) window).getPosition().x, ((CategoryWindow) window).getPosition().y, ((CategoryWindow) window).getWidth(), ((CategoryWindow) window).getHeight() - 5) && !window.isExpanding())
-                window.handleLeftDrag((int) getMouse().mousePosition.x, (int) getMouse().mousePosition.y);
+                window.handleLeftDrag((int) getMouse().getMousePosition().x, (int) getMouse().getMousePosition().y);
         });
 
         if (WindowManager.getFocusedWindow() != null && Mouse.hasWheel()) {
@@ -140,59 +141,5 @@ public class CosmosGUI extends GuiScreen implements Util {
 
     public MousePosition getMouse() {
         return mouse;
-    }
-
-    public static class MousePosition {
-
-        private Vec2f mousePosition;
-        private boolean leftClick, rightClick, leftHeld, rightHeld;
-
-        public MousePosition(Vec2f mousePosition, boolean leftClick, boolean rightClick, boolean leftHeld, boolean rightHeld) {
-            this.mousePosition = mousePosition;
-            this.leftClick = leftClick;
-            this.rightClick = rightClick;
-            this.leftHeld = leftHeld;
-            this.rightHeld = rightHeld;
-        }
-
-        public boolean isLeftClick() {
-            return leftClick;
-        }
-
-        public void setLeftClick(boolean in) {
-            leftClick = in;
-        }
-
-        public boolean isRightClick() {
-            return rightClick;
-        }
-
-        public void setRightClick(boolean in) {
-            rightClick = in;
-        }
-
-        public boolean isLeftHeld() {
-            return leftHeld;
-        }
-
-        public void setLeftHeld(boolean in) {
-            leftHeld = in;
-        }
-
-        public boolean isRightHeld() {
-            return rightHeld;
-        }
-
-        public void setRightHeld(boolean in) {
-            rightHeld = in;
-        }
-
-        public void setMousePosition(Vec2f in) {
-            mousePosition = in;
-        }
-
-        public Vec2f getMousePosition() {
-            return mousePosition;
-        }
     }
 }

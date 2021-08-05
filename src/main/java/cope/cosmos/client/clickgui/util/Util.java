@@ -1,9 +1,7 @@
-package cope.cosmos.client.clickgui.cosmos.util;
+package cope.cosmos.client.clickgui.util;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
+import cope.cosmos.client.clickgui.windowed.WindowGUI;
 
 public interface Util {
 
@@ -15,11 +13,7 @@ public interface Util {
         return false;
     }
 
-    default CosmosGUI getGUI() {
-        return Cosmos.INSTANCE.getCosmosGUI();
-    }
-
-    default int getGlobalAnimation() {
-        return Cosmos.INSTANCE.getCosmosGUI().getGlobalAnimation();
+    default WindowGUI getGUI() {
+        return Cosmos.INSTANCE.getWindowGUI();
     }
 }

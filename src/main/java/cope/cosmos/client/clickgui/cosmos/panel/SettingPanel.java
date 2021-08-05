@@ -2,7 +2,7 @@ package cope.cosmos.client.clickgui.cosmos.panel;
 
 import cope.cosmos.client.clickgui.cosmos.component.Component;
 import cope.cosmos.client.clickgui.cosmos.component.SettingComponent;
-import cope.cosmos.client.clickgui.cosmos.util.Util;
+import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;

@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.navigation.navs;
 
 import cope.cosmos.client.clickgui.cosmos.navigation.Navigation;
-import cope.cosmos.client.clickgui.cosmos.util.Util;
+import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;

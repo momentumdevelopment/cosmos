@@ -4,9 +4,11 @@ import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -52,7 +54,7 @@ public class Interact extends Module {
             }
         }
 
-        if (ghostHand.getValue()) {
+        if (ghostHand.getValue() && !InventoryUtil.isHolding(Items.END_CRYSTAL)) {
             new ArrayList<>(mc.world.loadedTileEntityList).forEach(tileEntity -> {
                 if (new BlockPos(Objects.requireNonNull(mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks())).getBlockPos()).equals(tileEntity.getPos()))
                     return;

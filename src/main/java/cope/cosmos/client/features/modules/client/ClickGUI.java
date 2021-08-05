@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.clickgui.cosmos.window.WindowManager;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
+import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Keyboard;
 
 import cope.cosmos.client.Cosmos;
@@ -21,6 +22,7 @@ public class ClickGUI extends Module {
 		INSTANCE = this;
 	}
 
+	public static Setting<GUI> mode = new Setting<>("Mode", "The mode for the GUI screen", GUI.WINDOW);
 	public static Setting<Color> primaryColor = new Setting<>("PrimaryColor", "The primary color for the GUI", new Color(154, 81, 200, 255));
 	public static Setting<Color> backgroundColor = new Setting<>("BackgroundColor", "The background color for the GUI", new Color(23, 23, 29, 255));
 	public static Setting<Color> accentColor = new Setting<>("AccentColor", "The accent color for the GUI", new Color(35, 35, 45, 255));
@@ -32,7 +34,8 @@ public class ClickGUI extends Module {
 	public void onEnable() {
 		super.onEnable();
 
-		mc.displayGuiScreen(Cosmos.INSTANCE.getCosmosGUI());
+		mc.displayGuiScreen(Cosmos.INSTANCE.getWindowGUI());
+
 		WindowManager.getWindows().forEach(window -> {
 			((CategoryWindow) window).getAnimation().setState(true);
 			((CategoryWindow) window).setOpen(true);
@@ -57,5 +60,19 @@ public class ClickGUI extends Module {
 
 	public Color getComplexionColor() {
 		return complexionColor.getValue();
+	}
+
+	public enum GUI {
+		WINDOW(Cosmos.INSTANCE.getWindowGUI()), COSMOS(Cosmos.INSTANCE.getCosmosGUI());
+
+		private final GuiScreen screen;
+
+		GUI(GuiScreen screen) {
+			this.screen = screen;
+		}
+
+		public GuiScreen getScreen() {
+			return screen;
+		}
 	}
 }
