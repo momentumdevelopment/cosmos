@@ -1,15 +1,17 @@
 package cope.cosmos.client.clickgui.windowed;
 
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
+import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 
-public class WindowGUI extends GuiScreen {
+public class WindowGUI extends GuiScreen implements Util {
 
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
 
@@ -23,6 +25,10 @@ public class WindowGUI extends GuiScreen {
 
         WindowManager.getWindows().forEach(window -> {
             window.drawWindow();
+
+            if (mouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
+                window.handleScroll(Mouse.getDWheel());
+            }
         });
     }
 

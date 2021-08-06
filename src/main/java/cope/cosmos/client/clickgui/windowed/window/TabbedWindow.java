@@ -11,7 +11,7 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
-public class TabbedWindow extends Window {
+public class TabbedWindow extends ScrollableWindow {
 
     private final List<Tab<?>> tabs = new ArrayList<>();
     private static Tab<?> tab;
@@ -29,7 +29,7 @@ public class TabbedWindow extends Window {
 
         offset = 0;
         tabs.forEach(tabComponent -> {
-            tabComponent.drawTab(new Vec2f(getPosition().x + offset + 4, getPosition().y + getBar() + 4), FontUtil.getStringWidth(tabComponent.getName()) + 3, height);
+            tabComponent.drawTab(new Vec2f(getPosition().x + offset + 4, getPosition().y + getBar() + 3), FontUtil.getStringWidth(tabComponent.getName()) + 3, height);
             offset += tabComponent.getWidth() + 2;
         });
     }

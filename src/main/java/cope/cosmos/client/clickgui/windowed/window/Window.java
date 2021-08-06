@@ -74,6 +74,10 @@ public class Window implements Util, Wrapper {
 
     }
 
+    public void handleScroll(int scroll) {
+
+    }
+
     public void setPosition(Vec2f in) {
         position = in;
     }
