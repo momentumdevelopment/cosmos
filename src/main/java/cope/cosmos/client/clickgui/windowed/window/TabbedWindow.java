@@ -27,11 +27,19 @@ public class TabbedWindow extends ScrollableWindow {
     public void drawWindow() {
         super.drawWindow();
 
+        glPushAttrib(GL_SCISSOR_BIT); {
+            RenderUtil.scissor((int) (getPosition().x + 2), (int) (getPosition().y + getBar() + 2), (int) (getPosition().x + getWidth() - 15), (int) (getPosition().y + getBar() + 4 + height));
+            glEnable(GL_SCISSOR_TEST);
+        }
+
         offset = 0;
         tabs.forEach(tabComponent -> {
-            tabComponent.drawTab(new Vec2f(getPosition().x + offset + 4, getPosition().y + getBar() + 3), FontUtil.getStringWidth(tabComponent.getName()) + 3, height);
+            tabComponent.drawTab(new Vec2f(getPosition().x + offset + 3, getPosition().y + getBar() + 3), FontUtil.getStringWidth(tabComponent.getName()) + 3, height);
             offset += tabComponent.getWidth() + 2;
         });
+
+        glDisable(GL_SCISSOR_TEST);
+        glPopAttrib();
     }
 
     @Override
@@ -42,8 +50,18 @@ public class TabbedWindow extends ScrollableWindow {
         tabs.forEach(tabComponent -> {
             if (mouseOver(tabComponent.getPosition().x, tabComponent.getPosition().y, tabComponent.getWidth(), tabComponent.getHeight())) {
                 setTab(tabComponent);
+                handleTabChange();
             }
         });
+    }
+
+    @Override
+    public void handleKeyPress(char typedCharacter, int key) {
+        super.handleKeyPress(typedCharacter, key);
+    }
+
+    public void handleTabChange() {
+
     }
 
     public List<Tab<?>> getTabs() {

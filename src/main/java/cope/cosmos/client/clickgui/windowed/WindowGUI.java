@@ -73,6 +73,10 @@ public class WindowGUI extends GuiScreen implements Util {
     @Override
     public void keyTyped(char typedChar, int keyCode) throws IOException {
         super.keyTyped(typedChar, keyCode);
+
+        WindowManager.getWindows().forEach(window -> {
+            window.handleKeyPress(typedChar, keyCode);
+        });
     }
 
     @Override

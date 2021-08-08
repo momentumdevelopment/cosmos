@@ -53,6 +53,11 @@ public class ScrollableWindow extends Window {
         this.scroll += scroll * 0.05F;
     }
 
+    @Override
+    public void handleKeyPress(char typedCharacter, int key) {
+        super.handleKeyPress(typedCharacter, key);
+    }
+
     public void setLowerBound(float in) {
         lowerBound = in;
     }

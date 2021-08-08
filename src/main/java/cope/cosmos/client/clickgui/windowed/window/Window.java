@@ -78,6 +78,10 @@ public class Window implements Util, Wrapper {
 
     }
 
+    public void handleKeyPress(char typedCharacter, int key) {
+
+    }
+
     public void setPosition(Vec2f in) {
         position = in;
     }
