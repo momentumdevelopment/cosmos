@@ -69,27 +69,31 @@ public class ConfigurationWindow extends TabbedWindow {
         GuiScreen.drawModalRectWithCustomSizedTexture((int) (getPosition().x + 4), (int) (getPosition().y + getBar() + 4), 0, 0, 13, 13, 13, 13);
         glPopMatrix();
 
-        glPushAttrib(GL_SCISSOR_BIT); {
-            RenderUtil.scissor((int) (getPosition().x + 3), (int) (getPosition().y + getBar() + 3), (int) (getPosition().x + getWidth() - 15), (int) (getPosition().y + getHeight() - 3));
-            glEnable(GL_SCISSOR_TEST);
-        }
-
         // module background
         RenderUtil.drawBorderRect(getPosition().x + 4, getPosition().y + getBar() + getTab().getHeight() + 6, getWidth() - 20, getHeight() - getBar() - getTab().getHeight() - 10, new Color(0, 0, 0, 40), new Color(0, 0, 0, 70));
 
+        glPushAttrib(GL_SCISSOR_BIT); {
+            RenderUtil.scissor((int) (getPosition().x + 3), (int) (getPosition().y + getBar() + 19), (int) (getPosition().x + getWidth() - 15), (int) (getPosition().y + getHeight() - 3));
+            glEnable(GL_SCISSOR_TEST);
+        }
+
         float halfWidth = (getWidth() - 28) / 2;
 
+        // render both of our columns
         leftOffset = 0;
         leftColumn.forEach(component -> {
-            component.drawComponent(new Vec2f(getPosition().x + 6, getPosition().y + getBar() + getTab().getHeight() + 8 + leftOffset + getScroll()), halfWidth);
+            component.drawComponent(new Vec2f(getPosition().x + 6, getPosition().y + getBar() + getTab().getHeight() + 8 + leftOffset - getScroll()), halfWidth);
             leftOffset += component.getHeight() + 4;
         });
 
         rightOffset = 0;
         rightColumn.forEach(component -> {
-            component.drawComponent(new Vec2f(getPosition().x + 10 + halfWidth, getPosition().y + getBar() + getTab().getHeight() + 8 + rightOffset + getScroll()), halfWidth);
+            component.drawComponent(new Vec2f(getPosition().x + 10 + halfWidth, getPosition().y + getBar() + getTab().getHeight() + 8 + rightOffset - getScroll()), halfWidth);
             rightOffset += component.getHeight() + 4;
         });
+
+        // set our lower bound as our lowest component
+        setLowerBound(Math.max(leftOffset, rightOffset));
 
         glDisable(GL_SCISSOR_TEST);
         glPopAttrib();

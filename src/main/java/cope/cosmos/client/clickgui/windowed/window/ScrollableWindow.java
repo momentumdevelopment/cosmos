@@ -11,11 +11,14 @@ import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 
 public class ScrollableWindow extends Window {
 
-    private float lowerBound = getHeight() - getBar() + 75;
+    private float lowerBound;
     private float scroll;
 
     public ScrollableWindow(String name, Vec2f position) {
         super(name, position);
+
+        // initialize as the same height
+        lowerBound = getHeight() - getBar();
     }
 
     @Override
@@ -26,11 +29,14 @@ public class ScrollableWindow extends Window {
         float upperBound = getHeight() - getBar();
 
         // make sure the scroll doesn't go farther than our bounds
-        scroll = MathHelper.clamp(scroll, 0, lowerBound);
+        scroll = MathHelper.clamp(scroll, 0, MathHelper.clamp(lowerBound - (upperBound - 23), 0, Float.MAX_VALUE));
+
+        // scroll, but bounds are ignored
+        float unboundScroll = MathHelper.clamp(scroll, 0, lowerBound);
 
         // scale our scroll bar's vertical position
         float scaledHeight = MathHelper.clamp((upperBound / lowerBound), 0, 1) * (upperBound - 3);
-        float scaledY = MathHelper.clamp((scroll / lowerBound), 0, 1) * (upperBound - 7 - scaledHeight);
+        float scaledY = MathHelper.clamp((unboundScroll / lowerBound), 0, 1) * (upperBound + 15 - scaledHeight);
 
         glPushAttrib(GL_SCISSOR_BIT); {
             RenderUtil.scissor((int) (getPosition().x + getWidth() - 13), (int) (getPosition().y + getBar() + 2), (int) (getPosition().x + getWidth() - 2), (int) (getPosition().y + getBar() + upperBound - 3));
