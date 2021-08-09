@@ -32,7 +32,7 @@ public class TabbedWindow extends ScrollableWindow {
             glEnable(GL_SCISSOR_TEST);
         }
 
-        offset = 0;
+        offset = getOffset();
         tabs.forEach(tabComponent -> {
             tabComponent.drawTab(new Vec2f(getPosition().x + offset + 3, getPosition().y + getBar() + 3), FontUtil.getStringWidth(tabComponent.getName()) + 3, height);
             offset += tabComponent.getWidth() + 2;
@@ -56,6 +56,11 @@ public class TabbedWindow extends ScrollableWindow {
     }
 
     @Override
+    public void handleRightClick() {
+        super.handleRightClick();
+    }
+
+    @Override
     public void handleKeyPress(char typedCharacter, int key) {
         super.handleKeyPress(typedCharacter, key);
     }
@@ -74,6 +79,10 @@ public class TabbedWindow extends ScrollableWindow {
 
     public Tab<?> getTab() {
         return tab;
+    }
+
+    public float getOffset() {
+        return 0;
     }
 
     public static class Tab<T> {

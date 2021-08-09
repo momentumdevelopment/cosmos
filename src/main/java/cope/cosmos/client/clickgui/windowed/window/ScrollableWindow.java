@@ -48,6 +48,16 @@ public class ScrollableWindow extends Window {
     }
 
     @Override
+    public void handleLeftClick() {
+        super.handleLeftClick();
+    }
+
+    @Override
+    public void handleRightClick() {
+        super.handleRightClick();
+    }
+
+    @Override
     public void handleScroll(int scroll) {
         super.handleScroll(scroll);
         this.scroll += scroll * 0.05F;

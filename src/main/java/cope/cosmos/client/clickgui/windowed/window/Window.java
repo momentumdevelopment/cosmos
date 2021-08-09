@@ -74,6 +74,10 @@ public class Window implements Util, Wrapper {
 
     }
 
+    public void handleRightClick() {
+
+    }
+
     public void handleScroll(int scroll) {
 
     }

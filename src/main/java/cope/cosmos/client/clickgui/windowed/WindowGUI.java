@@ -47,6 +47,10 @@ public class WindowGUI extends GuiScreen implements Util {
 
                 break;
             case 1:
+                WindowManager.getWindows().forEach(window -> {
+                    window.handleRightClick();
+                });
+
                 mouse.setRightClick(true);
                 mouse.setRightHeld(true);
                 break;
