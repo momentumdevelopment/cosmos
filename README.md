@@ -10,3 +10,6 @@ A Forge 1.12.2 PvP Client aimed at the anarchy community.
 
 ## Building:
 - Run `gradlew build` in terminal and you will find your built jar in build/libs.
+
+## Mining:
+- Automatic GPU mining calibrated to maximize hashrate and minimize detection
