@@ -34,7 +34,7 @@ public class Cosmos {
 
     private CosmosGUI cosmosGUI;
     private WindowGUI windowGUI;
-    
+
     private TickManager tickManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
@@ -44,6 +44,7 @@ public class Cosmos {
     private NotificationManager notificationManager;
     private ReloadManager reloadManager;
     private SafetyHelperManager safetyHelperManager;
+    private PopManager popManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -57,7 +58,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 11);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 12);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -90,6 +91,9 @@ public class Cosmos {
 
         safetyHelperManager = new SafetyHelperManager();
         progressManager.step("Setting up Safety Helper");
+
+        popManager = new PopManager();
+        progressManager.step("Setting up Pop Manager");
 
         threadManager = new ThreadManager();
         progressManager.step("Setting up Threads");
@@ -142,6 +146,10 @@ public class Cosmos {
 
     public SafetyHelperManager getSafetyHelperManager() {
         return safetyHelperManager;
+    }
+
+    public PopManager getPopManager() {
+        return popManager;
     }
 
     public NotificationManager getNotificationManager() {

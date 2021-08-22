@@ -75,7 +75,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeAttacks = new Setting<>("Attacks", "Attacks per crystal", 1.0, 1.0, 5.0, 0).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
     public static Setting<Boolean> explodePacket = new Setting<>("Packet", "Explode with packets", true).setParent(explode);
-    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks against crystals that would already be exploded", false).setParent(explode);
+    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", false).setParent(explode);
     public static Setting<Hand> explodeHand = new Setting<>("Hand", "Hand to swing when exploding crystals", Hand.MAINHAND).setParent(explode);
     public static Setting<Switch> explodeWeakness = new Setting<>("Weakness", "Switch to a tool when weakness is active", Switch.NONE).setParent(explode);
 

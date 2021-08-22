@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ITextComponentString;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModuleToggleEvent;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -32,25 +33,12 @@ public class ChatModifications extends Module {
     public static Setting<Boolean> prefix = new Setting<>("Prefix", "Add a cosmos prefix before chat messages", false);
     public static Setting<Boolean> suffix = new Setting<>("Suffix", "Add a cosmos suffix after chat messages", true);
     public static Setting<Boolean> colored = new Setting<>("Colored", "Add a > before public messages", true);
-    public static Setting<Boolean> enableNotify = new Setting<>("EnableNotify", "Send a chat message when a modules is toggled", false);
 
     /*
     public static Setting<Boolean> highlight = new Setting<>("Highlight", true);
     public static Setting<TextFormatting> self = new Setting<>("Self", TextFormatting.DARK_PURPLE).setParent(highlight);
     public static Setting<TextFormatting> friends = new Setting<>("Friends", TextFormatting.AQUA).setParent(highlight);
      */
-
-    @SubscribeEvent
-    public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN)
-            ChatUtil.sendModuleEnableMessage(event.getModule());
-    }
-
-    @SubscribeEvent
-    public void onModuleDisable(ModuleToggleEvent.ModuleDisableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN)
-            ChatUtil.sendModuleDisableMessage(event.getModule());
-    }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
