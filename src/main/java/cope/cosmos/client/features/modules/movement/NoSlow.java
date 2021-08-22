@@ -27,6 +27,9 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SuppressWarnings("unused")
 public class NoSlow extends Module {
     public static NoSlow INSTANCE;
@@ -44,6 +47,8 @@ public class NoSlow extends Module {
     public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slime slowdown effect", true);
 
     boolean airPacket;
+
+    private final List<CPacketEntityAction> safeAirPackets = new ArrayList<>();
 
     @Override
     public void onUpdate() {
@@ -86,7 +91,9 @@ public class NoSlow extends Module {
     @SubscribeEvent
     public void onUseItem(LivingEntityUseItemEvent event) {
         if (!airPacket && airStrict.getValue()) {
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+            CPacketEntityAction sneakPacket = new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING);
+            mc.player.connection.sendPacket(sneakPacket);
+            safeAirPackets.add(sneakPacket);
             airPacket = true;
         }
     }
@@ -105,7 +112,7 @@ public class NoSlow extends Module {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, new BlockPos(Math.floor(mc.player.posX), Math.floor(mc.player.posY), Math.floor(mc.player.posZ)), EnumFacing.DOWN));
         }
 
-        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING) && sneak.getValue()) {
+        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING) && !safeAirPackets.contains((CPacketEntityAction) event.getPacket()) && sneak.getValue()) {
             event.setCanceled(true);
         }
     }
