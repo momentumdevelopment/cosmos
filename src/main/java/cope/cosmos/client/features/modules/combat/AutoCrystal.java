@@ -1,3 +1,41 @@
+/*rotations rewrite. code code code code, 
+import rotation.util.cope;
+  private Rotation crystalRotation;
+
+    @Override
+    public void onUpdate() {
+        explodeCrystal();
+        placeCrystal();
+    }
+
+    @Override
+    public void onThread() {
+        if (pause.getValue()) {
+            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue())
+                return;
+
+            if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode)
+                return;
+        }
+
+        explodeCrystal = searchCrystal();
+        placePosition = searchPosition();
+    }
+
+    public void explodeCrystal() {
+        if (explodeCrystal != null) {
+            if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.BREAK) || rotateWhen.getValue().equals(When.BOTH))) {
+                // find the angles and update the rotation
+                float[] explodeAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(explodeCrystal.getCrystal()) : AngleUtil.calculateAngles(explodeCrystal.getCrystal());
+                crystalRotation = new Rotation((float) (explodeAngles[0] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), (float) (explodeAngles[1] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), rotate.getValue());
+
+                // update the player model, not necessary but looks way cooler
+                if (!Float.isNaN(crystalRotation.getYaw()) && !Float.isNaN(crystalRotation.getPitch()))
+                    crystalRotation.updateModelRotations();
+            }
+
+*/
+
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
