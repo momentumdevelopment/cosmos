@@ -19,6 +19,7 @@ public class RenderBuilder {
     private boolean shade = false;
 
     private BlockPos blockPos = BlockPos.ORIGIN;
+
     private double height = 0;
     private double length = 0;
     private double width = 0;

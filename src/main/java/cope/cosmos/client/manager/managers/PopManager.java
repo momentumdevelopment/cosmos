@@ -26,15 +26,17 @@ public class PopManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onUpdate(LivingEvent.LivingUpdateEvent event) {
-        mc.world.loadedEntityList.forEach(entity -> {
-            if (totemPops.containsKey(entity) && EnemyUtil.isDead(entity)) {
-                if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
-                    ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + entity.getName() + TextFormatting.RESET + " died after popping " + totemPops.get(entity) + " totems!");
-                }
+        if (nullCheck()) {
+            mc.world.loadedEntityList.forEach(entity -> {
+                if (totemPops.containsKey(entity) && EnemyUtil.isDead(entity)) {
+                    if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
+                        ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + entity.getName() + TextFormatting.RESET + " died after popping " + totemPops.get(entity) + " totems!");
+                    }
 
-                totemPops.remove(entity);
-            }
-        });
+                    totemPops.remove(entity);
+                }
+            });
+        }
     }
 
     @SubscribeEvent
