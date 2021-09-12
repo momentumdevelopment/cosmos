@@ -87,7 +87,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(place);
     public static Setting<Double> placeAttempts = new Setting<>("Attempts", "Place attempts per cycle", 1.0, 1.0, 5.0, 0).setParent(place);
     public static Setting<Boolean> placePacket = new Setting<>("Packet", "Place with packets", true).setParent(place);
-    public static Setting<Boolean> placeDirection = new Setting<>("StrictDirection", "Limits the direction of placements to only upward facing", false).setParent(place);
+    public static Setting<Boolean> placeDirection = new Setting<>("StrictDirection", "Limits the direction of placements to only downard facing", false).setParent(place);
     public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", "Mode to verify placements through walls", Raytrace.DOUBLE).setParent(place);
     public static Setting<Hand> placeHand = new Setting<>("Hand", "Hand to swing when placing crystals", Hand.MAINHAND).setParent(place);
     public static Setting<Switch> placeSwitch = new Setting<>("Switch", "Mode to use when switching to a crystal", Switch.NONE).setParent(place);
