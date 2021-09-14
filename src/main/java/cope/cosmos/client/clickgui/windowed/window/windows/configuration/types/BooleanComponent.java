@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
@@ -7,12 +8,12 @@ import net.minecraft.util.math.Vec2f;
 import java.awt.Color;
 
 public class BooleanComponent extends TypeComponent<Boolean> {
-    public BooleanComponent(Setting<Boolean> setting) {
-        super(setting);
+    public BooleanComponent(SettingComponent settingComponent, Setting<Boolean> setting) {
+        super(settingComponent, setting);
     }
 
     @Override
-    public void drawType(Vec2f position, float width) {
+    public void drawType(Vec2f position, float width, float height) {
         setPosition(position);
         setWidth(width);
 

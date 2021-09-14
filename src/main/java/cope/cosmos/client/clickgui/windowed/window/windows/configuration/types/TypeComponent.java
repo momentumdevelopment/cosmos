@@ -1,22 +1,25 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
 import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.math.Vec2f;
 
 public abstract class TypeComponent<T> implements Util {
 
+    private final SettingComponent settingComponent;
     private final Setting<T> setting;
 
     private Vec2f position;
     private float width;
     private float height;
 
-    public TypeComponent(Setting<T> setting) {
+    public TypeComponent(SettingComponent settingComponent, Setting<T> setting) {
+        this.settingComponent = settingComponent;
         this.setting = setting;
     }
 
-    public abstract void drawType(Vec2f position, float width);
+    public abstract void drawType(Vec2f position, float width, float height);
 
     public abstract void handleLeftClick();
 
@@ -26,6 +29,10 @@ public abstract class TypeComponent<T> implements Util {
 
     public Setting<T> getSetting() {
         return setting;
+    }
+
+    public SettingComponent getSettingComponent() {
+        return settingComponent;
     }
 
     public void setPosition(Vec2f in) {

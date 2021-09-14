@@ -3,6 +3,7 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.BooleanComponent;
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.NumberComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.FontUtil;
@@ -38,7 +39,15 @@ public class SettingComponent extends Component {
         });
 
         if (setting.getValue() instanceof Boolean) {
-            typeComponent = new BooleanComponent((Setting<Boolean>) setting);
+            typeComponent = new BooleanComponent(this, (Setting<Boolean>) setting);
+        }
+
+        else if (setting.getValue() instanceof Double) {
+            typeComponent = new NumberComponent(this, (Setting<Number>) setting);
+        }
+
+        else if (setting.getValue() instanceof Float) {
+            typeComponent = new NumberComponent(this, (Setting<Number>) setting);
         }
     }
 
@@ -76,7 +85,12 @@ public class SettingComponent extends Component {
         }
 
         // set the height to equal the component's height
-        setHeight(FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 7);
+        setHeight(FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 6);
+
+        // update the height to fit the component if needed
+        if (typeComponent instanceof NumberComponent) {
+            setHeight(getHeight() + 7);
+        }
 
         // setting background
         RenderUtil.drawRect(position.x, position.y, width, getHeight(), new Color(hoverAnimation, hoverAnimation, hoverAnimation, 40));
@@ -99,7 +113,7 @@ public class SettingComponent extends Component {
         glScaled(1.6666667, 1.6666667, 1.6666667);
 
         if (typeComponent != null) {
-            typeComponent.drawType(position, width);
+            typeComponent.drawType(position, width, getHeight());
         }
 
         glPopMatrix();

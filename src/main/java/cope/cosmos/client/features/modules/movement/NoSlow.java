@@ -74,14 +74,21 @@ public class NoSlow extends Module {
             mc.gameSettings.keyBindJump.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
 
             {
-                if (Keyboard.isKeyDown(Keyboard.KEY_UP))
+                if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
                     mc.player.rotationPitch -= 5;
-                else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN))
+                }
+
+                else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
                     mc.player.rotationPitch += 5;
-                else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
+                }
+
+                else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
                     mc.player.prevRotationYaw += 5;
-                if (Keyboard.isKeyDown(Keyboard.KEY_LEFT))
+                }
+
+                if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
                     mc.player.prevRotationYaw -= 5;
+                }
 
                 mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -90, 90);
             }
@@ -153,7 +160,6 @@ public class NoSlow extends Module {
                 return false;
             }
         }
-
     }
 }
 
