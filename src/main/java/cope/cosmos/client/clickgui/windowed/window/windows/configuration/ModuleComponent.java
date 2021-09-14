@@ -4,6 +4,7 @@ import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
@@ -79,7 +80,7 @@ public class ModuleComponent extends Component implements Util {
         RenderUtil.drawRect(position.x, position.y, width, getHeight(), new Color(hoverAnimation, hoverAnimation, hoverAnimation, 40));
 
         // module name & description
-        FontUtil.drawStringWithShadow(module.getName(), position.x + 3, position.y + 3, module.isEnabled() ? Color.RED.getRGB() : -1);
+        FontUtil.drawStringWithShadow(module.getName(), position.x + 3, position.y + 3, module.isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : -1);
 
         glScaled(0.6, 0.6, 0.6); {
             float scaledUpperX = (position.x + 1) * 1.6666667F;

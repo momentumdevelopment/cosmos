@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.client.features.modules.Category;
@@ -65,7 +66,6 @@ public class HoleFill extends Module {
 
     public static Setting<Boolean> render = new Setting<>("Render", "Render a visual of the filling process", true);
     public static Setting<Box> renderMode = new Setting<>("Mode", "Style of the visual", Box.FILL).setParent(render);
-    public static Setting<Color> renderColor = new Setting<>("Color", "Color for the visual", new Color(250, 0, 250, 50)).setParent(render);
 
     int previousSlot;
     EntityPlayer fillTarget;
@@ -181,7 +181,7 @@ public class HoleFill extends Module {
     @Override
     public void onRender3D() {
         if (nullCheck() && fillPosition != BlockPos.ORIGIN && render.getValue()) {
-            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(renderColor.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 60)).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
         }
     }
 

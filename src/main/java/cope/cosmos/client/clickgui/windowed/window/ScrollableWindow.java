@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
@@ -47,7 +48,7 @@ public class ScrollableWindow extends Window {
         RenderUtil.drawBorderRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3, 9, upperBound - 7, new Color(0, 0, 0, 40), new Color(0, 0, 0, 70));
 
         // scroll bar
-        RenderUtil.drawRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight, new Color(255, 0, 0, 130));
+        RenderUtil.drawRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
 
         glDisable(GL_SCISSOR_TEST);
         glPopAttrib();

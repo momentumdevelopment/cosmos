@@ -7,6 +7,7 @@ import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.TargetUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
@@ -92,7 +93,6 @@ public class Aura extends Module {
     public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", "Target hostiles", false).setParent(target);
 
     public static Setting<Boolean> render = new Setting<>("Render", "Render a visual over the target", true);
-    public static Setting<Color> color = new Setting<>("Color", "Color of the visual", new Color(144, 0, 255, 45)).setParent(render);
 
     private Entity auraTarget = null;
     private final Timer auraTimer = new Timer();
@@ -110,7 +110,7 @@ public class Aura extends Module {
     @Override
     public void onRender3D() {
         if (auraTarget != null && render.getValue())
-            RenderUtil.drawCircle(new RenderBuilder().setup().line(1.5F).depth(true).blend().texture(), InterpolationUtil.getInterpolatedPos(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), color.getValue());
+            RenderUtil.drawCircle(new RenderBuilder().setup().line(1.5F).depth(true).blend().texture(), InterpolationUtil.getInterpolatedPos(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
     }
 
     public void killAura() {

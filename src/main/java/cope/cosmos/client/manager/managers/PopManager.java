@@ -12,6 +12,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public class PopManager extends Manager implements Wrapper {
     @SubscribeEvent
     public void onUpdate(LivingEvent.LivingUpdateEvent event) {
         if (nullCheck()) {
-            mc.world.loadedEntityList.forEach(entity -> {
+            new ArrayList<>(mc.world.loadedEntityList).forEach(entity -> {
                 if (totemPops.containsKey(entity) && EnemyUtil.isDead(entity)) {
                     if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
                         ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + entity.getName() + TextFormatting.RESET + " died after popping " + totemPops.get(entity) + " totems!");

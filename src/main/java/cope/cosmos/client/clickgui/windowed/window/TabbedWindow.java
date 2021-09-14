@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
@@ -111,7 +112,7 @@ public class TabbedWindow extends ScrollableWindow {
 
             // tab outline
             RenderUtil.drawRect(position.x, position.y - 0.5F, width, 1, new Color(0, 0, 0, 70));
-            RenderUtil.drawRect(position.x, position.y + height - (tab == this ? 1.5F : 0.5F), width, tab == this ? 2 : 1, tab == this ? new Color(255, 0, 0, 130) : new Color(0, 0, 0, 70));
+            RenderUtil.drawRect(position.x, position.y + height - (tab == this ? 1.5F : 0.5F), width, tab == this ? 2 : 1, tab == this ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130) : new Color(0, 0, 0, 70));
             RenderUtil.drawRect(position.x - 0.5F, position.y, 1, height, new Color(0, 0, 0, 70));
             RenderUtil.drawRect(position.x + width - 0.5F, position.y, 1, height, new Color(0, 0, 0, 70));
 

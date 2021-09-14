@@ -2,6 +2,7 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
 
@@ -17,7 +18,7 @@ public class BooleanComponent extends TypeComponent<Boolean> {
         setPosition(position);
         setWidth(width);
 
-        RenderUtil.drawRect(position.x + width - 19, position.y + 2, 17, 17, getSetting().getValue() ? new Color(255, 0, 0, 140) : new Color(0, 0, 0, 80));
+        RenderUtil.drawRect(position.x + width - 19, position.y + 2, 17, 17, getSetting().getValue() ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 140) : new Color(0, 0, 0, 80));
     }
 
     @Override

@@ -10,6 +10,7 @@ import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
@@ -131,7 +132,6 @@ public class AutoCrystal extends Module {
     public static Setting<Text> renderText = new Setting<>("Text", "Text for the visual", Text.NONE).setParent(render);
     public static Setting<Info> renderInfo = new Setting<>("Info", "Arraylist information", Info.NONE).setParent(render);
     public static Setting<Double> renderWidth = new Setting<>(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE), "Width", "Line width for the visual", 0.0, 1.5, 3.0, 1).setParent(render);
-    public static Setting<Color> renderColor = new Setting<>("Color", "Color for the visual", new Color(144, 0, 255, 45)).setParent(render);
 
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
@@ -430,7 +430,7 @@ public class AutoCrystal extends Module {
     @Override
     public void onRender3D() {
         if (render.getValue() && placePosition != null && !placePosition.getPosition().equals(BlockPos.ORIGIN) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
-            RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(renderColor.getValue()).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+            RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 60)).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, getText(renderText.getValue()));
         }
     }
@@ -605,6 +605,7 @@ public class AutoCrystal extends Module {
                 return String.valueOf(MathUtil.roundDouble(placePosition.getSelfDamage(), 1));
             case BOTH:
                 return "Target: " + MathUtil.roundDouble(placePosition.getTargetDamage(), 1) + ", Self: " + MathUtil.roundDouble(placePosition.getSelfDamage(), 1);
+            case NONE:
             default:
                 return "";
         }

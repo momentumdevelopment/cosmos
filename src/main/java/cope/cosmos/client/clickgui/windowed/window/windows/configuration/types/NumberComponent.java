@@ -2,9 +2,11 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.MathUtil;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
@@ -75,9 +77,9 @@ public class NumberComponent extends TypeComponent<Number> {
         }
 
         // slider
-        RenderUtil.drawRoundedRect(position.x + 4, position.y + 21, pixAdd - 2, 3, 2, new Color(200, 0, 0));
+        RenderUtil.drawRoundedRect(position.x + 4, position.y + 21, pixAdd - 2, 3, 2, ColorUtil.getPrimaryColor().darker());
         RenderUtil.drawRoundedRect(position.x + 4 + pixAdd, position.y + 21, width - 8 - pixAdd, 3, 2, new Color(0, 0, 0, 70));
-        RenderUtil.drawPolygon(position.x + 2 + pixAdd, position.y + 22.5, 2, 360, Color.RED);
+        RenderUtil.drawPolygon(position.x + 2 + pixAdd, position.y + 22.5, 2, 360, ColorUtil.getPrimaryColor());
     }
 
     @Override

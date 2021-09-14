@@ -2,6 +2,7 @@ package cope.cosmos.client.clickgui.windowed.window;
 
 import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.ScaledResolution;
@@ -57,13 +58,13 @@ public class Window implements Util, Wrapper {
         RenderUtil.drawRect(position.x, position.y, width, height, new Color(0, 0, 0, 90));
 
         // title bar
-        RenderUtil.drawRect(position.x, position.y, width, bar, new Color(255, 0, 0, 130));
+        RenderUtil.drawRect(position.x, position.y, width, bar, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
         FontUtil.drawStringWithShadow(name, position.x + 5, position.y + 3, -1);
 
         // window outline
-        RenderUtil.drawRect(position.x, position.y + bar, 1, height - bar - 1, new Color(255, 0, 0, 130));
-        RenderUtil.drawRect(position.x + width - 1, position.y + bar, 1, height - bar - 1, new Color(255, 0, 0, 130));
-        RenderUtil.drawRect(position.x, position.y + height - 1, width, 1, new Color(255, 0, 0, 130));
+        RenderUtil.drawRect(position.x, position.y + bar, 1, height - bar - 1, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
+        RenderUtil.drawRect(position.x + width - 1, position.y + bar, 1, height - bar - 1, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
+        RenderUtil.drawRect(position.x, position.y + height - 1, width, 1, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
 
         glPopMatrix();
 

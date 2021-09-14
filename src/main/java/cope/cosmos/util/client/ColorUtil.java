@@ -1,10 +1,15 @@
 package cope.cosmos.util.client;
 
+import cope.cosmos.client.features.modules.client.Colors;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Color;
 
 public class ColorUtil {
+
+	public static Color getPrimaryColor() {
+		return Colors.color.getValue();
+	}
 
 	public static Color alphaCycle(Color color, int index, int count) {
 		float[] hsb = new float[3];
