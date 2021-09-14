@@ -455,7 +455,7 @@ public class AutoCrystal extends Module {
             ((ICPacketPlayer) event.getPacket()).setYaw(crystalRotation.getYaw());
             ((ICPacketPlayer) event.getPacket()).setPitch(crystalRotation.getPitch());
         }
-        
+
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             switchTimer.reset();
         }
@@ -584,7 +584,7 @@ public class AutoCrystal extends Module {
     }
 
     public String getRenderInfo() {
-       switch (renderInfo.getValue()) {
+        switch (renderInfo.getValue()) {
             case DAMAGE:
                 return String.valueOf(MathUtil.roundDouble(placePosition.getTargetDamage(), 1));
             case LATENCY:

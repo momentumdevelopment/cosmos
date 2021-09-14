@@ -18,7 +18,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "1.0.0"
+version = "1.0.1"
 group = "cope.cosmos"
 archivesBaseName = "cosmos"
 
