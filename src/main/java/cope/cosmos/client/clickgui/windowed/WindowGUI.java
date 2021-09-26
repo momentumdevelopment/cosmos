@@ -42,13 +42,21 @@ public class WindowGUI extends GuiScreen implements Util {
                 mouse.setLeftHeld(true);
 
                 WindowManager.getWindows().forEach(window -> {
-                    window.handleLeftClick();
+                    try {
+                        window.handleLeftClick();
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
                 });
 
                 break;
             case 1:
                 WindowManager.getWindows().forEach(window -> {
-                    window.handleRightClick();
+                    try {
+                        window.handleRightClick();
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
                 });
 
                 mouse.setRightClick(true);
@@ -79,7 +87,11 @@ public class WindowGUI extends GuiScreen implements Util {
         super.keyTyped(typedChar, keyCode);
 
         WindowManager.getWindows().forEach(window -> {
-            window.handleKeyPress(typedChar, keyCode);
+            try {
+                window.handleKeyPress(typedChar, keyCode);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         });
     }
 
@@ -94,8 +106,9 @@ public class WindowGUI extends GuiScreen implements Util {
         Cosmos.INSTANCE.getPresetManager().save();
 
         // remove any shaders we are using
-        if (mc.entityRenderer.isShaderActive())
+        if (mc.entityRenderer.isShaderActive()) {
             mc.entityRenderer.getShaderGroup().deleteShaderGroup();
+        }
     }
 
     @Override

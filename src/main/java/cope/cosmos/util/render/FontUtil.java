@@ -17,7 +17,9 @@ public class FontUtil implements Wrapper {
 	public static void drawStringWithShadow(String text, float x, float y, int color) {
 		if (Font.INSTANCE.isEnabled()) {
 			globalFont.drawStringWithShadow(text, x, y, color);
-		} else {
+		}
+
+		else {
 			mc.fontRenderer.drawStringWithShadow(text, x, y, color);
 		}
 	}

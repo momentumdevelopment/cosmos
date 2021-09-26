@@ -77,7 +77,7 @@ public class NumberComponent extends TypeComponent<Number> {
         }
 
         // slider
-        RenderUtil.drawRoundedRect(position.x + 4, position.y + 21, pixAdd - 2, 3, 2, ColorUtil.getPrimaryColor().darker());
+        RenderUtil.drawRoundedRect(position.x + 4, position.y + 21, pixAdd - 2, 3, 2, new Color(MathHelper.clamp(ColorUtil.getPrimaryColor().getRed() - 10, 0, 255), MathHelper.clamp(ColorUtil.getPrimaryColor().getGreen() - 10, 0, 255), MathHelper.clamp(ColorUtil.getPrimaryColor().getBlue() - 10, 0, 255)));
         RenderUtil.drawRoundedRect(position.x + 4 + pixAdd, position.y + 21, width - 8 - pixAdd, 3, 2, new Color(0, 0, 0, 70));
         RenderUtil.drawPolygon(position.x + 2 + pixAdd, position.y + 22.5, 2, 360, ColorUtil.getPrimaryColor());
     }

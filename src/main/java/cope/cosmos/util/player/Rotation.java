@@ -19,13 +19,13 @@ public class Rotation implements Wrapper {
         if (nullCheck()) {
             switch (rotate) {
                 case PACKET:
-                    mc.player.renderYawOffset = this.yaw;
-                    mc.player.rotationYawHead = this.yaw;
-                    Cosmos.INSTANCE.getRotationManager().setHeadPitch(this.pitch);
+                    mc.player.renderYawOffset = yaw;
+                    mc.player.rotationYawHead = yaw;
+                    Cosmos.INSTANCE.getRotationManager().setHeadPitch(pitch);
                     break;
                 case CLIENT:
-                    mc.player.rotationYaw = this.yaw;
-                    mc.player.rotationPitch = this.pitch;
+                    mc.player.rotationYaw = yaw;
+                    mc.player.rotationPitch = pitch;
                     break;
                 case NONE:
                 	break;
@@ -35,21 +35,21 @@ public class Rotation implements Wrapper {
 
     public void restoreRotations() {
         if (nullCheck()) {
-            this.yaw = mc.player.rotationYaw;
-            this.pitch = mc.player.rotationPitch;
+            yaw = mc.player.rotationYaw;
+            pitch = mc.player.rotationPitch;
         }
     }
 
     public float getYaw() {
-        return this.yaw;
+        return yaw;
     }
 
     public float getPitch() {
-        return this.pitch;
+        return pitch;
     }
 
     public Rotate getRotation() {
-        return this.rotate;
+        return rotate;
     }
 
     public enum Rotate {

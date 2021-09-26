@@ -7,10 +7,13 @@ import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Setting
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
+import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -33,7 +36,18 @@ public class ConfigurationWindow extends TabbedWindow {
     private ModuleComponent moduleComponent;
     private SettingComponent settingComponent;
 
-    private int backAnimation = 0;
+    private int bindAnimation;
+    private int drawnAnimation;
+    private int backAnimation;
+
+    private boolean binding;
+    private boolean lower;
+
+    private float buttonHeight;
+    private float buttonOffset;
+
+    private float halfWidth;
+    private float quarterWidth;
 
     public ConfigurationWindow(String name, Vec2f position) {
         super(name, position);
@@ -77,10 +91,94 @@ public class ConfigurationWindow extends TabbedWindow {
             glEnable(GL_SCISSOR_TEST);
         }
 
-        float halfWidth = (getWidth() - 28) / 2;
+        halfWidth = (getWidth() - 28) / 2;
+
+        if (page.equals(Page.SETTING) && moduleComponent != null) {
+            // split the description into two lines
+            StringBuilder upperLine = new StringBuilder();
+            StringBuilder lowerLine = new StringBuilder();
+
+            // split the description into individual words
+            String[] words = moduleComponent.getModule().getDescription().split(" ");
+
+            lower = false;
+            for (String word : words) {
+                if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > halfWidth) {
+                    lowerLine.append(" ").append(word);
+                    lower = true;
+                }
+
+                else if (!lower) {
+                    upperLine.append(" ").append(word);
+                }
+            }
+
+            // module name & description
+            FontUtil.drawStringWithShadow(moduleComponent.getModule().getName(), getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + 11 - getScroll(), moduleComponent.getModule().isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : -1);
+
+            glScaled(0.6, 0.6, 0.6); {
+                float scaledUpperX = (getPosition().x + 6) * 1.6666667F;
+                float scaledUpperY = (getPosition().y + FontUtil.getFontHeight() + getBar() + getTab().getHeight() + 12.5F - getScroll()) * 1.6666667F;
+                FontUtil.drawStringWithShadow(upperLine.toString(), scaledUpperX, scaledUpperY, -1);
+
+                if (!lowerLine.toString().equals("")) {
+                    float scaledLowerX = (getPosition().x + 6) * 1.6666667F;
+                    float scaledLowerY = (getPosition().y + FontUtil.getFontHeight() + getBar() + getTab().getHeight() + 12.5F - getScroll() + ((FontUtil.getFontHeight() + 1.5F) * 0.6F)) * 1.6666667F;
+                    FontUtil.drawStringWithShadow(lowerLine.toString(), scaledLowerX, scaledLowerY, -1);
+                }
+            }
+
+            glScaled(1.6666667, 1.6666667, 1.6666667);
+
+            buttonHeight = FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 15;
+            quarterWidth = (halfWidth / 2) - 5;
+
+            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation < 25)
+                bindAnimation += 5;
+
+            else if (!mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation > 0)
+                bindAnimation -= 5;
+
+            // bind button
+            RenderUtil.drawBorderRect(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + bindAnimation, 20 + bindAnimation, 20 + bindAnimation, 60), new Color(0, 0, 0, 60));
+
+            glScaled(0.8, 0.8, 0.8); {
+                float scaledX = (getPosition().x + (((getPosition().x + quarterWidth) - getPosition().x) / 2) - (FontUtil.getStringWidth("Bind: " + (binding ? "Listening..." : Keyboard.getKeyName(moduleComponent.getModule().getKey()))) / 2F) + 10) * 1.25F;
+                float scaledY = (getPosition().y + getBar() + getTab().getHeight() + buttonHeight + 2) * 1.25F;
+                FontUtil.drawStringWithShadow("Bind: " + (binding ? "Listening..." : Keyboard.getKeyName(moduleComponent.getModule().getKey())), scaledX, scaledY, -1);
+            }
+
+            glScaled(1.25, 1.25, 1.25);
+
+            // offset the buttons
+            buttonOffset = 118.765F;
+
+            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25)
+                drawnAnimation += 5;
+
+            else if (!mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation > 0)
+                drawnAnimation -= 5;
+
+            // drawn button
+            RenderUtil.drawBorderRect(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + drawnAnimation, 20 + drawnAnimation, 20 + drawnAnimation, 60), new Color(0, 0, 0, 60));
+
+            glScaled(0.8, 0.8, 0.8); {
+                float scaledX = (getPosition().x + (((getPosition().x + quarterWidth) - getPosition().x) / 2) + buttonOffset - (FontUtil.getStringWidth("Drawn: " + moduleComponent.getModule().isDrawn()) / 2F) + 10) * 1.25F;
+                float scaledY = (getPosition().y + getBar() + getTab().getHeight() + buttonHeight + 2) * 1.25F;
+                FontUtil.drawStringWithShadow("Drawn: " + moduleComponent.getModule().isDrawn(), scaledX, scaledY, -1);
+            }
+
+            glScaled(1.25, 1.25, 1.25);
+
+            // set the offset to account for the page title
+            leftOffset = FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 21;
+        }
+
+        else {
+            leftOffset = 0;
+        }
 
         // render both of our columns
-        leftOffset = 0;
         leftColumn.forEach(component -> {
             component.drawComponent(new Vec2f(getPosition().x + 6, getPosition().y + getBar() + getTab().getHeight() + 8 + leftOffset - getScroll()), halfWidth);
             leftOffset += component.getHeight() + 4;
@@ -118,30 +216,37 @@ public class ConfigurationWindow extends TabbedWindow {
             updateColumns();
         }
 
-        leftColumn.forEach(component -> {
+        new ArrayList<>(leftColumn).forEach(component -> {
             component.handleLeftClick();
         });
 
-        rightColumn.forEach(component -> {
+        new ArrayList<>(rightColumn).forEach(component -> {
             component.handleLeftClick();
         });
+
+        if (page.equals(Page.SETTING) && moduleComponent != null) {
+            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
+                binding = !binding;
+            }
+
+            if (mouseOver(getPosition().x + 117, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
+                boolean previousDrawn = moduleComponent.getModule().isDrawn();
+                moduleComponent.getModule().setDrawn(!previousDrawn);
+            }
+        }
     }
 
     @Override
     public void handleRightClick() {
         super.handleRightClick();
 
-        try {
-            leftColumn.forEach(component -> {
-                component.handleRightClick();
-            });
+        new ArrayList<>(leftColumn).forEach(component -> {
+            component.handleRightClick();
+        });
 
-            rightColumn.forEach(component -> {
-                component.handleRightClick();
-            });
-        } catch (Exception ignored) {
-
-        }
+        new ArrayList<>(rightColumn).forEach(component -> {
+            component.handleRightClick();
+        });
     }
 
     @Override
@@ -157,13 +262,25 @@ public class ConfigurationWindow extends TabbedWindow {
     public void handleKeyPress(char typedCharacter, int key) {
         super.handleKeyPress(typedCharacter, key);
 
-        leftColumn.forEach(component -> {
+        new ArrayList<>(leftColumn).forEach(component -> {
             component.handleKeyPress(typedCharacter, key);
         });
 
-        rightColumn.forEach(component -> {
+        new ArrayList<>(rightColumn).forEach(component -> {
             component.handleKeyPress(typedCharacter, key);
         });
+
+        if (binding && key != -1 && key != Keyboard.KEY_ESCAPE) {
+            if (key == Keyboard.KEY_DELETE || key == Keyboard.KEY_CLEAR || key == Keyboard.KEY_BACK) {
+                moduleComponent.getModule().setKey(Keyboard.KEY_NONE);
+            }
+
+            else {
+                moduleComponent.getModule().setKey(key);
+            }
+
+            binding = false;
+        }
     }
 
     @Override
@@ -183,7 +300,9 @@ public class ConfigurationWindow extends TabbedWindow {
             ModuleManager.getModules(module -> module.getCategory().equals(getTab().getObject())).forEach(module -> {
                 if (left.get()) {
                     leftColumn.add(new ModuleComponent(this, module));
-                } else {
+                }
+
+                else {
                     rightColumn.add(new ModuleComponent(this, module));
                 }
 
@@ -195,7 +314,9 @@ public class ConfigurationWindow extends TabbedWindow {
             moduleComponent.getSettingComponents().forEach(settingComponent -> {
                 if (left.get()) {
                     leftColumn.add(settingComponent);
-                } else {
+                }
+
+                else {
                     rightColumn.add(settingComponent);
                 }
 
@@ -207,7 +328,9 @@ public class ConfigurationWindow extends TabbedWindow {
             settingComponent.getSettingComponents().forEach(subSettingComponent -> {
                 if (left.get()) {
                     leftColumn.add(subSettingComponent);
-                } else {
+                }
+
+                else {
                     rightColumn.add(subSettingComponent);
                 }
 

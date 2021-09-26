@@ -73,24 +73,28 @@ public class NoSlow extends Module {
             ((IKeybinding) mc.gameSettings.keyBindJump).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindJump));
             mc.gameSettings.keyBindJump.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
 
+            float inventoryYaw = mc.player.rotationYaw;
+            float inventoryPitch = mc.player.rotationPitch;
+
             {
                 if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
-                    mc.player.rotationPitch -= 5;
+                    inventoryPitch -= 5;
                 }
 
                 else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
-                    mc.player.rotationPitch += 5;
+                    inventoryPitch += 5;
                 }
 
                 else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-                    mc.player.prevRotationYaw += 5;
+                    inventoryYaw += 5;
                 }
 
                 if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
-                    mc.player.prevRotationYaw -= 5;
+                    inventoryYaw -= 5;
                 }
 
-                mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -90, 90);
+                mc.player.rotationYaw = inventoryYaw;
+                mc.player.rotationPitch = MathHelper.clamp(inventoryPitch, -90, 90); // make sure the pitch is within the pitch limits
             }
         }
     }

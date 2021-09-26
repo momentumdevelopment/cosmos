@@ -11,5 +11,5 @@ public class Colors extends Module {
         super("Colors", Category.CLIENT, "The universal color for the client");
     }
 
-    public static Setting<Color> color = new Setting<>("Color", "The primary color for the client", new Color(139, 126, 212, 255));
+    public static Setting<Color> color = new Setting<>("Color", "The primary color for the client", new Color(118, 98, 224, 255));
 }
