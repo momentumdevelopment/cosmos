@@ -18,7 +18,7 @@ public class BooleanComponent extends TypeComponent<Boolean> {
         setPosition(position);
         setWidth(width);
 
-        RenderUtil.drawRect(position.x + width - 19, position.y + 2, 17, 17, getSetting().getValue() ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 140) : new Color(0, 0, 0, 80));
+        RenderUtil.drawRoundedRect(position.x + width - 18.5F, position.y + 2.5F, 16, 16, 5, getSetting().getValue() ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 140) : new Color(0, 0, 0, 80));
     }
 
     @Override

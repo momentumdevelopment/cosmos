@@ -151,7 +151,7 @@ public class ConfigurationWindow extends TabbedWindow {
             glScaled(1.25, 1.25, 1.25);
 
             // offset the buttons
-            buttonOffset = 118.765F;
+            buttonOffset = quarterWidth + 5;
 
             if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25)
                 drawnAnimation += 5;
