@@ -2,7 +2,10 @@ package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.clickgui.cosmos.window.WindowManager;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
+import cope.cosmos.client.events.SettingEnableEvent;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 import cope.cosmos.client.Cosmos;
@@ -29,6 +32,7 @@ public class ClickGUI extends Module {
 	public static Setting<Color> secondaryColor = new Setting<>("SecondaryColor", "The secondary color for the GUI", new Color(12, 12, 17, 255));
 	public static Setting<Color> complexionColor = new Setting<>("ComplexionColor", "The complexion color for the GUI", new Color(18, 18, 24, 255));
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", "Pause the game when in GUI", false);
+	public static Setting<Boolean> blur = new Setting<>("Blur", "Blur shader for GUI background", true);
 	
 	@Override
 	public void onEnable() {
@@ -36,10 +40,22 @@ public class ClickGUI extends Module {
 
 		mc.displayGuiScreen(Cosmos.INSTANCE.getWindowGUI());
 
+		// blur shader for background
+		if (blur.getValue()) {
+			mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
+		}
+
 		WindowManager.getWindows().forEach(window -> {
 			((CategoryWindow) window).getAnimation().setState(true);
 			((CategoryWindow) window).setOpen(true);
 		});
+	}
+
+	@SubscribeEvent
+	public void onSettingEnable(SettingEnableEvent event) {
+		if (event.getSetting().equals(blur) && mc.entityRenderer.isShaderActive()) {
+			mc.entityRenderer.getShaderGroup().deleteShaderGroup();
+		}
 	}
 
 	public Color getPrimaryColor() {
