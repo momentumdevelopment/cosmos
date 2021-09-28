@@ -133,18 +133,18 @@ public class ConfigurationWindow extends TabbedWindow {
             buttonHeight = FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 15;
             quarterWidth = (halfWidth / 2) - 5;
 
-            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation < 25)
+            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation < 25)
                 bindAnimation += 5;
 
-            else if (!mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation > 0)
+            else if (!mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation > 0)
                 bindAnimation -= 5;
 
             // bind button
-            RenderUtil.drawBorderRect(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + bindAnimation, 20 + bindAnimation, 20 + bindAnimation, 60), new Color(0, 0, 0, 60));
+            RenderUtil.drawBorderRect(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + bindAnimation, 20 + bindAnimation, 20 + bindAnimation, 60), new Color(0, 0, 0, 60));
 
             glScaled(0.8, 0.8, 0.8); {
                 float scaledX = (getPosition().x + (((getPosition().x + quarterWidth) - getPosition().x) / 2) - (FontUtil.getStringWidth("Bind: " + (binding ? "Listening..." : Keyboard.getKeyName(moduleComponent.getModule().getKey()))) / 2F) + 10) * 1.25F;
-                float scaledY = (getPosition().y + getBar() + getTab().getHeight() + buttonHeight + 2) * 1.25F;
+                float scaledY = (getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight + 2) * 1.25F;
                 FontUtil.drawStringWithShadow("Bind: " + (binding ? "Listening..." : Keyboard.getKeyName(moduleComponent.getModule().getKey())), scaledX, scaledY, -1);
             }
 
@@ -153,18 +153,18 @@ public class ConfigurationWindow extends TabbedWindow {
             // offset the buttons
             buttonOffset = quarterWidth + 5;
 
-            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25)
+            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25)
                 drawnAnimation += 5;
 
-            else if (!mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation > 0)
+            else if (!mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation > 0)
                 drawnAnimation -= 5;
 
             // drawn button
-            RenderUtil.drawBorderRect(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + drawnAnimation, 20 + drawnAnimation, 20 + drawnAnimation, 60), new Color(0, 0, 0, 60));
+            RenderUtil.drawBorderRect(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3, new Color(20 + drawnAnimation, 20 + drawnAnimation, 20 + drawnAnimation, 60), new Color(0, 0, 0, 60));
 
             glScaled(0.8, 0.8, 0.8); {
                 float scaledX = (getPosition().x + (((getPosition().x + quarterWidth) - getPosition().x) / 2) + buttonOffset - (FontUtil.getStringWidth("Drawn: " + moduleComponent.getModule().isDrawn()) / 2F) + 10) * 1.25F;
-                float scaledY = (getPosition().y + getBar() + getTab().getHeight() + buttonHeight + 2) * 1.25F;
+                float scaledY = (getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight + 2) * 1.25F;
                 FontUtil.drawStringWithShadow("Drawn: " + moduleComponent.getModule().isDrawn(), scaledX, scaledY, -1);
             }
 
