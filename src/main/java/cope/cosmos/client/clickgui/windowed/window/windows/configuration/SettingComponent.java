@@ -3,6 +3,7 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.BooleanComponent;
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.EnumComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.NumberComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
@@ -28,6 +29,7 @@ public class SettingComponent extends Component {
     private int hoverAnimation = 0;
 
     private boolean lower;
+    private boolean bounded;
 
     @SuppressWarnings("unchecked")
     public SettingComponent(ConfigurationWindow window, Setting<?> setting) {
@@ -48,6 +50,10 @@ public class SettingComponent extends Component {
 
         else if (setting.getValue() instanceof Float) {
             typeComponent = new NumberComponent(this, (Setting<Number>) setting);
+        }
+
+        else if (setting.getValue() instanceof Enum<?>) {
+            typeComponent = new EnumComponent(this, (Setting<Enum<?>>) setting);
         }
     }
 
@@ -85,11 +91,22 @@ public class SettingComponent extends Component {
         }
 
         // set the height to equal the component's height
-        setHeight(FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 6);
+        float lineHeight = FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 6;
+        setHeight(lineHeight);
 
         // update the height to fit the component if needed
         if (typeComponent instanceof NumberComponent) {
             setHeight(getHeight() + 7);
+        }
+
+        else if (typeComponent instanceof EnumComponent) {
+            if (((EnumComponent) typeComponent).isOpen()) {
+                setHeight(getHeight() + ((EnumComponent) typeComponent).getMaxHeight() + 18);
+            }
+
+            else {
+                setHeight(getHeight() + 18);
+            }
         }
 
         // setting background
@@ -113,7 +130,7 @@ public class SettingComponent extends Component {
         glScaled(1.6666667, 1.6666667, 1.6666667);
 
         if (typeComponent != null) {
-            typeComponent.drawType(position, width, getHeight());
+            typeComponent.drawType(position, width, getHeight(), (lineHeight * 2) - 1);
         }
 
         glPopMatrix();

@@ -43,11 +43,11 @@ public class NoSlow extends Module {
     public static Setting<Boolean> strict = new Setting<>("Strict", "Spoofs slowdown state with packets", false);
     public static Setting<Boolean> airStrict = new Setting<>("AirStrict", "Spoofs slowdown state with packets while in air", false);
     public static Setting<Boolean> sneak = new Setting<>("Sneak", "Removes the sneak slowdown effect", true);
+    public static Setting<Boolean> bow = new Setting<>("Bow", "Removes the bow slowdown effect", true);
     public static Setting<Boolean> soulSand = new Setting<>("SoulSand", "Removes the soulsand slowdown effect", true);
     public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slime slowdown effect", true);
 
-    boolean airPacket;
-
+    private boolean airPacket;
     private final List<CPacketEntityAction> safeAirPackets = new ArrayList<>();
 
     @Override
@@ -141,10 +141,10 @@ public class NoSlow extends Module {
     public boolean hasSlowDown() {
         if (!mc.player.isRiding() && mc.player.isHandActive()) {
             Item activeItem = mc.player.getActiveItemStack().getItem();
-            return activeItem instanceof ItemFood || activeItem instanceof ItemPotion || activeItem instanceof ItemBow;
+            return activeItem instanceof ItemFood || activeItem instanceof ItemPotion || bow.getValue() && activeItem instanceof ItemBow;
         }
 
-        return mc.player.isSneaking();
+        return sneak.getValue() && mc.player.isSneaking();
     }
 
     public boolean isInScreen() {

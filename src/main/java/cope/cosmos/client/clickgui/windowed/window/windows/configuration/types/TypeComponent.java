@@ -13,13 +13,14 @@ public abstract class TypeComponent<T> implements Util {
     private Vec2f position;
     private float width;
     private float height;
+    private float boundHeight;
 
     public TypeComponent(SettingComponent settingComponent, Setting<T> setting) {
         this.settingComponent = settingComponent;
         this.setting = setting;
     }
 
-    public abstract void drawType(Vec2f position, float width, float height);
+    public abstract void drawType(Vec2f position, float width, float height, float boundHeight);
 
     public abstract void handleLeftClick();
 
@@ -57,5 +58,13 @@ public abstract class TypeComponent<T> implements Util {
 
     public float getHeight() {
         return height;
+    }
+
+    public void setBoundHeight(float in) {
+        boundHeight = in;
+    }
+
+    public float getBoundHeight() {
+        return boundHeight;
     }
 }

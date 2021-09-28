@@ -20,10 +20,11 @@ public class NumberComponent extends TypeComponent<Number> {
     }
 
     @Override
-    public void drawType(Vec2f position, float width, float height) {
+    public void drawType(Vec2f position, float width, float height, float boundHeight) {
         setPosition(position);
         setWidth(width);
         setHeight(height);
+        setBoundHeight(boundHeight);
 
         String value = getSetting().getValue().toString();
         FontUtil.drawStringWithShadow(value, position.x + width - FontUtil.getStringWidth(value) - 2, position.y + 3, -1);

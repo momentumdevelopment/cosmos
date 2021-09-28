@@ -16,10 +16,11 @@ public class BooleanComponent extends TypeComponent<Boolean> {
     }
 
     @Override
-    public void drawType(Vec2f position, float width, float height) {
+    public void drawType(Vec2f position, float width, float height, float boundHeight) {
         setPosition(position);
         setWidth(width);
         setHeight(height);
+        setBoundHeight(boundHeight);
 
         RenderUtil.drawRoundedRect(position.x + width - 18.5F, position.y + 2.5F, 16, 16, 5, getSetting().getValue() ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 140) : new Color(0, 0, 0, 80));
     }

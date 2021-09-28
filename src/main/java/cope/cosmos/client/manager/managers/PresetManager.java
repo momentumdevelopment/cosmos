@@ -85,14 +85,16 @@ public class PresetManager extends Manager {
     }
 
     public void writeDirectories() {
-        if (!mainDirectory.exists())
+        if (!mainDirectory.exists()) {
             mainDirectory.mkdirs();
+        }
 
         for (String preset : presets) {
             File presetDirectory = new File("cosmos/" + preset);
 
-            if (!presetDirectory.exists())
+            if (!presetDirectory.exists()) {
                 presetDirectory.mkdirs();
+            }
         }
     }
 
