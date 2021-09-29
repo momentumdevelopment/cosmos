@@ -15,8 +15,8 @@ public class ScrollableWindow extends Window {
     private float lowerBound;
     private float scroll;
 
-    public ScrollableWindow(String name, Vec2f position) {
-        super(name, position);
+    public ScrollableWindow(String name, Vec2f position, float width, float height) {
+        super(name, position, width, height);
 
         // initialize as the same height
         lowerBound = getHeight() - getBar();

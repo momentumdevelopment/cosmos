@@ -20,8 +20,8 @@ public class TabbedWindow extends ScrollableWindow {
     private float offset;
     private final float height = 13;
 
-    public TabbedWindow(String name, Vec2f position) {
-        super(name, position);
+    public TabbedWindow(String name, Vec2f position, float width, float height) {
+        super(name, position, width, height);
     }
 
     @Override

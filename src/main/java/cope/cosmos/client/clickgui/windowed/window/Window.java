@@ -21,17 +21,19 @@ public class Window implements Util, Wrapper {
     private Vec2f position;
 
     private final float bar = 14;
-    private float height = 200;
-    private float width = 300;
+    private float width;
+    private float height;
 
     private boolean dragging = false;
     private boolean expanding = false;
 
     private Vec2f previousMousePosition = Vec2f.MIN;
 
-    public Window(String name, Vec2f position) {
+    public Window(String name, Vec2f position, float width, float height) {
         this.name = name;
         this.position = position;
+        this.width = width;
+        this.height = height;
     }
 
     public void drawWindow() {

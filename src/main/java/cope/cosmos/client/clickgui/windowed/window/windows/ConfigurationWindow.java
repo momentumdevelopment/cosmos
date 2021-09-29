@@ -50,7 +50,7 @@ public class ConfigurationWindow extends TabbedWindow {
     private float quarterWidth;
 
     public ConfigurationWindow(String name, Vec2f position) {
-        super(name, position);
+        super(name, position, 400, 300);
 
         // add each of the categories as a tab
         for (Category category : Category.values()) {
@@ -229,7 +229,7 @@ public class ConfigurationWindow extends TabbedWindow {
                 binding = !binding;
             }
 
-            if (mouseOver(getPosition().x + 117, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
+            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
                 boolean previousDrawn = moduleComponent.getModule().isDrawn();
                 moduleComponent.getModule().setDrawn(!previousDrawn);
             }
