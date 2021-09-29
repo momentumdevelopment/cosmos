@@ -185,6 +185,11 @@ public class Surround extends Module {
         }
     }
 
+    @Override
+    public boolean isActive() {
+        return isEnabled() && !HoleUtil.isInHole(mc.player);
+    }
+
     @SubscribeEvent
     public void onBlockBreak(BlockBreakEvent event) {
         if (HoleUtil.isPartOfHole(event.getBlockPos().down()) && reactive.getValue()) {

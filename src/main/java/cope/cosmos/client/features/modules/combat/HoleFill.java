@@ -67,10 +67,11 @@ public class HoleFill extends Module {
     public static Setting<Boolean> render = new Setting<>("Render", "Render a visual of the filling process", true);
     public static Setting<Box> renderMode = new Setting<>("Mode", "Style of the visual", Box.FILL).setParent(render);
 
-    int previousSlot;
-    EntityPlayer fillTarget;
-    public static BlockPos fillPosition = BlockPos.ORIGIN;
-    Rotation fillRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    private EntityPlayer fillTarget;
+    private BlockPos fillPosition = BlockPos.ORIGIN;
+    private Rotation fillRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+
+    private int previousSlot;
 
     @Override
     public void onThread() {
@@ -168,6 +169,11 @@ public class HoleFill extends Module {
         }
 
         InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+    }
+
+    @Override
+    public boolean isActive() {
+        return isEnabled() && (fillPosition != null);
     }
 
     @SubscribeEvent

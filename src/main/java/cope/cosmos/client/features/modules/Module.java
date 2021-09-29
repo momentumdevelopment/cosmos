@@ -141,6 +141,7 @@ public class Module extends Feature implements Wrapper {
 
 	// runs on the global render tick (i.e. once every frame)
 	public void onRender3D() {
+
 	}
 
 	public String getName() {
@@ -193,5 +194,9 @@ public class Module extends Feature implements Wrapper {
 
 	public boolean isExempt() {
 		return exempt;
+	}
+
+	public boolean isActive() {
+		return false;
 	}
 }

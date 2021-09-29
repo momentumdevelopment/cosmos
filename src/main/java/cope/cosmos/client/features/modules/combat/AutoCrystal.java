@@ -428,6 +428,11 @@ public class AutoCrystal extends Module {
     }
 
     @Override
+    public boolean isActive() {
+        return isEnabled() && (placePosition != null || explodeCrystal != null);
+    }
+
+    @Override
     public void onRender3D() {
         if (render.getValue() && placePosition != null && !placePosition.getPosition().equals(BlockPos.ORIGIN) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
             RenderUtil.drawBox(new RenderBuilder().position(placePosition.getPosition()).color(new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 60)).box(renderMode.getValue()).setup().line((float) ((double) renderWidth.getValue())).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
