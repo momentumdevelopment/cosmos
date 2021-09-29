@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.combat.*;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
@@ -54,16 +55,16 @@ public class Interact extends Module {
             }
         }
 
-        if (ghostHand.getValue() && !InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+        if (ghostHand.getValue() && !isAutoPlacing()) {
             new ArrayList<>(mc.world.loadedTileEntityList).forEach(tileEntity -> {
                 if (new BlockPos(Objects.requireNonNull(mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks())).getBlockPos()).equals(tileEntity.getPos()))
                     return;
 
                 RayTraceResult rayTraceResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 
-                if (rayTraceResult != null && rayTraceResult.typeOfHit.equals(RayTraceResult.Type.BLOCK) && rayTraceResult.getBlockPos().getDistance(tileEntity.getPos().getX(), tileEntity.getPos().getY(), tileEntity.getPos().getZ()) <= 5 && mc.gameSettings.keyBindUseItem.isKeyDown())
+                if (rayTraceResult != null && rayTraceResult.typeOfHit.equals(RayTraceResult.Type.BLOCK) && rayTraceResult.getBlockPos().getDistance(tileEntity.getPos().getX(), tileEntity.getPos().getY(), tileEntity.getPos().getZ()) <= 5 && mc.gameSettings.keyBindUseItem.isKeyDown()) {
                     mc.playerController.processRightClickBlock(mc.player, mc.world, tileEntity.getPos(), EnumFacing.UP, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND);
-
+                }
             });
         }
 
@@ -82,6 +83,10 @@ public class Interact extends Module {
                 }
             }
         }
+    }
+
+    public boolean isAutoPlacing() {
+        return AutoCrystal.INSTANCE.isActive() || HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isEnabled() || Surround.INSTANCE.isActive();
     }
 
     @SubscribeEvent
