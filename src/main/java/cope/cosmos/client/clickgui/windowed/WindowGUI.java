@@ -10,9 +10,11 @@ import net.minecraft.util.math.Vec2f;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class WindowGUI extends GuiScreen implements Util {
 
+    private final WindowManager windowManager = new WindowManager();
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
 
     @Override
@@ -23,7 +25,7 @@ public class WindowGUI extends GuiScreen implements Util {
         mouse.setRightClick(false);
         mouse.setMousePosition(new Vec2f(mouseX, mouseY));
 
-        WindowManager.getWindows().forEach(window -> {
+        new ArrayList<>(windowManager.getWindows()).forEach(window -> {
             window.drawWindow();
 
             if (mouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
@@ -41,7 +43,7 @@ public class WindowGUI extends GuiScreen implements Util {
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
 
-                WindowManager.getWindows().forEach(window -> {
+                new ArrayList<>(windowManager.getWindows()).forEach(window -> {
                     try {
                         window.handleLeftClick();
                     } catch (Exception exception) {
@@ -51,7 +53,7 @@ public class WindowGUI extends GuiScreen implements Util {
 
                 break;
             case 1:
-                WindowManager.getWindows().forEach(window -> {
+                new ArrayList<>(windowManager.getWindows()).forEach(window -> {
                     try {
                         window.handleRightClick();
                     } catch (Exception exception) {
@@ -75,7 +77,7 @@ public class WindowGUI extends GuiScreen implements Util {
             mouse.setLeftHeld(false);
             mouse.setRightHeld(false);
 
-            WindowManager.getWindows().forEach(window -> {
+            new ArrayList<>(windowManager.getWindows()).forEach(window -> {
                 window.setDragging(false);
                 window.setExpanding(false);
             });
@@ -86,7 +88,7 @@ public class WindowGUI extends GuiScreen implements Util {
     public void keyTyped(char typedChar, int keyCode) throws IOException {
         super.keyTyped(typedChar, keyCode);
 
-        WindowManager.getWindows().forEach(window -> {
+        new ArrayList<>(windowManager.getWindows()).forEach(window -> {
             try {
                 window.handleKeyPress(typedChar, keyCode);
             } catch (Exception exception) {

@@ -186,7 +186,9 @@ public class ColorComponent extends SettingComponent<Color> implements Wrapper {
 
             if (transparency) {
                 glColor4f(1, 1, 1, 1);
-            } else {
+            }
+
+            else {
                 glColor4f(0, 0, 0, 1);
             }
 
@@ -196,7 +198,9 @@ public class ColorComponent extends SettingComponent<Color> implements Wrapper {
 
             if (transparency) {
                 glColor4f(1, 1, 1, 1);
-            } else {
+            }
+
+            else {
                 glColor4f(0, 0, 0, 1);
             }
 

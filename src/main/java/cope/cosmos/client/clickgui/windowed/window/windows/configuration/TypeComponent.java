@@ -1,4 +1,4 @@
-package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
+package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 
 import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;

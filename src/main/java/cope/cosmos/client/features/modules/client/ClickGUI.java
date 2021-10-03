@@ -1,7 +1,5 @@
 package cope.cosmos.client.features.modules.client;
 
-import cope.cosmos.client.clickgui.cosmos.window.WindowManager;
-import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
 import cope.cosmos.client.events.SettingEnableEvent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
@@ -44,17 +42,18 @@ public class ClickGUI extends Module {
 		if (blur.getValue()) {
 			mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
 		}
-
-		WindowManager.getWindows().forEach(window -> {
-			((CategoryWindow) window).getAnimation().setState(true);
-			((CategoryWindow) window).setOpen(true);
-		});
 	}
 
 	@SubscribeEvent
 	public void onSettingEnable(SettingEnableEvent event) {
-		if (event.getSetting().equals(blur) && mc.entityRenderer.isShaderActive()) {
-			mc.entityRenderer.getShaderGroup().deleteShaderGroup();
+		if (event.getSetting().equals(blur)) {
+			if (blur.getValue()) {
+				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
+			}
+
+			else if (mc.entityRenderer.isShaderActive()) {
+				mc.entityRenderer.getShaderGroup().deleteShaderGroup();
+			}
 		}
 	}
 

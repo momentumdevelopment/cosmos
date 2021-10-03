@@ -3,9 +3,9 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.BooleanComponent;
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.ColorComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.EnumComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.NumberComponent;
-import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -54,6 +54,10 @@ public class SettingComponent extends Component {
 
         else if (setting.getValue() instanceof Enum<?>) {
             typeComponent = new EnumComponent(this, (Setting<Enum<?>>) setting);
+        }
+
+        else if (setting.getValue() instanceof Color) {
+            typeComponent = new ColorComponent(this, (Setting<Color>) setting);
         }
     }
 
@@ -109,6 +113,10 @@ public class SettingComponent extends Component {
             }
         }
 
+        else if (typeComponent instanceof ColorComponent) {
+            setHeight(getHeight() + 68);
+        }
+
         // setting background
         RenderUtil.drawRect(position.x, position.y, width, getHeight(), new Color(hoverAnimation, hoverAnimation, hoverAnimation, 40));
 
@@ -130,7 +138,7 @@ public class SettingComponent extends Component {
         glScaled(1.6666667, 1.6666667, 1.6666667);
 
         if (typeComponent != null) {
-            typeComponent.drawType(position, width, getHeight(), (lineHeight * 2) - 1);
+            typeComponent.drawType(position, width, getHeight(), (lineHeight * 2));
         }
 
         glPopMatrix();

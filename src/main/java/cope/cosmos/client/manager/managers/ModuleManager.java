@@ -22,6 +22,7 @@ public class ModuleManager extends Manager {
 	private static final List<Module> modules = Arrays.asList(
 			//Client
 			new ClickGUI(),
+			new Colors(),
 			new DiscordPresence(),
 			new Font(),
 			new Social(),
@@ -33,6 +34,7 @@ public class ModuleManager extends Manager {
 			// new AutoTrap(),
 			new Burrow(),
 			new Criticals(),
+			new FastProjectile(),
 			new HoleFill(),
 			new Offhand(),
 			new Surround(),

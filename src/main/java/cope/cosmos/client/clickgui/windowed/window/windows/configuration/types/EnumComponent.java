@@ -2,6 +2,7 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
 import cope.cosmos.client.clickgui.util.Util;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
+import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
