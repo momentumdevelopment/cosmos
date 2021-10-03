@@ -118,6 +118,10 @@ public class WindowGUI extends GuiScreen implements Util {
         return ClickGUI.pauseGame.getValue();
     }
 
+    public WindowManager getManager() {
+        return windowManager;
+    }
+
     public MousePosition getMouse() {
         return mouse;
     }

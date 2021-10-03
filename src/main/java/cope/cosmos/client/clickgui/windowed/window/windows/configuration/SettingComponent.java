@@ -2,13 +2,16 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
+import cope.cosmos.client.clickgui.windowed.window.windows.ErrorWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.BooleanComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.ColorComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.EnumComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.types.NumberComponent;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
@@ -17,7 +20,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class SettingComponent extends Component {
+public class SettingComponent extends Component implements Wrapper {
 
     private TypeComponent<?> typeComponent = null;
 
@@ -28,7 +31,7 @@ public class SettingComponent extends Component {
 
     private int hoverAnimation = 0;
 
-    private boolean lower;
+    private boolean error;
 
     @SuppressWarnings("unchecked")
     public SettingComponent(ConfigurationWindow window, Setting<?> setting) {
@@ -81,7 +84,7 @@ public class SettingComponent extends Component {
         // split the description into individual words
         String[] words = setting.getDescription().split(" ");
 
-        lower = false;
+        boolean lower = false;
         for (String word : words) {
             if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > width) {
                 lowerLine.append(" ").append(word);
@@ -152,14 +155,17 @@ public class SettingComponent extends Component {
 
     @Override
     public void handleRightClick() {
-        try {
-            if (mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
+        if (window != null && mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
+            if (hasSubSettings()) {
                 window.setSettingComponent(this);
                 window.setPage(Page.SUBSETTING);
                 window.updateColumns();
             }
-        } catch (Exception ignored) {
 
+            else if (!error) {
+                getManager().createWindow(new ErrorWindow("SubSetting Error", "This setting does not have subsettings!", new Vec2f((new ScaledResolution(mc).getScaledWidth() / 2F) - 25, new ScaledResolution(mc).getScaledHeight() / 2F)));
+                error = true;
+            }
         }
 
         if (typeComponent != null) {
@@ -172,6 +178,10 @@ public class SettingComponent extends Component {
         if (typeComponent != null) {
             typeComponent.handleKeyPress(typedCharacter, key);
         }
+    }
+
+    public boolean hasSubSettings() {
+        return settingComponents.size() > 0;
     }
 
     public Setting<?> getSetting() {

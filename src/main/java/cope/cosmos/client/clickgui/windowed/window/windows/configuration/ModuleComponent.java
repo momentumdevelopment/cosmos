@@ -24,7 +24,6 @@ public class ModuleComponent extends Component implements Util {
     private final List<SettingComponent> settingComponents = new ArrayList<>();
 
     private boolean binding;
-    private boolean lower;
     private int hoverAnimation = 0;
 
     public ModuleComponent(ConfigurationWindow window, Module module) {
@@ -59,7 +58,7 @@ public class ModuleComponent extends Component implements Util {
         // split the description into individual words
         String[] words = module.getDescription().split(" ");
 
-        lower = false;
+        boolean lower = false;
         for (String word : words) {
             if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > width) {
                 lowerLine.append(" ").append(word);

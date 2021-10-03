@@ -79,7 +79,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
     @Override
     public void handleLeftClick() {
         if (mouseOver(getPosition().x + 3, getPosition().y + getBoundHeight() - 17, getWidth() - 6, 13)) {
-            open = true;
+            open = !open;
         }
 
         if (open) {

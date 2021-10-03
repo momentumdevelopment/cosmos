@@ -41,7 +41,6 @@ public class ConfigurationWindow extends TabbedWindow {
     private int backAnimation;
 
     private boolean binding;
-    private boolean lower;
 
     private float buttonHeight;
     private float buttonOffset;
@@ -54,6 +53,9 @@ public class ConfigurationWindow extends TabbedWindow {
 
         // add each of the categories as a tab
         for (Category category : Category.values()) {
+            if (category.equals(Category.HIDDEN))
+                continue;
+
             getTabs().add(new Tab<>(Setting.formatEnum(category), category));
         }
 
@@ -101,7 +103,7 @@ public class ConfigurationWindow extends TabbedWindow {
             // split the description into individual words
             String[] words = moduleComponent.getModule().getDescription().split(" ");
 
-            lower = false;
+            boolean lower = false;
             for (String word : words) {
                 if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > halfWidth) {
                     lowerLine.append(" ").append(word);

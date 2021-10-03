@@ -2,6 +2,7 @@ package cope.cosmos.client.clickgui.util;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
+import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 
 public interface Util {
 
@@ -11,6 +12,10 @@ public interface Util {
         }
 
         return false;
+    }
+
+    default WindowManager getManager() {
+        return getGUI().getManager();
     }
 
     default WindowGUI getGUI() {
