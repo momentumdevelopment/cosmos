@@ -24,12 +24,11 @@ public class SettingComponent extends Component {
     private final ConfigurationWindow window;
     private final Setting<?> setting;
 
-    private final List<SubSettingComponent> settingComponents = new ArrayList<>();
+    private final List<SettingComponent> settingComponents = new ArrayList<>();
 
     private int hoverAnimation = 0;
 
     private boolean lower;
-    private boolean bounded;
 
     @SuppressWarnings("unchecked")
     public SettingComponent(ConfigurationWindow window, Setting<?> setting) {
@@ -37,7 +36,7 @@ public class SettingComponent extends Component {
         this.setting = setting;
 
         setting.getSubSettings().forEach(subSetting -> {
-            settingComponents.add(new SubSettingComponent(window, subSetting));
+            settingComponents.add(new SettingComponent(window, subSetting));
         });
 
         if (setting.getValue() instanceof Boolean) {
@@ -179,7 +178,7 @@ public class SettingComponent extends Component {
         return setting;
     }
 
-    public List<SubSettingComponent> getSettingComponents() {
+    public List<SettingComponent> getSettingComponents() {
         return settingComponents;
     }
 }

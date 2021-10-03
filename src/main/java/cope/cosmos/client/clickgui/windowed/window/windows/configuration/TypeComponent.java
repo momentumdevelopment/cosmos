@@ -1,13 +1,13 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 
 import cope.cosmos.client.clickgui.util.Util;
-import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.math.Vec2f;
 
 public abstract class TypeComponent<T> implements Util {
 
     private final SettingComponent settingComponent;
+
     private final Setting<T> setting;
 
     private Vec2f position;
