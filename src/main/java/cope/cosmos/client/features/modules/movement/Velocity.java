@@ -35,8 +35,9 @@ public class Velocity extends Module {
 
 	@Override
 	public void onUpdate() {
-		if (noPush.getValue())
+		if (noPush.getValue()) {
 			mc.player.entityCollisionReduction = 1;
+		}
 	}
 
 	@Override

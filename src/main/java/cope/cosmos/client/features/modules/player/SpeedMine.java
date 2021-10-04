@@ -59,18 +59,19 @@ public class SpeedMine extends Module {
     public static Setting<Color> renderMine = new Setting<>("MineColor", "Color for the mining block", new Color(255, 0, 0, 50)).setParent(render);
     public static Setting<Color> renderAir = new Setting<>("AirColor", "Color for the predicted broken block", new Color(0, 255, 0, 45)).setParent(render);
 
-    Timer mineTimer = new Timer();
-    Timer switchTimer = new Timer();
-    BlockPos minePosition = BlockPos.ORIGIN;
-    BlockPos mineBlock;
-    EnumFacing mineFacing;
-    int previousSlot = -1;
+    private final Timer mineTimer = new Timer();
+    private final Timer switchTimer = new Timer();
+
+    private BlockPos minePosition = BlockPos.ORIGIN;
+
+    private int previousSlot = -1;
 
     @Override
     public void onUpdate() {
         for (Map.Entry<Potion, PotionEffect> potion : mc.player.getActivePotionMap().entrySet()) {
-            if (potion.getKey().getName().equals("SpeedMine"))
+            if (potion.getKey().getName().equals("SpeedMine")) {
                 mc.player.removePotionEffect(potion.getKey());
+            }
         }
 
         if (Objects.equals(BlockUtil.getBlockResistance(minePosition), BlockResistance.BLANK))
@@ -81,8 +82,8 @@ public class SpeedMine extends Module {
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         try {
             if ((Objects.equals(BlockUtil.getBlockResistance(event.getPos()), BlockResistance.RESISTANT) || Objects.equals(BlockUtil.getBlockResistance(event.getPos()), BlockResistance.BREAKABLE))) {
-                mineBlock = event.getPos();
-                mineFacing = event.getFace();
+                BlockPos mineBlock = event.getPos();
+                EnumFacing mineFacing = event.getFace();
 
                 if (onlyPick.getValue() && !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE))
                     return;

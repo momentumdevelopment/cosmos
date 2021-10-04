@@ -97,7 +97,7 @@ public class PresenceManager extends Manager implements Wrapper {
                     richPresence.largeImageText = Cosmos.NAME;
                     richPresence.smallImageKey = "cosmos";
                     richPresence.smallImageText = Cosmos.VERSION;
-                    richPresence.details = mc.isIntegratedServerRunning() ? "SinglePlayer" : (mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP.toLowerCase() : "my game is fucked");
+                    richPresence.details = mc.isIntegratedServerRunning() ? "SinglePlayer" : (mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP.toLowerCase() : "Menus");
                     richPresence.state = presenceDetails[new Random().nextInt(presenceDetails.length)];
                     discordPresence.Discord_UpdatePresence(richPresence);
                     Thread.sleep(3000);
@@ -111,8 +111,9 @@ public class PresenceManager extends Manager implements Wrapper {
     }
 
     public static void interruptPresence() {
-        if (presenceThread != null && !presenceThread.isInterrupted())
+        if (presenceThread != null && !presenceThread.isInterrupted()) {
             presenceThread.interrupt();
+        }
 
         discordPresence.Discord_Shutdown();
         discordPresence.Discord_ClearPresence();

@@ -24,19 +24,22 @@ public class Notifier extends Module {
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
-        if (mc.player.getDistance(event.getPopEntity()) < 10 && popNotify.getValue())
+        if (mc.player.getDistance(event.getPopEntity()) < 10 && popNotify.getValue()) {
             ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + event.getPopEntity().getName() + TextFormatting.RESET + " has popped " + Cosmos.INSTANCE.getPopManager().getTotemPops(event.getPopEntity()) + " totems!");
+        }
     }
 
     @SubscribeEvent
     public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN)
+        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN) {
             ChatUtil.sendModuleEnableMessage(event.getModule());
+        }
     }
 
     @SubscribeEvent
     public void onModuleDisable(ModuleToggleEvent.ModuleDisableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN)
+        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN) {
             ChatUtil.sendModuleDisableMessage(event.getModule());
+        }
     }
 }

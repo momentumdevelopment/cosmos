@@ -17,7 +17,6 @@ import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.*;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.PlayerUtil.Hand;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
@@ -34,10 +33,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.*;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
@@ -77,7 +73,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
     public static Setting<Boolean> explodePacket = new Setting<>("Packet", "Explode with packets", true).setParent(explode);
     public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", false).setParent(explode);
-    public static Setting<Hand> explodeHand = new Setting<>("Hand", "Hand to swing when exploding crystals", Hand.MAINHAND).setParent(explode);
+    public static Setting<Hand> explodeHand = new Setting<>("Hand", "Hand to swing when exploding crystals", Hand.SYNC).setParent(explode);
     public static Setting<Switch> explodeWeakness = new Setting<>("Weakness", "Switch to a tool when weakness is active", Switch.NONE).setParent(explode);
 
     public static Setting<Boolean> place = new Setting<>("Place", "Place Crystals", true);
@@ -90,7 +86,7 @@ public class AutoCrystal extends Module {
     public static Setting<Boolean> placePacket = new Setting<>("Packet", "Place with packets", true).setParent(place);
     public static Setting<Boolean> placeDirection = new Setting<>("StrictDirection", "Limits the direction of placements to only downard facing", false).setParent(place);
     public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", "Mode to verify placements through walls", Raytrace.DOUBLE).setParent(place);
-    public static Setting<Hand> placeHand = new Setting<>("Hand", "Hand to swing when placing crystals", Hand.MAINHAND).setParent(place);
+    public static Setting<Hand> placeHand = new Setting<>("Hand", "Hand to swing when placing crystals", Hand.SYNC).setParent(place);
     public static Setting<Switch> placeSwitch = new Setting<>("Switch", "Mode to use when switching to a crystal", Switch.NONE).setParent(place);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", "When to pause", true);
@@ -220,15 +216,16 @@ public class AutoCrystal extends Module {
                     }
                 }
 
-                PlayerUtil.swingArm(explodeHand.getValue());
+                swingArm(explodeHand.getValue());
 
                 explodeTimer.reset();
 
                 // add crystal to our list of attempted explosions
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
-                if (sync.getValue().equals(Sync.INSTANT))
+                if (sync.getValue().equals(Sync.INSTANT)) {
                     explodeCrystal.getCrystal().setDead();
+                }
             }
         }
     }
@@ -279,7 +276,7 @@ public class AutoCrystal extends Module {
                     }
                 }
 
-                PlayerUtil.swingArm(placeHand.getValue());
+                swingArm(placeHand.getValue());
 
                 // switch back after placing, should only switch serverside
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
@@ -550,6 +547,31 @@ public class AutoCrystal extends Module {
         mc.player.connection.sendPacket(attackPacket);
     }
 
+    public static void swingArm(Hand hand) {
+        switch (hand) {
+            case SYNC:
+                if (mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET)) {
+                    mc.player.swingArm(EnumHand.MAIN_HAND);
+                }
+
+                else if (mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL)) {
+                    mc.player.swingArm(EnumHand.OFF_HAND);
+                }
+                break;
+            case MAINHAND:
+                mc.player.swingArm(EnumHand.MAIN_HAND);
+                break;
+            case OFFHAND:
+                mc.player.swingArm(EnumHand.OFF_HAND);
+                break;
+            case PACKET:
+                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
+                break;
+            case NONE:
+                break;
+        }
+    }
+
     public boolean canPlaceCrystal(BlockPos blockPos, Placements placements) {
         try {
             if (!mc.world.getBlockState(blockPos).getBlock().equals(Blocks.BEDROCK) && !mc.world.getBlockState(blockPos).getBlock().equals(Blocks.OBSIDIAN))
@@ -642,6 +664,10 @@ public class AutoCrystal extends Module {
 
     public enum Text {
         TARGET, SELF, BOTH, NONE
+    }
+
+    public enum Hand {
+        SYNC, MAINHAND, OFFHAND, PACKET, NONE
     }
 
     public enum Raytrace {

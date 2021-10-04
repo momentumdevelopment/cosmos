@@ -8,6 +8,7 @@ import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
@@ -41,10 +42,13 @@ public class FastUse extends Module {
     @Override
     public void onUpdate() {
         if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
-            if (ghostFix.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown())
+            if (ghostFix.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown()) {
                 mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
-            else
+            }
+
+            else {
                 ((IMinecraft) mc).setRightClickDelayTimer((int) ((double) speed.getValue()));
+            }
         }
 
         if (packetUse.getValue() && mc.player.isHandActive()) {

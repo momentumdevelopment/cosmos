@@ -23,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
+import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
@@ -96,6 +97,14 @@ public class NoSlow extends Module {
                 mc.player.rotationYaw = inventoryYaw;
                 mc.player.rotationPitch = MathHelper.clamp(inventoryPitch, -90, 90); // make sure the pitch is within the pitch limits
             }
+        }
+
+        else {
+            mc.gameSettings.keyBindForward.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            mc.gameSettings.keyBindBack.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            mc.gameSettings.keyBindRight.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            mc.gameSettings.keyBindLeft.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            mc.gameSettings.keyBindJump.setKeyConflictContext(KeyConflictContext.IN_GAME);
         }
     }
 
