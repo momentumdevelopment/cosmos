@@ -19,18 +19,7 @@ public class FastProjectile extends Module {
         super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage");
         INSTANCE = this;
     }
-
-    @Override
-    public void onUpdate() {
-        if (InventoryUtil.isHolding(Items.BOW) && mc.player.isHandActive() && mc.player.getItemInUseMaxCount() >= 3) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY - 0.1, mc.player.posZ, mc.player.rotationYaw, mc.player.rotationPitch, false));
-            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY - 1000, mc.player.posZ, mc.player.rotationYaw, mc.player.rotationPitch, true));
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
-            mc.player.stopActiveHand();
-        }
-    }
-
+    
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerDigging && ((CPacketPlayerDigging) event.getPacket()).getAction().equals(CPacketPlayerDigging.Action.RELEASE_USE_ITEM)) {
