@@ -1,6 +1,10 @@
 # Cosmos
 A Forge 1.12.2 PvP Client aimed at the anarchy community.
 
+<p align="center">
+    <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><img alt="lambda-2.07.01.jar - July 1, 2021 - 12.0 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
+</p>
+
 ## Setting up:
 - Run `gradlew setupDecompWorkspace` in terminal.
 - Refresh Gradle.
