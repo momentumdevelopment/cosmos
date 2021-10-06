@@ -2,8 +2,10 @@
 ![GitHub All Releases](https://img.shields.io/github/downloads/linustouchtips/cosmos/total?color=purple)
 ![minecraft](https://img.shields.io/badge/Key--bind-Right--shift-green)
 
-# Download
+# Cosmos
 Cosmos is a free, open-source, Minecraft 1.12.2 utility mod aimed at the anarchy community.
+
+## Download
 <p align="center">
     <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><img alt="lambda-2.07.01.jar - July 1, 2021 - 12.0 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
 </p>
