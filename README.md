@@ -3,7 +3,7 @@
 ![minecraft](https://img.shields.io/badge/Key--bind-Right--shift-green)
 
 # Cosmos
-Cosmos is a free, open-source, Minecraft 1.12.2 utility mod aimed at the anarchy community.
+Cosmos is a free, open-source, Minecraft 1.12.2 PvP Client aimed at the anarchy community.
 
 ## Download
 <p align="center">
