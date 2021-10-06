@@ -1,5 +1,6 @@
 ![minecraft](https://img.shields.io/badge/Minecraft-1.12.2-blue.svg)
-![keybind](https://github.com/Client-assets/cosmos/blob/main/Keybind.svg)
+![GitHub All Releases](https://img.shields.io/github/downloads/linustouchtips/cosmos/total)
+![keybind]()
 
 # Download
 Cosmos is a free, open-source, Minecraft 1.12.2 utility mod aimed at the anarchy community.
