@@ -187,7 +187,7 @@ public class HoleFill extends Module {
     @Override
     public void onRender3D() {
         if (nullCheck() && fillPosition != BlockPos.ORIGIN && render.getValue()) {
-            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 60)).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(ColorUtil.getPrimaryAlphaColor(60)).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
         }
     }
 

@@ -29,34 +29,38 @@ public class RenderLivingEntityEvent extends Event {
     }
 
     public ModelBase getModelBase() {
-        return this.modelBase;
+        return modelBase;
     }
 
     public EntityLivingBase getEntityLivingBase() {
-        return this.entityLivingBase;
+        return entityLivingBase;
     }
 
     public float getLimbSwing() {
-        return this.limbSwing;
+        return limbSwing;
     }
 
     public float getLimbSwingAmount() {
-        return this.limbSwingAmount;
+        return limbSwingAmount;
     }
 
     public float getAgeInTicks() {
-        return this.ageInTicks;
+        return ageInTicks;
     }
 
     public float getNetHeadYaw() {
-        return this.netHeadYaw;
+        return netHeadYaw;
     }
 
     public float getHeadPitch() {
-        return this.headPitch;
+        return headPitch;
+    }
+
+    public void setHeadPitch(float in) {
+        headPitch = in;
     }
 
     public float getScaleFactor() {
-        return this.scaleFactor;
+        return scaleFactor;
     }
 }

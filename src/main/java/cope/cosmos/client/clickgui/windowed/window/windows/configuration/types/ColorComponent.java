@@ -75,9 +75,12 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
         // convert final selected color;
         int color = Color.HSBtoRGB(selectedColor.getHue(), selectedColor.getSaturation(), selectedColor.getBrightness());
+        Color convertedColor = new Color((color >> 16 & 255) / 255F, (color >> 8 & 255) / 255F, (color & 255) / 255F, MathHelper.clamp(selectedColor.getTransparency(), 0, 1));
 
         // update setting value
-        getSetting().setValue(new Color((color >> 16 & 255) / 255F, (color >> 8 & 255) / 255F, (color & 255) / 255F, MathHelper.clamp(selectedColor.getTransparency(), 0, 1)));
+        if (!getSetting().getValue().equals(convertedColor)) {
+            getSetting().setValue(convertedColor);
+        }
 
         // picker
         drawColorPicker((int) getPosition().x + 6, (int) (getPosition().y + (boundHeight / 2) + 2), 64, 64);

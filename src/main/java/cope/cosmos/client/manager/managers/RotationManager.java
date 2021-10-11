@@ -18,13 +18,9 @@ public class RotationManager extends Manager implements Wrapper {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private float headPitch = -1;
     private Rotation serverRotation = new Rotation(0, 0, Rotate.NONE);
 
-    @Override
-    public void initialize(Manager manager) {
-        manager = new RotationManager();
-    }
+    private float headPitch = -1;
 
     @SubscribeEvent
     public void onUpdate(TickEvent.ClientTickEvent event) {
@@ -35,8 +31,9 @@ public class RotationManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-      if (event.getPacket() instanceof CPacketPlayer)
+      if (event.getPacket() instanceof CPacketPlayer.PositionRotation || event.getPacket() instanceof CPacketPlayer.Rotation) {
           serverRotation = new Rotation(((CPacketPlayer) event.getPacket()).getYaw(0), ((CPacketPlayer) event.getPacket()).getPitch(0), Rotate.NONE);
+      }
     }
 
     @SubscribeEvent
@@ -52,6 +49,6 @@ public class RotationManager extends Manager implements Wrapper {
     }
 
     public Rotation getServerRotation() {
-        return this.serverRotation;
+        return serverRotation;
     }
 }

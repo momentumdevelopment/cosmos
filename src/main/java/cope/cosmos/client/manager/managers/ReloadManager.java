@@ -1,5 +1,6 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -16,24 +17,21 @@ public class ReloadManager extends Manager implements Wrapper {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @Override
-    public void initialize(Manager manager) {
-        manager = new ReloadManager();
-    }
-
     @SubscribeEvent
-    public void onJoinWorld(TickEvent.ClientTickEvent event) {
-        if (nullCheck() && mc.player.ticksExisted == 10) {
+    public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
+        if (event.getEntity().equals(mc.player)) {
             List<Module> enabledModules = ModuleManager.getModules(Module::isEnabled);
 
             ModuleManager.getAllModules().forEach(module -> {
-                if (!module.isExempt())
+                if (!module.isExempt()) {
                     module.disable();
+                }
             });
 
             enabledModules.forEach(module -> {
-                if (!module.isExempt())
+                if (!module.isExempt()) {
                     module.enable();
+                }
             });
         }
     }

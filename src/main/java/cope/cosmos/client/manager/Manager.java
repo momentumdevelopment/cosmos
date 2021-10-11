@@ -12,17 +12,15 @@ public class Manager {
         this.identifier = identifier;
     }
 
-    public void initialize(Manager manager) {}
-
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public String getDescription() {
-        return this.description;
+        return description;
     }
 
     public int getIdentifier() {
-        return this.identifier;
+        return identifier;
     }
 }

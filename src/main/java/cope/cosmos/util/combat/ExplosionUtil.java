@@ -1,5 +1,6 @@
 package cope.cosmos.util.combat;
 
+import cope.cosmos.client.manager.managers.EventManager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -72,8 +73,11 @@ public class ExplosionUtil implements Wrapper {
         double densityAdjust = (1 - distanceToSize) * blockDensity;
         float damage = (float) (int) ((densityAdjust * densityAdjust + densityAdjust) / 2 * 7 * explosionPower + 1);
 
-        if (targetEntity instanceof EntityLivingBase)
-            damage = getBlastReduction((EntityLivingBase)targetEntity, getDamageFromDifficulty(damage, mc.world.getDifficulty()), new Explosion(mc.world, null, explosionPosition.x, explosionPosition.y, explosionPosition.z, explosionPower / 2, false, true));
+        synchronized (EventManager.class) {
+            if (targetEntity instanceof EntityLivingBase) {
+                damage = getBlastReduction((EntityLivingBase) targetEntity, getDamageFromDifficulty(damage, mc.world.getDifficulty()), new Explosion(mc.world, null, explosionPosition.x, explosionPosition.y, explosionPosition.z, explosionPower / 2, false, true));
+            }
+        }
 
         return damage;
     }
@@ -199,7 +203,7 @@ public class ExplosionUtil implements Wrapper {
     }
 
     public static float getBlastReduction(EntityLivingBase entity, float damage, Explosion explosion) {
-        damage = CombatRules.getDamageAfterAbsorb(damage, entity.getTotalArmorValue(), (float)entity.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS).getAttributeValue());
+        float scaledDamage = CombatRules.getDamageAfterAbsorb(damage, entity.getTotalArmorValue(), (float) entity.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS).getAttributeValue());
         float enchantmentModifierDamage = 0;
         
         try {
@@ -209,15 +213,15 @@ public class ExplosionUtil implements Wrapper {
         }
         
         enchantmentModifierDamage = MathHelper.clamp(enchantmentModifierDamage, 0, 20);
+        scaledDamage *= 1 - enchantmentModifierDamage / 25;
 
-        damage *= 1 - enchantmentModifierDamage / 25;
         PotionEffect resistanceEffect = entity.getActivePotionEffect(MobEffects.RESISTANCE);
+        if (entity.isPotionActive(MobEffects.RESISTANCE) && resistanceEffect != null) {
+            scaledDamage = scaledDamage * (25 - (resistanceEffect.getAmplifier() + 1) * 5) / 25;
+        }
 
-        if (entity.isPotionActive(MobEffects.RESISTANCE) && resistanceEffect != null)
-            damage = damage * (25 - (resistanceEffect.getAmplifier() + 1) * 5) / 25;
-
-        damage = Math.max(damage, 0);
-        return damage;
+        scaledDamage = Math.max(scaledDamage, 0);
+        return scaledDamage;
     }
 
     public static List<Block> getBlocks() {

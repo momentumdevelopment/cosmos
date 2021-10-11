@@ -31,10 +31,6 @@ public class BooleanComponent extends TypeComponent<Boolean> {
         if (mouseOver(getPosition().x + getWidth() - 19, getPosition().y + 2, 17, 17)) {
             boolean previousValue = getSetting().getValue();
             getSetting().setValue(!previousValue);
-
-            // checks if a setting is being enabled
-            SettingEnableEvent settingEnableEvent = new SettingEnableEvent(getSetting());
-            MinecraftForge.EVENT_BUS.post(settingEnableEvent);
         }
     }
 

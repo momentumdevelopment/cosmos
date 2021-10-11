@@ -79,8 +79,9 @@ public class Offhand extends Module {
             offhandItem = hole.getValue().getItem();
 
         if (InventoryUtil.getItemSlot(offhandItem, Inventory.INVENTORY, recursive.getValue()) != -1 && !mc.player.getHeldItemOffhand().getItem().equals(offhandItem) && offhandTimer.passed((long) ((double) delay.getValue()), Format.SYSTEM)) {
-            if (motionStrict.getValue())
+            if (motionStrict.getValue()) {
                 mc.player.setVelocity(0, 0, 0);
+            }
 
             InventoryUtil.moveItemToOffhand(offhandItem, !recursive.getValue());
             offhandTimer.reset();

@@ -103,14 +103,16 @@ public class Aura extends Module {
     public void onUpdate() {
         auraTarget = TargetUtil.getTargetEntity(range.getValue(), target.getValue(), targetPlayers.getValue(), targetPassives.getValue(), targetNeutrals.getValue(), targetHostiles.getValue());
 
-        if (auraTarget != null && handlePause())
+        if (auraTarget != null && handlePause()) {
             killAura();
+        }
     }
 
     @Override
     public void onRender3D() {
-        if (auraTarget != null && render.getValue())
+        if (auraTarget != null && render.getValue()) {
             RenderUtil.drawCircle(new RenderBuilder().setup().line(1.5F).depth(true).blend().texture(), InterpolationUtil.getInterpolatedPos(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
+        }
     }
 
     public void killAura() {
@@ -128,8 +130,9 @@ public class Aura extends Module {
                 auraRotation.updateModelRotations();
         }
 
-        if (weaponBlock.getValue() && InventoryUtil.isHolding(Items.SHIELD))
+        if (weaponBlock.getValue() && InventoryUtil.isHolding(Items.SHIELD)) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+        }
 
         boolean sprint = mc.player.isSprinting();
 
@@ -145,10 +148,10 @@ public class Aura extends Module {
         }
 
         if (stopSprint.getValue()) {
-            if (sprint)
+            if (sprint) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-
-            mc.player.setSprinting(sprint);
+                mc.player.setSprinting(true);
+            }
         }
 
         if (Criticals.INSTANCE.isEnabled() && timing.getValue().equals(Timing.SEQUENTIAL)) {

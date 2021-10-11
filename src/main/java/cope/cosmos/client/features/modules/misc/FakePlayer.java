@@ -6,7 +6,10 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.world.WorldUtil;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+@SuppressWarnings("unused")
 public class FakePlayer extends Module {
 	public static FakePlayer INSTANCE;
 	
@@ -32,6 +35,14 @@ public class FakePlayer extends Module {
         super.onDisable();
         mc.world.removeEntityFromWorld(id);
         id = -1;
+    }
+
+    @SubscribeEvent
+    public void onDeath(LivingDeathEvent event) {
+        if (event.getEntity().equals(mc.player)) {
+            mc.world.removeEntityFromWorld(id);
+            id = -1;
+        }
     }
 
     public int getID() {

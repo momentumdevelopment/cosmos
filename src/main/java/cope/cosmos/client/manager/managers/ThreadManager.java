@@ -4,15 +4,16 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
 public class ThreadManager extends Manager {
+
+    // thread used by all modules
+    ModuleService moduleService = new ModuleService();
+
     public ThreadManager() {
         super("ThreadManager", "Manages the main client service thread", 15);
 
         moduleService.setDaemon(true);
         moduleService.start();
     }
-
-    // thread used by all modules
-    ModuleService moduleService = new ModuleService();
 
     public static class ModuleService extends Thread implements Wrapper {
 
@@ -28,8 +29,8 @@ public class ThreadManager extends Manager {
                     ModuleManager.getModules(module -> module.isEnabled()).forEach(module -> {
                         try {
                             module.onThread();
-                        } catch (Exception ignored) {
-
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
                         }
                     });
 

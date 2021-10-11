@@ -6,6 +6,7 @@ import cope.cosmos.client.events.ShaderColorEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.world.EntityUtil;
 import cope.cosmos.util.world.InterpolationUtil;
 import net.minecraft.client.renderer.GlStateManager;
@@ -15,7 +16,9 @@ import net.minecraft.client.shader.ShaderUniform;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityExpBottle;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -38,25 +41,25 @@ public class ESP extends Module {
     public static Setting<Double> width = new Setting<>(() -> mode.getValue().equals(Mode.SHADER), "Width", "Line width for the visual", 0.0, 1.25, 5.0, 1);
 
     public static Setting<Boolean> players = new Setting<>("Players", "Highlight players", true);
-    public static Setting<Color> playersColor = new Setting<>("Color", "Color to highlight players", new Color(151, 0, 206, 255)).setParent(players);
+    public static Setting<Color> playersColor = new Setting<>("Color", "Color to highlight players", ColorUtil.getPrimaryColor()).setParent(players);
 
     public static Setting<Boolean> passives = new Setting<>("Passives", "Highlight passives", true);
-    public static Setting<Color> passivesColor = new Setting<>("Color", "Color to highlight passives", new Color(151, 0, 206, 255)).setParent(passives);
+    public static Setting<Color> passivesColor = new Setting<>("Color", "Color to highlight passives", ColorUtil.getPrimaryColor()).setParent(passives);
 
     public static Setting<Boolean> neutrals = new Setting<>("Neutrals", "Highlight neutrals", true);
-    public static Setting<Color> neutralsColor = new Setting<>("Color", "Color to highlight neutrals", new Color(151, 0, 206, 255)).setParent(neutrals);
+    public static Setting<Color> neutralsColor = new Setting<>("Color", "Color to highlight neutrals", ColorUtil.getPrimaryColor()).setParent(neutrals);
 
     public static Setting<Boolean> hostiles = new Setting<>("Hostiles", "Highlight hostiles", true);
-    public static Setting<Color> hostilesColor = new Setting<>("Color", "Color to highlight hostiles", new Color(151, 0, 206, 255)).setParent(hostiles);
+    public static Setting<Color> hostilesColor = new Setting<>("Color", "Color to highlight hostiles", ColorUtil.getPrimaryColor()).setParent(hostiles);
 
     public static Setting<Boolean> items = new Setting<>("Items", "Highlight items", true);
-    public static Setting<Color> itemsColor = new Setting<>("Color", "Color to highlight items", new Color(151, 0, 206, 255)).setParent(items);
+    public static Setting<Color> itemsColor = new Setting<>("Color", "Color to highlight items", ColorUtil.getPrimaryColor()).setParent(items);
 
     public static Setting<Boolean> crystals = new Setting<>("Crystals", "Highlight crystals", true);
-    public static Setting<Color> crystalsColor = new Setting<>("Color", "Color to highlight crystals", new Color(151, 0, 206, 255)).setParent(crystals);
+    public static Setting<Color> crystalsColor = new Setting<>("Color", "Color to highlight crystals", ColorUtil.getPrimaryColor()).setParent(crystals);
 
     public static Setting<Boolean> vehicles = new Setting<>("Vehicles", "Highlight vehicles", true);
-    public static Setting<Color> vehiclesColor = new Setting<>("Color", "Color to highlight vehicles", new Color(151, 0, 206, 255)).setParent(vehicles);
+    public static Setting<Color> vehiclesColor = new Setting<>("Color", "Color to highlight vehicles", ColorUtil.getPrimaryColor()).setParent(vehicles);
 
     @Override
     public void onUpdate() {
@@ -101,7 +104,7 @@ public class ESP extends Module {
     }
 
     public static boolean hasHighlight(Entity entity) {
-        return players.getValue() && entity instanceof EntityPlayer || passives.getValue() && EntityUtil.isPassiveMob(entity) || neutrals.getValue() && EntityUtil.isNeutralMob(entity) || hostiles.getValue() && EntityUtil.isHostileMob(entity) || vehicles.getValue() && EntityUtil.isVehicleMob(entity) || items.getValue() && entity instanceof EntityItem || crystals.getValue() && entity instanceof EntityEnderCrystal;
+        return players.getValue() && entity instanceof EntityPlayer || passives.getValue() && EntityUtil.isPassiveMob(entity) || neutrals.getValue() && EntityUtil.isNeutralMob(entity) || hostiles.getValue() && EntityUtil.isHostileMob(entity) || vehicles.getValue() && EntityUtil.isVehicleMob(entity) || items.getValue() && (entity instanceof EntityItem || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb) || crystals.getValue() && entity instanceof EntityEnderCrystal;
     }
 
     public Color getColorByEntity(Entity entity) {
@@ -120,7 +123,7 @@ public class ESP extends Module {
         else if (EntityUtil.isVehicleMob(entity))
             return vehiclesColor.getValue();
 
-        else if (entity instanceof EntityItem)
+        else if (entity instanceof EntityItem || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb)
             return itemsColor.getValue();
 
         else if (entity instanceof EntityEnderCrystal)

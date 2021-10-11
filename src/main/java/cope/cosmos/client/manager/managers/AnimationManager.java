@@ -5,6 +5,7 @@ import cope.cosmos.client.manager.Manager;
 public class AnimationManager extends Manager {
 
     private final int time;
+
     private boolean initialState;
     private State previousState = State.STATIC;
     private State currentState = State.STATIC;
@@ -15,15 +16,19 @@ public class AnimationManager extends Manager {
         this.time = time;
         this.initialState = initialState;
 
-        if (initialState)
+        if (initialState) {
             previousState = State.EXPANDING;
+        }
     }
 
     public double getAnimationFactor() {
-        if (currentState == State.EXPANDING)
+        if (currentState == State.EXPANDING) {
             return (System.currentTimeMillis() - currentStateStart) / (double) time;
-        if (currentState == State.RETRACTING)
+        }
+
+        if (currentState == State.RETRACTING) {
             return ((long) time - (System.currentTimeMillis() - currentStateStart)) / (double) time;
+        }
 
         return previousState == State.EXPANDING ? 1 : 0;
     }
@@ -38,8 +43,9 @@ public class AnimationManager extends Manager {
             initialState = true;
         }
 
-        else
+        else {
             currentState = State.RETRACTING;
+        }
 
         currentStateStart = System.currentTimeMillis();
     }

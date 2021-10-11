@@ -40,11 +40,6 @@ public class PresetManager extends Manager {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Cosmos.INSTANCE.getPresetManager().save()));
     }
 
-    @Override
-    public void initialize(Manager manager) {
-        manager = new PresetManager();
-    }
-
     public void setPreset(String name) {
         for (String preset : presets) {
             if (preset.equals(name)) {

@@ -21,11 +21,6 @@ public class CommandManager extends Manager {
 			new Drawn()
 	);
 
-	@Override
-	public void initialize(Manager manager) {
-		registerCommands();
-	}
-
 	public static void registerCommands() {
 		for (Command command : getAllCommands()) {
 			Cosmos.INSTANCE.getCommandDispatcher().register(command.getCommand());

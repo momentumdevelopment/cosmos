@@ -11,6 +11,10 @@ public class ColorUtil {
 		return Colors.color.getValue();
 	}
 
+	public static Color getPrimaryAlphaColor(int alpha) {
+		return new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), alpha);
+	}
+
 	public static Color alphaCycle(Color color, int index, int count) {
 		float[] hsb = new float[3];
 		Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);

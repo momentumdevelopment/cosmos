@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -27,12 +28,12 @@ public class HoleESP extends Module {
 
     public static Setting<Double> range = new Setting<>("Range", "Range to scan for holes", 0.0, 5.0, 20.0, 0);
 
-    public static Setting<Box> main = new Setting<>("Main", "Visual style for the main render", Box.GLOW);
-    public static Setting<Double> mainHeight = new Setting<>("Height", "Height of the main render", -1.0, 1.0, 3.0, 1).setParent(main);
+    public static Setting<Box> main = new Setting<>("Main", "Visual style for the main render", Box.FILL);
+    public static Setting<Double> mainHeight = new Setting<>("Height", "Height of the main render", -1.0, 0.1, 3.0, 1).setParent(main);
     public static Setting<Double> mainWidth = new Setting<>(() -> main.getValue().equals(Box.BOTH) || main.getValue().equals(Box.CLAW) || main.getValue().equals(Box.OUTLINE), "Width", "Line width of the main render", 0.0, 1.5, 3.0, 1).setParent(main);
 
     public static Setting<Box> outline = new Setting<>("Outline", "Visual style for the outline render", Box.OUTLINE);
-    public static Setting<Double> outlineHeight = new Setting<>("Height", "Height of the outline render", -1.0, 0.0, 3.0, 1).setParent(outline);
+    public static Setting<Double> outlineHeight = new Setting<>("Height", "Height of the outline render", -1.0, 0.1, 3.0, 1).setParent(outline);
     public static Setting<Double> outlineWidth = new Setting<>(() -> outline.getValue().equals(Box.BOTH) || outline.getValue().equals(Box.CLAW) || outline.getValue().equals(Box.OUTLINE), "Width", "Line width of the outline render", 0.0, 1.5, 3.0, 1).setParent(outline);
 
     public static Setting<Boolean> depth = new Setting<>("Depth", "Enables vanilla depth", true);
@@ -40,8 +41,8 @@ public class HoleESP extends Module {
     public static Setting<Boolean> voids = new Setting<>("Void", "Highlights void and roof holes", false);
 
     public static Setting<Boolean> colors = new Setting<>("Colors", "Colors for the rendering", true);
-    public static Setting<Color> obsidianColor = new Setting<>("Obsidian", "Color of the obsidian holes", new Color(144, 0, 255, 45)).setParent(colors);
-    public static Setting<Color> bedrockColor = new Setting<>("Bedrock", "Color of the bedrock holes", new Color(93, 235, 240, 45)).setParent(colors);
+    public static Setting<Color> obsidianColor = new Setting<>("Obsidian", "Color of the obsidian holes", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors);
+    public static Setting<Color> bedrockColor = new Setting<>("Bedrock", "Color of the bedrock holes", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors);
     public static Setting<Color> voidColor = new Setting<>(() -> voids.getValue(), "Void", "Color of the void holes", new Color(255, 0, 0, 45)).setParent(colors);
 
     public static Map<Hole, Color> holes = new HashMap<>();
@@ -74,19 +75,22 @@ public class HoleESP extends Module {
             }
         }
 
-        if (unique)
+        if (unique) {
             holes.put(newHole, color);
+        }
     }
 
     @Override
     public void onThread() {
         if (holeTimer.passed(1000, Format.SYSTEM)) {
             for (Map.Entry<Hole, Color> holeEntry : holes.entrySet()) {
-                if (mc.player.getDistanceSq(holeEntry.getKey().getHole()) >= Math.pow(range.getValue(), 2))
+                if (mc.player.getDistanceSq(holeEntry.getKey().getHole()) >= Math.pow(range.getValue(), 2)) {
                     holes.remove(holeEntry.getKey());
+                }
 
-                if (!HoleUtil.isObsidianHole(holeEntry.getKey().getHole()) || !HoleUtil.isBedRockHole(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleObsidianHoleX(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleObsidianHoleZ(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleBedrockHoleX(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleBedrockHoleZ(holeEntry.getKey().getHole()))
+                if (!HoleUtil.isObsidianHole(holeEntry.getKey().getHole()) || !HoleUtil.isBedRockHole(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleObsidianHoleX(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleObsidianHoleZ(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleBedrockHoleX(holeEntry.getKey().getHole()) || !HoleUtil.isDoubleBedrockHoleZ(holeEntry.getKey().getHole())) {
                     holes.remove(holeEntry.getKey());
+                }
             }
 
             holeTimer.reset();
@@ -101,20 +105,30 @@ public class HoleESP extends Module {
                 return;
             }
 
-            if (HoleUtil.isBedRockHole(potentialHole))
+            if (HoleUtil.isBedRockHole(potentialHole)) {
                 addHole(new Hole(potentialHole, Type.BEDROCK), bedrockColor.getValue());
-            else if (HoleUtil.isObsidianHole(potentialHole))
+            }
+
+            else if (HoleUtil.isObsidianHole(potentialHole)) {
                 addHole(new Hole(potentialHole, Type.OBSIDIAN), obsidianColor.getValue());
+            }
 
             if (doubles.getValue()) {
-                if (HoleUtil.isDoubleBedrockHoleX(potentialHole.west()))
+                if (HoleUtil.isDoubleBedrockHoleX(potentialHole.west())) {
                     addHole(new Hole(potentialHole.west(), Type.DOUBLEBEDROCKX), bedrockColor.getValue());
-                else if (HoleUtil.isDoubleBedrockHoleZ(potentialHole.north()))
+                }
+
+                else if (HoleUtil.isDoubleBedrockHoleZ(potentialHole.north())) {
                     addHole(new Hole(potentialHole.north(), Type.DOUBLEBEDROCKZ), bedrockColor.getValue());
-                else if (HoleUtil.isDoubleObsidianHoleX(potentialHole.west()))
+                }
+
+                else if (HoleUtil.isDoubleObsidianHoleX(potentialHole.west())) {
                     addHole(new Hole(potentialHole.west(), Type.DOUBLEOBSIDIANX), obsidianColor.getValue());
-                else if (HoleUtil.isDoubleObsidianHoleZ(potentialHole.north()))
+                }
+
+                else if (HoleUtil.isDoubleObsidianHoleZ(potentialHole.north())) {
                     addHole(new Hole(potentialHole.north(), Type.DOUBLEOBSIDIANZ), obsidianColor.getValue());
+                }
             }
         }
     }

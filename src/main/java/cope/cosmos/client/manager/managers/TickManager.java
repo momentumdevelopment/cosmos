@@ -29,11 +29,6 @@ public class TickManager extends Manager implements Wrapper {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @Override
-    public void initialize(Manager manager) {
-        manager = new TickManager();
-    }
-
     public float getTPS(TPS tps) {
         switch (tps) {
             case CURRENT:

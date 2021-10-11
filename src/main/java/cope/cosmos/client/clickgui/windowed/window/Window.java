@@ -71,8 +71,10 @@ public class Window implements Util, Wrapper {
         RenderUtil.drawRect(position.x, position.y, width, bar, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
         FontUtil.drawStringWithShadow(name, position.x + 5, position.y + 3, -1);
 
+        glPushMatrix();
         mc.getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/cancel.png"));
         Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 14), (int) position.y + 1, 0, 0, 14, 14, 14, 14);
+        glPopMatrix();
 
         if (mouseOver(position.x + width - 16, position.y, 14, 14)) {
             RenderUtil.drawRect(position.x + width - 14, position.y, 14, 14, new Color(25, 25, 25, 60));

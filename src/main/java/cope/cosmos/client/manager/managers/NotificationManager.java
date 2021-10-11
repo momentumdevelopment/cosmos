@@ -31,7 +31,7 @@ public class NotificationManager extends Manager {
     }
 
     public List<Notification> getNotifications() {
-        return this.notifications;
+        return notifications;
     }
 
     public enum Type {

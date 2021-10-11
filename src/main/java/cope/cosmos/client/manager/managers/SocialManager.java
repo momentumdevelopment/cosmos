@@ -12,11 +12,6 @@ public class SocialManager extends Manager {
 
     private final Map<String, Relationship> socials = new ConcurrentHashMap<>();
 
-    @Override
-    public void initialize(Manager manager) {
-        manager = new SocialManager();
-    }
-
     public void addSocial(String socialName, Relationship social) {
         socials.put(socialName, social);
     }

@@ -43,7 +43,7 @@ public class Cosmos {
     private FontManager fontManager;
     private NotificationManager notificationManager;
     private ReloadManager reloadManager;
-    private SafetyHelperManager safetyHelperManager;
+    private PatchManager patchManager;
     private PopManager popManager;
     private CommandDispatcher<Object> commandDispatcher;
     
@@ -89,8 +89,8 @@ public class Cosmos {
         notificationManager = new NotificationManager();
         progressManager.step("Setting up Notification Manager");
 
-        safetyHelperManager = new SafetyHelperManager();
-        progressManager.step("Setting up Safety Helper");
+        patchManager = new PatchManager();
+        progressManager.step("Setting up Patch Helper");
 
         popManager = new PopManager();
         progressManager.step("Setting up Pop Manager");
@@ -105,6 +105,7 @@ public class Cosmos {
     public void postInit(FMLPostInitializationEvent event) {
         Display.setTitle(NAME + " " + VERSION);
 
+        // start the discord presence on startup
         PresenceManager.startPresence();
     }
     
@@ -144,8 +145,8 @@ public class Cosmos {
         return reloadManager;
     }
 
-    public SafetyHelperManager getSafetyHelperManager() {
-        return safetyHelperManager;
+    public PatchManager getSafetyHelperManager() {
+        return patchManager;
     }
 
     public PopManager getPopManager() {

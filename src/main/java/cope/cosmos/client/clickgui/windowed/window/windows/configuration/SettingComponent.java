@@ -140,7 +140,7 @@ public class SettingComponent extends Component implements Wrapper {
         glScaled(1.6666667, 1.6666667, 1.6666667);
 
         if (typeComponent != null) {
-            typeComponent.drawType(position, width, getHeight(), (lineHeight * 2));
+            typeComponent.drawType(position, width, getHeight(), (lineHeight * 2) + 1);
         }
 
         glPopMatrix();
