@@ -48,13 +48,6 @@ public class Sprint extends Module {
         event.setCanceled(nullCheck() && handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
     }
 
-    @SubscribeEvent
-    public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock && InventoryUtil.isHolding(Items.END_CRYSTAL)) {
-            ChatUtil.sendMessage("Direction: " + ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection() + ", X: " + ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingX() + ", Y: " + ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingY() + ", Z: " + ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingZ());
-        }
-    }
-
     public boolean handleSprint() {
         if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue())
             return false;
