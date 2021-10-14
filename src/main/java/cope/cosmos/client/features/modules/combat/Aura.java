@@ -35,7 +35,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
@@ -51,7 +50,7 @@ public class Aura extends Module {
     public static Setting<Double> variation = new Setting<>("Variation", "Probability of your hits doing damage", 0.0, 100.0, 100.0, 0);
     public static Setting<Double> range = new Setting<>("Range", "Range to attack entities", 0.0, 5.0, 7.0, 1);
 
-    public static Setting<Timing> timing = new Setting<>("Timing", "Mode for timing attacks", Timing.COOLDOWN);
+    public static Setting<Timing> timing = new Setting<>("Timing", "Mode for timing attacks", Timing.VANILLA);
     public static Setting<Delay> delayMode = new Setting<>("Mode", "Mode for timing units", Delay.SWING).setParent(timing);
     public static Setting<Double> delayFactor = new Setting<>(() -> delayMode.getValue().equals(Delay.SWING), "Factor", "Vanilla attack factor", 0.0, 1.0, 1.0, 2).setParent(timing);
     public static Setting<Double> delay = new Setting<>(() -> delayMode.getValue().equals(Delay.CUSTOM), "Delay", "Attack Delay in ms", 0.0, 1000.0, 2000.0, 0).setParent(timing);
@@ -115,27 +114,37 @@ public class Aura extends Module {
         }
     }
 
+    @Override
+    public boolean isActive() {
+        return INSTANCE.isEnabled() && auraTarget != null;
+    }
+
     public void killAura() {
         InventoryUtil.switchToSlot(weapon.getValue().getItem(), autoSwitch.getValue());
+
+        // set the client ticks
         Cosmos.INSTANCE.getTickManager().setClientTicks(timer.getValue());
 
-        if (teleport.getValue())
+        if (teleport.getValue()) {
             TeleportUtil.teleportPlayer(auraTarget.posX, auraTarget.posY, auraTarget.posZ);
+        }
 
         if (!rotate.getValue().equals(Rotate.NONE)) {
             float[] auraAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(auraTarget) : AngleUtil.calculateAngles(auraTarget);
             auraRotation = new Rotation(rotateRandom.getValue() ? auraAngles[0] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[0], rotateRandom.getValue() ? auraAngles[1] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[1], rotate.getValue());
 
-            if (!Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch()))
+            if (!Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch())) {
                 auraRotation.updateModelRotations();
+            }
         }
 
+        // if holding a shield then automatically block before attacking
         if (weaponBlock.getValue() && InventoryUtil.isHolding(Items.SHIELD)) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
         }
 
+        // stops sprinting before attacking
         boolean sprint = mc.player.isSprinting();
-
         if (stopSprint.getValue()) {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
             mc.player.setSprinting(false);
@@ -152,11 +161,6 @@ public class Aura extends Module {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
                 mc.player.setSprinting(true);
             }
-        }
-
-        if (Criticals.INSTANCE.isEnabled() && timing.getValue().equals(Timing.SEQUENTIAL)) {
-            Criticals.INSTANCE.handleCriticals(auraTarget);
-            Criticals.INSTANCE.handleFallback(auraTarget);
         }
     }
 
@@ -179,7 +183,7 @@ public class Aura extends Module {
     }
 
     public boolean handleDelay() {
-        if (timing.getValue().equals(Timing.COOLDOWN) || timing.getValue().equals(Timing.SEQUENTIAL)) {
+        if (timing.getValue().equals(Timing.VANILLA)) {
             switch (delayMode.getValue()) {
                 case TPS:
                     return mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - Cosmos.INSTANCE.getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue() && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
@@ -225,10 +229,9 @@ public class Aura extends Module {
     }
 
     public enum Timing {
-        SEQUENTIAL, COOLDOWN, NONE
+        VANILLA, NONE
     }
 
-    @SuppressWarnings("unused")
     public enum Weapon {
         SWORD(Items.DIAMOND_SWORD), AXE(Items.DIAMOND_AXE), PICKAXE(Items.DIAMOND_PICKAXE);
 

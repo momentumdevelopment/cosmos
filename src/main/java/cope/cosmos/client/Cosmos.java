@@ -145,7 +145,7 @@ public class Cosmos {
         return reloadManager;
     }
 
-    public PatchManager getSafetyHelperManager() {
+    public PatchManager getPatchManager() {
         return patchManager;
     }
 
