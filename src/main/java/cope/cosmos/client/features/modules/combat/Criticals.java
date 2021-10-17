@@ -26,8 +26,8 @@ public class Criticals extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", "Mode for criticals", Mode.PACKET);
-
     public static Setting<Double> motion = new Setting<>(() -> mode.getValue().equals(Mode.MOTION), "Motion", "Vertical motion", 0.0D, 0.4D, 1.0D, 2);
+
     public static Setting<Double> modifier = new Setting<>("Modifier", "Modifies the damage done by a critical attack", 0.0D, 1.5D, 10.0D, 2);
 
     public static Setting<Double> delay = new Setting<>("Delay", "Delay between attacks to attempt criticals", 0.0D, 200.0D, 2000.0D, 0);
