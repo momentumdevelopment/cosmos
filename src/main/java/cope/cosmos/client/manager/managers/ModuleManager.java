@@ -63,6 +63,7 @@ public class ModuleManager extends Manager {
 			new SpeedMine(),
 
 			//Visual
+			new CameraClip(),
 			new Chams(),
 			new ESP(),
 			new FullBright(),

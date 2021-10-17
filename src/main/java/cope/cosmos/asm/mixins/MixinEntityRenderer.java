@@ -3,6 +3,7 @@ package cope.cosmos.asm.mixins;
 import com.google.common.base.Predicate;
 import cope.cosmos.client.events.HitboxInteractEvent;
 import cope.cosmos.client.events.HurtCameraEvent;
+import cope.cosmos.client.features.modules.visual.CameraClip;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
@@ -11,6 +12,7 @@ import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -39,5 +41,15 @@ public class MixinEntityRenderer {
             return new ArrayList<>();
         else
             return worldClient.getEntitiesInAABBexcluding(entityIn, axisAlignedBB, predicate);
+    }
+
+    @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 3)
+    private double orientCameraX(double range) {
+        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
+    }
+
+    @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 7)
+    private double orientCameraZ(double range) {
+        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
     }
 }

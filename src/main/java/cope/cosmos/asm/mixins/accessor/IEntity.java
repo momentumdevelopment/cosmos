@@ -15,5 +15,5 @@ public interface IEntity {
     void setInPortal(boolean inPortal);
 
     @Invoker("setSize")
-    void setSize(float width, float height);
+    void setEntitySize(float width, float height);
 }
