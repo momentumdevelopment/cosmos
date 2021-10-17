@@ -7,6 +7,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(CPacketPlayer.class)
 public interface ICPacketPlayer {
 
+    @Accessor("rotating")
+    boolean isRotating();
+
+    @Accessor("moving")
+    boolean isMoving();
+
     @Accessor("yaw")
     void setYaw(float yaw);
 

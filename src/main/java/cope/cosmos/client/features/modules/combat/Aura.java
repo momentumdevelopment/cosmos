@@ -190,13 +190,13 @@ public class Aura extends Module {
                 case SWING:
                     return mc.player.getCooledAttackStrength(0) >= delayFactor.getValue() && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
                 case CUSTOM:
-                    if (auraTimer.passed((long) ((double) delay.getValue()), Format.SYSTEM)) {
+                    if (auraTimer.passed(delay.getValue().longValue(), Format.SYSTEM)) {
                         auraTimer.reset();
                         return switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
                     }
 
                 case TICK:
-                    return auraTimer.passed((long) ((double) delayTicks.getValue()), Format.TICKS) && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                    return auraTimer.passed(delayTicks.getValue().longValue(), Format.TICKS) && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
             }
         }
 
@@ -242,7 +242,7 @@ public class Aura extends Module {
         }
 
         public Item getItem() {
-            return this.item;
+            return item;
         }
     }
 }

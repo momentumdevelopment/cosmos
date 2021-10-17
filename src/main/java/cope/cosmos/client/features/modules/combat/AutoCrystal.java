@@ -4,6 +4,7 @@ import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
+import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
@@ -14,10 +15,8 @@ import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
-import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.*;
 import cope.cosmos.util.player.InventoryUtil.*;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -39,10 +38,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
@@ -69,7 +65,6 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
-    public static Setting<Double> explodeAttacks = new Setting<>("Attacks", "Attacks per crystal", 1.0, 1.0, 5.0, 0).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
     public static Setting<Boolean> explodePacket = new Setting<>("Packet", "Explode with packets", true).setParent(explode);
     public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", false).setParent(explode);
@@ -82,9 +77,8 @@ public class AutoCrystal extends Module {
     public static Setting<Double> placeDelay = new Setting<>("Delay", "Delay to place crystals", 0.0, 20.0, 500.0, 0).setParent(place);
     public static Setting<Double> placeDamage = new Setting<>("Damage", "Required damage to be considered for placement", 0.0, 5.0, 36.0, 1).setParent(place);
     public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(place);
-    public static Setting<Double> placeAttempts = new Setting<>("Attempts", "Place attempts per cycle", 1.0, 1.0, 5.0, 0).setParent(place);
     public static Setting<Boolean> placePacket = new Setting<>("Packet", "Place with packets", true).setParent(place);
-    public static Setting<Boolean> placeDirection = new Setting<>("StrictDirection", "Limits the direction of placements to only downard facing", false).setParent(place);
+    public static Setting<Interact> placeInteraction = new Setting<>("Interact", "Limits the direction of placements", Interact.NORMAL).setParent(place);
     public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", "Mode to verify placements through walls", Raytrace.DOUBLE).setParent(place);
     public static Setting<Hand> placeHand = new Setting<>("Hand", "Hand to swing when placing crystals", Hand.SYNC).setParent(place);
     public static Setting<Switch> placeSwitch = new Setting<>("Switch", "Mode to use when switching to a crystal", Switch.NONE).setParent(place);
@@ -108,13 +102,14 @@ public class AutoCrystal extends Module {
     public static Setting<When> rotateWhen = new Setting<>("When", "Mode for when to rotate", When.BOTH).setParent(rotate);
 
     public static Setting<Boolean> calculations = new Setting<>("Calculations", "Preferences for calculations", true);
-    public static Setting<Boolean> prediction = new Setting<>("Prediction", "Attempts to account target's predicted position into the calculations", false).setParent(calculations);
-    public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", "Ignores terrain when calculating damage", false).setParent(calculations);
     public static Setting<Timing> timing = new Setting<>("Timing", "Optimizes process at the cost of anti-cheat compatibility", Timing.LINEAR).setParent(calculations);
     public static Setting<TPS> tps = new Setting<>("TPS", "Syncs attack timing to current server ticks", TPS.NONE).setParent(calculations);
     public static Setting<Placements> placements = new Setting<>("Placements", "Placement calculations for current version", Placements.NATIVE).setParent(calculations);
     public static Setting<Logic> logic = new Setting<>("Logic", "Logic for heuristic to prioritize", Logic.DAMAGE).setParent(calculations);
     public static Setting<Sync> sync = new Setting<>("Sync", "Sync for broken crystals", Sync.SOUND).setParent(calculations);
+    public static Setting<Boolean> prediction = new Setting<>("Prediction", "Attempts to account target's predicted position into the calculations", false).setParent(calculations);
+    public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", "Ignores terrain when calculating damage", false).setParent(calculations);
+    public static Setting<Boolean> await = new Setting<>("Await", "Waits for the current process to complete before continuing", false).setParent(calculations);
 
     public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
     public static Setting<Double> targetRange = new Setting<>("Range", "Range to consider an entity as a target", 0.0, 10.0, 15.0, 1).setParent(target);
@@ -137,11 +132,20 @@ public class AutoCrystal extends Module {
 
     private final Timer placeTimer = new Timer();
     private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+    private final Map<BlockPos, Integer> attemptedPlacements = new HashMap<>();
 
     private EnumHand previousHand = null;
     private int previousSlot = -1;
 
     private Rotation crystalRotation;
+
+    private boolean cleared;
+
+    @Override
+    public void onEnable() {
+        super.onEnable();
+        cleared = true;
+    }
 
     @Override
     public void onUpdate() {
@@ -204,23 +208,13 @@ public class AutoCrystal extends Module {
 
             if (explodeTimer.passed(scaledDelay + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
-                {
-                    if (explodeAttacks.getValue() > 1) {
-                        for (int explodeAttack = 0; explodeAttack < explodeAttacks.getValue(); explodeAttack++) {
-                            explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
-                        }
-                    }
-
-                    else {
-                        explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
-                    }
-                }
-
+                explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
                 swingArm(explodeHand.getValue());
 
                 explodeTimer.reset();
 
-                // add crystal to our list of attempted explosions
+                // add crystal to our list of attempted explosions and reset the clearance
+                cleared = false;
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
@@ -254,28 +248,44 @@ public class AutoCrystal extends Module {
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
-                // directions of placement
-                EnumFacing placementFacing = EnumFacing.DOWN;
+                RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
+                EnumFacing placementFacing = facingResult == null || facingResult.sideHit == null ? EnumFacing.UP : facingResult.sideHit;
 
-                // if we're not limited to upward placements, we can extend our reach by finding the closest face to place on
-                if (!placeDirection.getValue()) {
-                    RayTraceResult facingResult = mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + (double) mc.player.getEyeHeight(), mc.player.posZ), new Vec3d((double) placePosition.getPosition().getX() + 0.5, (double) placePosition.getPosition().getY() - 0.5, (double) placePosition.getPosition().getZ() + 0.5));
-                    placementFacing = facingResult == null || facingResult.sideHit == null ? EnumFacing.UP : facingResult.sideHit;
+                // directions of placement
+                double facingX = 0;
+                double facingY = 0;
+                double facingZ = 0;
+
+                // make sure the direction we are facing is consistent with our rotations
+                switch (placeInteraction.getValue()) {
+                    case NONE:
+                        facingX = 0.5;
+                        facingY = 0.5;
+                        facingZ = 0.5;
+                        break;
+                    case NORMAL:
+                        facingX = placePosition.getPosition().getX();
+                        facingY = -placePosition.getPosition().getY();
+                        facingZ = placePosition.getPosition().getZ();
+                        break;
+                    case STRICT:
+                        placementFacing = EnumFacing.UP;
+
+                        float[] vectorAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(placePosition.getPosition()) : AngleUtil.calculateAngles(placePosition.getPosition());
+                        Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1], Rotate.NONE));
+
+                        RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
+                        if (vectorResult != null) {
+                            facingX = vectorResult.hitVec.x - placePosition.getPosition().getX();
+                            facingY = vectorResult.hitVec.y - placePosition.getPosition().getY();
+                            facingZ = vectorResult.hitVec.z - placePosition.getPosition().getZ();
+                        }
+
+                        break;
                 }
 
                 // place the crystal
-                {
-                    if (placeAttempts.getValue() > 1) {
-                        for (int placeAttempt = 0; placeAttempt < placeAttempts.getValue(); placeAttempt++) {
-                            placeCrystal(placePosition.getPosition(), placeDirection.getValue() ? EnumFacing.UP : placementFacing, placePacket.getValue());
-                        }
-                    }
-
-                    else {
-                        placeCrystal(placePosition.getPosition(), placeDirection.getValue() ? EnumFacing.UP : placementFacing, placePacket.getValue());
-                    }
-                }
-
+                placeCrystal(placePosition.getPosition(), placementFacing, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
                 swingArm(placeHand.getValue());
 
                 // switch back after placing, should only switch serverside
@@ -287,6 +297,10 @@ public class AutoCrystal extends Module {
                 }
 
                 placeTimer.reset();
+
+                // add placement to our list of attempted placement and reset clearance
+                cleared = false;
+                attemptedPlacements.put(placePosition.getPosition(), attemptedPlacements.containsKey(placePosition.getPosition()) ? attemptedPlacements.get(placePosition.getPosition()) + 1 : 1);
             }
         }
     }
@@ -438,10 +452,25 @@ public class AutoCrystal extends Module {
     }
 
     @SubscribeEvent
+    public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
+        if (event.getEntity() instanceof EntityEnderCrystal && attemptedPlacements.containsKey(event.getEntity().getPosition().down())) {
+            cleared = true;
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityDeSpawn(EntityWorldEvent.EntityRemoveEvent event) {
+        if (event.getEntity() instanceof EntityEnderCrystal && attemptedExplosions.containsKey(event.getEntity().getEntityId())) {
+            cleared = true;
+        }
+    }
+
+    @SubscribeEvent
     public void onCrystalAttack(CrystalAttackEvent event) {
         // if it's nearby the current broken crystal then it doesn't need to be attacked since it'll be exploded anyway
-        if (explodeInhibit.getValue() && Objects.equals(event.getDamageSource().getTrueSource(), explodeCrystal.getCrystal()))
+        if (explodeInhibit.getValue() && Objects.equals(event.getDamageSource().getTrueSource(), explodeCrystal.getCrystal())) {
             blackListExplosions.add((EntityEnderCrystal) event.getDamageSource().getTrueSource());
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -506,6 +535,7 @@ public class AutoCrystal extends Module {
                 if (idealLinear > explodeDamage.getValue()) {
                     // explode the linear crystal
                     explodeCrystal(((SPacketSpawnObject) event.getPacket()).getEntityID());
+                    swingArm(explodeHand.getValue());
 
                     // add crystal to our list of attempted explosions
                     attemptedExplosions.put(((SPacketSpawnObject) event.getPacket()).getEntityID(), attemptedExplosions.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) ? attemptedExplosions.get(((SPacketSpawnObject) event.getPacket()).getEntityID()) + 1 : 1);
@@ -525,18 +555,28 @@ public class AutoCrystal extends Module {
         }
     }
 
-    public void placeCrystal(BlockPos placePos, EnumFacing enumFacing, boolean packet) {
-        if (packet)
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, (float) mc.player.posX, (float) -mc.player.posY, (float) -mc.player.posZ));
-        else
-            mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, new Vec3d(mc.player.posX, -mc.player.posY, -mc.player.posZ), mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+    public void placeCrystal(BlockPos placePos, EnumFacing enumFacing, Vec3d vector, boolean packet) {
+        new Thread(() -> {
+            if (packet) {
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
+            }
+
+            else {
+                mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, vector, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+            }
+        }).start();
     }
 
     public void explodeCrystal(EntityEnderCrystal crystal, boolean packet) {
-        if (packet)
-            mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
-        else
-            mc.playerController.attackEntity(mc.player, crystal);
+        new Thread(() -> {
+            if (packet) {
+                mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
+            }
+
+            else {
+                mc.playerController.attackEntity(mc.player, crystal);
+            }
+        }).start();
     }
 
     @SuppressWarnings("all")
@@ -557,6 +597,7 @@ public class AutoCrystal extends Module {
                 else if (mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL)) {
                     mc.player.swingArm(EnumHand.OFF_HAND);
                 }
+
                 break;
             case MAINHAND:
                 mc.player.swingArm(EnumHand.MAIN_HAND);
@@ -668,6 +709,10 @@ public class AutoCrystal extends Module {
 
     public enum Hand {
         SYNC, MAINHAND, OFFHAND, PACKET, NONE
+    }
+
+    public enum Interact {
+        NORMAL, STRICT, NONE
     }
 
     public enum Raytrace {

@@ -1,6 +1,7 @@
 package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.player.Rotation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.math.BlockPos;
@@ -29,6 +30,14 @@ public class AngleUtil implements Wrapper {
         return new float[] {
                 (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x)) - 90.0), (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2((to.y - from.y) * -1.0, MathHelper.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.z - from.z, 2)))))
         };
+    }
+
+    public static Vec3d getVectorForRotation(Rotation rotation) {
+        float yawCos = MathHelper.cos(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
+        float yawSin = MathHelper.sin(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
+        float pitchCos = -MathHelper.cos(-rotation.getPitch() * 0.017453292F);
+        float pitchSin = MathHelper.sin(-rotation.getPitch() * 0.017453292F);
+        return new Vec3d(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
     }
 
     public static float calculateAngleDifference(float serverValue, float currentValue, double divisions, int steps) {
