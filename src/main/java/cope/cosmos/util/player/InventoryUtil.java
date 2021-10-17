@@ -31,14 +31,14 @@ public class InventoryUtil implements Wrapper {
         }
 
         mc.playerController.updateController();
-        ((IPlayerControllerMP) mc.playerController).syncCurrentPlayItem();
+        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
     }
 
     public static void switchToSlot(Item item, Switch switchMode) {
         if (getItemSlot(item, Inventory.HOTBAR, true) != -1 && mc.player.inventory.currentItem != getItemSlot(item, Inventory.HOTBAR, true))
             switchToSlot(getItemSlot(item, Inventory.HOTBAR, true), switchMode);
 
-        ((IPlayerControllerMP) mc.playerController).syncCurrentPlayItem();
+        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
     }
 
     public static void moveItemToOffhand(Item item, boolean hotbar) {
