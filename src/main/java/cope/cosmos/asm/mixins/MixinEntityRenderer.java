@@ -44,12 +44,12 @@ public class MixinEntityRenderer {
     }
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 3)
-    public double orientCameraX(double range) {
-        return CameraClip.INSTANCE.isActive() ? CameraClip.distance.getValue() : range;
+    private double orientCameraX(double range) {
+        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
     }
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 7)
-    public double orientCameraZ(double range) {
-        return CameraClip.INSTANCE.isActive() ? CameraClip.distance.getValue() : range;
+    private double orientCameraZ(double range) {
+        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
     }
 }
