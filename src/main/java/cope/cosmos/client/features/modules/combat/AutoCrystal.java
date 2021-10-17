@@ -11,7 +11,6 @@ import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
@@ -66,7 +65,6 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
-    public static Setting<Double> explodeAttacks = new Setting<>("Attacks", "Attacks per crystal", 1.0, 1.0, 5.0, 0).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
     public static Setting<Boolean> explodePacket = new Setting<>("Packet", "Explode with packets", true).setParent(explode);
     public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", false).setParent(explode);
@@ -79,7 +77,6 @@ public class AutoCrystal extends Module {
     public static Setting<Double> placeDelay = new Setting<>("Delay", "Delay to place crystals", 0.0, 20.0, 500.0, 0).setParent(place);
     public static Setting<Double> placeDamage = new Setting<>("Damage", "Required damage to be considered for placement", 0.0, 5.0, 36.0, 1).setParent(place);
     public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(place);
-    public static Setting<Double> placeAttempts = new Setting<>("Attempts", "Place attempts per cycle", 1.0, 1.0, 5.0, 0).setParent(place);
     public static Setting<Boolean> placePacket = new Setting<>("Packet", "Place with packets", true).setParent(place);
     public static Setting<Interact> placeInteraction = new Setting<>("Interact", "Limits the direction of placements", Interact.NORMAL).setParent(place);
     public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", "Mode to verify placements through walls", Raytrace.DOUBLE).setParent(place);
@@ -211,18 +208,7 @@ public class AutoCrystal extends Module {
 
             if (explodeTimer.passed(scaledDelay + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
-                {
-                    if (explodeAttacks.getValue() > 1) {
-                        for (int explodeAttack = 0; explodeAttack < explodeAttacks.getValue(); explodeAttack++) {
-                            explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
-                        }
-                    }
-
-                    else {
-                        explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
-                    }
-                }
-
+                explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
                 swingArm(explodeHand.getValue());
 
                 explodeTimer.reset();
@@ -262,7 +248,7 @@ public class AutoCrystal extends Module {
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
-                RayTraceResult facingResult = mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
+                RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
                 EnumFacing placementFacing = facingResult == null || facingResult.sideHit == null ? EnumFacing.UP : facingResult.sideHit;
 
                 // directions of placement
@@ -270,7 +256,7 @@ public class AutoCrystal extends Module {
                 double facingY = 0;
                 double facingZ = 0;
 
-                // if we're not limited to upward placements, we can extend our reach by finding the closest face to place on
+                // make sure the direction we are facing is consistent with our rotations
                 switch (placeInteraction.getValue()) {
                     case NONE:
                         facingX = 0.5;
@@ -299,18 +285,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // place the crystal
-                {
-                    if (placeAttempts.getValue() > 1) {
-                        for (int placeAttempt = 0; placeAttempt < placeAttempts.getValue(); placeAttempt++) {
-                            placeCrystal(placePosition.getPosition(), placementFacing, new Vec3d(facingX, facingY,facingZ), placePacket.getValue());
-                        }
-                    }
-
-                    else {
-                        placeCrystal(placePosition.getPosition(), placementFacing, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
-                    }
-                }
-
+                placeCrystal(placePosition.getPosition(), placementFacing, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
                 swingArm(placeHand.getValue());
 
                 // switch back after placing, should only switch serverside
