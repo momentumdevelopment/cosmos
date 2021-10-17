@@ -23,7 +23,6 @@ public class RotationManager extends Manager implements Wrapper {
 
     private float headPitch = -1;
 
-    @Override
     public void onUpdate() {
         if (nullCheck()) {
             headPitch = -1;
