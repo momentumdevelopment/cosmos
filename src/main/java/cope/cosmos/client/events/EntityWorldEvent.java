@@ -24,6 +24,6 @@ public class EntityWorldEvent extends Event {
     }
 
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 }

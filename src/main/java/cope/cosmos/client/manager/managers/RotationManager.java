@@ -1,5 +1,6 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.RenderLivingEntityEvent;
 import cope.cosmos.client.manager.Manager;
@@ -22,8 +23,8 @@ public class RotationManager extends Manager implements Wrapper {
 
     private float headPitch = -1;
 
-    @SubscribeEvent
-    public void onUpdate(TickEvent.ClientTickEvent event) {
+    @Override
+    public void onUpdate() {
         if (nullCheck()) {
             headPitch = -1;
         }
@@ -31,8 +32,10 @@ public class RotationManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-      if (event.getPacket() instanceof CPacketPlayer.PositionRotation || event.getPacket() instanceof CPacketPlayer.Rotation) {
-          serverRotation = new Rotation(((CPacketPlayer) event.getPacket()).getYaw(0), ((CPacketPlayer) event.getPacket()).getPitch(0), Rotate.NONE);
+      if (event.getPacket() instanceof CPacketPlayer) {
+          if (((ICPacketPlayer) event.getPacket()).isRotating()) {
+              serverRotation = new Rotation(((CPacketPlayer) event.getPacket()).getYaw(0), ((CPacketPlayer) event.getPacket()).getPitch(0), Rotate.NONE);
+          }
       }
     }
 
@@ -40,7 +43,7 @@ public class RotationManager extends Manager implements Wrapper {
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {
         if (event.getEntityLivingBase().equals(mc.player)) {
             event.setCanceled(true);
-            event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), headPitch == -1 ? mc.player.rotationPitch : headPitch, event.getScaleFactor());
+            event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), headPitch == -1 ? event.getHeadPitch() : headPitch, event.getScaleFactor());
         }
     }
 

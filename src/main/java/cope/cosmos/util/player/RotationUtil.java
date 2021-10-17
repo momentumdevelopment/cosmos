@@ -71,24 +71,4 @@ public class RotationUtil implements Wrapper {
 
         ((IEntityPlayerSP) mc.player).setPreviousOnGround(mc.player.onGround);
     }
-
-    public static Vec3d getVectorForRotation(Rotation rotation) {
-        float yawCos = MathHelper.cos(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
-        float yawSin = MathHelper.sin(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
-        float pitchCos = -MathHelper.cos(-rotation.getPitch() * 0.017453292F);
-        float pitchSin = MathHelper.sin(-rotation.getPitch() * 0.017453292F);
-        return new Vec3d(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
-    }
-
-    public static double getRotationDifference(Rotation rotation) {
-        return Cosmos.INSTANCE.getRotationManager().getServerRotation() == null ? 0 : getRotationDifference(rotation, Cosmos.INSTANCE.getRotationManager().getServerRotation());
-    }
-
-    public static double getRotationDifference(Rotation from, Rotation to) {
-        return Math.hypot(getAngleDifference(from.getYaw(), to.getYaw()), from.getPitch() - to.getPitch());
-    }
-
-    private static float getAngleDifference(float from, float to) {
-        return ((((from - to) % 360) + 540) % 360F) - 180;
-    }
 }
