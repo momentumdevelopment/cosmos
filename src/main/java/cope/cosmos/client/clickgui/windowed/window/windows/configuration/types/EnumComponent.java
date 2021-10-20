@@ -155,6 +155,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
             glScaled(1.25, 1.25, 1.25);
         }
 
+        @SuppressWarnings("unchecked")
         public void handleLeftClick() {
             if (mouseOver(position.x, position.y, width, 13)) {
                 setting.setValue(Enum.valueOf(setting.getValue().getClass(), mode));

@@ -182,14 +182,18 @@ public class ConfigurationWindow extends TabbedWindow {
 
         // render both of our columns
         leftColumn.forEach(component -> {
-            component.drawComponent(new Vec2f(getPosition().x + 6, getPosition().y + getBar() + getTab().getHeight() + 8 + leftOffset - getScroll()), halfWidth);
-            leftOffset += component.getHeight() + 4;
+            if (component.isVisible()) {
+                component.drawComponent(new Vec2f(getPosition().x + 6, getPosition().y + getBar() + getTab().getHeight() + 8 + leftOffset - getScroll()), halfWidth);
+                leftOffset += component.getHeight() + 4;
+            }
         });
 
         rightOffset = 0;
         rightColumn.forEach(component -> {
-            component.drawComponent(new Vec2f(getPosition().x + 10 + halfWidth, getPosition().y + getBar() + getTab().getHeight() + 8 + rightOffset - getScroll()), halfWidth);
-            rightOffset += component.getHeight() + 4;
+            if (component.isVisible()) {
+                component.drawComponent(new Vec2f(getPosition().x + 10 + halfWidth, getPosition().y + getBar() + getTab().getHeight() + 8 + rightOffset - getScroll()), halfWidth);
+                rightOffset += component.getHeight() + 4;
+            }
         });
 
         // set our lower bound as our lowest component

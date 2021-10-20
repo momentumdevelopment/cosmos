@@ -1,6 +1,7 @@
 package cope.cosmos.asm.mixins;
 
 import com.google.common.base.Predicate;
+import cope.cosmos.client.events.CameraClipEvent;
 import cope.cosmos.client.events.HitboxInteractEvent;
 import cope.cosmos.client.events.HurtCameraEvent;
 import cope.cosmos.client.features.modules.visual.CameraClip;
@@ -37,19 +38,28 @@ public class MixinEntityRenderer {
         HitboxInteractEvent hitboxInteractEvent = new HitboxInteractEvent();
         MinecraftForge.EVENT_BUS.post(hitboxInteractEvent);
 
-        if (hitboxInteractEvent.isCanceled())
+        if (hitboxInteractEvent.isCanceled()) {
             return new ArrayList<>();
-        else
+        }
+
+        else {
             return worldClient.getEntitiesInAABBexcluding(entityIn, axisAlignedBB, predicate);
+        }
     }
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 3)
     private double orientCameraX(double range) {
-        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
+        CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
+        MinecraftForge.EVENT_BUS.post(cameraClipEvent);
+
+        return cameraClipEvent.getDistance();
     }
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 7)
     private double orientCameraZ(double range) {
-        return CameraClip.INSTANCE.isEnabled() ? CameraClip.distance.getValue() : range;
+        CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
+        MinecraftForge.EVENT_BUS.post(cameraClipEvent);
+
+        return cameraClipEvent.getDistance();
     }
 }

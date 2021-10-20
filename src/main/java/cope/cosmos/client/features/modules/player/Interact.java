@@ -1,15 +1,14 @@
 package cope.cosmos.client.features.modules.player;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayerTryUseItemOnBlock;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.*;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -20,14 +19,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class Interact extends Module {
     public static Interact INSTANCE;
 
     public Interact() {
-        super("Interact", Category.PLAYER, "Interaction changes & various exploits");
+        super("Interact", Category.PLAYER, "Changes how you interact with blocks & entities");
         INSTANCE = this;
     }
 
@@ -55,15 +53,17 @@ public class Interact extends Module {
             }
         }
 
-        if (ghostHand.getValue() && !isAutoPlacing()) {
+        if (ghostHand.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown() && !isAutoPlacing()) {
             new ArrayList<>(mc.world.loadedTileEntityList).forEach(tileEntity -> {
-                if (new BlockPos(Objects.requireNonNull(mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks())).getBlockPos()).equals(tileEntity.getPos()))
-                    return;
+                RayTraceResult openResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 
-                RayTraceResult rayTraceResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
+                if (openResult != null) {
+                    if (openResult.getBlockPos().equals(tileEntity.getPos()))
+                        return;
 
-                if (rayTraceResult != null && rayTraceResult.typeOfHit.equals(RayTraceResult.Type.BLOCK) && rayTraceResult.getBlockPos().getDistance(tileEntity.getPos().getX(), tileEntity.getPos().getY(), tileEntity.getPos().getZ()) <= 5 && mc.gameSettings.keyBindUseItem.isKeyDown()) {
-                    mc.playerController.processRightClickBlock(mc.player, mc.world, tileEntity.getPos(), EnumFacing.UP, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND);
+                    if (openResult.typeOfHit.equals(RayTraceResult.Type.BLOCK) && openResult.getBlockPos().getDistance(tileEntity.getPos().getX(), tileEntity.getPos().getY(), tileEntity.getPos().getZ()) <= 5) {
+                        mc.playerController.processRightClickBlock(mc.player, mc.world, tileEntity.getPos(), EnumFacing.UP, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND);
+                    }
                 }
             });
         }
@@ -72,7 +72,7 @@ public class Interact extends Module {
             if (hitBoxPlayers.getValue() && !(mc.objectMouseOver.entityHit instanceof EntityPlayer))
                 return;
 
-            RayTraceResult hitboxResult = mc.player.rayTrace(6, mc.getRenderPartialTicks());
+            RayTraceResult hitboxResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 
             if (hitboxResult != null && hitboxResult.typeOfHit == RayTraceResult.Type.BLOCK) {
                 BlockPos hitboxPos = hitboxResult.getBlockPos();
@@ -91,26 +91,27 @@ public class Interact extends Module {
 
     @SubscribeEvent
     public void onHitboxSize(EntityHitboxSizeEvent event) {
-        if (nullCheck() && hitBox.getValue())
+        if (hitBox.getValue()) {
             event.setHitboxSize((float) ((double) hitBoxExtend.getValue()));
+        }
     }
 
     @SubscribeEvent
     public void onReach(ReachEvent event) {
-        if (nullCheck() && hitBox.getValue())
+        if (hitBox.getValue()) {
             event.setReach((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + (float) ((double) reach.getValue()));
+        }
     }
 
     @SubscribeEvent
     public void onLiquidInteract(LiquidInteractEvent event) {
-        event.setCanceled(nullCheck() && (liquid.getValue() || event.getLiquidLevel() && event.getBlockState().getValue(BlockLiquid.LEVEL) == 0));
+        event.setCanceled(liquid.getValue() || event.getLiquidLevel() && event.getBlockState().getValue(BlockLiquid.LEVEL) == 0);
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (nullCheck() && event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock && heightLimit.getValue() && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos().getY() == 255 && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection().equals(EnumFacing.UP)){
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos(), EnumFacing.DOWN, ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getHand(), ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingX(), ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingY(), ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getFacingZ()));
-            event.setCanceled(true);
+        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock && heightLimit.getValue() && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos().getY() == 255 && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection().equals(EnumFacing.UP)) {
+            ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.DOWN);
         }
     }
 }

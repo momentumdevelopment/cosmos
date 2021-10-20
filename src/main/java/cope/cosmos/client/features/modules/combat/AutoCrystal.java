@@ -4,7 +4,6 @@ import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
-import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
@@ -41,7 +40,6 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.*;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.input.Mouse;
 
 import java.awt.*;
 import java.util.*;
@@ -63,6 +61,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeDelay = new Setting<>("Delay", "Delay to explode crystals", 0.0, 60.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", "Randomize the delay slightly to simulate real explosions", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
+    public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", "The minimum age of the crystal to explode", 0.0, 0.0, 20.0, 1).setParent(explode);
     public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
@@ -109,7 +108,6 @@ public class AutoCrystal extends Module {
     public static Setting<Sync> sync = new Setting<>("Sync", "Sync for broken crystals", Sync.SOUND).setParent(calculations);
     public static Setting<Boolean> prediction = new Setting<>("Prediction", "Attempts to account target's predicted position into the calculations", false).setParent(calculations);
     public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", "Ignores terrain when calculating damage", false).setParent(calculations);
-    public static Setting<Boolean> await = new Setting<>("Await", "Waits for the current process to complete before continuing", false).setParent(calculations);
 
     public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
     public static Setting<Double> targetRange = new Setting<>("Range", "Range to consider an entity as a target", 0.0, 10.0, 15.0, 1).setParent(target);
@@ -129,28 +127,51 @@ public class AutoCrystal extends Module {
     private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Map<Integer, Integer> attemptedExplosions = new HashMap<>();
     private final List<EntityEnderCrystal> blackListExplosions = new ArrayList<>();
+    private int previousExplosion;
 
     private final Timer placeTimer = new Timer();
     private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
     private final Map<BlockPos, Integer> attemptedPlacements = new HashMap<>();
+    private BlockPos previousPlacement = BlockPos.ORIGIN;
 
     private EnumHand previousHand = null;
     private int previousSlot = -1;
 
     private Rotation crystalRotation;
 
-    private boolean cleared;
+    private final Timer cleanupTimer = new Timer();
 
     @Override
     public void onEnable() {
         super.onEnable();
-        cleared = true;
+        resetProcess();
+    }
+
+    public void resetProcess() {
+        explodeCrystal = new Crystal(null, 0, 0);
+        placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+        previousHand = null;
+        previousSlot = -1;
+        previousExplosion = 0;
+        previousPlacement = BlockPos.ORIGIN;
+        resetLists();
+    }
+
+    public void resetLists() {
+        attemptedExplosions.clear();
+        attemptedPlacements.clear();
+        blackListExplosions.clear();
     }
 
     @Override
     public void onUpdate() {
         explodeCrystal();
         placeCrystal();
+
+        if (cleanupTimer.passed(1000, Format.SYSTEM)) {
+            resetLists();
+            cleanupTimer.reset();
+        }
     }
 
     @Override
@@ -214,7 +235,7 @@ public class AutoCrystal extends Module {
                 explodeTimer.reset();
 
                 // add crystal to our list of attempted explosions and reset the clearance
-                cleared = false;
+                previousExplosion = explodeCrystal.getCrystal().getEntityId();
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
@@ -249,7 +270,7 @@ public class AutoCrystal extends Module {
 
             if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
-                EnumFacing placementFacing = facingResult == null || facingResult.sideHit == null ? EnumFacing.UP : facingResult.sideHit;
+                EnumFacing placementFacing = (facingResult == null || facingResult.sideHit == null) ? EnumFacing.UP : facingResult.sideHit;
 
                 // directions of placement
                 double facingX = 0;
@@ -292,14 +313,14 @@ public class AutoCrystal extends Module {
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
                     InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
 
-                    if (previousHand != null && Mouse.isButtonDown(1))
+                    if (previousHand != null)
                         mc.player.setActiveHand(previousHand);
                 }
 
                 placeTimer.reset();
 
                 // add placement to our list of attempted placement and reset clearance
-                cleared = false;
+                previousPlacement = placePosition.getPosition();
                 attemptedPlacements.put(placePosition.getPosition(), attemptedPlacements.containsKey(placePosition.getPosition()) ? attemptedPlacements.get(placePosition.getPosition()) + 1 : 1);
             }
         }
@@ -310,7 +331,7 @@ public class AutoCrystal extends Module {
             // map of viable crystals
             TreeMap<Float, Crystal> crystalMap = new TreeMap<>();
 
-            for (Entity calculatedCrystal : mc.world.loadedEntityList) {
+            for (Entity calculatedCrystal : new ArrayList<>(mc.world.loadedEntityList)) {
                 // make sure it's a viable crystal
                 if (!(calculatedCrystal instanceof EntityEnderCrystal) || calculatedCrystal.isDead)
                     continue;
@@ -321,6 +342,9 @@ public class AutoCrystal extends Module {
                     continue;
 
                 if (blackListExplosions.contains(calculatedCrystal) && explodeInhibit.getValue())
+                    continue;
+
+                if (calculatedCrystal.ticksExisted < explodeTicksExisted.getValue().intValue())
                     continue;
 
                 // make sure it doesn't do too much dmg to us or kill us
@@ -452,23 +476,9 @@ public class AutoCrystal extends Module {
     }
 
     @SubscribeEvent
-    public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
-        if (event.getEntity() instanceof EntityEnderCrystal && attemptedPlacements.containsKey(event.getEntity().getPosition().down())) {
-            cleared = true;
-        }
-    }
-
-    @SubscribeEvent
-    public void onEntityDeSpawn(EntityWorldEvent.EntityRemoveEvent event) {
-        if (event.getEntity() instanceof EntityEnderCrystal && attemptedExplosions.containsKey(event.getEntity().getEntityId())) {
-            cleared = true;
-        }
-    }
-
-    @SubscribeEvent
     public void onCrystalAttack(CrystalAttackEvent event) {
         // if it's nearby the current broken crystal then it doesn't need to be attacked since it'll be exploded anyway
-        if (explodeInhibit.getValue() && Objects.equals(event.getDamageSource().getTrueSource(), explodeCrystal.getCrystal())) {
+        if (explodeInhibit.getValue() && explodeCrystal.getCrystal() != null && explodeCrystal.getCrystal().equals(event.getDamageSource().getTrueSource())) {
             blackListExplosions.add((EntityEnderCrystal) event.getDamageSource().getTrueSource());
         }
     }
@@ -550,6 +560,9 @@ public class AutoCrystal extends Module {
                 if (sync.getValue().equals(Sync.SOUND)) {
                     entity.setDead();
                     mc.world.removeEntityFromWorld(entity.getEntityId());
+
+                    // accept clearance for our attempted explosions
+                    attemptedExplosions.remove(entity.getEntityId());
                 }
             }));
         }
@@ -558,11 +571,11 @@ public class AutoCrystal extends Module {
     public void placeCrystal(BlockPos placePos, EnumFacing enumFacing, Vec3d vector, boolean packet) {
         new Thread(() -> {
             if (packet) {
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
             }
 
             else {
-                mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, vector, mc.player.getHeldItemOffhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+                mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, vector, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
             }
         }).start();
     }

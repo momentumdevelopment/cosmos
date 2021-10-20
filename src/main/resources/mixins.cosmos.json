@@ -22,6 +22,7 @@
       "accessor.IKeybinding",
       "accessor.IRenderGlobal",
       "accessor.IShaderGroup",
+      "accessor.ICPacketPlayerTryUseItemOnBlock",
 	  "MixinGuiMultiplayer",
 	  "MixinNetworkManager",
       "MixinEntityPlayerSP",

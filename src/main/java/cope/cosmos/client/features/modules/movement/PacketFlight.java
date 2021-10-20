@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
@@ -36,27 +37,28 @@ public class PacketFlight extends Module {
 	public static Setting<Double> factor = new Setting<>(() -> mode.getValue().equals(Mode.FACTOR), "Factor", "Speed factor", 0.0, 1.0, 5.0, 1);
 	public static Setting<Double> subdivisions = new Setting<>(() -> mode.getValue().equals(Mode.PATCH), "Subdivisions", "How many rotations packets to send", 0.0, 4.0, 10.0, 0);
 	public static Setting<Boolean> antiKick = new Setting<>("AntiKick", "Prevents getting kicked by vanilla anti-cheat", true);
-	public static Setting<Boolean> confirm = new Setting<>("Confirm", "Proactively confirms packets", true);
+	public static Setting<Boolean> limitJitter = new Setting<>("LimitJitter", "Proactively confirms packets", true);
 	public static Setting<Boolean> overshoot = new Setting<>("Overshoot", "Slightly overshoots the packet positions", false);
 	public static Setting<Boolean> stabilize = new Setting<>("Stabilize", "Ignores server position and rotation requests", true);
 
+	private final ConcurrentSet<CPacketPlayer> safePackets = new ConcurrentSet<>();
+	private final ConcurrentHashMap<Integer, Vec3d> vectorMap = new ConcurrentHashMap<>();
+
 	int lastTeleportId;
-	ConcurrentSet<CPacketPlayer> safePackets = new ConcurrentSet<>();
-	ConcurrentHashMap<Integer, Vec3d> vectorMap = new ConcurrentHashMap<>();
 
 	// client packet data
-	float clientYaw = Float.NaN;
-	float clientPitch = Float.NaN;
-	double clientX = Double.NaN;
-	double clientY = Double.NaN;
-	double clientZ = Double.NaN;
+	float clientYaw;
+	float clientPitch;
+	double clientX;
+	double clientY;
+	double clientZ;
 
 	// server packet data
-	float serverYaw = Float.NaN;
-	float serverPitch = Float.NaN;
-	double serverX = Double.NaN;
-	double serverY = Double.NaN;
-	double serverZ = Double.NaN;
+	float serverYaw;
+	float serverPitch;
+	double serverX;
+	double serverY;
+	double serverZ;
 
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
@@ -105,7 +107,10 @@ public class PacketFlight extends Module {
 	public void onPacketSend(PacketEvent.PacketSendEvent event) {
 		if (event.getPacket() instanceof CPacketPlayer) {
 			CPacketPlayer packet = (CPacketPlayer) event.getPacket();
-			event.setCanceled(!safePackets.contains(packet));
+
+			if (((ICPacketPlayer) packet).isMoving() || ((ICPacketPlayer) packet).isRotating()) {
+				event.setCanceled(!safePackets.contains(packet));
+			}
 		}
 	}
 
@@ -133,34 +138,50 @@ public class PacketFlight extends Module {
 				serverY = packet.getY();
 				serverZ = packet.getZ();
 
-				if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X))
-					serverX += mc.player.posX;
-				else
-					mc.player.motionX = 0;
+				// update our packet values
+				{
+					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X)) {
+						serverX += mc.player.posX;
+					}
 
-				if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y))
-					serverY += mc.player.posY;
-				else
-					mc.player.motionY = 0;
+					else {
+						mc.player.motionX = 0;
+					}
 
-				if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Z))
-					serverZ += mc.player.posZ;
-				else
-					mc.player.motionZ = 0;
+					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y)) {
+						serverY += mc.player.posY;
+					}
 
-				if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X_ROT))
-					serverPitch += mc.player.rotationPitch;
+					else {
+						mc.player.motionY = 0;
+					}
 
-				if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y_ROT))
-					serverYaw += mc.player.rotationYaw;
+					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Z)) {
+						serverZ += mc.player.posZ;
+					}
+
+					else {
+						mc.player.motionZ = 0;
+					}
+
+					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X_ROT)) {
+						serverPitch += mc.player.rotationPitch;
+					}
+
+					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y_ROT)) {
+						serverYaw += mc.player.rotationYaw;
+					}
+				}
 
 				if (mode.getValue().equals(Mode.PATCH)) {
 					event.setCanceled(stabilize.getValue());
 
+					// teleport us back to the server values
 					TeleportUtil.teleportPlayerKeepMotion(serverX, serverY, serverZ);
 
-					if (confirm.getValue())
+					if (limitJitter.getValue()) {
 						mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
+					}
 
 					CPacketPlayer.PositionRotation serverPacket = new CPacketPlayer.PositionRotation(serverX, serverY, serverZ, serverYaw, serverPitch, false);
 					safePackets.add(serverPacket);
@@ -196,9 +217,10 @@ public class PacketFlight extends Module {
 		mc.player.connection.sendPacket(legit);
 		mc.player.connection.sendPacket(bounds);
 
-		if (!vectorMap.containsKey(lastTeleportId) && mode.getValue().equals(Mode.PATCH)) {
-			if (confirm.getValue())
+		if (!vectorMap.containsKey(lastTeleportId)) {
+			if (limitJitter.getValue()) {
 				mc.player.connection.sendPacket(new CPacketConfirmTeleport(lastTeleportId++));
+			}
 
 			TeleportUtil.teleportPlayerKeepMotion(playerIncrement.x, playerIncrement.y, playerIncrement.z);
 			vectorMap.put(lastTeleportId, playerIncrement);
@@ -209,10 +231,13 @@ public class PacketFlight extends Module {
 		double motionY = getMotionY();
 		double speed;
 		
-		if (motionY != 0) 
+		if (motionY != 0) {
 			speed = 0.026;
-		else 
+		}
+
+		else {
 			speed = 0.040;
+		}
 		
 		double[] motion = MotionUtil.getMoveSpeed(motionY != 0 ? speed : speed * factor);
 		

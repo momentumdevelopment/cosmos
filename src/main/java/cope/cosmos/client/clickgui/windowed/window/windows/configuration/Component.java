@@ -9,6 +9,8 @@ public abstract class Component implements Util {
     private float width;
     private float height;
 
+    private boolean visible = true;
+
     public abstract void drawComponent(Vec2f position, float width);
 
     public abstract void handleLeftClick();
@@ -39,5 +41,13 @@ public abstract class Component implements Util {
 
     public float getHeight() {
         return height;
+    }
+
+    public void setVisible(boolean in) {
+        visible = in;
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 }
