@@ -67,6 +67,7 @@ public class SettingComponent extends Component implements Wrapper {
     public void drawComponent(Vec2f position, float width) {
         setPosition(position);
         setWidth(width);
+        setVisible(setting.isVisible());
 
         glPushMatrix();
 

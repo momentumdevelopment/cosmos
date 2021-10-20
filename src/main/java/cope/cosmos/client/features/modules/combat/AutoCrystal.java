@@ -272,6 +272,11 @@ public class AutoCrystal extends Module {
                 RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
                 EnumFacing placementFacing = (facingResult == null || facingResult.sideHit == null) ? EnumFacing.UP : facingResult.sideHit;
 
+                // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
+                if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
+                    placementFacing = EnumFacing.DOWN;
+                }
+
                 // directions of placement
                 double facingX = 0;
                 double facingY = 0;
