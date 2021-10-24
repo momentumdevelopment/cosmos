@@ -35,16 +35,21 @@ public class FastProjectile extends Module {
 
                 Random projectileRandom = new Random();
                 for (int tick = 0; tick < ticks.getValue(); tick++) {
+                    double sin = -Math.sin(Math.toRadians(mc.player.rotationYaw));
+                    double cos = Math.cos(Math.toRadians(mc.player.rotationYaw));
+
                     if (projectileRandom.nextBoolean()) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1e-10, mc.player.posZ, false));
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 1e-10, mc.player.posZ, true));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX - (sin * 100), mc.player.posY, mc.player.posZ - (cos * 100), true));
                     }
 
                     else {
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 1e-10, mc.player.posZ, true));
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1e-10, mc.player.posZ, false));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX - (sin * 100), mc.player.posY, mc.player.posZ - (cos * 100), true));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
                     }
                 }
+
+                projectileTimer.reset();
             }
         }
     }
