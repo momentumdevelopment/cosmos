@@ -1,14 +1,15 @@
 ![minecraft](https://img.shields.io/badge/Minecraft-1.12.2-blue.svg)
 ![GitHub All Releases](https://img.shields.io/github/downloads/linustouchtips/cosmos/total?color=purple)
 ![minecraft](https://img.shields.io/badge/Key--bind-Right--shift-brightgreen)
+![minecraft](https://img.shields.io/badge/Client--Prefix-*-blueviolet)
+![logo](https://github.com/linustouchtips/cosmos/blob/main/src/main/resources/assets/cosmos/textures/imgs/logotransparent.png)
 
-# Cosmos
 Cosmos is a free, open-source, Minecraft 1.12.2 PvP Client aimed at the anarchy community.
 
 
 ## Download
 <p align="center">
-    <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><img alt="cosmos-1.0.0.jar - July 13, 2021 - 3.57 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
+    <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><cosmos-1.0.0.jar - July 13, 2021 - 3.57 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
 </p>
 
 ## Setting up:
