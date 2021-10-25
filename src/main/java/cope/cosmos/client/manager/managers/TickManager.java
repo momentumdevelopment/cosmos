@@ -23,7 +23,7 @@ public class TickManager extends Manager implements Wrapper {
     public int currentTick;
 
     public TickManager() {
-        super("TickManager", "Keeps track of the server ticks");
+        super("TickManager", "Keeps track of the server ticks", 16);
         prevTime = -1;
 
         for (int i = 0, len = TPS.length; i < len; i++) {
