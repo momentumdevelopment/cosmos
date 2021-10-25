@@ -5,9 +5,13 @@ import cope.cosmos.asm.mixins.accessor.ITimer;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.player.Rotation;
+import cope.cosmos.util.player.RotationUtil;
 import cope.cosmos.util.system.MathUtil;
+import net.minecraft.entity.MoverType;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -62,8 +66,15 @@ public class TickManager extends Manager implements Wrapper {
         }
     }
 
-    public void setClientTicks(double ticks) {
-        ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((float) (50 / ticks));
+    public void setClientTicks(float ticks) {
+        ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((50 / ticks));
+    }
+
+    public void shiftServerTicks(MoverType type, Vec3d motion, Rotation rotation, int tickShift) {
+        for (int ticks = 0; ticks < tickShift; ticks++) {
+            mc.player.move(type, motion.x, motion.y, motion.z);
+            RotationUtil.sendRotationPackets(rotation.getYaw(), rotation.getPitch());
+        }
     }
 
     public enum TPS {

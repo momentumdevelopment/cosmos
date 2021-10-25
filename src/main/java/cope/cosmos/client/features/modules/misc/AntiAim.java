@@ -74,7 +74,7 @@ public class AntiAim extends Module {
         aimPitch = MathHelper.clamp(aimPitch, -90, 90);
 
         // update player model
-        Rotation aimRotation = new Rotation(aimYaw, aimPitch, Rotate.PACKET);
+        Rotation aimRotation = new Rotation(aimYaw, aimPitch);
         aimRotation.updateModelRotations();
 
         aimTicks++;

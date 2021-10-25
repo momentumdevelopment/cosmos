@@ -60,7 +60,7 @@ public class HoleFill extends Module {
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for placement rotations", Rotate.NONE);
     public static Setting<Boolean> rotateCenter = new Setting<>("Center", "Center rotations on target", false).setParent(rotate);
     public static Setting<Boolean> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", false).setParent(rotate);
-    
+
     public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
     public static Setting<Double> targetRange = new Setting<>("Range", "Range to consider a player a target", 0.0, 10.0, 15.0, 0).setParent(target);
 

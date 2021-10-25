@@ -9,6 +9,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -32,6 +33,7 @@ public class Interact extends Module {
     public static Setting<Double> reach = new Setting<>("Reach", "Player reach extension", 0.0, 0.0, 3.0, 2);
     public static Setting<Hand> hand = new Setting<>("Hand", "Swinging hand", Hand.NONE);
     public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", "Allows you to interact with blocks through walls", false);
+    public static Setting<Boolean> noSwing = new Setting<>("NoSwing", "Cancels the server side animation for swinging", false);
 
     public static Setting<Boolean> hitBox = new Setting<>("HitBox", "Ignores entity hitboxes", true);
     public static Setting<Double> hitBoxExtend = new Setting<>("Extend", "Entity hitbox extension", 0.0, 0.0, 2.0, 2).setParent(hitBox);
@@ -39,6 +41,7 @@ public class Interact extends Module {
 
     public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows you to place blocks on liquid", false);
     public static Setting<Boolean> heightLimit = new Setting<>("HeightLimit", "Allows you to interact with blocks at height limit", true);
+    public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", "Allows you to interact with blocks at the world border", false);
 
     @Override
     public void onUpdate() {
@@ -85,22 +88,16 @@ public class Interact extends Module {
         }
     }
 
-    public boolean isAutoPlacing() {
-        return AutoCrystal.INSTANCE.isActive() || HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isEnabled() || Surround.INSTANCE.isActive();
-    }
-
     @SubscribeEvent
     public void onHitboxSize(EntityHitboxSizeEvent event) {
         if (hitBox.getValue()) {
-            event.setHitboxSize((float) ((double) hitBoxExtend.getValue()));
+            event.setHitboxSize(hitBoxExtend.getValue().floatValue());
         }
     }
 
     @SubscribeEvent
     public void onReach(ReachEvent event) {
-        if (hitBox.getValue()) {
-            event.setReach((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + (float) ((double) reach.getValue()));
-        }
+        event.setReach(mc.playerController.getBlockReachDistance() + reach.getValue().floatValue());
     }
 
     @SubscribeEvent
@@ -110,8 +107,37 @@ public class Interact extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock && heightLimit.getValue() && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos().getY() == 255 && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection().equals(EnumFacing.UP)) {
-            ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.DOWN);
+        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+            BlockPos limitPosition = ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos();
+
+            if (heightLimit.getValue() && limitPosition.getY() >= (mc.world.getHeight() - 1) && ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection().equals(EnumFacing.UP)) {
+                ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.DOWN);
+            }
+
+            if (worldBorder.getValue() && mc.world.getWorldBorder().contains(limitPosition)) {
+                switch (((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection()) {
+                    case EAST:
+                        ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.WEST);
+                        break;
+                    case WEST:
+                        ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.EAST);
+                        break;
+                    case NORTH:
+                        ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.SOUTH);
+                        break;
+                    case SOUTH:
+                        ((ICPacketPlayerTryUseItemOnBlock) event.getPacket()).setDirection(EnumFacing.NORTH);
+                        break;
+                }
+            }
         }
+
+        if (event.getPacket() instanceof CPacketAnimation && noSwing.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    public boolean isAutoPlacing() {
+        return AutoCrystal.INSTANCE.isActive() || HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isEnabled() || Surround.INSTANCE.isActive();
     }
 }

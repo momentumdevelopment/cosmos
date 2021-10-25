@@ -4,10 +4,9 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;
 
 public class Rotation implements Wrapper {
-
-    private float yaw;
-    private float pitch;
-    private final Rotate rotate;
+    public Rotate rotate;
+    public float yaw;
+    public float pitch;
 
     public Rotation(float yaw, float pitch, Rotate rotate) {
         this.yaw = yaw;
@@ -19,13 +18,6 @@ public class Rotation implements Wrapper {
     public void updateModelRotations() {
         if (nullCheck()) {
             Cosmos.INSTANCE.getRotationManager().rotate(this.yaw, this.pitch, this.rotate);
-        }
-    }
-
-    public void restoreRotations() {
-        if (nullCheck()) {
-            yaw = mc.player.rotationYaw;
-            pitch = mc.player.rotationPitch;
         }
     }
 
