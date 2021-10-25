@@ -58,7 +58,7 @@ public class ElytraFlight extends Module {
     public void onEnable() {
         super.onEnable();
         if (!mc.player.isElytraFlying() && takeOff.getValue()) {
-            Cosmos.INSTANCE.getTickManager().setClientTicks(takeOffTimer.getValue());
+            Cosmos.INSTANCE.getTickManager().setClientTicks(takeOffTimer.getValue().floatValue());
 
             if (mc.player.onGround)
                 mc.player.motionY = 0.4;

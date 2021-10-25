@@ -21,6 +21,7 @@ public class AntiAim extends Module {
 
     public static Setting<Yaw> yaw = new Setting<>("Yaw", "Changes how your yaw is rotated", Yaw.LINEAR);
     public static Setting<Pitch> pitch = new Setting<>("Pitch", "Changes how your pitch is rotated", Pitch.NONE);
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", "How to rotate", Rotate.PACKET);
 
     int aimTicks = 0;
     float aimYaw = 0;
@@ -74,7 +75,7 @@ public class AntiAim extends Module {
         aimPitch = MathHelper.clamp(aimPitch, -90, 90);
 
         // update player model
-        Rotation aimRotation = new Rotation(aimYaw, aimPitch);
+        Rotation aimRotation = new Rotation(aimYaw, aimPitch, rotate.getValue());
         aimRotation.updateModelRotations();
 
         aimTicks++;

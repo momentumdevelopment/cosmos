@@ -70,7 +70,7 @@ public class Surround extends Module {
     int surroundPlaced = 0;
     BlockPos previousPosition = BlockPos.ORIGIN;
     BlockPos surroundPosition = BlockPos.ORIGIN;
-    Rotation surroundRotation = new Rotation(Float.NaN, Float.NaN);
+    Rotation surroundRotation = new Rotation(Float.NaN, Float.NaN, Rotate.NONE);
 
     @Override
     public void onEnable() {
@@ -164,7 +164,7 @@ public class Surround extends Module {
                 if (surroundPosition != BlockPos.ORIGIN) {
                     if (!rotate.getValue().equals(Rotate.NONE)) {
                         float[] surroundAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(surroundPosition) : AngleUtil.calculateAngles(surroundPosition);
-                        surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)));
+                        surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
 
                         if (!Float.isNaN(surroundRotation.getYaw()) && !Float.isNaN(surroundRotation.getPitch()))
                             surroundRotation.updateModelRotations();

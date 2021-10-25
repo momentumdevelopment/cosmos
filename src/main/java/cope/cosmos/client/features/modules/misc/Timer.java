@@ -14,6 +14,6 @@ public class Timer extends Module {
 
     @Override
     public void onUpdate() {
-        Cosmos.INSTANCE.getTickManager().setClientTicks(multiplier.getValue());
+        Cosmos.INSTANCE.getTickManager().setClientTicks(multiplier.getValue().floatValue());
     }
 }

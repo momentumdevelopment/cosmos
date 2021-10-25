@@ -69,7 +69,7 @@ public class ReverseStep extends Module {
                 if (mc.player.onGround) {
                     for (double y = 0; y < height.getValue() + 0.5; y += 0.01) {
                         if (!mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, -y, 0)).isEmpty()) {
-                            Cosmos.INSTANCE.getTickManager().setClientTicks(speed.getValue() * 2);
+                            Cosmos.INSTANCE.getTickManager().setClientTicks(speed.getValue().floatValue() * 2.0f);
                             break;
                         }
                     }

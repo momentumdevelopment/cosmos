@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.asm.mixins.accessor.ITimer;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -73,7 +74,7 @@ public class TickManager extends Manager implements Wrapper {
     public void shiftServerTicks(MoverType type, Vec3d motion, Rotation rotation, int tickShift) {
         for (int ticks = 0; ticks < tickShift; ticks++) {
             mc.player.move(type, motion.x, motion.y, motion.z);
-            RotationUtil.sendRotationPackets(rotation.getYaw(), rotation.getPitch());
+            Cosmos.INSTANCE.getRotationManager().rotate(rotation.getYaw(), rotation.getPitch(), Rotation.Rotate.PACKET); // Rotate should be client? this is a question
         }
     }
 
