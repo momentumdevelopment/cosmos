@@ -9,7 +9,7 @@ Cosmos is a free, open-source, Minecraft 1.12.2 PvP Client aimed at the anarchy 
 
 ## Download
 <p align="center">
-    <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><img alt="<img alt="cosmos-1.0.0.jar - July 13, 2021 - 3.57 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
+    <a href="https://github.com/linustouchtips/cosmos/releases/download/1.0.0/cosmos-1.0.0.jar"><img alt="cosmos-1.0.0.jar - July 13, 2021 - 3.57 Mb" src="https://github.com/Client-assets/cosmos/blob/main/Cosmos%20Download.png" width="540" height="140"></a>
 </p>
 
 ## Setting up:
