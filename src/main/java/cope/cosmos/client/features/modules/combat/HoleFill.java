@@ -1,7 +1,9 @@
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.manager.managers.HoleManager;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
@@ -20,7 +22,6 @@ import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.world.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.HoleUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -31,7 +32,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -69,7 +71,7 @@ public class HoleFill extends Module {
 
     private EntityPlayer fillTarget;
     private BlockPos fillPosition = BlockPos.ORIGIN;
-    private Rotation fillRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    private Rotation fillRotation = new Rotation(Float.NaN, Float.NaN);
 
     private int previousSlot;
 
@@ -85,47 +87,41 @@ public class HoleFill extends Module {
             return null;
 
         TreeMap<Double, BlockPos> fillMap = new TreeMap<>();
-        Iterator<BlockPos> potentialHoles = null;
-
-        switch (mode.getValue()) {
-            case TARGETED:
-                potentialHoles = BlockUtil.getNearbyBlocks(fillTarget, threshold.getValue(), false);
-                break;
-            case ALL:
-                potentialHoles = BlockUtil.getNearbyBlocks(mc.player, range.getValue(), false);
-                break;
-        }
-
-        EntityPlayer distanceTarget = mode.getValue().equals(Filler.TARGETED) ? fillTarget : mc.player;
-
-        while (potentialHoles.hasNext()) {
-            BlockPos calculatedHole = potentialHoles.next();
-
-            if (!mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(calculatedHole)).isEmpty())
+        for (Map.Entry<HoleManager.Hole, Color> holeEntry : new HashSet<>(Cosmos.INSTANCE.getHoleManager().getHoles().entrySet())) {
+            if (Math.sqrt(mc.player.getDistanceSq(holeEntry.getKey().getHole())) > range.getValue())
                 continue;
 
-            double targetDistance = distanceTarget.getDistanceSq(calculatedHole);
-            double localDistance = mc.player.getDistanceSq(calculatedHole);
+            if (!doubles.getValue() && holeEntry.getKey().getType().equals(HoleManager.Type.DOUBLEBEDROCKX) || holeEntry.getKey().getType().equals(HoleManager.Type.DOUBLEBEDROCKZ) || holeEntry.getKey().getType().equals(HoleManager.Type.DOUBLEOBSIDIANX) || holeEntry.getKey().getType().equals(HoleManager.Type.DOUBLEOBSIDIANZ))
+                continue;
+
+            if (!mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(holeEntry.getKey().getHole())).isEmpty())
+                continue;
+
+            double targetDistance = (mode.getValue().equals(Filler.TARGETED) ? fillTarget : mc.player).getDistanceSq(holeEntry.getKey().getHole());
+            double localDistance = mc.player.getDistanceSq(holeEntry.getKey().getHole());
+
+            if (mode.getValue().equals(Filler.TARGETED)) {
+                if (targetDistance > threshold.getValue())
+                    continue;
+            }
 
             if (localDistance < targetDistance && safety.getValue())
                 continue;
 
-            if (HoleUtil.isBedRockHole(calculatedHole) || HoleUtil.isObsidianHole(calculatedHole))
-                fillMap.put(targetDistance, calculatedHole);
-
-            if (doubles.getValue() && (HoleUtil.isDoubleBedrockHoleZ(calculatedHole) || HoleUtil.isDoubleBedrockHoleX(calculatedHole) || HoleUtil.isDoubleObsidianHoleZ(calculatedHole) || HoleUtil.isDoubleObsidianHoleX(calculatedHole)))
-                fillMap.put(targetDistance, calculatedHole);
+            fillMap.put(targetDistance, holeEntry.getKey().getHole());
         }
 
         switch (completion.getValue()) {
             case COMPLETION:
-                if (fillMap.isEmpty())
+                if (fillMap.isEmpty()) {
                     disable();
+                }
 
                 break;
             case TARGET:
-                if (fillTarget == null || EnemyUtil.isDead(fillTarget))
+                if (fillTarget == null || EnemyUtil.isDead(fillTarget)) {
                     disable();
+                }
 
                 break;
             case PERSISTENT:
@@ -141,7 +137,7 @@ public class HoleFill extends Module {
 
     @Override
     public void onUpdate() {
-        if (fillPosition.equals(BlockPos.ORIGIN) || fillPosition == null) {
+        if (fillPosition.equals(BlockPos.ORIGIN)) {
             fillTarget = null;
             fillPosition = null;
             return;
@@ -153,17 +149,18 @@ public class HoleFill extends Module {
 
         if (fillPosition != null && !rotate.getValue().equals(Rotate.NONE)) {
             float[] fillAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(fillPosition) : AngleUtil.calculateAngles(fillPosition);
-            fillRotation = new Rotation((float) (fillAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (fillAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
+            fillRotation = new Rotation((float) (fillAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (fillAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)));
 
-            if (!Float.isNaN(fillRotation.getYaw()) && !Float.isNaN(fillRotation.getPitch()))
+            if (!Float.isNaN(fillRotation.getYaw()) && !Float.isNaN(fillRotation.getPitch())) {
                 fillRotation.updateModelRotations();
+            }
         }
 
         // entity could've gotten in hole/could've been filled from the time it was calculated
         if (fillPosition == null || !mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(fillPosition)).isEmpty())
             return;
 
-        if (fillPosition != BlockPos.ORIGIN && InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
+        if (InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
             BlockUtil.placeBlock(fillPosition, packet.getValue(), confirm.getValue());
             PlayerUtil.swingArm(swing.getValue());
         }

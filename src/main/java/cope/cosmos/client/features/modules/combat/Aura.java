@@ -96,7 +96,7 @@ public class Aura extends Module {
     private Entity auraTarget = null;
     private final Timer auraTimer = new Timer();
     private final Timer switchTimer = new Timer();
-    private Rotation auraRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    private Rotation auraRotation = new Rotation(Float.NaN, Float.NaN);
 
     @Override
     public void onUpdate() {
@@ -123,7 +123,7 @@ public class Aura extends Module {
         InventoryUtil.switchToSlot(weapon.getValue().getItem(), autoSwitch.getValue());
 
         // set the client ticks
-        Cosmos.INSTANCE.getTickManager().setClientTicks(timer.getValue());
+        Cosmos.INSTANCE.getTickManager().setClientTicks(timer.getValue().floatValue());
 
         if (teleport.getValue()) {
             TeleportUtil.teleportPlayer(auraTarget.posX, auraTarget.posY, auraTarget.posZ);
@@ -131,7 +131,7 @@ public class Aura extends Module {
 
         if (!rotate.getValue().equals(Rotate.NONE)) {
             float[] auraAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(auraTarget) : AngleUtil.calculateAngles(auraTarget);
-            auraRotation = new Rotation(rotateRandom.getValue() ? auraAngles[0] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[0], rotateRandom.getValue() ? auraAngles[1] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[1], rotate.getValue());
+            auraRotation = new Rotation(rotateRandom.getValue() ? auraAngles[0] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[0], rotateRandom.getValue() ? auraAngles[1] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[1]);
 
             if (!Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch())) {
                 auraRotation.updateModelRotations();

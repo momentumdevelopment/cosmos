@@ -1,43 +1,19 @@
 package cope.cosmos.util.player;
 
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;
 
 public class Rotation implements Wrapper {
 
-    private float yaw;
-    private float pitch;
-    private final Rotate rotate;
+    public float yaw;
+    public float pitch;
 
-    public Rotation(float yaw, float pitch, Rotate rotate) {
+    public Rotation(float yaw, float pitch) {
         this.yaw = yaw;
         this.pitch = pitch;
-        this.rotate = rotate;
     }
 
     public void updateModelRotations() {
-        if (nullCheck()) {
-            switch (rotate) {
-                case PACKET:
-                    mc.player.renderYawOffset = yaw;
-                    mc.player.rotationYawHead = yaw;
-                    Cosmos.INSTANCE.getRotationManager().setHeadPitch(pitch);
-                    break;
-                case CLIENT:
-                    mc.player.rotationYaw = yaw;
-                    mc.player.rotationPitch = pitch;
-                    break;
-                case NONE:
-                	break;
-            }
-        }
-    }
 
-    public void restoreRotations() {
-        if (nullCheck()) {
-            yaw = mc.player.rotationYaw;
-            pitch = mc.player.rotationPitch;
-        }
     }
 
     public float getYaw() {
@@ -48,12 +24,32 @@ public class Rotation implements Wrapper {
         return pitch;
     }
 
-    public Rotate getRotation() {
-        return rotate;
-    }
-
     public enum Rotate {
         PACKET, CLIENT, NONE
+    }
+
+    public static class MutableRotation extends Rotation {
+
+        public MutableRotation(float yaw, float pitch) {
+            super(yaw, pitch);
+        }
+
+        public boolean isValid() {
+            return !Float.isNaN(yaw) && !Float.isNaN(pitch);
+        }
+
+        public void restoreRotations() {
+            setYaw(Float.NaN);
+            setPitch(Float.NaN);
+        }
+
+        public void setYaw(float in) {
+            yaw = in;
+        }
+
+        public void setPitch(float in) {
+            pitch = in;
+        }
     }
 }
 

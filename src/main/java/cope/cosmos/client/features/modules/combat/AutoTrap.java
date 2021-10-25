@@ -50,7 +50,7 @@ public class AutoTrap extends Module {
     int previousSlot = -1;
     int trapPlaced = 0;
     EntityPlayer trapTarget = null;
-    Rotation trapRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    Rotation trapRotation = new Rotation(Float.NaN, Float.NaN);
 
     @Override
     public void onUpdate() {
@@ -73,7 +73,7 @@ public class AutoTrap extends Module {
             if (Objects.equals(BlockUtil.getBlockResistance(trapPosition), BlockResistance.BLANK) && trapPlaced <= blocks.getValue()) {
                 if (!rotate.getValue().equals(Rotate.NONE)) {
                     float[] trapAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(trapPosition) : AngleUtil.calculateAngles(trapPosition);
-                    trapRotation = new Rotation((float) (trapAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (trapAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
+                    trapRotation = new Rotation((float) (trapAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (trapAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)));
 
                     if (!Float.isNaN(trapRotation.getYaw()) && !Float.isNaN(trapRotation.getPitch()))
                         trapRotation.updateModelRotations();

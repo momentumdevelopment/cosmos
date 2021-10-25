@@ -70,7 +70,7 @@ public class Surround extends Module {
     int surroundPlaced = 0;
     BlockPos previousPosition = BlockPos.ORIGIN;
     BlockPos surroundPosition = BlockPos.ORIGIN;
-    Rotation surroundRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
+    Rotation surroundRotation = new Rotation(Float.NaN, Float.NaN);
 
     @Override
     public void onEnable() {
@@ -164,7 +164,7 @@ public class Surround extends Module {
                 if (surroundPosition != BlockPos.ORIGIN) {
                     if (!rotate.getValue().equals(Rotate.NONE)) {
                         float[] surroundAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(surroundPosition) : AngleUtil.calculateAngles(surroundPosition);
-                        surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
+                        surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)));
 
                         if (!Float.isNaN(surroundRotation.getYaw()) && !Float.isNaN(surroundRotation.getPitch()))
                             surroundRotation.updateModelRotations();
@@ -200,10 +200,12 @@ public class Surround extends Module {
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
         if (!HoleUtil.isInHole(mc.player) && event.getPopEntity().equals(mc.player) && chainPop.getValue()) {
+            // switch to obsidian
             InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
 
             placeSurround();
 
+            // switch back
             InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
         }
     }
