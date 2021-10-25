@@ -15,21 +15,10 @@ public class Rotation implements Wrapper {
         this.rotate = rotate;
     }
 
+    // @todo this is deprecated, call Cosmos.INSTANCE.getRotationManager().rotate()
     public void updateModelRotations() {
         if (nullCheck()) {
-            switch (rotate) {
-                case PACKET:
-                    mc.player.renderYawOffset = yaw;
-                    mc.player.rotationYawHead = yaw;
-                    Cosmos.INSTANCE.getRotationManager().setHeadPitch(pitch);
-                    break;
-                case CLIENT:
-                    mc.player.rotationYaw = yaw;
-                    mc.player.rotationPitch = pitch;
-                    break;
-                case NONE:
-                	break;
-            }
+            Cosmos.INSTANCE.getRotationManager().rotate(this.yaw, this.pitch, this.rotate);
         }
     }
 

@@ -44,6 +44,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
@@ -95,7 +96,10 @@ public class AutoCrystal extends Module {
     public static Setting<Double> overrideArmor = new Setting<>("Armor", "Override when target's armor is below this percent", 0.0, 0.0, 100.0, 0).setParent(override);
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack and placement rotation", Rotate.NONE);
-    public static Setting<Float> rotateStep = new Setting<>("Step", "Number of divisions when sending rotation packets", 1.0F, 1.0F, 10.0F, 0).setParent(rotate);
+    public static Setting<YawStep> yawStep = new Setting<>("YawStep", "Mode for slower rotations", YawStep.NONE).setParent(rotate);
+    public static Setting<Float> yawStepThreshold = new Setting<>("YawStepThreshold", "The minimum difference needed in rotations to use YawStep", 1.0f, 22.0f, 180.0f, 1).setParent(yawStep);
+    public static Setting<Integer> yawSteps = new Setting<>("YawSteps", "The amount of packets to split rotations into", 2, 6, 12, 1).setParent(yawStep);
+    public static Setting<Integer> yawStepDelay = new Setting<>("YawStepDelay", "The delay that YawStep should send packets at in ticks", 0, 2, 10, 1).setParent(yawStep);
     public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 4.0, 10.0, 1).setParent(rotate);
     public static Setting<Boolean> rotateCenter = new Setting<>("Center", "Center rotations on target", false).setParent(rotate);
     public static Setting<When> rotateWhen = new Setting<>("When", "Mode for when to rotate", When.BOTH).setParent(rotate);
@@ -137,7 +141,8 @@ public class AutoCrystal extends Module {
     private EnumHand previousHand = null;
     private int previousSlot = -1;
 
-    private Rotation crystalRotation;
+    // private Rotation crystalRotation;
+    private final RotationHandler rotationHandler = new RotationHandler();
 
     private final Timer cleanupTimer = new Timer();
 
@@ -155,6 +160,7 @@ public class AutoCrystal extends Module {
         previousExplosion = 0;
         previousPlacement = BlockPos.ORIGIN;
         resetLists();
+        rotationHandler.lastRotation = null;
     }
 
     public void resetLists() {
@@ -191,13 +197,7 @@ public class AutoCrystal extends Module {
     public void explodeCrystal() {
         if (explodeCrystal != null) {
             if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.BREAK) || rotateWhen.getValue().equals(When.BOTH))) {
-                // find the angles and update the rotation
-                float[] explodeAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(explodeCrystal.getCrystal()) : AngleUtil.calculateAngles(explodeCrystal.getCrystal());
-                crystalRotation = new Rotation((float) (explodeAngles[0] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), (float) (explodeAngles[1] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), rotate.getValue());
-
-                // update the player model, not necessary but looks way cooler
-                if (!Float.isNaN(crystalRotation.getYaw()) && !Float.isNaN(crystalRotation.getPitch()))
-                    crystalRotation.updateModelRotations();
+                rotationHandler.rotate(explodeCrystal.getCrystal());
             }
 
             if (!explodeWeakness.getValue().equals(Switch.NONE)) {
@@ -248,13 +248,7 @@ public class AutoCrystal extends Module {
     public void placeCrystal() {
         if (placePosition != null) {
             if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.PLACE) || rotateWhen.getValue().equals(When.BOTH))) {
-                // find the angles and update the rotation
-                float[] placeAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(placePosition.getPosition()) : AngleUtil.calculateAngles(placePosition.getPosition());
-                crystalRotation = new Rotation((float) (placeAngles[0] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), (float) (placeAngles[1] + ThreadLocalRandom.current().nextDouble(-rotateRandom.getValue(), rotateRandom.getValue())), rotate.getValue());
-
-                // update the player model, not necessary but looks way cooler
-                if (!Float.isNaN(crystalRotation.getYaw()) && !Float.isNaN(crystalRotation.getPitch()))
-                    crystalRotation.updateModelRotations();
+                rotationHandler.rotate(placePosition.getPosition());
             }
 
             // log our previous slot and hand, we'll switch back after placing
@@ -490,16 +484,12 @@ public class AutoCrystal extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if ((event.getPacket() instanceof CPacketPlayer) && crystalRotation != null && rotate.getValue().equals(Rotate.PACKET)) {
-            // split up the rotation into multiple packets, NCP flags for quick rotations
-            if (Math.abs(crystalRotation.getYaw() - mc.player.rotationYaw) >= 20 || Math.abs(crystalRotation.getPitch() - mc.player.rotationPitch) >= 20) {
-                for (float step = rotateStep.getValue() - 1; step > 0; step--) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Rotation(crystalRotation.getYaw() / step + 1, crystalRotation.getPitch() / step + 1, mc.player.onGround));
-                }
+        if ((event.getPacket() instanceof CPacketPlayer) && this.rotationHandler.lastRotation != null) {
+            this.rotationHandler.lastRotation.updateModelRotations();
+            if (rotate.getValue().equals(Rotate.PACKET)) {
+                ((ICPacketPlayer) event.getPacket()).setYaw(this.rotationHandler.getYaw());
+                ((ICPacketPlayer) event.getPacket()).setPitch(this.rotationHandler.getPitch());
             }
-
-            ((ICPacketPlayer) event.getPacket()).setYaw(crystalRotation.getYaw());
-            ((ICPacketPlayer) event.getPacket()).setPitch(crystalRotation.getPitch());
         }
 
         if (event.getPacket() instanceof CPacketHeldItemChange) {
@@ -747,6 +737,10 @@ public class AutoCrystal extends Module {
         }
     }
 
+    public enum YawStep {
+        NONE, SEMI, FULL
+    }
+
     public static class CrystalPosition {
 
         private final BlockPos blockPos;
@@ -800,6 +794,91 @@ public class AutoCrystal extends Module {
 
         public double getSelfDamage() {
             return selfDamage;
+        }
+    }
+
+    // our rotationn handler for AutoCrystal
+    // this handles roations for YawStep and normal rotations
+    public class RotationHandler {
+        private Rotation lastRotation; // the last rotation we were on. this is our current rotation
+        private final Queue<Rotation> rotations = new ConcurrentLinkedQueue<>(); // the upcoming rotations
+        private final Timer rotationTimer = new Timer();
+
+        // this is for rotating to a BlockPos, so when you are placing a crystal
+        public void rotate(BlockPos pos) {
+            float[] rotations = rotateCenter.getValue() ? AngleUtil.calculateCenter(pos) : AngleUtil.calculateAngles(pos);
+            this.rotate(rotations[0], rotations[1], false, rotate.getValue());
+        }
+
+        // this is for when you are rotating to an end crystal, so when you are exploding a cyrstal
+        public void rotate(EntityEnderCrystal crystal) {
+            float[] rotations = rotateCenter.getValue() ? AngleUtil.calculateCenter(crystal.getPosition()) : AngleUtil.calculateAngles(crystal);
+            this.rotate(rotations[0], rotations[1], true, rotate.getValue());
+        }
+
+        public void rotate(float yaw, float pitch, boolean explode, Rotate rotate) {
+            // if it was specified to not rotate, dont do anything.
+            if (rotate == Rotate.NONE) {
+                return;
+            }
+
+            // for SEMI yawstep, it is only required to use yawstep when exploding, not when placing.
+            if (yawStep.getValue() == YawStep.NONE || yawStep.getValue() == YawStep.SEMI && !explode || this.lastRotation == null) {
+                this.lastRotation = new Rotation(yaw, pitch, rotate);
+                this.lastRotation.updateModelRotations();
+            } else {
+                if (this.rotations.isEmpty()) { // if we have not already calculated the rotations needed for YawStep
+                    double yawDifference = 0.0;
+                    double pitchDifference = 0.0;
+
+                    if (Math.abs(yaw - this.lastRotation.getYaw()) > yawStepThreshold.getValue()) {
+                        yawDifference = Math.abs(yaw - this.lastRotation.getYaw()) / yawSteps.getValue();
+                    }
+
+                    if (Math.abs(pitch - this.lastRotation.getPitch()) >= yawStepThreshold.getValue()) {
+                        pitchDifference = Math.abs(pitch - this.lastRotation.getPitch()) / yawSteps.getValue();
+                    }
+
+                    if (yawDifference == 0.0 && pitchDifference == 0.0) {
+                        this.lastRotation = new Rotation(yaw, pitch, rotate);
+                    } else {
+                        this.rotationTimer.reset();
+
+                        float yawStart = yawDifference == 0.0 ? yaw : this.lastRotation.getYaw();
+                        float pitchStart = pitchDifference == 0.0 ? pitch : this.lastRotation.getPitch();
+
+                        for (int step = 0; step < yawSteps.getValue(); ++step) {
+                            yawStart = this.lastRotation.getYaw() > yaw ? yawStart - (float) yawDifference : yawStart + (float) yawDifference;
+                            pitchStart = this.lastRotation.getPitch() > pitch ? pitchStart - (float) pitchDifference : pitchStart + (float) pitchDifference;
+
+                            this.rotations.add(new Rotation(yawStart, pitchStart, rotate));
+                        }
+                    }
+                } else {
+                    if (this.rotationTimer.passed(yawStepDelay.getValue().longValue(), Format.TICKS)) {
+                        this.rotationTimer.reset();
+
+                        int packets = yawSteps.getValue() / yawStepDelay.getValue();
+                        for (int i = 0; i < packets; ++i) {
+                            Rotation rotation = this.rotations.poll();
+                            if (rotation == null) {
+                                break; // none left
+                            }
+
+                            this.lastRotation = rotation;
+                            this.lastRotation.updateModelRotations();
+                        }
+                    }
+                }
+            }
+        }
+
+        public float getYaw() {
+            return this.lastRotation.getYaw();
+        }
+
+        public float getPitch() {
+            return this.lastRotation.getPitch();
         }
     }
 }
