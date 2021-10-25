@@ -22,7 +22,10 @@ public class FastProjectile extends Module {
         super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> (projectileTimer.passed(5000, Format.SYSTEM) ? "Charged" : "Charging"));
         INSTANCE = this;
     }
-
+    
+    public static Setting<Boolean> bows = new Setting<>("Bows", "Allow bows to do more damage", false);
+    public static Setting<Boolean> eggs = new Setting<>("Eggs", "Allow eggs to do more damage", false);
+    public static Setting<Boolean> snowballs = new Setting<>("Snowballs", "Allow snowballs to do more damage", false);
     public static Setting<Double> ticks = new Setting<>("Ticks", "How many times to send packets", 1.0D, 10.0D, 50.0D, 0);
 
     private static final Timer projectileTimer = new Timer();
@@ -30,8 +33,9 @@ public class FastProjectile extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerDigging && ((CPacketPlayerDigging) event.getPacket()).getAction().equals(CPacketPlayerDigging.Action.RELEASE_USE_ITEM)) {
-            if (InventoryUtil.isHolding(Items.BOW) && projectileTimer.passed(5000, Format.SYSTEM)) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            if (InventoryUtil.isHolding(Items.BOW) && bows.getValue() || InventoryUtil.isHolding(Items.EGG) && eggs.getValue() || InventoryUtil.isHolding(Items.SNOWBALL) && snowballs.getValue()) {
+                if(projectileTimer.passed(5000, Format.SYSTEM)) {
+                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
 
                 Random projectileRandom = new Random();
                 for (int tick = 0; tick < ticks.getValue(); tick++) {
@@ -48,8 +52,10 @@ public class FastProjectile extends Module {
                         mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
                     }
                 }
-
-                projectileTimer.reset();
+                    projectileTimer.reset();
+                }
+                
+                
             }
         }
     }
