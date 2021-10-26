@@ -15,11 +15,12 @@ import cope.cosmos.util.Wrapper;
 import net.minecraft.util.Session;
 
 public class AltManager extends Manager implements Wrapper {
-	public AltManager() {
-		super("AltManager", "Manages alternate accounts for easy login", 0);
-	}
 
 	private static final List<AltEntry> alts = new ArrayList<>();
+
+	public AltManager() {
+		super("AltManager", "Manages alternate accounts for easy login");
+	}
 
 	public static YggdrasilUserAuthentication logIn(String email, String password, boolean setSession) {
 		YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication) new YggdrasilAuthenticationService(Proxy.NO_PROXY, "").createUserAuthentication(Agent.MINECRAFT);

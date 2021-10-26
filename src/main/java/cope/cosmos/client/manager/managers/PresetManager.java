@@ -31,7 +31,7 @@ public class PresetManager extends Manager {
     private final File mainDirectory = new File("cosmos");
 
     public PresetManager() {
-        super("PresetManager", "Handles the client's configs - saving, loading, etc.", 8);
+        super("PresetManager", "Handles the client's configs - saving, loading, etc.");
         presets.add("default");
         currentPreset = "default";
 
@@ -40,12 +40,9 @@ public class PresetManager extends Manager {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Cosmos.INSTANCE.getPresetManager().save()));
     }
 
-    public void setPreset(String name) {
-        for (String preset : presets) {
-            if (preset.equals(name)) {
-                currentPreset = preset;
-                break;
-            }
+    public void setPreset(String in) {
+        if (presets.contains(in)) {
+            currentPreset = in;
         }
     }
 
@@ -54,12 +51,7 @@ public class PresetManager extends Manager {
     }
 
     public void removePreset(String name) {
-        for (String preset : presets) {
-            if (preset.equals(name)) {
-                presets.remove(preset);
-                break;
-            }
-        }
+        presets.remove(name);
     }
 
     public void load() {

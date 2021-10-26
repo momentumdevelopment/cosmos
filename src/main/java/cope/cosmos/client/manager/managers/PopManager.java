@@ -18,15 +18,16 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class PopManager extends Manager implements Wrapper {
-    public PopManager() {
-        super("PopManager", "Keeps track of all the totem pops", 17);
-        MinecraftForge.EVENT_BUS.register(this);
-    }
 
     private final Map<Entity, Integer> totemPops = new HashMap<>();
 
-    @SubscribeEvent
-    public void onUpdate(LivingEvent.LivingUpdateEvent event) {
+    public PopManager() {
+        super("PopManager", "Keeps track of all the totem pops");
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @Override
+    public void onUpdate() {
         if (nullCheck()) {
             new ArrayList<>(mc.world.loadedEntityList).forEach(entity -> {
                 if (totemPops.containsKey(entity) && EnemyUtil.isDead(entity)) {

@@ -26,7 +26,7 @@ public class PatchManager extends Manager implements Wrapper {
     private final Map<Patch, PatchState> patchMap = new HashMap<>();
 
     public PatchManager() {
-        super("PatchManager", "Makes sure certain features are toggled safely", 12);
+        super("PatchManager", "Makes sure certain features are toggled safely");
         MinecraftForge.EVENT_BUS.register(this);
 
         // set the patches on initialization

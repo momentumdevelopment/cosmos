@@ -26,7 +26,7 @@ public class RotationManager extends Manager implements Wrapper {
     private final Timer resetTimer = new Timer();
 
     public RotationManager() {
-        super("RotationManager", "Keeps track of server rotations", 11);
+        super("RotationManager", "Keeps track of server rotations");
         MinecraftForge.EVENT_BUS.register(this);
     }
 

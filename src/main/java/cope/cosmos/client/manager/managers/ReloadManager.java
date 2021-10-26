@@ -13,7 +13,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class ReloadManager extends Manager implements Wrapper {
     public ReloadManager() {
-        super("ReloadManager", "Reloads all modules when loading a new world", 10);
+        super("ReloadManager", "Reloads all modules when loading a new world");
         MinecraftForge.EVENT_BUS.register(this);
     }
 

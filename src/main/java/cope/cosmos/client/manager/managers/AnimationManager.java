@@ -12,7 +12,7 @@ public class AnimationManager extends Manager {
     private long currentStateStart = 0;
 
     public AnimationManager(int time, boolean initialState) {
-        super("AnimationManager", "Manages simple two-way animations", 1);
+        super("AnimationManager", "Manages simple two-way animations");
         this.time = time;
         this.initialState = initialState;
 

@@ -21,19 +21,32 @@ import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 
 @SuppressWarnings("unused")
 public class EventManager extends Manager implements Wrapper {
-	public EventManager() {
-		super("EventManager", "Manages Forge events", 3);
-	}
 
 	public static final EventManager INSTANCE = new EventManager();
-	
+
+	public EventManager() {
+		super("EventManager", "Manages Forge events");
+	}
+
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
-			if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player) && (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(mod)) && mod.isEnabled()) {
+			if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player) && (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
 				try {
 					mod.onUpdate();
-				} catch (Exception e) { e.printStackTrace(); }
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
+			}
+		});
+
+		getCosmos().getManagers().forEach(manager -> {
+			if (nullCheck()) {
+				try {
+					manager.onUpdate();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
 			}
 		});
 
@@ -47,8 +60,21 @@ public class EventManager extends Manager implements Wrapper {
 	public void onRender2d(RenderGameOverlayEvent.Text event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (nullCheck() && mod.isEnabled()) {
-				try { mod.onRender2D(); }
-				catch (Exception e) { e.printStackTrace(); }
+				try {
+					mod.onRender2D();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
+			}
+		});
+
+		getCosmos().getManagers().forEach(manager -> {
+			if (nullCheck()) {
+				try {
+					manager.onRender2D();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
 			}
 		});
 	}
@@ -59,8 +85,21 @@ public class EventManager extends Manager implements Wrapper {
 
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (nullCheck() && mod.isEnabled()) {
-				try { mod.onRender3D(); }
-				catch (Exception e) { e.printStackTrace(); }
+				try {
+					mod.onRender3D();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
+			}
+		});
+
+		getCosmos().getManagers().forEach(manager -> {
+			if (nullCheck()) {
+				try {
+					manager.onRender3D();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
 			}
 		});
 
@@ -82,7 +121,7 @@ public class EventManager extends Manager implements Wrapper {
 			event.setCanceled(true);
 
 			try {
-				Cosmos.INSTANCE.getCommandDispatcher().execute(Cosmos.INSTANCE.getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
+				getCosmos().getCommandDispatcher().execute(Cosmos.INSTANCE.getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
 			} catch (Exception exception) {
 				exception.printStackTrace();
 				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "No such command was found");

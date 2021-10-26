@@ -16,7 +16,7 @@ import cope.cosmos.client.manager.Manager;
 
 public class ModuleManager extends Manager {
 	public ModuleManager() {
-		super("ModuleManager", "Manages all the client modules", 5);
+		super("ModuleManager", "Manages all the client modules");
 	}
 
 	private static final List<Module> modules = Arrays.asList(
@@ -44,6 +44,7 @@ public class ModuleManager extends Manager {
 			new ChatModifications(),
 			new FakePlayer(),
 			new Notifier(),
+			new PacketQueuer(),
 			new Portal(),
 			new Timer(),
 			new XCarry(),

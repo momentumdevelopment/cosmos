@@ -4,12 +4,30 @@ public class Manager {
 
     private final String name;
     private final String description;
-    private final int identifier;
 
-    public Manager(String name, String description, int identifier) {
+    public Manager(String name, String description) {
         this.name = name;
         this.description = description;
-        this.identifier = identifier;
+    }
+
+    // runs every ticks (i.e. 20 times a second)
+    public void onUpdate() {
+
+    }
+
+    // runs on the separate module thread (i.e. every cpu tick)
+    public void onThread() {
+
+    }
+
+    // runs on the game overlay tick (i.e. once every frame)
+    public void onRender2D() {
+
+    }
+
+    // runs on the global render tick (i.e. once every frame)
+    public void onRender3D() {
+
     }
 
     public String getName() {
@@ -18,9 +36,5 @@ public class Manager {
 
     public String getDescription() {
         return description;
-    }
-
-    public int getIdentifier() {
-        return identifier;
     }
 }

@@ -6,11 +6,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SocialManager extends Manager {
-    public SocialManager() {
-        super("SocialManager", "Manages the client's social system", 13);
-    }
 
     private final Map<String, Relationship> socials = new ConcurrentHashMap<>();
+
+    public SocialManager() {
+        super("SocialManager", "Manages the client's social system");
+    }
 
     public void addSocial(String socialName, Relationship social) {
         socials.put(socialName, social);
@@ -21,7 +22,7 @@ public class SocialManager extends Manager {
     }
 
     public Map<String, Relationship> getSocials() {
-        return this.socials;
+        return socials;
     }
 
     public Relationship getSocial(String socialName) {

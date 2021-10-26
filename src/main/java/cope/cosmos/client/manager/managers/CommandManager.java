@@ -12,7 +12,7 @@ import cope.cosmos.client.manager.Manager;
 
 public class CommandManager extends Manager {
 	public CommandManager() {
-		super("CommandManager", "Manages client commands", 2);
+		super("CommandManager", "Manages client commands");
 	}
 
 	private static final List<Command> commands = Arrays.asList(

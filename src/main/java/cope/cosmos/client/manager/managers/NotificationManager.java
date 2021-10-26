@@ -8,11 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationManager extends Manager {
-    public NotificationManager() {
-        super("NotificationManager", "Handles sending client notifications", 6);
-    }
 
     private final List<Notification> notifications = new ArrayList<>();
+
+    public NotificationManager() {
+        super("NotificationManager", "Handles sending client notifications");
+    }
 
     public void pushNotification(Notification notification) {
         boolean unique = true;

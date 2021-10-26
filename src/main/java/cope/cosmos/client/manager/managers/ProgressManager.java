@@ -13,7 +13,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class ProgressManager extends Manager implements Wrapper {
     public ProgressManager() {
-        super("ProgressManager", "Renders the client custom splash screen", 9);
+        super("ProgressManager", "Renders the client custom splash screen");
     }
 
     private static ResourceLocation splash;

@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.lwjgl.opengl.Display;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,11 +37,14 @@ public class Cosmos {
     private CosmosGUI cosmosGUI;
     private WindowGUI windowGUI;
 
+    private final List<Manager> managers = new ArrayList<>();
+
     private TickManager tickManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
     private RotationManager rotationManager;
     private ThreadManager threadManager;
+    private HoleManager holeManager;
     private FontManager fontManager;
     private NotificationManager notificationManager;
     private ReloadManager reloadManager;
@@ -58,7 +63,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 12);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 13);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -68,15 +73,19 @@ public class Cosmos {
         progressManager.step("Loading Commands");
 
         tickManager = new TickManager();
+        managers.add(tickManager);
         progressManager.step("Setting up Tick Manager");
 
         rotationManager = new RotationManager();
+        managers.add(rotationManager);
         progressManager.step("Setting up Rotation Manager");
 
         socialManager = new SocialManager();
+        managers.add(socialManager);
         progressManager.step("Setting up Social Manager");
 
         presetManager = new PresetManager();
+        managers.add(presetManager);
         progressManager.step("Setting up Config Manager");
 
         cosmosGUI = new CosmosGUI();
@@ -84,19 +93,28 @@ public class Cosmos {
         progressManager.step("Setting up GUI's");
 
         reloadManager = new ReloadManager();
+        managers.add(reloadManager);
         progressManager.step("Setting up Reload Manager");
 
         notificationManager = new NotificationManager();
+        managers.add(notificationManager);
         progressManager.step("Setting up Notification Manager");
 
         patchManager = new PatchManager();
+        managers.add(patchManager);
         progressManager.step("Setting up Patch Helper");
 
         popManager = new PopManager();
+        managers.add(popManager);
         progressManager.step("Setting up Pop Manager");
 
         threadManager = new ThreadManager();
+        managers.add(threadManager);
         progressManager.step("Setting up Threads");
+
+        holeManager = new HoleManager();
+        managers.add(holeManager);
+        progressManager.step("Setting up Hole Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -107,6 +125,10 @@ public class Cosmos {
 
         // start the discord presence on startup
         PresenceManager.startPresence();
+    }
+
+    public List<Manager> getManagers() {
+        return managers;
     }
     
     public CosmosGUI getCosmosGUI() {
@@ -139,6 +161,10 @@ public class Cosmos {
 
     public ThreadManager getThreadManager() {
         return threadManager;
+    }
+
+    public HoleManager getHoleManager() {
+        return holeManager;
     }
 
     public ReloadManager getReloadManager() {
