@@ -2,7 +2,7 @@
 ![GitHub All Releases](https://img.shields.io/github/downloads/linustouchtips/cosmos/total?color=purple)
 ![minecraft](https://img.shields.io/badge/Key--bind-Right--shift-brightgreen)
 ![minecraft](https://img.shields.io/badge/Client--Prefix-*-blueviolet)
-![logo](https://github.com/linustouchtips/cosmos/blob/main/src/main/resources/assets/cosmos/textures/imgs/logotransparent.png)
+![logo](https://github.com/CynicalMuffin/cosmos/blob/main/src/main/resources/assets/cosmos/textures/imgs/logo-github-light.png)
 
 Cosmos is a free, open-source, Minecraft 1.12.2 PvP Client aimed at the anarchy community.
 
