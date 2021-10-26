@@ -30,6 +30,7 @@ public class ModuleManager extends Manager {
 
 			//Combat
 			new Aura(),
+			new AutoBowRelease(),
 			new AutoCrystal(),
 			// new AutoTrap(),
 			new Burrow(),
@@ -44,7 +45,6 @@ public class ModuleManager extends Manager {
 			new ChatModifications(),
 			new FakePlayer(),
 			new Notifier(),
-			new PacketQueuer(),
 			new Portal(),
 			new Timer(),
 			new XCarry(),
