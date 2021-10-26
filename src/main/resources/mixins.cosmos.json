@@ -46,6 +46,7 @@
       "MixinBlockSlime",
       "MixinBlockSoulSand",
       "MixinRender",
-      "MixinEntityEnderCrystal"
+      "MixinEntityEnderCrystal",
+      "MixinRenderPlayer"
     ]
 }

@@ -2,7 +2,6 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.asm.mixins.accessor.ITimer;
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -19,12 +18,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 @SuppressWarnings("unused")
 public class TickManager extends Manager implements Wrapper {
 
-    public long prevTime;
-    public float[] TPS = new float[20];
-    public int currentTick;
+    private long prevTime;
+    private final float[] TPS = new float[20];
+    private int currentTick;
 
     public TickManager() {
-        super("TickManager", "Keeps track of the server ticks", 16);
+        super("TickManager", "Keeps track of the server ticks");
         prevTime = -1;
 
         for (int i = 0, len = TPS.length; i < len; i++) {
@@ -71,10 +70,14 @@ public class TickManager extends Manager implements Wrapper {
         ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((50 / ticks));
     }
 
+    // should tell the server to move forward by a number of ticks
     public void shiftServerTicks(MoverType type, Vec3d motion, Rotation rotation, int tickShift) {
         for (int ticks = 0; ticks < tickShift; ticks++) {
+            // send vanilla movement packets
             mc.player.move(type, motion.x, motion.y, motion.z);
-            Cosmos.INSTANCE.getRotationManager().rotate(rotation.getYaw(), rotation.getPitch(), Rotation.Rotate.PACKET); // Rotate should be client? this is a question
+
+            // send vanilla rotation packets
+            RotationUtil.sendRotationPackets(mc.player.rotationYaw, mc.player.rotationPitch);
         }
     }
 
