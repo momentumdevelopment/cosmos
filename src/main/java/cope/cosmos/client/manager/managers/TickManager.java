@@ -77,7 +77,7 @@ public class TickManager extends Manager implements Wrapper {
             mc.player.move(type, motion.x, motion.y, motion.z);
 
             // send vanilla rotation packets
-            RotationUtil.sendRotationPackets(mc.player.rotationYaw, mc.player.rotationPitch);
+            getCosmos().getRotationManager().setRotations(mc.player.rotationYaw, mc.player.rotationPitch, Rotation.Rotate.CLIENT); // should this be client?
         }
     }
 

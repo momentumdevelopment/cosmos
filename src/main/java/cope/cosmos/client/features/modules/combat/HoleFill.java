@@ -156,7 +156,7 @@ public class HoleFill extends Module {
             fillRotation = new Rotation((float) (fillAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (fillAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
 
             if (!Float.isNaN(fillRotation.getYaw()) && !Float.isNaN(fillRotation.getPitch()))
-                fillRotation.updateModelRotations();
+                fillRotation.updateRotations();
         }
 
         // entity could've gotten in hole/could've been filled from the time it was calculated

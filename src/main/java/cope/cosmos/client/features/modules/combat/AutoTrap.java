@@ -76,7 +76,7 @@ public class AutoTrap extends Module {
                     trapRotation = new Rotation((float) (trapAngles[0] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (trapAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
 
                     if (!Float.isNaN(trapRotation.getYaw()) && !Float.isNaN(trapRotation.getPitch()))
-                        trapRotation.updateModelRotations();
+                        trapRotation.updateRotations();
                 }
 
                 BlockUtil.placeBlock(trapPosition, packet.getValue(), confirm.getValue());

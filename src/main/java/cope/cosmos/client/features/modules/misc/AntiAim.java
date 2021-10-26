@@ -76,7 +76,7 @@ public class AntiAim extends Module {
 
         // update player model
         Rotation aimRotation = new Rotation(aimYaw, aimPitch, rotate.getValue());
-        aimRotation.updateModelRotations();
+        aimRotation.updateRotations();
 
         aimTicks++;
     }

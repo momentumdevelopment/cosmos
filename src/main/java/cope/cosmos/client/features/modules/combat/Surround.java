@@ -167,7 +167,7 @@ public class Surround extends Module {
                         surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
 
                         if (!Float.isNaN(surroundRotation.getYaw()) && !Float.isNaN(surroundRotation.getPitch()))
-                            surroundRotation.updateModelRotations();
+                            surroundRotation.updateRotations();
                     }
                 }
 

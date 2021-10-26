@@ -134,7 +134,7 @@ public class Aura extends Module {
             auraRotation = new Rotation(rotateRandom.getValue() ? auraAngles[0] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[0], rotateRandom.getValue() ? auraAngles[1] + (float) (ThreadLocalRandom.current().nextDouble(-4, 4)) : auraAngles[1], rotate.getValue());
 
             if (!Float.isNaN(auraRotation.getYaw()) && !Float.isNaN(auraRotation.getPitch())) {
-                auraRotation.updateModelRotations();
+                auraRotation.updateRotations();
             }
         }
 
