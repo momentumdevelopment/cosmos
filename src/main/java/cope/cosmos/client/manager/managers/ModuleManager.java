@@ -59,6 +59,7 @@ public class ModuleManager extends Manager {
 			new Velocity(),
 
 			//Player
+			new Blink(),
 			new FastUse(),
 			new Interact(),
 			new PingSpoof(),
