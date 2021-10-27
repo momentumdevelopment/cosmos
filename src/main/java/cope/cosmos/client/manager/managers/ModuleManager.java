@@ -61,6 +61,7 @@ public class ModuleManager extends Manager {
 			//Player
 			new FastUse(),
 			new Interact(),
+			new PingSpoof(),
 			new SpeedMine(),
 
 			//Visual
