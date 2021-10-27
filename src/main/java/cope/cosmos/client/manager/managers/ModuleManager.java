@@ -62,6 +62,7 @@ public class ModuleManager extends Manager {
 			new AntiHunger(),
 			new Blink(),
 			new FastUse(),
+			new Freecam(),
 			new Interact(),
 			new NoFall(),
 			new PingSpoof(),
