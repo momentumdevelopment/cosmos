@@ -9,7 +9,7 @@
   "updateUrl": "https://github.com/momentumdevelopment/cosmos",
   "authorList": ["bon", "linustouchtips", "doctor swag", "Hoosiers"],
   "credits": "",
-  "logoFile": "",
+  "logoFile": "logo.png",
   "screenshots": [],
   "dependencies": []
 }
