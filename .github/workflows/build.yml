@@ -26,6 +26,8 @@ jobs:
         run: chmod +x ./gradlew
       - name: setup decomp workspace
         run: ./gradlew setupDecompWorkspace
+      - name: clean
+        run: ./gradlew clean
       - name: build
         run: ./gradlew build
       - name: capture build artifacts
