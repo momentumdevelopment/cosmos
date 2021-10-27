@@ -97,7 +97,7 @@ public class Interact extends Module {
 
     @SubscribeEvent
     public void onReach(ReachEvent event) {
-        event.setReach(mc.playerController.getBlockReachDistance() + reach.getValue().floatValue());
+        event.setReach((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + reach.getValue().floatValue());
     }
 
     @SubscribeEvent
