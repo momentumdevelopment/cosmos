@@ -62,6 +62,7 @@ public class ModuleManager extends Manager {
 			new Blink(),
 			new FastUse(),
 			new Interact(),
+			new NoFall(),
 			new PingSpoof(),
 			new SpeedMine(),
 
