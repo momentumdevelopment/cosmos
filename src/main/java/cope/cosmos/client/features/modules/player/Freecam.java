@@ -16,6 +16,7 @@ public class Freecam extends Module {
     private BlockPos origin = null;
 
     public static final Setting<Double> speed = new Setting<>("Speed", "How fast to move around", 0.1, 2.0, 10.0, 1);
+    public static Setting<Boolean> noClip = new Setting<>("NoClip", "Prevent the player from colliding with blocks", false);
 
     public Freecam() {
         super("Freecam", Category.PLAYER, "Allows you to freely move your camera through blocks");
@@ -68,8 +69,14 @@ public class Freecam extends Module {
     @Override
     public void onUpdate() {
         mc.player.capabilities.isFlying = true;
-        mc.player.noClip = true;
-
+        if(noClip.getValue()) {
+            mc.player.noClip = true;
+        }
+        
+        mc.player.motionX = 0;
+        mc.player.motionY = 0;
+        mc.player.motionZ = 0;
+        
         double[] movement = MotionUtil.getMoveSpeed(speed.getValue() / 10.0);
         mc.player.motionX = movement[0];
         mc.player.motionZ = movement[1];
