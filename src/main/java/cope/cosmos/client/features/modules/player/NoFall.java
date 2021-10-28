@@ -13,7 +13,7 @@ public class NoFall extends Module {
     public static final Setting<Double> distance = new Setting<>("Distance", "The minimum fall distance before doing anything", 1.0, 2.0, 256.0, 1);
 
     public static final Setting<Swap> swap = new Setting<>("Swap", "How to swap to a water bucket", Swap.LEGIT);
-    public static final Setting<Double> rubberband = new Setting<>("Rubberband", "How much to rubberband", 1.0, 5.0, 15.0, 1);
+    public static final Setting<Double> rubberband = new Setting<>("Rubberband", "How much to rubberband", 1.0, 240.0, 360.0, 1);
     public static final Setting<Double> glideSpeed = new Setting<>("GlideSpeed", "The speed to glide at", 0.1, 1.5, 5.0, 1);
 
     private EnumHand hand = EnumHand.MAIN_HAND;
@@ -76,8 +76,6 @@ public class NoFall extends Module {
             mc.player.setActiveHand(this.hand);
         }
 
-        // so if this is done with the rotation manager, it kicks you for "Invalid move player packet received" on vanilla???
-        // tf did you do to my rotation manager linus
         mc.player.rotationPitch = 90.0f;
         mc.playerController.processRightClick(mc.player, mc.world, this.hand);
     }
