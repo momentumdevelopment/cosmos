@@ -107,7 +107,7 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onInputUpdate(InputUpdateEvent event) {
-        if (this.isSlowed()) {
+        if (this.isSlowed() && !ncpStrict.getValue()) {
             event.getMovementInput().moveForward *= 5.0f;
             event.getMovementInput().moveStrafe *= 5.0f;
         }
