@@ -69,13 +69,8 @@ public class Freecam extends Module {
     @Override
     public void onUpdate() {
         mc.player.capabilities.isFlying = true;
-        if(noClip.getValue()) {
-            mc.player.noClip = true;
-        }
         
-        mc.player.motionX = 0;
-        mc.player.motionY = 0;
-        mc.player.motionZ = 0;
+        mc.player.noClip = this.noClip.getValue();
         
         double[] movement = MotionUtil.getMoveSpeed(speed.getValue() / 10.0);
         mc.player.motionX = movement[0];
