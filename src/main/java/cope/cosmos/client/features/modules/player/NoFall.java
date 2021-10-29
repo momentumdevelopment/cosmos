@@ -76,6 +76,8 @@ public class NoFall extends Module {
             mc.player.setActiveHand(this.hand);
         }
 
+        // so if this is done with the rotation manager, it kicks you for "Invalid move player packet received" on vanilla???
+        // tf did you do to my rotation manager linus
         mc.player.rotationPitch = 90.0f;
         mc.playerController.processRightClick(mc.player, mc.world, this.hand);
     }
