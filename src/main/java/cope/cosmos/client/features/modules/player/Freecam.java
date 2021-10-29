@@ -16,7 +16,7 @@ public class Freecam extends Module {
     private BlockPos origin = null;
 
     public static final Setting<Double> speed = new Setting<>("Speed", "How fast to move around", 0.1, 2.0, 10.0, 1);
-    public static Setting<Boolean> noClip = new Setting<>("NoClip", "Prevent the player from colliding with blocks", false);
+    public static final Setting<Boolean> noClip = new Setting<>("NoClip", "Prevent the player from colliding with blocks", false);
 
     public Freecam() {
         super("Freecam", Category.PLAYER, "Allows you to freely move your camera through blocks");
