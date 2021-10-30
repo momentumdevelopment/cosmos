@@ -5,7 +5,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.world.WorldUtil;
+import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -14,27 +14,34 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Blink extends Module {
-    public Blink() {
-        super("Blink", Category.PLAYER, "Suspends movement packets until a requirement is met");
-    }
-
     public static final Setting<Mode> mode = new Setting<>("Mode", "How to meet the requirement", Mode.MANUAL);
     public static final Setting<Boolean> spawnFake = new Setting<>("SpawnFake", "If to spawn a fake player", true);
 
     public static final Setting<Double> delay = new Setting<>("Delay", "The delay in seconds until sending all packets", 0.1, 5.0, 50.0, 1);
-    public static final Setting<Double> packetCount = new Setting<>("Packets", "The amount of packets until sending all packets", 0.0D, 10.0D, 200.0D, 0);
-    public static final Setting<Double> distance = new Setting<>("Distance", "The distance in blocks from the last position until sending all packets", 1.0D, 10.0D, 20.0D, 0);
+    public static final Setting<Integer> packetCount = new Setting<>("Packets", "The amount of packets until sending all packets", 0, 10, 200, 1);
+    public static final Setting<Integer> distance = new Setting<>("Distance", "The distance in blocks from the last position until sending all packets", 1, 10, 20, 1);
 
     private final Queue<CPacketPlayer> packets = new ConcurrentLinkedQueue<>();
+    private EntityOtherPlayerMP fakePlayer = null;
     private final Timer timer = new Timer();
     private boolean processing = false;
 
     private BlockPos lastPos = null;
 
+    public Blink() {
+        super("Blink", Category.PLAYER, "Suspends movement packets until a requirement is met", () -> Setting.formatEnum(mode.getValue()));
+    }
+
     @Override
     public void onEnable() {
         super.onEnable();
-        setup(true);
+
+        if (!nullCheck()) {
+            this.toggle();
+            return;
+        }
+
+        this.setup(true);
     }
 
     @Override
@@ -42,64 +49,67 @@ public class Blink extends Module {
         super.onDisable();
 
         if (nullCheck()) {
-            process(false);
+            this.process(false);
 
-            if (mc.world.getEntityByID(80085) != null) {
-                mc.world.removeEntity(mc.world.getEntityByID(80085));
-                mc.world.removeEntityDangerously(mc.world.getEntityByID(80085));
+            if (this.fakePlayer != null) {
+                mc.world.removeEntity(this.fakePlayer);
+                mc.world.removeEntityDangerously(this.fakePlayer);
             }
 
-            lastPos = null;
-            processing = false;
+            this.fakePlayer = null;
+            this.lastPos = null;
+            this.processing = false;
         }
     }
 
     @Override
     public void onUpdate() {
         switch (mode.getValue()) {
-            case DELAY:
-                if (timer.passed(delay.getValue().longValue() * 1000L, Timer.Format.SYSTEM)) {
-                    timer.reset();
-                    process(true);
+            case DELAY: {
+                if (this.timer.passed(delay.getValue().longValue() * 1000L, Timer.Format.SYSTEM)) {
+                    this.timer.reset();
+                    this.process(true);
                 }
-
                 break;
-            case PACKETS:
-                if (packets.size() >= packetCount.getValue()) {
-                    process(true);
+            }
+
+            case PACKETS: {
+                if (this.packets.size() >= packetCount.getValue()) {
+                    this.process(true);
                 }
-
                 break;
-            case DISTANCE:
-                if (lastPos == null) {
-                    lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+            }
+
+            case DISTANCE: {
+                if (this.lastPos == null) {
+                    this.lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
                     return;
                 }
 
-                if (mc.player.getDistance(lastPos.getX(), lastPos.getY(), lastPos.getZ()) >= distance.getValue()) {
-                    process(true);
+                if (mc.player.getDistance(this.lastPos.getX(), this.lastPos.getY(), this.lastPos.getZ()) >= distance.getValue()) {
+                    this.process(true);
                 }
-
                 break;
+            }
         }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer && !processing) {
+        if (event.getPacket() instanceof CPacketPlayer && !this.processing) {
             event.setCanceled(true);
-            packets.add((CPacketPlayer) event.getPacket());
+            this.packets.add((CPacketPlayer) event.getPacket());
         }
     }
 
     private void process(boolean setup) {
-        if (processing) {
+        if (this.processing) {
             return;
         }
 
-        processing = true;
-        while (!packets.isEmpty()) {
-            CPacketPlayer packet = packets.poll();
+        this.processing = true;
+        while (!this.packets.isEmpty()) {
+            CPacketPlayer packet = this.packets.poll();
             if (packet == null) {
                 break;
             }
@@ -108,23 +118,27 @@ public class Blink extends Module {
         }
 
         if (setup) {
-            setup(true);
+            this.setup(true);
         }
 
-        processing = false;
+        this.processing = false;
     }
 
     private void setup(boolean spawn) {
         if (spawnFake.getValue() && spawn) {
-            if (mc.world.getEntityByID(80085) != null) {
-                mc.world.removeEntity(mc.world.getEntityByID(80085));
-                mc.world.removeEntityDangerously(mc.world.getEntityByID(80085));
+            if (this.fakePlayer != null) {
+                mc.world.removeEntity(this.fakePlayer);
+                mc.world.removeEntityDangerously(this.fakePlayer);
             }
 
-            WorldUtil.createFakePlayer(mc.player.getGameProfile(), 80085, true, true);
+            this.fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+            this.fakePlayer.copyLocationAndAnglesFrom(mc.player);
+            this.fakePlayer.inventory.copyInventory(mc.player.inventory);
+
+            mc.world.spawnEntity(this.fakePlayer);
         }
 
-        lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+        this.lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
     }
 
     public enum Mode {
