@@ -29,7 +29,7 @@ compileJava {
 }
 
 jar.manifest.attributes(
-        //'FMLCorePluginContainsFMLMod': true,
+        'FMLCorePluginContainsFMLMod': true,
         'FMLCorePlugin': 'cope.cosmos.asm.Mixinloader',
         'ForceLoadAsMod': true,
         'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
