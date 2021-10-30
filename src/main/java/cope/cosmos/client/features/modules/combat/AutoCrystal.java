@@ -4,12 +4,14 @@ import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
+import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
@@ -44,7 +46,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
@@ -62,7 +63,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> explodeDelay = new Setting<>("Delay", "Delay to explode crystals", 0.0, 60.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", "Randomize the delay slightly to simulate real explosions", 0.0, 0.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
-    public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", "The minimum age of the crystal to explode", 0.0, 0.0, 20.0, 1).setParent(explode);
+    public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", "The minimum age of the crystal to explode", 0.0, 0.0, 5.0, 0).setParent(explode);
     public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
@@ -96,12 +97,9 @@ public class AutoCrystal extends Module {
     public static Setting<Double> overrideArmor = new Setting<>("Armor", "Override when target's armor is below this percent", 0.0, 0.0, 100.0, 0).setParent(override);
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack and placement rotation", Rotate.NONE);
+    public static Setting<Limit> rotateLimit = new Setting<>("Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
     public static Setting<When> rotateWhen = new Setting<>("When", "Mode for when to rotate", When.BOTH).setParent(rotate);
-    public static Setting<YawStep> yawStep = new Setting<>("YawStep", "Mode for slower rotations", YawStep.NONE).setParent(rotate);
-    public static Setting<Float> yawStepThreshold = new Setting<>("YawStepThreshold", "The minimum difference needed in rotations to yawstep", 1.0F, 22.0F, 180.0F, 1).setParent(rotate);
-    public static Setting<Double> yawSteps = new Setting<>("YawSteps", "The amount of packets to split rotations into", 2.0D, 6.0D, 12.0D, 0).setParent(rotate);
-    public static Setting<Double> yawStepDelay = new Setting<>("YawStepDelay", "The delay that yawstep should send packets at in ticks", 0.0D, 2.0D, 10.0D, 0).setParent(rotate);
-    public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 4.0, 10.0, 1).setParent(rotate);
+    public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 0.0, 5.0, 1).setParent(rotate);
 
     public static Setting<Boolean> calculations = new Setting<>("Calculations", "Preferences for calculations", true);
     public static Setting<Timing> timing = new Setting<>("Timing", "Optimizes process at the cost of anti-cheat compatibility", Timing.LINEAR).setParent(calculations);
@@ -130,17 +128,16 @@ public class AutoCrystal extends Module {
     private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Map<Integer, Integer> attemptedExplosions = new HashMap<>();
     private final List<EntityEnderCrystal> blackListExplosions = new ArrayList<>();
-    private int previousExplosion;
 
     private final Timer placeTimer = new Timer();
     private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
     private final Map<BlockPos, Integer> attemptedPlacements = new HashMap<>();
     private BlockPos previousPlacement = BlockPos.ORIGIN;
 
+    private Vec3d interactVector = Vec3d.ZERO;
+
     private EnumHand previousHand = null;
     private int previousSlot = -1;
-
-    private final RotationHandler rotationHandler = new RotationHandler();
 
     private final Timer cleanupTimer = new Timer();
 
@@ -153,12 +150,14 @@ public class AutoCrystal extends Module {
     public void resetProcess() {
         explodeCrystal = new Crystal(null, 0, 0);
         placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+        interactVector = Vec3d.ZERO;
+        previousPlacement = BlockPos.ORIGIN;
         previousHand = null;
         previousSlot = -1;
-        previousExplosion = 0;
-        previousPlacement = BlockPos.ORIGIN;
+        placeTimer.reset();
+        explodeTimer.reset();
+        cleanupTimer.reset();
         resetLists();
-        rotationHandler.lastRotation = null;
     }
 
     public void resetLists() {
@@ -195,7 +194,17 @@ public class AutoCrystal extends Module {
     public void explodeCrystal() {
         if (explodeCrystal != null) {
             if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.BREAK) || rotateWhen.getValue().equals(When.BOTH))) {
-                rotationHandler.setRotations(explodeCrystal.getCrystal());
+                // our last interaction will be the attack on the crystal
+                interactVector = explodeCrystal.getCrystal().getPositionVector();
+
+                if (rotate.getValue().equals(Rotate.CLIENT)) {
+                    float[] explodeAngles = AngleUtil.calculateAngles(interactVector);
+
+                    // update our players rotation
+                    mc.player.rotationYaw = explodeAngles[0];
+                    mc.player.rotationYawHead = explodeAngles[0];
+                    mc.player.rotationPitch = explodeAngles[1];
+                }
             }
 
             if (!explodeWeakness.getValue().equals(Switch.NONE)) {
@@ -233,7 +242,6 @@ public class AutoCrystal extends Module {
                 explodeTimer.reset();
 
                 // add crystal to our list of attempted explosions and reset the clearance
-                previousExplosion = explodeCrystal.getCrystal().getEntityId();
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
@@ -246,7 +254,17 @@ public class AutoCrystal extends Module {
     public void placeCrystal() {
         if (placePosition != null) {
             if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.PLACE) || rotateWhen.getValue().equals(When.BOTH))) {
-                rotationHandler.setRotations(placePosition.getPosition());
+                // our last interaction will be the placement on the block
+                interactVector = new Vec3d(placePosition.getPosition()).addVector(0.5, 0.5, 0.5);
+
+                if (rotate.getValue().equals(Rotate.CLIENT)) {
+                    float[] placeAngles = AngleUtil.calculateAngles(interactVector);
+
+                    // update our players rotation
+                    mc.player.rotationYaw = placeAngles[0];
+                    mc.player.rotationYawHead = placeAngles[0];
+                    mc.player.rotationPitch = placeAngles[1];
+                }
             }
 
             // log our previous slot and hand, we'll switch back after placing
@@ -289,7 +307,7 @@ public class AutoCrystal extends Module {
                     case STRICT:
                         placementFacing = EnumFacing.UP;
 
-                        float[] vectorAngles = AngleUtil.calculateAngles(placePosition.getPosition());
+                        float[] vectorAngles = AngleUtil.calculateAngles(interactVector);
                         Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1], Rotate.NONE));
 
                         RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
@@ -384,6 +402,7 @@ public class AutoCrystal extends Module {
             }
         }
 
+        // we did not find a crystal
         return null;
     }
 
@@ -456,6 +475,7 @@ public class AutoCrystal extends Module {
             }
         }
 
+        // we did not find a placement
         return null;
     }
 
@@ -481,21 +501,33 @@ public class AutoCrystal extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if ((event.getPacket() instanceof CPacketPlayer) && rotationHandler.getLastRotation() != null) {
-            rotationHandler.getLastRotation().updateRotations();
-            if (rotate.getValue().equals(Rotate.PACKET)) {
-                ((ICPacketPlayer) event.getPacket()).setYaw(rotationHandler.getYaw());
-                ((ICPacketPlayer) event.getPacket()).setPitch(rotationHandler.getPitch());
-            }
-        }
+    public void onMotionPreUpdate(MotionUpdateEvent event) {
+        if (rotate.getValue().equals(Rotate.PACKET)) {
+            // cancel the existing rotations, we'll send our own
+            event.setCanceled(true);
 
+            // add our rotation to our client rotations
+            float[] packetAngles = AngleUtil.calculateAngle(interactVector);
+
+            // add random values to our rotations to simulate vanilla rotations
+            if (rotateRandom.getValue() > 0) {
+                Random randomAngle = new Random();
+                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
+            }
+
+            event.setYaw(packetAngles[0]);
+            event.setPitch(packetAngles[1]);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             switchTimer.reset();
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51 && timing.getValue().equals(Timing.LINEAR) && explode.getValue()) {
             // position of the placed crystal
@@ -514,7 +546,7 @@ public class AutoCrystal extends Module {
             if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
                 return;
 
-            TreeMap<Float, Float> linearMap = new TreeMap<>();
+            TreeMap<Float, Integer> linearMap = new TreeMap<>();
             for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
                 // make sure the target is not dead or the local player
                 if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget))
@@ -528,16 +560,16 @@ public class AutoCrystal extends Module {
                 // calculate the damage this crystal will do to each target, we can verify if it meets our requirements later
                 float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, calculatedTarget, ignoreTerrain.getValue(), false), localDamage, distance);
 
-                linearMap.put(targetDamage, targetDamage);
+                linearMap.put(targetDamage, ((SPacketSpawnObject) event.getPacket()).getEntityID());
             }
 
             if (!linearMap.isEmpty()) {
-                float idealLinear = linearMap.lastEntry().getValue();
+                Map.Entry<Float, Integer> idealLinear = linearMap.lastEntry();
 
                 // make sure it meets requirements
-                if (idealLinear > explodeDamage.getValue()) {
+                if (idealLinear.getKey() > explodeDamage.getValue()) {
                     // explode the linear crystal
-                    explodeCrystal(((SPacketSpawnObject) event.getPacket()).getEntityID());
+                    explodeCrystal(idealLinear.getValue());
                     swingArm(explodeHand.getValue());
 
                     // add crystal to our list of attempted explosions
@@ -634,9 +666,9 @@ public class AutoCrystal extends Module {
             switch (placements) {
                 case NATIVE:
                 default:
-                    return mc.world.getBlockState(blockPos.add(0, 2, 0)).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR);
+                    return mc.world.getBlockState(blockPos.add(0, 2, 0)).getBlock().equals(Blocks.AIR) && (mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.FIRE));
                 case UPDATED:
-                    return mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR);
+                    return mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.FIRE);
             }
         } catch (Exception ignored) {
             return false;
@@ -735,8 +767,8 @@ public class AutoCrystal extends Module {
         }
     }
 
-    public enum YawStep {
-        NONE, SEMI, FULL
+    public enum Limit {
+        NORMAL, STRICT, NONE
     }
 
     public static class CrystalPosition {
@@ -792,98 +824,6 @@ public class AutoCrystal extends Module {
 
         public double getSelfDamage() {
             return selfDamage;
-        }
-    }
-
-    // this handles rotations for YawStep and normal rotations
-    public static class RotationHandler {
-
-        private final Queue<Rotation> rotationQueue = new ConcurrentLinkedQueue<>(); // the upcoming rotations
-        private final Timer rotationTimer = new Timer();
-
-        private Rotation lastRotation; // the last rotation we were on. this is our current rotation
-
-        // this is for rotating to a BlockPos
-        public void setRotations(BlockPos position) {
-            float[] rotations = AngleUtil.calculateAngles(position);
-            setRotations(rotations[0], rotations[1], false, rotate.getValue());
-        }
-
-        // this is for when you are rotating to an end crystal
-        public void setRotations(EntityEnderCrystal crystal) {
-            float[] rotations = AngleUtil.calculateAngles(crystal);
-            setRotations(rotations[0], rotations[1], true, rotate.getValue());
-        }
-
-        public void setRotations(float yaw, float pitch, boolean explode, Rotate rotate) {
-            if (!rotate.equals(Rotate.NONE)) {
-                // for yawstep mode SEMI, it is only required to use yawstep when exploding, not when placing.
-                if ((yawStep.getValue().equals(YawStep.NONE) || yawStep.getValue().equals(YawStep.SEMI)) && !explode || lastRotation == null) {
-                    lastRotation = new Rotation(yaw, pitch, rotate);
-                    lastRotation.updateRotations();
-                }
-
-                else {
-                    if (rotationQueue.isEmpty()) { // if we have not already calculated the rotations needed for yawstep
-                        float yawDifference = 0;
-                        float pitchDifference = 0;
-
-                        if (Math.abs(yaw - lastRotation.getYaw()) > yawStepThreshold.getValue()) {
-                            yawDifference = Math.abs(yaw - lastRotation.getYaw()) / yawSteps.getValue().intValue();
-                        }
-
-                        if (Math.abs(pitch - lastRotation.getPitch()) >= yawStepThreshold.getValue()) {
-                            pitchDifference = Math.abs(pitch - lastRotation.getPitch()) / yawSteps.getValue().intValue();
-                        }
-
-                        if (yawDifference == 0 && pitchDifference == 0) {
-                            lastRotation = new Rotation(yaw, pitch, rotate);
-                        }
-
-                        else {
-                            rotationTimer.reset();
-
-                            float yawStart = yawDifference == 0 ? yaw : lastRotation.getYaw();
-                            float pitchStart = pitchDifference == 0 ? pitch : lastRotation.getPitch();
-
-                            for (int step = 0; step < yawSteps.getValue(); ++step) {
-                                yawStart += lastRotation.getYaw() > yaw ? -yawDifference : yawDifference;
-                                pitchStart += lastRotation.getPitch() > pitch ? -pitchDifference : pitchDifference;
-                                rotationQueue.add(new Rotation(yawStart, pitchStart, rotate));
-                            }
-                        }
-                    }
-
-                    else {
-                        if (rotationTimer.passed(yawStepDelay.getValue().longValue(), Format.TICKS)) {
-                            int packets = yawSteps.getValue().intValue() / yawStepDelay.getValue().intValue();
-                            for (int i = 0; i < packets; ++i) {
-                                Rotation rotation = rotationQueue.poll();
-                                if (rotation == null) {
-                                    break; // none left
-                                }
-
-                                lastRotation = rotation;
-                                lastRotation.updateRotations();
-                            }
-
-                            rotationTimer.reset();
-                        }
-                    }
-                }
-            }
-        }
-
-        public Rotation getLastRotation() {
-            return lastRotation;
-        }
-
-        public float getYaw() {
-            return lastRotation.getYaw();
-        }
-
-        public float getPitch() {
-            return lastRotation.getPitch();
         }
     }
 }

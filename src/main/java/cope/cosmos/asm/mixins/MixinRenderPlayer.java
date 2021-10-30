@@ -16,7 +16,7 @@ public class MixinRenderPlayer implements Wrapper {
 
     @Inject(method = "doRender", at = @At("HEAD"))
     private void doRenderPre(AbstractClientPlayer entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo info) {
-        if (getCosmos().getRotationManager().getClientRotation().isValid() && mc.player.equals(entity)) {
+        if (getCosmos().getRotationManager().getServerRotation().isValid() && mc.player.equals(entity)) {
             prevRenderHeadYaw = entity.prevRotationYawHead;
             prevRenderPitch = entity.prevRotationPitch;
             renderPitch = entity.rotationPitch;
@@ -25,19 +25,19 @@ public class MixinRenderPlayer implements Wrapper {
             prevPrevRenderYawOffset = entity.prevRenderYawOffset;
             prevRenderYawOffset = entity.renderYawOffset;
 
-            entity.rotationYaw = getCosmos().getRotationManager().getClientRotation().getYaw();
-            entity.rotationYawHead = getCosmos().getRotationManager().getClientRotation().getYaw();
-            entity.prevRotationYawHead = getCosmos().getRotationManager().getClientRotation().getYaw();
-            entity.prevRenderYawOffset = getCosmos().getRotationManager().getClientRotation().getYaw();
-            entity.renderYawOffset = getCosmos().getRotationManager().getClientRotation().getYaw();
-            entity.rotationPitch = getCosmos().getRotationManager().getClientRotation().getPitch();
-            entity.prevRotationPitch = getCosmos().getRotationManager().getClientRotation().getPitch();
+            entity.rotationYaw = getCosmos().getRotationManager().getServerRotation().getYaw();
+            entity.rotationYawHead = getCosmos().getRotationManager().getServerRotation().getYaw();
+            entity.prevRotationYawHead = getCosmos().getRotationManager().getServerRotation().getYaw();
+            entity.prevRenderYawOffset = getCosmos().getRotationManager().getServerRotation().getYaw();
+            entity.renderYawOffset = getCosmos().getRotationManager().getServerRotation().getYaw();
+            entity.rotationPitch = getCosmos().getRotationManager().getServerRotation().getPitch();
+            entity.prevRotationPitch = getCosmos().getRotationManager().getServerRotation().getPitch();
         }
     }
 
     @Inject(method = "doRender", at = @At("RETURN"))
     private void doRenderPost(AbstractClientPlayer entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo info) {
-        if (getCosmos().getRotationManager().getClientRotation().isValid() && mc.player.equals(entity)) {
+        if (getCosmos().getRotationManager().getServerRotation().isValid() && mc.player.equals(entity)) {
             entity.rotationPitch = renderPitch;
             entity.rotationYaw = renderYaw;
             entity.rotationYawHead = renderHeadYaw;

@@ -20,11 +20,8 @@ public class Rotation implements Wrapper {
         this.rotate = Rotate.NONE;
     }
 
-    // @todo this is deprecated, call Cosmos.INSTANCE.getRotationManager().rotate()
     public void updateRotations() {
-        if (nullCheck()) {
-            getCosmos().getRotationManager().setRotations(getYaw(), getPitch(), getRotation());
-        }
+
     }
 
     public float getYaw() {

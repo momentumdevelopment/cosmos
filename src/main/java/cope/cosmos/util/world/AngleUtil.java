@@ -3,7 +3,6 @@ package cope.cosmos.util.world;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.player.Rotation;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -26,17 +25,43 @@ public class AngleUtil implements Wrapper {
         return calculateAngle(InterpolationUtil.interpolateEntityTime(mc.player, mc.getRenderPartialTicks()), new Vec3d(blockPos).add(new Vec3d(0.5, 0, 0.5)));
     }
 
+    public static float[] calculateAngle(Vec3d to) {
+        return calculateAngle(mc.player.getPositionEyes(1), to);
+    }
+
     public static float[] calculateAngle(Vec3d from, Vec3d to) {
+        return calculateAngles(to.subtract(from));
+    }
+
+     public static float[] calculateAngles(Vec3d vector) {
+        float yaw = (float) (Math.toDegrees(Math.atan2(vector.z, vector.x)) - 90);
+        float pitch = (float) Math.toDegrees(-Math.atan2(vector.y, Math.hypot(vector.x, vector.z)));
+
+        // make sure the angle is bounded
+        yaw %= 360;
+        pitch %= 360;
+
+        if (yaw >= 180) {
+            yaw -= 360;
+        }
+
+        if (yaw < -180) {
+            yaw += 360;
+        }
+
+         if (pitch >= 180) {
+             pitch -= 360;
+         }
+
+         if (pitch < -180) {
+             pitch += 360;
+         }
+
         return new float[] {
-                (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x)) - 90), (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2((to.y - from.y) * -1, MathHelper.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.z - from.z, 2)))))
+                yaw, pitch
         };
     }
 
-    /*
-     public static float[] calculateAngleRelative(Vec3d from, Vec3d to) {
-        double differenceX = from.x - to.x;
-    }
-    */
 
 
     public static Vec3d getVectorForRotation(Rotation rotation) {
