@@ -25,6 +25,8 @@ public class NoFall extends Module {
 
     @Override
     public void onDisable() {
+        super.onDisable();
+
         if (nullCheck()) {
             this.swapBack();
         }

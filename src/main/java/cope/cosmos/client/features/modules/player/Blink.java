@@ -34,6 +34,8 @@ public class Blink extends Module {
 
     @Override
     public void onEnable() {
+        super.onEnable();
+
         if (!nullCheck()) {
             this.toggle();
             return;
@@ -44,6 +46,8 @@ public class Blink extends Module {
 
     @Override
     public void onDisable() {
+        super.onDisable();
+
         if (nullCheck()) {
             this.process(false);
 

@@ -23,6 +23,8 @@ public class Freecam extends Module {
 
     @Override
     public void onEnable() {
+        super.onEnable();
+
         if (!nullCheck()) {
             this.disable();
             return;
@@ -39,6 +41,8 @@ public class Freecam extends Module {
 
     @Override
     public void onDisable() {
+        super.onDisable();
+
         if (nullCheck()) {
             if (this.fake != null) {
                 mc.world.removeEntity(this.fake);
