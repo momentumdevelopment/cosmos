@@ -95,10 +95,7 @@ public class HoleESP extends Module {
             holeTimer.reset();
         }
 
-        Iterator<BlockPos> potentialHoles = BlockUtil.getNearbyBlocks(mc.player, range.getValue(), false);
-        while (potentialHoles.hasNext()) {
-            BlockPos potentialHole = potentialHoles.next();
-
+        for (BlockPos potentialHole : BlockUtil.getSurroundingBlocks(mc.player, range.getValue(), false)) {
             if (HoleUtil.isVoidHole(potentialHole.down()) && voids.getValue()) {
                 addHole(new HoleManager.Hole(potentialHole.down(), HoleManager.Type.VOID), voidColor.getValue());
                 return;

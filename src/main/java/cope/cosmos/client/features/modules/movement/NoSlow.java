@@ -56,8 +56,16 @@ public class NoSlow extends Module {
 
     @Override
     public void onDisable() {
-        if (nullCheck() && this.isSneaking) {
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+        super.onDisable();
+
+        if (nullCheck()) {
+            if (this.isSneaking) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+            }
+
+            for (KeyBinding binding : NoSlow.KEYS) {
+                binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            }
         }
 
         this.isSneaking = false;
@@ -71,6 +79,8 @@ public class NoSlow extends Module {
         }
 
         if (inventoryMove.getValue() && this.isInScreen()) {
+            mc.currentScreen.allowUserInput = true;
+
             for (KeyBinding binding : NoSlow.KEYS) {
                 ((IKeybinding) binding).setPressed(GameSettings.isKeyDown(binding));
                 binding.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);

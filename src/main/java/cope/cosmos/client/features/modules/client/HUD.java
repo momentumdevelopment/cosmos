@@ -11,6 +11,8 @@ import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.system.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 
@@ -93,23 +95,23 @@ public class HUD extends Module {
             }
 
             if (armor.getValue()) {
-                glPushMatrix();
-                glEnable(GL_TEXTURE_2D);
-
                 armorOffset = 0;
                 mc.player.inventory.armorInventory.forEach(itemStack -> {
-                    armorOffset++;
-
                     if (!itemStack.isEmpty()) {
+                        GlStateManager.pushMatrix();
+                        RenderHelper.enableGUIStandardItemLighting();
+
                         mc.getRenderItem().zLevel = 200;
                         mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 88, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55);
                         mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 88, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55, "");
                         mc.getRenderItem().zLevel = 0;
-                    }
-                });
 
-                glDisable(GL_TEXTURE_2D);
-                glPopMatrix();
+                        RenderHelper.disableStandardItemLighting();
+                        GlStateManager.popMatrix();
+                    }
+
+                    armorOffset++;
+                });
             }
         }
     }

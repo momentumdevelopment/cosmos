@@ -6,10 +6,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.world.HoleUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")
@@ -44,7 +42,7 @@ public class ReverseStep extends Module {
                     break;
                 case TICKSHIFT:
                     // shift ticks
-                    getCosmos().getTickManager().shiftServerTicks(event.getType(), new Vec3d(0, event.getY(), 0), new Rotation(mc.player.rotationYaw, mc.player.rotationPitch), tickShift.getValue().intValue());
+                    getCosmos().getTickManager().shiftServerTicks(tickShift.getValue().intValue());
                     mc.player.motionY *= 1.75;
                     break;
                 case TIMER:
