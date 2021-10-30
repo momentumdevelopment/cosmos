@@ -3,10 +3,11 @@ package cope.cosmos.util.system;
 import cope.cosmos.util.Wrapper;
 
 public class Timer implements Wrapper {
+
     public long time;
 
     public Timer() {
-        this.time = -1L;
+        time = -1;
     }
 
     public long getMS(long time) {
@@ -43,7 +44,7 @@ public class Timer implements Wrapper {
     }
 
     public void reset() {
-        this.time = System.nanoTime();
+        time = System.nanoTime();
     }
 
     public enum Format {

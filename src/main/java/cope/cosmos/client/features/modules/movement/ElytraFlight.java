@@ -46,11 +46,16 @@ public class ElytraFlight extends Module {
 
     @SubscribeEvent
     public void onTravel(TravelEvent event) {
-        try {
-            if (nullCheck() && handlePause() && mc.player.isElytraFlying())
-                elytraFlight(event);
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        if (nullCheck() && mc.player.isElytraFlying()) {
+            if (pause.getValue()) {
+                if (PlayerUtil.isInLiquid() && pauseLiquid.getValue())
+                    return;
+
+                else if (PlayerUtil.isCollided() && pauseCollision.getValue())
+                    return;
+            }
+
+            elytraFlight(event);
         }
     }
 
@@ -58,12 +63,15 @@ public class ElytraFlight extends Module {
     public void onEnable() {
         super.onEnable();
         if (!mc.player.isElytraFlying() && takeOff.getValue()) {
-            Cosmos.INSTANCE.getTickManager().setClientTicks(takeOffTimer.getValue().floatValue());
+            getCosmos().getTickManager().setClientTicks(takeOffTimer.getValue().floatValue());
 
-            if (mc.player.onGround)
-                mc.player.motionY = 0.4;
-            else
+            if (mc.player.onGround) {
+                mc.player.jump();
+            }
+
+            else {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_FALL_FLYING));
+            }
         }
     }
 
@@ -72,8 +80,8 @@ public class ElytraFlight extends Module {
         Cosmos.INSTANCE.getTickManager().setClientTicks(1);
 
        if (lockRotation.getValue()) {
-            mc.player.rotationYaw = (float) MathHelper.clamp(mc.player.rotationYaw, -yaw.getValue(), yaw.getValue());
-            mc.player.rotationPitch = (float) MathHelper.clamp(mc.player.rotationPitch, -pitch.getValue(), pitch.getValue());
+            mc.player.rotationYaw = MathHelper.clamp(mc.player.rotationYaw, -yaw.getValue().floatValue(), yaw.getValue().floatValue());
+            mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -pitch.getValue().floatValue(), pitch.getValue().floatValue());
         }
 
         MotionUtil.stopMotion(-fall.getValue());
@@ -94,34 +102,25 @@ public class ElytraFlight extends Module {
     }
 
     public void handleControl() {
-        if (mc.gameSettings.keyBindJump.isKeyDown())
-            mc.player.motionY = ascend.getValue();
-        else if (mc.gameSettings.keyBindSneak.isKeyDown())
-            mc.player.motionY = -descend.getValue();
-    }
-
-    public void handleStrict() {
         if (mc.gameSettings.keyBindJump.isKeyDown()) {
-            mc.player.rotationPitch = (float) -pitch.getValue();
             mc.player.motionY = ascend.getValue();
         }
 
         else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
-            mc.player.rotationPitch = (float) ((double) pitch.getValue());
             mc.player.motionY = -descend.getValue();
         }
     }
 
-    public boolean handlePause() {
-        if (pause.getValue()) {
-            if (PlayerUtil.isInLiquid() && pauseLiquid.getValue())
-                return true;
-
-            else if (PlayerUtil.isCollided() && pauseCollision.getValue())
-                return true;
+    public void handleStrict() {
+        if (mc.gameSettings.keyBindJump.isKeyDown()) {
+            mc.player.rotationPitch = -pitch.getValue().floatValue();
+            mc.player.motionY = ascend.getValue();
         }
 
-        return true;
+        else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+            mc.player.rotationPitch = pitch.getValue().floatValue();
+            mc.player.motionY = -descend.getValue();
+        }
     }
 
     @SubscribeEvent

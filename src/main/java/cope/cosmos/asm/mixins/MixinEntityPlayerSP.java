@@ -30,8 +30,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
         MinecraftForge.EVENT_BUS.post(motionEvent);
 
         if (motionEvent.isCanceled()) {
-            super.move(type, motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
             info.cancel();
+            super.move(type, motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
         }
     }
 
@@ -40,10 +40,13 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
         LivingUpdateEvent livingUpdateEvent = new LivingUpdateEvent(entityPlayerSP, sprinting);
         MinecraftForge.EVENT_BUS.post(livingUpdateEvent);
 
-        if (livingUpdateEvent.isCanceled())
+        if (livingUpdateEvent.isCanceled()) {
             livingUpdateEvent.getEntityPlayerSP().setSprinting(true);
-        else
+        }
+
+        else {
             entityPlayerSP.setSprinting(sprinting);
+        }
     }
 
     @Inject(method = "onUpdateWalkingPlayer", at = @At("HEAD"), cancellable = true)
@@ -53,7 +56,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
 
         if (motionUpdateEvent.isCanceled()) {
             info.cancel();
-            RotationUtil.updateRotationPackets(motionUpdateEvent);
+            RotationUtil.sendRotationPackets(motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch());
         }
     }
 }

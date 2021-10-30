@@ -30,7 +30,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.*;
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -44,6 +43,7 @@ public class HoleFill extends Module {
         INSTANCE = this;
     }
 
+    /*
     public static Setting<Filler> mode = new Setting<>("Mode", "Mode for the filler", Filler.TARGETED);
     public static Setting<Block> block = new Setting<>("Block", "Block to use for filling", Block.OBSIDIAN);
     public static Setting<Completion> completion = new Setting<>("Completion", "When to consider the filling complete", Completion.COMPLETION);
@@ -77,6 +77,7 @@ public class HoleFill extends Module {
     public void onThread() {
         fillPosition = searchFill();
     }
+
 
     public BlockPos searchFill() {
         fillTarget = (EntityPlayer) TargetUtil.getTargetEntity(targetRange.getValue(), Target.CLOSEST, true, false, false, false);
@@ -212,4 +213,6 @@ public class HoleFill extends Module {
             return this.item;
         }
     }
+
+     */
 }

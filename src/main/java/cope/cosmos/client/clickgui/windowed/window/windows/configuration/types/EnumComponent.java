@@ -128,6 +128,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
             this.mode = mode;
         }
 
+        @SuppressWarnings("unchecked")
         public void drawComponent(Vec2f position, float width) {
             setPosition(position);
             setWidth(width);

@@ -28,9 +28,16 @@ public class AngleUtil implements Wrapper {
 
     public static float[] calculateAngle(Vec3d from, Vec3d to) {
         return new float[] {
-                (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x)) - 90.0), (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2((to.y - from.y) * -1.0, MathHelper.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.z - from.z, 2)))))
+                (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(to.z - from.z, to.x - from.x)) - 90), (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2((to.y - from.y) * -1, MathHelper.sqrt(Math.pow(to.x - from.x, 2) + Math.pow(to.z - from.z, 2)))))
         };
     }
+
+    /*
+     public static float[] calculateAngleRelative(Vec3d from, Vec3d to) {
+        double differenceX = from.x - to.x;
+    }
+    */
+
 
     public static Vec3d getVectorForRotation(Rotation rotation) {
         float yawCos = MathHelper.cos(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
@@ -44,8 +51,7 @@ public class AngleUtil implements Wrapper {
         return (float) (serverValue - currentValue / (divisions * steps));
     }
 
-    public static float calculateAngleDifference(float direction, float rotationYaw) {
-        float phi = Math.abs(rotationYaw - direction) % 360.0f;
-        return (phi > 180.0f) ? (360.0f - phi) : phi;
+    public static float calculateAngleDifference(float from, float to) {
+        return ((((from - to) % 360) + 540) % 360) - 180;
     }
 }

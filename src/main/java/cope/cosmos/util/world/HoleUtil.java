@@ -109,6 +109,6 @@ public class HoleUtil implements Wrapper {
     }
 
     public static boolean isVoidHole(BlockPos blockPos) {
-        return mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) && (Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.BLANK) || Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.RESISTANT)) : blockPos.getY() == 0 && (Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.BLANK) || Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.RESISTANT));
+        return mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) && !Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.UNBREAKABLE) : blockPos.getY() == 0 && !Objects.equals(BlockUtil.getBlockResistance(blockPos), BlockResistance.UNBREAKABLE);
     }
 }

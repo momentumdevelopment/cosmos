@@ -1,6 +1,8 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IKeybinding;
+import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SlimeEvent;
 import cope.cosmos.client.events.SoulSandEvent;
@@ -50,6 +52,13 @@ public class NoSlow extends Module {
 
     private boolean airPacket;
     private final List<CPacketEntityAction> safeAirPackets = new ArrayList<>();
+
+    @SubscribeEvent
+    public void onMotionUpdate(MotionUpdateEvent event) {
+        if (strict.getValue()) {
+            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+        }
+    }
 
     @Override
     public void onUpdate() {
@@ -128,8 +137,8 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer && strict.getValue() && hasSlowDown()) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, new BlockPos(Math.floor(mc.player.posX), Math.floor(mc.player.posY), Math.floor(mc.player.posZ)), EnumFacing.DOWN));
+        if (event.getPacket() instanceof CPacketPlayer && airStrict.getValue() && !airPacket) {
+            ((ICPacketPlayer) event.getPacket()).setOnGround(false);
         }
 
         if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING) && !safeAirPackets.contains((CPacketEntityAction) event.getPacket()) && sneak.getValue()) {

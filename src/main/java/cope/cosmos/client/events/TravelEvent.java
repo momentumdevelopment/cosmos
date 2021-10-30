@@ -6,9 +6,9 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 @Cancelable
 public class TravelEvent extends Event {
 
-    private float strafe;
-    private float vertical;
-    private float forward;
+    private final float strafe;
+    private final float vertical;
+    private final float forward;
 
     public TravelEvent(float strafe, float vertical, float forward) {
         this.strafe = strafe;
@@ -17,14 +17,14 @@ public class TravelEvent extends Event {
     }
 
     public float getStrafe() {
-        return this.strafe;
+        return strafe;
     }
 
     public float getVertical() {
-        return this.vertical;
+        return vertical;
     }
 
     public float getForward() {
-        return this.forward;
+        return forward;
     }
 }

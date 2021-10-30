@@ -71,17 +71,21 @@ public class Module extends Feature implements Wrapper {
 	}
 
 	public void toggle() {
-		if (enabled)
+		if (enabled) {
 			disable();
-		else
+		}
+
+		else {
 			enable();
+		}
 	}
 
 	public void enable() {
 		if (!enabled) {
 			enabled = true;
 			MinecraftForge.EVENT_BUS.register(this);
-			if ((mc.player != null && mc.world != null) || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
+			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
+				// runs onEnable callbacks
 				ModuleEnableEvent event = new ModuleEnableEvent(this);
 				MinecraftForge.EVENT_BUS.post(event);
 
@@ -97,7 +101,8 @@ public class Module extends Feature implements Wrapper {
 	public void disable() {
 		if (enabled) {
 			enabled = false;
-			if ((mc.player != null && mc.world != null) || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
+			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
+				// runs onDisable callbacks
 				ModuleDisableEvent event = new ModuleDisableEvent(this);
 				MinecraftForge.EVENT_BUS.post(event);
 

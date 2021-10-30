@@ -22,10 +22,13 @@ public class PlayerUtil implements Wrapper {
 
     public static void attackEntity(Entity entity, boolean packet, Hand hand, double variation) {
         if (Math.random() <= (variation / 100)) {
-            if (packet)
+            if (packet) {
                 mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-            else
+            }
+
+            else {
                 mc.playerController.attackEntity(mc.player, entity);
+            }
         }
 
         swingArm(hand);

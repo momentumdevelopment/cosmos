@@ -47,7 +47,7 @@ public class FastUse extends Module {
             }
 
             else {
-                ((IMinecraft) mc).setRightClickDelayTimer((int) ((double) speed.getValue()));
+                ((IMinecraft) mc).setRightClickDelayTimer(speed.getValue().intValue());
             }
         }
 
@@ -72,16 +72,16 @@ public class FastUse extends Module {
 
     @SuppressWarnings("unused")
     @SubscribeEvent
-    public void onPlayerRightClick(PlayerInteractEvent.RightClickItem rightClickItemEvent) {
-        if (packetUse.getValue()) {
-            if (packetGapple.getValue() && !rightClickItemEvent.getItemStack().getItem().equals(Items.GOLDEN_APPLE))
+    public void onPlayerRightClick(PlayerInteractEvent.RightClickItem event) {
+        if (packetUse.getValue() && event.getEntityPlayer().equals(mc.player)) {
+            if (packetGapple.getValue() && !event.getItemStack().getItem().equals(Items.GOLDEN_APPLE))
                 return;
 
-            if (packetPotion.getValue() && !rightClickItemEvent.getItemStack().getItem().equals(Items.POTIONITEM))
+            if (packetPotion.getValue() && !event.getItemStack().getItem().equals(Items.POTIONITEM))
                 return;
 
-            rightClickItemEvent.setCanceled(true);
-            rightClickItemEvent.getItemStack().getItem().onItemUseFinish(rightClickItemEvent.getItemStack(), rightClickItemEvent.getWorld(), rightClickItemEvent.getEntityPlayer());
+            event.setCanceled(true);
+            event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
         }
     }
 }

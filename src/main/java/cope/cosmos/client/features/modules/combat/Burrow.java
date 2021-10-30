@@ -71,12 +71,12 @@ public class Burrow extends Module {
 			return;
 		}
 
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698D, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.7531999805211997D, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.00133597911214D, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.16610926093821D, mc.player.posZ, true));
+		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
+		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.7531999805211997, mc.player.posZ, true));
+		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.00133597911214, mc.player.posZ, true));
+		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ, true));
 
-		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY + 1.16610926093821D, mc.player.posZ);
+		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ);
 
 		int oldSlot = mc.player.inventory.currentItem;
 
@@ -86,7 +86,7 @@ public class Burrow extends Module {
 		BlockUtil.placeBlock(originalPos, packet.getValue(), false);
 		PlayerUtil.swingArm(swing.getValue());
 
-		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY - 1.16610926093821D, mc.player.posZ);
+		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
 		mc.player.inventory.currentItem = oldSlot;
 		mc.player.connection.sendPacket(new CPacketHeldItemChange(oldSlot));

@@ -1,5 +1,6 @@
 package cope.cosmos.util.player;
 
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
 
@@ -95,5 +96,12 @@ public class MotionUtil implements Wrapper {
 
     public static boolean isMoving() {
         return (mc.player.moveForward != 0 || mc.player.moveStrafing != 0);
+    }
+
+    public static boolean hasMoved() {
+        double updatedPosX = mc.player.posX - ((IEntityPlayerSP) mc.player).getLastReportedPosX();
+        double updatedPosY = mc.player.getEntityBoundingBox().minY - ((IEntityPlayerSP) mc.player).getLastReportedPosY();
+        double updatedPosZ = mc.player.posZ - ((IEntityPlayerSP) mc.player).getLastReportedPosZ();
+        return Math.pow(updatedPosX, 2) + Math.pow(updatedPosY, 2) + Math.pow(updatedPosZ, 2) > 9.0E-4;
     }
 }
