@@ -6,6 +6,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.RenderRotationsEvent;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
@@ -506,10 +507,26 @@ public class AutoCrystal extends Module {
             // cancel the existing rotations, we'll send our own
             event.setCanceled(true);
 
-            // add our rotation to our client rotations
             float[] packetAngles = AngleUtil.calculateAngle(interactVector);
 
             // add random values to our rotations to simulate vanilla rotations
+            if (rotateRandom.getValue() > 0) {
+                Random randomAngle = new Random();
+                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
+            }
+
+            // add our rotation to our client rotations
+            event.setYaw(packetAngles[0]);
+            event.setPitch(packetAngles[1]);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderRotations(RenderRotationsEvent event) {
+        if (rotate.getValue().equals(Rotate.PACKET)) {
+            event.setCanceled(true);
+
+            float[] packetAngles = AngleUtil.calculateAngle(interactVector);
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
                 packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());

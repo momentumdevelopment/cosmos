@@ -29,16 +29,6 @@ public class PacketQueuer extends Module {
             }
              */
 
-            EntityEnderCrystal nearestCrystal = (EntityEnderCrystal) mc.world.loadedEntityList.stream().filter(crystal -> crystal instanceof EntityEnderCrystal).min(Comparator.comparing(crystal -> mc.player.getDistance(crystal))).orElse(null);
-            if (nearestCrystal != null) {
-                float[] crystalAngles = AngleUtil.calculateAngles(nearestCrystal);
-
-                if (((ICPacketPlayer) (event.getPacket())).isRotating()) {
-                    ChatUtil.sendMessage("Yaw: " + ((CPacketPlayer) event.getPacket()).getYaw(0) + ", " + crystalAngles[0]);
-                    ChatUtil.sendMessage("Pitch: " + ((CPacketPlayer) event.getPacket()).getPitch(0) + ", " + crystalAngles[1]);
-                }
-            }
-
             /*
             ChatUtil.sendMessage("OnGround: " + ((CPacketPlayer) event.getPacket()).isOnGround());
              */

@@ -154,7 +154,7 @@ public class NoRender extends Module {
             if (!PlayerUtil.isInLiquid() && fogLiquid.getValue())
                 return;
 
-            event.setDensity((float) ((double) fogDensity.getValue()));
+            event.setDensity(fogDensity.getValue().floatValue());
             event.setCanceled(true);
         }
     }
