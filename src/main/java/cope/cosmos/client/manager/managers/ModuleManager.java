@@ -30,7 +30,6 @@ public class ModuleManager extends Manager {
 
 			//Combat
 			new Aura(),
-			new AutoBowRelease(),
 			new AutoCrystal(),
 			// new AutoTrap(),
 			new Burrow(),

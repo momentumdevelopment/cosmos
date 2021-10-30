@@ -5,13 +5,10 @@ import cope.cosmos.asm.mixins.accessor.ITimer;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.RotationUtil;
 import cope.cosmos.util.system.MathUtil;
-import net.minecraft.entity.MoverType;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -71,13 +68,10 @@ public class TickManager extends Manager implements Wrapper {
     }
 
     // should tell the server to move forward by a number of ticks
-    public void shiftServerTicks(MoverType type, Vec3d motion, Rotation rotation, int tickShift) {
+    public void shiftServerTicks(int tickShift) {
         for (int ticks = 0; ticks < tickShift; ticks++) {
-            // send vanilla movement packets
-            mc.player.move(type, motion.x, motion.y, motion.z);
-
-            // send vanilla rotation packets
-            getCosmos().getRotationManager().setRotations(mc.player.rotationYaw, mc.player.rotationPitch, Rotation.Rotate.CLIENT); // should this be client?
+            // send vanilla movement & rotation packets
+            RotationUtil.sendRotationPackets(mc.player.rotationYaw, mc.player.rotationPitch);
         }
     }
 

@@ -501,7 +501,7 @@ public class AutoCrystal extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onMotionPreUpdate(MotionUpdateEvent event) {
+    public void onMotionUpdate(MotionUpdateEvent event) {
         if (rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the existing rotations, we'll send our own
             event.setCanceled(true);
