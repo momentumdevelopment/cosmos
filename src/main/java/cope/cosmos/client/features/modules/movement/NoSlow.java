@@ -1,8 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
-import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IKeybinding;
-import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SlimeEvent;
 import cope.cosmos.client.events.SoulSandEvent;
@@ -13,15 +11,11 @@ import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.GameSettings;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemPotion;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
@@ -30,125 +24,106 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @SuppressWarnings("unused")
 public class NoSlow extends Module {
     public static NoSlow INSTANCE;
+    private static final KeyBinding[] KEYS = new KeyBinding[] {
+            mc.gameSettings.keyBindForward,
+            mc.gameSettings.keyBindBack,
+            mc.gameSettings.keyBindRight,
+            mc.gameSettings.keyBindLeft,
+            mc.gameSettings.keyBindSprint,
+            mc.gameSettings.keyBindSneak
+    };
+
+    public static final Setting<Boolean> ncpStrict = new Setting<>("NCPStrict", "Sends a digging packet to bypass normal NCP configs", true);
+    public static final Setting<Boolean> sneak = new Setting<>("Sneak", "If to send a sneak packet to bypass strict servers", false);
+
+    public static final Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
+    public static final Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
+    public static final Setting<Boolean> clamp = new Setting<>("Clamp", "If to clamp the pitch rotation between -90 and 90", true).setParent(inventoryMove);
+
+    public static final Setting<Boolean> items = new Setting<>("Items", "If to remove the slowdown effect while using items", true);
+    public static final Setting<Boolean> soulsand = new Setting<>("SoulSand", "If to remove the slowdown effect when walking on soulsand", false);
+    public static final Setting<Boolean> slime = new Setting<>("Slime", "If to remove the slowdown effect when walking on slime", false);
+
+    private boolean isSneaking = false;
 
     public NoSlow() {
         super("NoSlow", Category.MOVEMENT, "Removes various slowdown effects");
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move while in GUI's", true);
-    public static Setting<Boolean> strict = new Setting<>("Strict", "Spoofs slowdown state with packets", false);
-    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", "Spoofs slowdown state with packets while in air", false);
-    public static Setting<Boolean> sneak = new Setting<>("Sneak", "Removes the sneak slowdown effect", true);
-    public static Setting<Boolean> bow = new Setting<>("Bow", "Removes the bow slowdown effect", true);
-    public static Setting<Boolean> soulSand = new Setting<>("SoulSand", "Removes the soulsand slowdown effect", true);
-    public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slime slowdown effect", true);
-
-    private boolean airPacket;
-    private final List<CPacketEntityAction> safeAirPackets = new ArrayList<>();
-
-    @SubscribeEvent
-    public void onMotionUpdate(MotionUpdateEvent event) {
-        if (strict.getValue()) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+    @Override
+    public void onDisable() {
+        if (nullCheck() && this.isSneaking) {
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
         }
+
+        this.isSneaking = false;
     }
 
     @Override
     public void onUpdate() {
-        if (airPacket && airStrict.getValue() && hasSlowDown()) {
+        if (this.isSneaking && !mc.player.isHandActive()) {
+            this.isSneaking = false;
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-            airPacket = false;
         }
 
-        if (inventoryMove.getValue() && isInScreen()) {
-            ((IKeybinding) mc.gameSettings.keyBindForward).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindForward));
-            mc.gameSettings.keyBindForward.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
-
-            ((IKeybinding) mc.gameSettings.keyBindBack).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindBack));
-            mc.gameSettings.keyBindBack.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
-
-            ((IKeybinding) mc.gameSettings.keyBindRight).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindRight));
-            mc.gameSettings.keyBindRight.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
-
-            ((IKeybinding) mc.gameSettings.keyBindLeft).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindLeft));
-            mc.gameSettings.keyBindLeft.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
-
-            ((IKeybinding) mc.gameSettings.keyBindJump).setPressed(GameSettings.isKeyDown(mc.gameSettings.keyBindJump));
-            mc.gameSettings.keyBindJump.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
-
-            float inventoryYaw = mc.player.rotationYaw;
-            float inventoryPitch = mc.player.rotationPitch;
-
-            {
-                if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
-                    inventoryPitch -= 5;
-                }
-
-                else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
-                    inventoryPitch += 5;
-                }
-
-                else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-                    inventoryYaw += 5;
-                }
-
-                if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
-                    inventoryYaw -= 5;
-                }
-
-                mc.player.rotationYaw = inventoryYaw;
-                mc.player.rotationPitch = MathHelper.clamp(inventoryPitch, -90, 90); // make sure the pitch is within the pitch limits
+        if (inventoryMove.getValue() && this.isInScreen()) {
+            for (KeyBinding binding : NoSlow.KEYS) {
+                ((IKeybinding) binding).setPressed(GameSettings.isKeyDown(binding));
+                binding.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
             }
-        }
 
-        else {
-            mc.gameSettings.keyBindForward.setKeyConflictContext(KeyConflictContext.IN_GAME);
-            mc.gameSettings.keyBindBack.setKeyConflictContext(KeyConflictContext.IN_GAME);
-            mc.gameSettings.keyBindRight.setKeyConflictContext(KeyConflictContext.IN_GAME);
-            mc.gameSettings.keyBindLeft.setKeyConflictContext(KeyConflictContext.IN_GAME);
-            mc.gameSettings.keyBindJump.setKeyConflictContext(KeyConflictContext.IN_GAME);
-        }
-    }
+            if (arrowLook.getValue() != 0.0f) {
+                if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
+                    mc.player.rotationPitch -= arrowLook.getValue();
+                } else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
+                    mc.player.rotationPitch += arrowLook.getValue();
+                } else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+                    mc.player.rotationYaw += arrowLook.getValue();
+                } else if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
+                    mc.player.rotationYaw -= arrowLook.getValue();
+                }
 
-    @SubscribeEvent
-    public void onUseItem(LivingEntityUseItemEvent event) {
-        if (!airPacket && airStrict.getValue()) {
-            CPacketEntityAction sneakPacket = new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING);
-            mc.player.connection.sendPacket(sneakPacket);
-            safeAirPackets.add(sneakPacket);
-            airPacket = true;
-        }
-    }
-
-    @SubscribeEvent
-    public void onInput(InputUpdateEvent event) {
-        if (hasSlowDown()) {
-            event.getMovementInput().moveStrafe *= 5;
-            event.getMovementInput().moveForward *= 5;
+                if (clamp.getValue()) {
+                    mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -90.0f, 90.0f);
+                }
+            }
+        } else {
+            for (KeyBinding binding : NoSlow.KEYS) {
+                binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
+            }
         }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer && airStrict.getValue() && !airPacket) {
-            ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+        if (this.isSlowed() && event.getPacket() instanceof CPacketPlayer && ncpStrict.getValue()) {
+            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
         }
+    }
 
-        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING) && !safeAirPackets.contains((CPacketEntityAction) event.getPacket()) && sneak.getValue()) {
-            event.setCanceled(true);
+    @SubscribeEvent
+    public void onInputUpdate(InputUpdateEvent event) {
+        if (this.isSlowed()) {
+            event.getMovementInput().moveForward *= 5.0f;
+            event.getMovementInput().moveStrafe *= 5.0f;
+        }
+    }
+
+    @SubscribeEvent
+    public void onUseItem(LivingEntityUseItemEvent event) {
+        if (this.isSlowed() && sneak.getValue() && !this.isSneaking) {
+            this.isSneaking = true;
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
         }
     }
 
     @SubscribeEvent
     public void onSoulSand(SoulSandEvent event) {
-        event.setCanceled(soulSand.getValue());
+        event.setCanceled(soulsand.getValue());
     }
 
     @SubscribeEvent
@@ -156,21 +131,15 @@ public class NoSlow extends Module {
         event.setCanceled(slime.getValue());
     }
 
-    public boolean hasSlowDown() {
-        if (!mc.player.isRiding() && mc.player.isHandActive()) {
-            Item activeItem = mc.player.getActiveItemStack().getItem();
-            return activeItem instanceof ItemFood || activeItem instanceof ItemPotion || bow.getValue() && activeItem instanceof ItemBow;
-        }
-
-        return sneak.getValue() && mc.player.isSneaking();
-    }
-
     public boolean isInScreen() {
         return mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiEditSign || mc.currentScreen instanceof GuiRepair);
     }
 
-    public enum ConflictContext implements IKeyConflictContext {
+    private boolean isSlowed() {
+        return (mc.player.isHandActive() && items.getValue()) && !mc.player.isRiding() && !mc.player.isElytraFlying();
+    }
 
+    public enum ConflictContext implements IKeyConflictContext {
         FAKE_CONTEXT {
             @Override
             public boolean isActive() {

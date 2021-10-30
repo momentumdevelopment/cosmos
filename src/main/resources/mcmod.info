@@ -5,11 +5,11 @@
   "description": "cope",
   "version": "1.0.1",
   "mcversion": "1.12.2",
-  "url": "",
-  "updateUrl": "",
+  "url": "https://github.com/momentumdevelopment/cosmos",
+  "updateUrl": "https://github.com/momentumdevelopment/cosmos",
   "authorList": ["bon", "linustouchtips", "doctor swag", "Hoosiers"],
   "credits": "",
-  "logoFile": "",
+  "logoFile": "logo.png",
   "screenshots": [],
   "dependencies": []
 }
