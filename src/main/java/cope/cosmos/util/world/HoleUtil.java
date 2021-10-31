@@ -9,9 +9,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class HoleUtil implements Wrapper {
 
@@ -24,7 +24,7 @@ public class HoleUtil implements Wrapper {
     }
 
     public static boolean isPartOfHole(BlockPos blockPos) {
-        List<Entity> entities = new ArrayList<>();
+        List<Entity> entities = new CopyOnWriteArrayList<>();
         entities.addAll(mc.world.getEntitiesWithinAABBExcludingEntity(mc.player, new AxisAlignedBB(blockPos.add(1, 0, 0))));
         entities.addAll(mc.world.getEntitiesWithinAABBExcludingEntity(mc.player, new AxisAlignedBB(blockPos.add(-1, 0, 0))));
         entities.addAll(mc.world.getEntitiesWithinAABBExcludingEntity(mc.player, new AxisAlignedBB(blockPos.add(0, 0, 1))));

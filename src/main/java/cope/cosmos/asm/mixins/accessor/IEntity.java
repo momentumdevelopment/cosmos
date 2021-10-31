@@ -14,6 +14,9 @@ public interface IEntity {
     @Accessor("isInWeb")
     boolean getInWeb();
 
+    @Accessor("isInWeb")
+    void setInWeb(boolean isInWeb);
+
     @Accessor("inPortal")
     void setInPortal(boolean inPortal);
 

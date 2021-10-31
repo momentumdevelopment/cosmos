@@ -97,7 +97,7 @@ public class BlockUtil implements Wrapper {
             return BlockResistance.UNBREAKABLE;
         }
 
-        return null;
+        return BlockResistance.BLANK;
     }
 
     public enum BlockResistance {

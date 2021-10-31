@@ -133,6 +133,11 @@ public class ElytraFlight extends Module {
         }
     }
 
+    @Override
+    public boolean isActive() {
+        return isEnabled() && mc.player.isElytraFlying();
+    }
+
     public enum Elytra {
         CONTROL, STRICT, PACKET
     }

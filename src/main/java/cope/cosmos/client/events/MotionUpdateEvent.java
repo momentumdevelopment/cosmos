@@ -6,8 +6,7 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 @Cancelable
 public class MotionUpdateEvent extends Event {
 
-    private float yaw;
-    private float pitch;
+    private float yaw, pitch;
 
     public float getYaw() {
         return yaw;

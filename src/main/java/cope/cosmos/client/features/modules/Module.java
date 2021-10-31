@@ -202,6 +202,6 @@ public class Module extends Feature implements Wrapper {
 	}
 
 	public boolean isActive() {
-		return false;
+		return isEnabled();
 	}
 }

@@ -84,4 +84,9 @@ public class FastUse extends Module {
             event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
         }
     }
+
+    @Override
+    public boolean isActive() {
+        return isEnabled() && mc.player.isHandActive();
+    }
 }

@@ -97,6 +97,11 @@ public class Burrow extends Module {
 		disable();
 	}
 
+	@Override
+	public boolean isActive() {
+		return isEnabled() && mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable();
+	}
+
 	private enum Mode {
 		OBSIDIAN, E_CHEST, ANVIL, CHEST
 	}

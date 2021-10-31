@@ -1,75 +1,103 @@
 package cope.cosmos.client.manager.managers;
 
-import cope.cosmos.client.features.modules.visual.HoleESP;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
-import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.HoleUtil;
 import net.minecraft.util.math.BlockPos;
 
-import java.awt.*;
-import java.util.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @SuppressWarnings("unused")
 public class HoleManager extends Manager implements Wrapper {
 
-    public static final Map<Hole, Color> holes = new HashMap<>();
-
-    private boolean search;
+    public static final List<Hole> holes = new CopyOnWriteArrayList<>();
 
     public HoleManager() {
         super("HoleManager", "Manages all nearby holes");
     }
 
     @Override
-    public void onRender3D() {
+    public void onUpdate() {
         holes.clear();
+        // holes.addAll(searchHoles());
     }
 
-    @Override
-    public void onThread() {
-        if (nullCheck()) {
-            holes.putAll(searchHoles());
-        }
-    }
+    /*
+    public List<Hole> searchHoles() {
+        List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
-    public Map<Hole, Color> searchHoles() {
-        Map<Hole, Color> searchedHoles = new HashMap<>();
+        for (BlockPos blockPos : BlockUtil.getSurroundingBlocks(mc.player, 6, false)) {
+            int resistantSides = 0;
+            int unbreakableSides = 0;
 
-        for (BlockPos potentialHole : BlockUtil.getSurroundingBlocks(mc.player, 20, false)) {
-             if (HoleUtil.isVoidHole(potentialHole.down())) {
-                searchedHoles.put(new Hole(potentialHole.down(), Type.VOID), HoleESP.voidColor.getValue());
+            // must be an air block and have a block under it
+            if (!mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, -1, 0)).getBlock().equals(Blocks.AIR))
                 continue;
+
+            {
+                if (BlockUtil.getBlockResistance(blockPos.add(1, 0, 0)).equals(BlockResistance.RESISTANT)) {
+                    resistantSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(-1, 0, 0)).equals(BlockResistance.RESISTANT)) {
+                    resistantSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, 1)).equals(BlockResistance.RESISTANT)) {
+                    resistantSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, -1)).equals(BlockResistance.RESISTANT)) {
+                    resistantSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(1, 0, 0)).equals(BlockResistance.UNBREAKABLE)) {
+                    unbreakableSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(-1, 0, 0)).equals(BlockResistance.UNBREAKABLE)) {
+                    unbreakableSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, 1)).equals(BlockResistance.UNBREAKABLE)) {
+                    unbreakableSides++;
+                }
+
+                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, -1)).equals(BlockResistance.UNBREAKABLE)) {
+                    unbreakableSides++;
+                }
             }
 
-            if (HoleUtil.isBedRockHole(potentialHole)) {
-                searchedHoles.put(new Hole(potentialHole, Type.BEDROCK), HoleESP.bedrockColor.getValue());
+            if (unbreakableSides == 4) {
+                searchedHoles.add(new Hole(blockPos, Type.BEDROCK));
             }
 
-            else if (HoleUtil.isObsidianHole(potentialHole)) {
-                searchedHoles.put(new Hole(potentialHole, Type.OBSIDIAN), HoleESP.obsidianColor.getValue());
+            if (resistantSides == 4) {
+                searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
             }
 
-            if (HoleUtil.isDoubleBedrockHoleX(potentialHole.west())) {
-                searchedHoles.put(new Hole(potentialHole.west(), Type.DOUBLEBEDROCKX), HoleESP.bedrockColor.getValue());
+            if (unbreakableSides + resistantSides == 4) {
+                searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
             }
 
-            else if (HoleUtil.isDoubleBedrockHoleZ(potentialHole.north())) {
-                searchedHoles.put(new Hole(potentialHole.north(), Type.DOUBLEBEDROCKZ), HoleESP.bedrockColor.getValue());
+            if (unbreakableSides == 3) {
+
             }
 
-            else if (HoleUtil.isDoubleObsidianHoleX(potentialHole.west())) {
-                searchedHoles.put(new Hole(potentialHole.west(), Type.DOUBLEOBSIDIANX), HoleESP.obsidianColor.getValue());
+            if (resistantSides == 3) {
+
             }
 
-            else if (HoleUtil.isDoubleObsidianHoleZ(potentialHole.north())) {
-                searchedHoles.put(new Hole(potentialHole.north(), Type.DOUBLEOBSIDIANZ), HoleESP.obsidianColor.getValue());
+            if (unbreakableSides + resistantSides == 3) {
+
             }
         }
 
         return searchedHoles;
     }
+
+     */
 
     public enum Type {
         OBSIDIAN(true), BEDROCK(false), DOUBLEOBSIDIANX(true), DOUBLEOBSIDIANZ(true), DOUBLEBEDROCKX(false), DOUBLEBEDROCKZ(false), VOID(false);
@@ -85,7 +113,7 @@ public class HoleManager extends Manager implements Wrapper {
         }
     }
 
-    public Map<Hole, Color> getHoles() {
+    public List<Hole> getHoles() {
         return holes;
     }
 

@@ -34,7 +34,6 @@ public class PacketQueuer extends Module {
              */
         }
 
-        /*
         try {
             if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
                 ChatUtil.sendMessage("Direction: " + ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection());
@@ -45,6 +44,5 @@ public class PacketQueuer extends Module {
         } catch (Exception ignored) {
 
         }
-         */
     }
 }

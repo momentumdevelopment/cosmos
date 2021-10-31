@@ -28,7 +28,7 @@ public class NoFall extends Module {
         super.onDisable();
 
         if (nullCheck()) {
-            this.swapBack();
+            swapBack();
         }
     }
 
@@ -48,7 +48,7 @@ public class NoFall extends Module {
                 }
 
                 case WATER: {
-                    this.doWaterBucket();
+                    doWaterBucket();
                     break;
                 }
 
@@ -58,7 +58,7 @@ public class NoFall extends Module {
                 }
             }
         } else {
-            this.swapBack();
+            swapBack();
         }
     }
 
@@ -69,28 +69,28 @@ public class NoFall extends Module {
                 return; // get shit on
             }
 
-            this.hand = slot == 45 ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND;
-            if (this.hand == EnumHand.MAIN_HAND) {
-                this.oldSlot = mc.player.inventory.currentItem;
+            hand = slot == 45 ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND;
+            if (hand == EnumHand.MAIN_HAND) {
+                oldSlot = mc.player.inventory.currentItem;
                 InventoryUtil.switchToSlot(slot, swap.getValue() == Swap.LEGIT ? InventoryUtil.Switch.NORMAL : InventoryUtil.Switch.PACKET);
             }
 
-            mc.player.setActiveHand(this.hand);
+            mc.player.setActiveHand(hand);
         }
 
         // so if this is done with the rotation manager, it kicks you for "Invalid move player packet received" on vanilla???
         // tf did you do to my rotation manager linus
         mc.player.rotationPitch = 90.0f;
-        mc.playerController.processRightClick(mc.player, mc.world, this.hand);
+        mc.playerController.processRightClick(mc.player, mc.world, hand);
     }
 
     private void swapBack() {
-        if (this.oldSlot != -1) {
-            InventoryUtil.switchToSlot(this.oldSlot, swap.getValue() == Swap.LEGIT ? InventoryUtil.Switch.NORMAL : InventoryUtil.Switch.PACKET);
-            this.oldSlot = -1;
+        if (oldSlot != -1) {
+            InventoryUtil.switchToSlot(oldSlot, swap.getValue() == Swap.LEGIT ? InventoryUtil.Switch.NORMAL : InventoryUtil.Switch.PACKET);
+            oldSlot = -1;
         }
 
-        this.hand = EnumHand.MAIN_HAND;
+        hand = EnumHand.MAIN_HAND;
     }
 
     public enum Mode {

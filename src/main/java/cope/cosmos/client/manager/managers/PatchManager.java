@@ -19,11 +19,12 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")
 public class PatchManager extends Manager implements Wrapper {
 
-    private final Map<Patch, PatchState> patchMap = new HashMap<>();
+    private final Map<Patch, PatchState> patchMap = new ConcurrentHashMap<>();
 
     public PatchManager() {
         super("PatchManager", "Makes sure certain features are toggled safely");
@@ -106,7 +107,7 @@ public class PatchManager extends Manager implements Wrapper {
             Cosmos.INSTANCE.getNotificationManager().pushNotification(patchError);
         }
 
-        else if (mc.currentScreen != null && mc.currentScreen.equals(Cosmos.INSTANCE.getWindowGUI())) {
+        else if (mc.currentScreen.equals(Cosmos.INSTANCE.getWindowGUI())) {
             ErrorWindow patchError = new ErrorWindow("Patch Safety", message, new Vec2f(100, 100));
             Cosmos.INSTANCE.getWindowGUI().getManager().createWindow(patchError);
         }

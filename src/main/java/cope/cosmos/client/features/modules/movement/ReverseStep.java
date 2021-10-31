@@ -24,7 +24,7 @@ public class ReverseStep extends Module {
     public static Setting<Double> tickShift = new Setting<>(() -> mode.getValue().equals(Mode.TICKSHIFT), "ShiftTicks", "Ticks to shift", 1.0, 1.0, 5.0, 0);
     public static Setting<Double> height = new Setting<>("Height", "Maximum height to be pulled down", 0.0, 2.0, 5.0, 1);
     public static Setting<Boolean> hole = new Setting<>("OnlyHole", "Only pulls you down into holes", false);
-    public static Setting<Boolean> webs = new Setting<>("Webs", "pulls you down in webs", false);
+    public static Setting<Boolean> webs = new Setting<>("Webs", "Pulls you down in webs", false);
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
@@ -43,7 +43,7 @@ public class ReverseStep extends Module {
                 case TICKSHIFT:
                     // shift ticks
                     getCosmos().getTickManager().shiftServerTicks(tickShift.getValue().intValue());
-                    mc.player.motionY *= 1.75;
+                    mc.player.motionY = -speed.getValue();
                     break;
                 case TIMER:
                     getCosmos().getTickManager().setClientTicks(speed.getValue().floatValue() * 2);

@@ -7,17 +7,12 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
 import org.lwjgl.input.Mouse;
 
 public class PlayerUtil implements Wrapper {
 
     public static double getHealth() {
         return mc.player.getHealth() + mc.player.getAbsorptionAmount();
-    }
-
-    public static BlockPos getPosition() {
-        return new BlockPos(mc.player.posX + 0.5, mc.player.posY, mc.player.posZ + 0.5);
     }
 
     public static void attackEntity(Entity entity, boolean packet, Hand hand, double variation) {

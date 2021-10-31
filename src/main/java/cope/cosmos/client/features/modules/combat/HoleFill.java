@@ -31,6 +31,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,7 +44,6 @@ public class HoleFill extends Module {
         INSTANCE = this;
     }
 
-    /*
     public static Setting<Filler> mode = new Setting<>("Mode", "Mode for the filler", Filler.TARGETED);
     public static Setting<Block> block = new Setting<>("Block", "Block to use for filling", Block.OBSIDIAN);
     public static Setting<Completion> completion = new Setting<>("Completion", "When to consider the filling complete", Completion.COMPLETION);
@@ -86,21 +86,21 @@ public class HoleFill extends Module {
             return null;
 
         TreeMap<Double, BlockPos> fillMap = new TreeMap<>();
-        Iterator<BlockPos> potentialHoles = null;
+        List<BlockPos> potentialHoles = null;
 
         switch (mode.getValue()) {
             case TARGETED:
-                potentialHoles = BlockUtil.getNearbyBlocks(fillTarget, threshold.getValue(), false);
+                potentialHoles = BlockUtil.getSurroundingBlocks(fillTarget, threshold.getValue(), false);
                 break;
             case ALL:
-                potentialHoles = BlockUtil.getNearbyBlocks(mc.player, range.getValue(), false);
+                potentialHoles = BlockUtil.getSurroundingBlocks(mc.player, range.getValue(), false);
                 break;
         }
 
         EntityPlayer distanceTarget = mode.getValue().equals(Filler.TARGETED) ? fillTarget : mc.player;
 
-        while (potentialHoles.hasNext()) {
-            BlockPos calculatedHole = potentialHoles.next();
+        while (potentialHoles.iterator().hasNext()) {
+            BlockPos calculatedHole = potentialHoles.iterator().next();
 
             if (!mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(calculatedHole)).isEmpty())
                 continue;
@@ -213,6 +213,4 @@ public class HoleFill extends Module {
             return this.item;
         }
     }
-
-     */
 }

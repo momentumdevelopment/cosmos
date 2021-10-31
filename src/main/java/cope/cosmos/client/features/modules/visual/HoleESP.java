@@ -21,7 +21,7 @@ public class HoleESP extends Module {
     public static HoleESP INSTANCE;
 
     public HoleESP() {
-        super("HoleESP", Category.VISUAL, "Highlights nearby safe holes", () -> Setting.formatEnum(main.getValue()) + ", " + Setting.formatEnum(outline.getValue()));
+        super("HoleESP", Category.VISUAL, "Highlights nearby safe holes");
         INSTANCE = this;
     }
 
@@ -47,6 +47,7 @@ public class HoleESP extends Module {
     public static Map<HoleManager.Hole, Color> holes = new HashMap<>();
     public static Timer holeTimer = new Timer();
 
+    /*
     @Override
     public void onRender3D() {
         for (Map.Entry<HoleManager.Hole, Color> holeEntry : new HashSet<>(holes.entrySet())) {
@@ -128,4 +129,6 @@ public class HoleESP extends Module {
             }
         }
     }
+
+     */
 }
