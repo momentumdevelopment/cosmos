@@ -85,7 +85,7 @@ public class AntiAim extends Module {
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             ((ICPacketPlayer) event.getPacket()).setYaw(aimYaw);
-            ((ICPacketPlayer) event.getPacket()).setYaw(aimPitch);
+            ((ICPacketPlayer) event.getPacket()).setPitch(aimPitch);
         }
     }
 

@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
@@ -122,58 +123,35 @@ public class AutoCrystal extends Module {
     public static Setting<Info> renderInfo = new Setting<>("Info", "Arraylist information", Info.NONE).setParent(render);
     public static Setting<Double> renderWidth = new Setting<>(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE), "Width", "Line width for the visual", 0.0, 1.5, 3.0, 1).setParent(render);
 
+    private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
-    private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Map<Integer, Integer> attemptedExplosions = new HashMap<>();
     private final List<EntityEnderCrystal> blackListExplosions = new ArrayList<>();
 
-    private final Timer placeTimer = new Timer();
     private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+    private final Timer placeTimer = new Timer();
     private final Map<BlockPos, Integer> attemptedPlacements = new HashMap<>();
-    private BlockPos previousPlacement = BlockPos.ORIGIN;
 
+    private int strictTicks;
+
+    private boolean yawLimit;
     private Vec3d interactVector = Vec3d.ZERO;
 
-    private EnumHand previousHand = null;
+    private EnumHand previousHand;
     private int previousSlot = -1;
-
-    private final Timer cleanupTimer = new Timer();
-
-    @Override
-    public void onEnable() {
-        super.onEnable();
-        resetProcess();
-    }
-
-    public void resetProcess() {
-        explodeCrystal = new Crystal(null, 0, 0);
-        placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
-        interactVector = Vec3d.ZERO;
-        previousPlacement = BlockPos.ORIGIN;
-        previousHand = null;
-        previousSlot = -1;
-        placeTimer.reset();
-        explodeTimer.reset();
-        cleanupTimer.reset();
-        resetLists();
-    }
-
-    public void resetLists() {
-        attemptedExplosions.clear();
-        attemptedPlacements.clear();
-        blackListExplosions.clear();
-    }
 
     @Override
     public void onUpdate() {
+        handleTicks();
+
+        if (strictTicks > 0) {
+            strictTicks--;
+            return;
+        }
+
         explodeCrystal();
         placeCrystal();
-
-        if (cleanupTimer.passed(1000, Format.SYSTEM)) {
-            resetLists();
-            cleanupTimer.reset();
-        }
     }
 
     @Override
@@ -188,6 +166,19 @@ public class AutoCrystal extends Module {
 
         explodeCrystal = searchCrystal();
         placePosition = searchPosition();
+    }
+
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        resetProcess();
+    }
+
+    public void handleTicks() {
+        if (!tps.getValue().equals(TPS.NONE)) {
+            // skip ticks based on the current tps
+            strictTicks += (int) (20 - getCosmos().getTickManager().getTPS(tps.getValue()));
+        }
     }
 
     public void explodeCrystal() {
@@ -227,13 +218,7 @@ public class AutoCrystal extends Module {
                 }
             }
 
-            long scaledDelay = explodeDelay.getValue().longValue();
-            if (!tps.getValue().equals(TPS.NONE)) {
-                // scale the delay by the current server tps
-                scaledDelay *= (80 * (1 - (Cosmos.INSTANCE.getTickManager().getTPS(tps.getValue()) / 20)));
-            }
-
-            if (explodeTimer.passed(scaledDelay + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
+            if (explodeTimer.passed(explodeDelay.getValue().longValue() + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
                 explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
                 swingArm(explodeHand.getValue());
@@ -278,7 +263,7 @@ public class AutoCrystal extends Module {
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
-                RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition().getX() + 0.5, placePosition.getPosition().getY() - 0.5, placePosition.getPosition().getZ() + 0.5));
+                RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition()).addVector(0.5, -0.5, 0.5));
                 EnumFacing placementFacing = (facingResult == null || facingResult.sideHit == null) ? EnumFacing.UP : facingResult.sideHit;
 
                 // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
@@ -294,23 +279,36 @@ public class AutoCrystal extends Module {
                 // make sure the direction we are facing is consistent with our rotations
                 switch (placeInteraction.getValue()) {
                     case NONE:
+                        Random interactRandom = new Random();
+                        facingX = interactRandom.nextFloat();
+                        facingY = interactRandom.nextFloat();
+                        facingZ = interactRandom.nextFloat();
+                        break;
+                    case NORMAL:
                         facingX = 0.5;
                         facingY = 0.5;
                         facingZ = 0.5;
                         break;
-                    case NORMAL:
-                        facingX = placePosition.getPosition().getX();
-                        facingY = -placePosition.getPosition().getY();
-                        facingZ = placePosition.getPosition().getZ();
-                        break;
                     case STRICT:
                         placementFacing = EnumFacing.UP;
 
+                        // if the placement is higher than us, we need to place on the lowest/closest visible side
+                        if (placePosition.getPosition().getY() > mc.player.getEntityBoundingBox().minY + mc.player.getEyeHeight()) {
+                            if (mc.world.getBlockState(placePosition.getPosition().down()).getBlock().equals(Blocks.AIR)) {
+                                placementFacing = EnumFacing.DOWN;
+                            }
+
+                            else {
+                                RayTraceResult lowestResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition()).addVector(0.5, 0.5, 0.5));
+                                placementFacing = (lowestResult == null || lowestResult.sideHit == null) ? EnumFacing.DOWN : lowestResult.sideHit;
+                            }
+                        }
+
                         float[] vectorAngles = AngleUtil.calculateAngles(interactVector);
-                        Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1], Rotate.NONE));
+                        Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1]));
 
                         RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
-                        if (vectorResult != null) {
+                        if (vectorResult != null && vectorResult.hitVec != null) {
                             facingX = vectorResult.hitVec.x - placePosition.getPosition().getX();
                             facingY = vectorResult.hitVec.y - placePosition.getPosition().getY();
                             facingZ = vectorResult.hitVec.z - placePosition.getPosition().getZ();
@@ -334,7 +332,6 @@ public class AutoCrystal extends Module {
                 placeTimer.reset();
 
                 // add placement to our list of attempted placement and reset clearance
-                previousPlacement = placePosition.getPosition();
                 attemptedPlacements.put(placePosition.getPosition(), attemptedPlacements.containsKey(placePosition.getPosition()) ? attemptedPlacements.get(placePosition.getPosition()) + 1 : 1);
             }
         }
@@ -511,6 +508,24 @@ public class AutoCrystal extends Module {
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
                 packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
+            }
+
+            if (!rotateLimit.getValue().equals(Limit.NONE)) {
+                float yawDifference = MathHelper.wrapDegrees(packetAngles[0] - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
+
+                if (Math.abs(yawDifference) > 55 && !yawLimit) {
+                    packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw();
+                    strictTicks++;
+                    yawLimit = true;
+                }
+
+                if (strictTicks <= 0) {
+                    if (rotateLimit.getValue().equals(Limit.STRICT)) {
+                        packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55));
+                    }
+
+                    yawLimit = false;
+                }
             }
 
             // add our rotation to our client rotations
@@ -730,6 +745,21 @@ public class AutoCrystal extends Module {
             default:
                 return "";
         }
+    }
+
+    public void resetProcess() {
+        explodeCrystal = new Crystal(null, 0, 0);
+        placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+        interactVector = Vec3d.ZERO;
+        yawLimit = false;
+        previousHand = null;
+        previousSlot = -1;
+        strictTicks = 0;
+        placeTimer.reset();
+        explodeTimer.reset();
+        attemptedExplosions.clear();
+        attemptedPlacements.clear();
+        blackListExplosions.clear();
     }
 
     public enum Placements {

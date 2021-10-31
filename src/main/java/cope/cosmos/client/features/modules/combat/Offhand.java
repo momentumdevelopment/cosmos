@@ -36,7 +36,7 @@ public class Offhand extends Module {
 
     public static Setting<Boolean> swordGapple = new Setting<>("SwordGapple", "Use a gapple when holding a sword", true);
     public static Setting<Boolean> forceGapple = new Setting<>("ForceGapple", "Use a gapple when holding left click", false);
-    public static Setting<Boolean> patchGapple = new Setting<>("Bypass", "Partial Bypass for offhand patched servers", false);
+    public static Setting<Boolean> patchGapple = new Setting<>("Strict", "Partial Bypass for offhand patched servers", false);
 
     public static Setting<Boolean> recursive = new Setting<>("Recursive", "Allow the use of hotbar items", false);
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", "Stop motion when switching items", false);

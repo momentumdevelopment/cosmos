@@ -37,28 +37,8 @@ public class AngleUtil implements Wrapper {
         float yaw = (float) (Math.toDegrees(Math.atan2(vector.z, vector.x)) - 90);
         float pitch = (float) Math.toDegrees(-Math.atan2(vector.y, Math.hypot(vector.x, vector.z)));
 
-        // make sure the angle is bounded
-        yaw %= 360;
-        pitch %= 360;
-
-        if (yaw >= 180) {
-            yaw -= 360;
-        }
-
-        if (yaw < -180) {
-            yaw += 360;
-        }
-
-         if (pitch >= 180) {
-             pitch -= 360;
-         }
-
-         if (pitch < -180) {
-             pitch += 360;
-         }
-
         return new float[] {
-                yaw, pitch
+                MathHelper.wrapDegrees(yaw), MathHelper.wrapDegrees(pitch)
         };
     }
 
