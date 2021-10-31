@@ -720,17 +720,21 @@ public class AutoCrystal extends Module {
     }
 
     public String getRenderInfo() {
-        switch (renderInfo.getValue()) {
-            case DAMAGE:
-                return String.valueOf(MathUtil.roundDouble(placePosition.getTargetDamage(), 1));
-            case LATENCY:
-                return String.valueOf(explodeTimer.getMS(System.nanoTime() - explodeTimer.time) / 100);
-            case TARGET:
-                return placePosition.getPlaceTarget().getName();
-            case NONE:
-            default:
-                return "";
+        if (placePosition != null) {
+            switch (renderInfo.getValue()) {
+                case DAMAGE:
+                    return String.valueOf(MathUtil.roundDouble(placePosition.getTargetDamage(), 1));
+                case LATENCY:
+                    return String.valueOf(explodeTimer.getMS(System.nanoTime() - explodeTimer.time) / 100);
+                case TARGET:
+                    return placePosition.getPlaceTarget().getName();
+                case NONE:
+                default:
+                    return "";
+            }
         }
+
+        return "";
     }
 
     public String getText(Text text) {
