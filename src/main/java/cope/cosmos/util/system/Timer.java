@@ -43,6 +43,10 @@ public class Timer implements Wrapper {
         return false;
     }
 
+    public void setTime(long in) {
+        time = System.nanoTime() - (in * 1000000L);
+    }
+
     public void reset() {
         time = System.nanoTime();
     }

@@ -559,51 +559,78 @@ public class AutoCrystal extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-        if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51 && timing.getValue().equals(Timing.LINEAR) && explode.getValue()) {
+        if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {
             // position of the placed crystal
             BlockPos linearPosition = new BlockPos(((SPacketSpawnObject) event.getPacket()).getX(), ((SPacketSpawnObject) event.getPacket()).getY(), ((SPacketSpawnObject) event.getPacket()).getZ());
 
-            // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-            boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
+            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                // since it's been confirmed that the crystal spawned, we can move on to our next process
+                if (attemptedPlacements.containsKey(linearPosition.down())) {
+                    if (!explodeTimer.passed(explodeDelay.getValue().longValue(), Format.SYSTEM)) {
+                        explodeTimer.setTime(explodeDelay.getValue().longValue());
+                    }
 
-            // if it is a wall placement, use our wall ranges
-            double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
-            if (distance > explodeWall.getValue() && wallPlacement)
-                return;
-
-            // make sure it doesn't do too much dmg to us or kill us
-            float localDamage = ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
-            if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
-                return;
-
-            TreeMap<Float, Integer> linearMap = new TreeMap<>();
-            for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
-                // make sure the target is not dead or the local player
-                if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget))
-                    continue;
-
-                // make sure target's within our specified target range
-                float targetDistance = mc.player.getDistance(calculatedTarget);
-                if (targetDistance > targetRange.getValue())
-                    continue;
-
-                // calculate the damage this crystal will do to each target, we can verify if it meets our requirements later
-                float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, calculatedTarget, ignoreTerrain.getValue(), false), localDamage, distance);
-
-                linearMap.put(targetDamage, ((SPacketSpawnObject) event.getPacket()).getEntityID());
+                    attemptedPlacements.clear();
+                }
             }
 
-            if (!linearMap.isEmpty()) {
-                Map.Entry<Float, Integer> idealLinear = linearMap.lastEntry();
+            if ((timing.getValue().equals(Timing.LINEAR) || timing.getValue().equals(Timing.UNIFORM)) && explode.getValue()) {
+                // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
+                boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
 
-                // make sure it meets requirements
-                if (idealLinear.getKey() > explodeDamage.getValue()) {
-                    // explode the linear crystal
-                    explodeCrystal(idealLinear.getValue());
-                    swingArm(explodeHand.getValue());
+                // if it is a wall placement, use our wall ranges
+                double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
+                if (distance > explodeWall.getValue() && wallPlacement)
+                    return;
 
-                    // add crystal to our list of attempted explosions
-                    attemptedExplosions.put(((SPacketSpawnObject) event.getPacket()).getEntityID(), attemptedExplosions.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) ? attemptedExplosions.get(((SPacketSpawnObject) event.getPacket()).getEntityID()) + 1 : 1);
+                // make sure it doesn't do too much dmg to us or kill us
+                float localDamage = ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
+                if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
+                    return;
+
+                TreeMap<Float, Integer> linearMap = new TreeMap<>();
+                for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
+                    // make sure the target is not dead or the local player
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget))
+                        continue;
+
+                    // make sure target's within our specified target range
+                    float targetDistance = mc.player.getDistance(calculatedTarget);
+                    if (targetDistance > targetRange.getValue())
+                        continue;
+
+                    // calculate the damage this crystal will do to each target, we can verify if it meets our requirements later
+                    float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, calculatedTarget, ignoreTerrain.getValue(), false), localDamage, distance);
+
+                    linearMap.put(targetDamage, ((SPacketSpawnObject) event.getPacket()).getEntityID());
+                }
+
+                if (!linearMap.isEmpty()) {
+                    Map.Entry<Float, Integer> idealLinear = linearMap.lastEntry();
+
+                    // make sure it meets requirements
+                    if (idealLinear.getKey() > explodeDamage.getValue()) {
+                        // explode the linear crystal
+                        explodeCrystal(idealLinear.getValue());
+                        swingArm(explodeHand.getValue());
+
+                        // add crystal to our list of attempted explosions
+                        attemptedExplosions.put(((SPacketSpawnObject) event.getPacket()).getEntityID(), attemptedExplosions.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) ? attemptedExplosions.get(((SPacketSpawnObject) event.getPacket()).getEntityID()) + 1 : 1);
+                    }
+                }
+            }
+        }
+
+        if (event.getPacket() instanceof SPacketDestroyEntities && (timing.getValue().equals(Timing.SEQUENTIAL) || timing.getValue().equals(Timing.UNIFORM))) {
+            // since it's been confirmed that the crystal exploded, we can move on to our next process
+            for (int entityId : ((SPacketDestroyEntities) event.getPacket()).getEntityIDs()) {
+                if (attemptedExplosions.containsKey(entityId)) {
+                    if (!placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM)) {
+                        placeTimer.setTime(placeDelay.getValue().longValue());
+                    }
+
+                    attemptedExplosions.clear();
+                    break;
                 }
             }
         }
@@ -712,10 +739,8 @@ public class AutoCrystal extends Module {
                 return targetDamage;
             case MINIMAX:
                 return targetDamage - selfDamage;
-            case ATOMIC:
+            case UNIFORM:
                 return targetDamage - selfDamage - (float) distance;
-            case VOLATILE:
-                return targetDamage - (float) distance;
         }
     }
 
@@ -771,7 +796,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Timing {
-        LINEAR, SEQUENTIAL, TICK
+        LINEAR, UNIFORM, SEQUENTIAL, TICK
     }
 
     public enum Sync {
@@ -779,7 +804,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Logic {
-        DAMAGE, MINIMAX, ATOMIC, VOLATILE
+        DAMAGE, MINIMAX, UNIFORM
     }
 
     public enum When {
