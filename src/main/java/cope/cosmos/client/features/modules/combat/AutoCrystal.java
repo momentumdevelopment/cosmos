@@ -3,10 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.CrystalAttackEvent;
-import cope.cosmos.client.events.MotionUpdateEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.RenderRotationsEvent;
+import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.client.features.setting.Setting;
@@ -497,8 +494,8 @@ public class AutoCrystal extends Module {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onMotionUpdate(MotionUpdateEvent event) {
-        if (rotate.getValue().equals(Rotate.PACKET)) {
+    public void onRotationUpdate(RotationUpdateEvent event) {
+        if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the existing rotations, we'll send our own
             event.setCanceled(true);
 
@@ -529,14 +526,13 @@ public class AutoCrystal extends Module {
             }
 
             // add our rotation to our client rotations
-            event.setYaw(packetAngles[0]);
-            event.setPitch(packetAngles[1]);
+            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles[0], packetAngles[1]), Integer.MAX_VALUE);
         }
     }
 
     @SubscribeEvent
     public void onRenderRotations(RenderRotationsEvent event) {
-        if (rotate.getValue().equals(Rotate.PACKET)) {
+        if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             event.setCanceled(true);
 
             float[] packetAngles = AngleUtil.calculateAngle(interactVector);
@@ -576,11 +572,11 @@ public class AutoCrystal extends Module {
 
             if ((timing.getValue().equals(Timing.LINEAR) || timing.getValue().equals(Timing.UNIFORM)) && explode.getValue()) {
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
+                boolean wallLinear = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
-                if (distance > explodeWall.getValue() && wallPlacement)
+                if (distance > explodeWall.getValue() && wallLinear)
                     return;
 
                 // make sure it doesn't do too much dmg to us or kill us
@@ -637,14 +633,16 @@ public class AutoCrystal extends Module {
 
         // packet for crystal explosions
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
-            mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> mc.player.getDistance(entity) < 6).filter(entity -> attemptedExplosions.containsKey(entity.getEntityId())).forEach(entity -> {
+            mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> mc.player.getDistance(entity) < 6).forEach(entity -> {
+                // going to be exploded anyway, so don't attempt explosion
+                if (explodeInhibit.getValue()) {
+                    blackListExplosions.add((EntityEnderCrystal) entity);
+                }
+
                 // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                 if (sync.getValue().equals(Sync.SOUND)) {
                     entity.setDead();
                     mc.world.removeEntityFromWorld(entity.getEntityId());
-
-                    // accept clearance for our attempted explosions
-                    attemptedExplosions.remove(entity.getEntityId());
                 }
             }));
         }

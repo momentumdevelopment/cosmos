@@ -38,11 +38,14 @@ public class RotationManager extends Manager implements Wrapper {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
         if (!rotationMap.isEmpty()) {
             // rotation with the highest priority
             Rotation rotation = rotationMap.lastEntry().getValue();
+
+            // cancel, we'll send our own rotations
+            event.setCanceled(true);
 
             // set the rotation to be our custom value
             event.setYaw(rotation.getYaw());

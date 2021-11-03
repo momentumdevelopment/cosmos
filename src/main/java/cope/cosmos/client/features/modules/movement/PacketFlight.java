@@ -77,6 +77,7 @@ public class PacketFlight extends Module {
 	public void onMotionUpdate(MotionUpdateEvent event) {
 		if (nullCheck() && !mode.getValue().equals(Mode.QUICK)) {
 			mc.player.setVelocity(0, 0, 0);
+
 			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
 			mc.player.motionX = motion[0];
 			mc.player.motionY = motion[1];
@@ -94,6 +95,7 @@ public class PacketFlight extends Module {
 	public void onMove(MotionEvent event) {
 		if (nullCheck() && !mode.getValue().equals(Mode.QUICK)) {
 			event.setCanceled(true);
+
 			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
 			event.setX(motion[0]);
 			event.setY(motion[1]);

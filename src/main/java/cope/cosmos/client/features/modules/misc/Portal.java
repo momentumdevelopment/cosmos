@@ -38,12 +38,13 @@ public class Portal extends Module {
 
     @SubscribeEvent
     public void onSound(PlaySoundEvent event) {
-        if (sounds.getValue() && (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger")))
+        if (sounds.getValue() && (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger"))) {
             event.setResultSound(null);
+        }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        event.setCanceled(nullCheck() && event.getPacket() instanceof CPacketConfirmTeleport && mc.player.timeInPortal > 0 && godMode.getValue());
+        event.setCanceled(event.getPacket() instanceof CPacketConfirmTeleport && mc.player.timeInPortal > 0 && godMode.getValue());
     }
 }

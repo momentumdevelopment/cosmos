@@ -97,4 +97,8 @@ public class MotionUtil implements Wrapper {
     public static boolean isMoving() {
         return (mc.player.moveForward != 0 || mc.player.moveStrafing != 0);
     }
+
+    public static boolean hasMoved() {
+        return Math.pow(mc.player.motionX, 2) + Math.pow(mc.player.motionY, 2) + Math.pow(mc.player.motionZ, 2) >= 9.0E-4;
+    }
 }

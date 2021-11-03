@@ -6,6 +6,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.features.modules.movement.ReverseStep;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Inventory;
+import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
@@ -36,7 +37,7 @@ public class Offhand extends Module {
 
     public static Setting<Boolean> swordGapple = new Setting<>("SwordGapple", "Use a gapple when holding a sword", true);
     public static Setting<Boolean> forceGapple = new Setting<>("ForceGapple", "Use a gapple when holding left click", false);
-    public static Setting<Boolean> patchGapple = new Setting<>("Strict", "Partial Bypass for offhand patched servers", false);
+    public static Setting<Boolean> patchGapple = new Setting<>("StrictGapple", "Partial Bypass for offhand patched servers", false);
 
     public static Setting<Boolean> recursive = new Setting<>("Recursive", "Allow the use of hotbar items", false);
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", "Stop motion when switching items", false);
@@ -60,7 +61,7 @@ public class Offhand extends Module {
         if (InventoryUtil.getItemCount(offhandItem) == 0 && !InventoryUtil.isSwitching())
             offhandItem = fallBack.getValue().getItem();
 
-        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && ReverseStep.INSTANCE.isEnabled() && mc.player.motionY == ReverseStep.speed.getValue() || handlePause())
+        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && mc.player.motionY >= -2 || handlePause())
             offhandItem = Items.TOTEM_OF_UNDYING;
 
         if (armorSafe.getValue()) {
@@ -79,8 +80,12 @@ public class Offhand extends Module {
             offhandItem = hole.getValue().getItem();
 
         if (InventoryUtil.getItemSlot(offhandItem, Inventory.INVENTORY, recursive.getValue()) != -1 && !mc.player.getHeldItemOffhand().getItem().equals(offhandItem) && offhandTimer.passed((long) ((double) delay.getValue()), Format.SYSTEM)) {
-            if (motionStrict.getValue()) {
+            if (motionStrict.getValue() && MotionUtil.hasMoved()) {
+                mc.player.motionX = 0;
+                mc.player.motionY = 0;
+                mc.player.motionZ = 0;
                 mc.player.setVelocity(0, 0, 0);
+                return;
             }
 
             InventoryUtil.moveItemToOffhand(offhandItem, !recursive.getValue());
