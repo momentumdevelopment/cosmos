@@ -485,14 +485,6 @@ public class AutoCrystal extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onCrystalAttack(CrystalAttackEvent event) {
-        // if it's nearby the current broken crystal then it doesn't need to be attacked since it'll be exploded anyway
-        if (explodeInhibit.getValue() && explodeCrystal.getCrystal() != null && explodeCrystal.getCrystal().equals(event.getDamageSource().getTrueSource())) {
-            blackListExplosions.add((EntityEnderCrystal) event.getDamageSource().getTrueSource());
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRotationUpdate(RotationUpdateEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
