@@ -1,5 +1,6 @@
 package cope.cosmos.util.render;
 
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
 
@@ -10,6 +11,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class RenderBuilder {
 
+    // gl
     private boolean setup = false;
     private boolean depth = false;
     private boolean blend = false;
@@ -18,155 +20,165 @@ public class RenderBuilder {
     private boolean alpha = false;
     private boolean shade = false;
 
+    // box
     private BlockPos blockPos = BlockPos.ORIGIN;
+    private Box box = Box.FILL;
 
     private double height = 0;
     private double length = 0;
     private double width = 0;
-    private Color color = new Color(255, 255, 255, 255);
-    private Box box = Box.FILL;
+
+    private Color color = Color.WHITE;
 
     public RenderBuilder setup() {
-        pushMatrix();
-        tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+        GlStateManager.pushMatrix();
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
         setup = true;
         return this;
     }
 
-    public RenderBuilder depth(boolean depth) {
-        if (depth) {
-            disableDepth();
-            depthMask(false);
+    public RenderBuilder depth(boolean in) {
+        if (in) {
+            GlStateManager.disableDepth();
+            GlStateManager.depthMask(false);
         }
 
-        this.depth = depth;
+        depth = in;
         return this;
     }
 
     public RenderBuilder blend() {
-        enableBlend();
+        GlStateManager.enableBlend();
         blend = true;
         return this;
     }
 
     public RenderBuilder texture() {
-        disableTexture2D();
+        GlStateManager.disableTexture2D();
         texture = true;
         return this;
     }
 
     public RenderBuilder line(float width) {
-        GL11.glLineWidth(width);
+        GlStateManager.glLineWidth(width);
         return this;
     }
 
-    public RenderBuilder cull(boolean cull) {
-        if (cull)
-            disableCull();
+    public RenderBuilder cull(boolean in) {
+        if (cull) {
+            GlStateManager.disableCull();
+        }
 
-        this.cull = cull;
+        cull = in;
         return this;
     }
 
-    public RenderBuilder alpha(boolean alpha) {
-        if (alpha)
-            disableAlpha();
+    public RenderBuilder alpha(boolean in) {
+        if (alpha) {
+            GlStateManager.disableAlpha();
+        }
 
-        this.alpha = alpha;
+        alpha = in;
         return this;
     }
 
-    public RenderBuilder shade(boolean shade) {
-        if (shade)
-            shadeModel(GL_SMOOTH);
+    public RenderBuilder shade(boolean in) {
+        if (in) {
+            GlStateManager.shadeModel(GL_SMOOTH);
+        }
 
-        this.shade = shade;
+        shade = in;
         return this;
     }
 
     public RenderBuilder build() {
         if (depth) {
-            depthMask(true);
-            enableDepth();
+            GlStateManager.depthMask(true);
+            GlStateManager.enableDepth();
         }
 
-        if (texture)
-            enableTexture2D();
+        if (texture) {
+            GlStateManager.enableTexture2D();
+        }
 
-        if (blend)
-            disableBlend();
+        if (blend) {
+            GlStateManager.disableBlend();
+        }
 
-        if (cull)
-            enableCull();
+        if (cull) {
+            GlStateManager.enableCull();
+        }
 
-        if (alpha)
-            enableAlpha();
+        if (alpha) {
+            GlStateManager.enableAlpha();
+        }
 
-        if (shade)
-            shadeModel(GL_FLAT);
+        if (shade) {
+            GlStateManager.shadeModel(GL_FLAT);
+        }
 
         if (setup) {
             glDisable(GL_LINE_SMOOTH);
-            popMatrix();
+            GlStateManager.popMatrix();
         }
 
         return this;
     }
 
-    public RenderBuilder position(BlockPos blockPos) {
-        this.blockPos = blockPos;
+    public RenderBuilder position(BlockPos in) {
+        blockPos = in;
         return this;
     }
 
-    public RenderBuilder height(double height) {
-        this.height = height;
+    public RenderBuilder height(double in) {
+        height = in;
         return this;
     }
 
-    public RenderBuilder width(double width) {
-        this.width = width;
+    public RenderBuilder width(double in) {
+        width = in;
         return this;
     }
 
-    public RenderBuilder length(double length) {
-        this.length = length;
+    public RenderBuilder length(double in) {
+        length = in;
         return this;
     }
 
-    public RenderBuilder color(Color color) {
-        this.color = color;
+    public RenderBuilder color(Color in) {
+        color = in;
         return this;
     }
 
-    public RenderBuilder box(Box box) {
-        this.box = box;
+    public RenderBuilder box(Box in) {
+        box = in;
         return this;
     }
 
     public BlockPos getBlockPos() {
-        return this.blockPos;
+        return blockPos;
     }
 
     public double getHeight() {
-        return this.height;
+        return height;
     }
 
     public double getWidth() {
-        return this.width;
+        return width;
     }
 
     public double getLength() {
-        return this.length;
+        return length;
     }
 
     public Color getColor() {
-        return this.color;
+        return color;
     }
 
     public Box getBox() {
-        return this.box;
+        return box;
     }
 
     public enum Box {
