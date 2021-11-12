@@ -13,7 +13,7 @@ public class PacketEvent extends Event {
     }
 
     public Packet<?> getPacket() {
-        return this.packet;
+        return packet;
     }
 
     @Cancelable

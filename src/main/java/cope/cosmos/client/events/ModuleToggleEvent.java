@@ -4,25 +4,26 @@ import cope.cosmos.client.features.modules.Module;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class ModuleToggleEvent extends Event {
-	private Module m;
+
+	private final Module module;
 	
-	public ModuleToggleEvent(Module m) {
-		this.m = m;
+	public ModuleToggleEvent(Module module) {
+		this.module = module;
 	}
 	
 	public static class ModuleEnableEvent extends ModuleToggleEvent {
-		public ModuleEnableEvent(Module m) {
-			super(m);
+		public ModuleEnableEvent(Module module) {
+			super(module);
 		}
 	}
 	
 	public static class ModuleDisableEvent extends ModuleToggleEvent {
-		public ModuleDisableEvent(Module m) {
-			super(m);
+		public ModuleDisableEvent(Module module) {
+			super(module);
 		}
 	}
 	
 	public Module getModule() {
-		return this.m;
+		return module;
 	}
 }

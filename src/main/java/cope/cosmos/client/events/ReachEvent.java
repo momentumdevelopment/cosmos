@@ -6,13 +6,13 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 @Cancelable
 public class ReachEvent extends Event {
 
-    private float reach = 0;
+    private float reach;
 
     public void setReach(float reach) {
         this.reach = reach;
     }
 
     public float getReach() {
-        return this.reach;
+        return reach;
     }
 }

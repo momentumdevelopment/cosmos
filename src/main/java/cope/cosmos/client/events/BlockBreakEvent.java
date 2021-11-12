@@ -14,6 +14,6 @@ public class BlockBreakEvent extends Event {
     }
 
     public BlockPos getBlockPos() {
-        return this.blockPos;
+        return blockPos;
     }
 }

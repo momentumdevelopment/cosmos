@@ -14,6 +14,6 @@ public class SettingEnableEvent extends Event {
     }
 
     public Setting<?> getSetting() {
-        return this.setting;
+        return setting;
     }
 }

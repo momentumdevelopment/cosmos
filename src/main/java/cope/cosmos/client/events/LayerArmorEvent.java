@@ -8,8 +8,8 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 @Cancelable
 public class LayerArmorEvent extends Event {
 
-    private ModelBiped modelBiped;
-    private EntityEquipmentSlot entityEquipmentSlot;
+    private final ModelBiped modelBiped;
+    private final EntityEquipmentSlot entityEquipmentSlot;
 
     public LayerArmorEvent(ModelBiped modelBiped, EntityEquipmentSlot entityEquipmentSlot) {
         this.modelBiped = modelBiped;
@@ -17,10 +17,10 @@ public class LayerArmorEvent extends Event {
     }
 
     public EntityEquipmentSlot getEntityEquipmentSlot() {
-        return this.entityEquipmentSlot;
+        return entityEquipmentSlot;
     }
 
     public ModelBiped getModelBiped() {
-        return this.modelBiped;
+        return modelBiped;
     }
 }

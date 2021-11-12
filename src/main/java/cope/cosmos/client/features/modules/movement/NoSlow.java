@@ -79,20 +79,22 @@ public class NoSlow extends Module {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
         }
 
-        if (isSlowed() && switchStrict.getValue()) {
-            mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
-        }
+        if (isSlowed()) {
+            if (switchStrict.getValue()) {
+                mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
+            }
 
-        if (isSlowed() && placeStrict.getValue()) {
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(mc.objectMouseOver.getBlockPos(), EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
+            if (placeStrict.getValue()) {
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(mc.objectMouseOver.getBlockPos(), EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
+            }
         }
 
         if (inventoryMove.getValue() && isInScreen()) {
             mc.currentScreen.allowUserInput = true;
 
-            for (KeyBinding binding : KEYS) {
-                ((IKeybinding) binding).setPressed(GameSettings.isKeyDown(binding));
-                binding.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
+            for (KeyBinding bind : KEYS) {
+                ((IKeybinding) bind).setPressed(GameSettings.isKeyDown(bind));
+                bind.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
             }
 
             if (arrowLook.getValue() != 0) {

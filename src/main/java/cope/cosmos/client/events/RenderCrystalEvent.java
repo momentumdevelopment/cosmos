@@ -11,16 +11,16 @@ public class RenderCrystalEvent extends Event {
 
     public static class RenderCrystalPreEvent extends RenderCrystalEvent {
 
-        private ModelBase modelBase;
-        private Entity entity;
-        private float limbSwing;
-        private float limbSwingAmount;
-        private float ageInTicks;
-        private float netHeadYaw;
-        private float headPitch;
-        private float scaleFactor;
+        private final ModelBase modelBase;
+        private final Entity entity;
+        private final float limbSwing;
+        private final float limbSwingAmount;
+        private final float ageInTicks;
+        private final float netHeadYaw;
+        private final float headPitch;
+        private final float scaleFactor;
 
-        public RenderCrystalPreEvent(ModelBase modelBase, Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+        public RenderCrystalPreEvent(ModelBase modelBase, Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
             this.modelBase = modelBase;
             this.entity = entity;
             this.limbSwing = limbSwing;
@@ -32,48 +32,48 @@ public class RenderCrystalEvent extends Event {
         }
 
         public ModelBase getModelBase() {
-            return this.modelBase;
+            return modelBase;
         }
 
         public Entity getEntity() {
-            return this.entity;
+            return entity;
         }
 
         public float getLimbSwing() {
-            return this.limbSwing;
+            return limbSwing;
         }
 
         public float getLimbSwingAmount() {
-            return this.limbSwingAmount;
+            return limbSwingAmount;
         }
 
         public float getAgeInTicks() {
-            return this.ageInTicks;
+            return ageInTicks;
         }
 
         public float getNetHeadYaw() {
-            return this.netHeadYaw;
+            return netHeadYaw;
         }
 
         public float getHeadPitch() {
-            return this.headPitch;
+            return headPitch;
         }
 
         public float getScaleFactor() {
-            return this.scaleFactor;
+            return scaleFactor;
         }
     }
 
     public static class RenderCrystalPostEvent extends RenderCrystalEvent {
 
-        private ModelBase modelBase;
-        private ModelBase modelNoBase;
-        private EntityEnderCrystal entityEnderCrystal;
-        private double x;
-        private double y;
-        private double z;
-        private float entityYaw;
-        private float partialTicks;
+        private final ModelBase modelBase;
+        private final ModelBase modelNoBase;
+        private final EntityEnderCrystal entityEnderCrystal;
+        private final double x;
+        private final double y;
+        private final double z;
+        private final float entityYaw;
+        private final float partialTicks;
 
         public RenderCrystalPostEvent(ModelBase modelBase, ModelBase modelNoBase, EntityEnderCrystal entityEnderCrystal, double x, double y, double z, float entityYaw, float partialTicks) {
             this.modelBase = modelBase;
@@ -87,35 +87,35 @@ public class RenderCrystalEvent extends Event {
         }
 
         public ModelBase getModelBase() {
-            return this.modelBase;
+            return modelBase;
         }
 
         public ModelBase getModelNoBase() {
-            return this.modelNoBase;
+            return modelNoBase;
         }
 
         public EntityEnderCrystal getEntityEnderCrystal() {
-            return this.entityEnderCrystal;
+            return entityEnderCrystal;
         }
 
         public double getX() {
-            return this.x;
+            return x;
         }
 
         public double getY() {
-            return this.y;
+            return y;
         }
 
         public double getZ() {
-            return this.z;
+            return z;
         }
 
         public float getEntityYaw() {
-            return this.entityYaw;
+            return entityYaw;
         }
 
         public float getPartialTicks() {
-            return this.partialTicks;
+            return partialTicks;
         }
     }
 }

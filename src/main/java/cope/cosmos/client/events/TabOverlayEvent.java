@@ -12,11 +12,11 @@ public class TabOverlayEvent extends Event {
         this.information = information;
     }
 
-    public void setInformation(String information) {
-        this.information = information;
+    public void setInformation(String in) {
+        information = in;
     }
 
     public String getInformation() {
-        return this.information;
+        return information;
     }
 }

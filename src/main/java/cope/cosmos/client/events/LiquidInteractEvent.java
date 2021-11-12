@@ -7,8 +7,8 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 @Cancelable
 public class LiquidInteractEvent extends Event {
 
-    private IBlockState blockState;
-    private boolean liquidLevel;
+    private final IBlockState blockState;
+    private final boolean liquidLevel;
 
     public LiquidInteractEvent(IBlockState blockState, boolean liquidLevel) {
         this.blockState = blockState;
@@ -16,10 +16,10 @@ public class LiquidInteractEvent extends Event {
     }
 
     public IBlockState getBlockState() {
-        return this.blockState;
+        return blockState;
     }
 
     public boolean getLiquidLevel() {
-        return this.liquidLevel;
+        return liquidLevel;
     }
 }

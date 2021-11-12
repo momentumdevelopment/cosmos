@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
 public class MotionEvent extends Event {
+
     private MoverType type;
     private double x;
     private double y;
@@ -22,31 +23,31 @@ public class MotionEvent extends Event {
         return type;
     }
 
-    public void setType(MoverType type) {
-        this.type = type;
+    public void setType(MoverType in) {
+        type = in;
     }
 
     public double getX() {
         return x;
     }
 
-    public void setX(double x) {
-        this.x = x;
+    public void setX(double in) {
+        x = in;
     }
 
     public double getY() {
         return y;
     }
 
-    public void setY(double y) {
-        this.y = y;
+    public void setY(double in) {
+        y = in;
     }
 
     public double getZ() {
         return z;
     }
 
-    public void setZ(double z) {
-        this.z = z;
+    public void setZ(double in) {
+        z = in;
     }
 }
