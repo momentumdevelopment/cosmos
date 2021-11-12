@@ -12,11 +12,9 @@ import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketPlayerDigging;
+import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
@@ -34,7 +32,10 @@ public class NoSlow extends Module {
         INSTANCE = this;
     }
 
-    public static final Setting<Bypass> bypass = new Setting<>("Bypass", "How to bypass NoSlow patches", Bypass.NCP);
+    public static final Setting<Boolean> strict = new Setting<>("Strict", "Allows you to bypass normal NCP server", false);
+    public static final Setting<Boolean> airStrict = new Setting<>("AirStrict", "Allows you to bypass strict NCP servers while in the air", false);
+    public static final Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", "Allows you to bypass strict NCP servers", false);
+    public static final Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", "Allows you to bypass strict servers", false);
 
     public static final Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
     public static final Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
@@ -59,7 +60,7 @@ public class NoSlow extends Module {
         super.onDisable();
 
         if (nullCheck()) {
-            if (isSneaking && bypass.getValue() == Bypass.Sneak) {
+            if (isSneaking && airStrict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
             }
 
@@ -73,13 +74,17 @@ public class NoSlow extends Module {
 
     @Override
     public void onUpdate() {
-        if (isSneaking && bypass.getValue() == Bypass.Sneak && !mc.player.isHandActive()) {
+        if (isSneaking && airStrict.getValue() && !mc.player.isHandActive()) {
             isSneaking = false;
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
         }
 
-        if (mc.player.isHandActive() && bypass.getValue() == Bypass.New) {
+        if (isSlowed() && switchStrict.getValue()) {
             mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
+        }
+
+        if (isSlowed() && placeStrict.getValue()) {
+            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(mc.objectMouseOver.getBlockPos(), EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
         }
 
         if (inventoryMove.getValue() && isInScreen()) {
@@ -120,7 +125,7 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (isSlowed() && bypass.getValue() == Bypass.NCP && event.getPacket() instanceof CPacketPlayer) {
+        if (isSlowed() && strict.getValue() && event.getPacket() instanceof CPacketPlayer) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
         }
     }
@@ -135,7 +140,7 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onUseItem(LivingEntityUseItemEvent event) {
-        if (isSlowed() && bypass.getValue() == Bypass.Sneak && !isSneaking) {
+        if (isSlowed() && airStrict.getValue() && !isSneaking) {
             isSneaking = true;
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
         }
@@ -172,10 +177,6 @@ public class NoSlow extends Module {
                 return false;
             }
         }
-    }
-
-    public enum Bypass {
-        NCP, Sneak, New
     }
 }
 

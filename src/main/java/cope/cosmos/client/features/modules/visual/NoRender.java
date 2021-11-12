@@ -36,6 +36,7 @@ public class NoRender extends Module {
 
     public static Setting<Boolean> armor = new Setting<>("Armor", "Prevents armor from rendering", true);
     public static Setting<Boolean> items = new Setting<>("Items", "Prevents dropped items from rendering", false);
+    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", "Prevents fireworks entities from rendering", false);
     public static Setting<Boolean> particles = new Setting<>("Particles", "Prevents laggy particles from rendering", false);
     public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", "Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering", false);
     public static Setting<Boolean> maps = new Setting<>("Maps", "Prevents maps from rendering", false);

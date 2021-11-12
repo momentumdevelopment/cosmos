@@ -4,7 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 
-public interface Util {
+public interface GUIUtil {
 
     default boolean mouseOver(float x, float y, float width, float height) {
         if (!Float.isNaN(getGUI().getMouse().getMousePosition().x) && !Float.isNaN(getGUI().getMouse().getMousePosition().y)) {

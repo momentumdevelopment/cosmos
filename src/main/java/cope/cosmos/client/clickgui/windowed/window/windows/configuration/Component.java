@@ -1,9 +1,9 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import net.minecraft.util.math.Vec2f;
 
-public abstract class Component implements Util {
+public abstract class Component implements GUIUtil {
 
     private Vec2f position;
     private float width;

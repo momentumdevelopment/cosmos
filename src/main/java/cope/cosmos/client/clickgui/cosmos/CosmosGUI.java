@@ -4,7 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.cosmos.navigation.navs.ControlNavigation;
 import cope.cosmos.client.clickgui.cosmos.navigation.navs.PlayerNavigation;
 import cope.cosmos.client.clickgui.util.MousePosition;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.cosmos.window.Window;
 import cope.cosmos.client.clickgui.cosmos.window.WindowManager;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
@@ -16,7 +16,7 @@ import org.lwjgl.input.Mouse;
 import java.io.IOException;
 
 @SuppressWarnings("all")
-public class CosmosGUI extends GuiScreen implements Util {
+public class CosmosGUI extends GuiScreen implements GUIUtil {
 
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
 

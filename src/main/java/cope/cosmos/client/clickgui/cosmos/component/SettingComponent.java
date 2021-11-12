@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.component;
 
 import cope.cosmos.client.clickgui.cosmos.component.components.*;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unchecked", "cast", "rawtypes"})
-public abstract class SettingComponent<T> implements Util {
+public abstract class SettingComponent<T> implements GUIUtil {
 
     public float WIDTH = 98;
     public final float HEIGHT = 14;

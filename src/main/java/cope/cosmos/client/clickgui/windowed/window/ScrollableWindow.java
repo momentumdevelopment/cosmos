@@ -2,6 +2,7 @@ package cope.cosmos.client.clickgui.windowed.window;
 
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
@@ -15,8 +16,15 @@ public class ScrollableWindow extends Window {
     private float lowerBound;
     private float scroll;
 
-    public ScrollableWindow(String name, Vec2f position, float width, float height) {
-        super(name, position, width, height);
+    public ScrollableWindow(String name, Vec2f position, float width, float height, boolean pinned) {
+        super(name, position, width, height, pinned);
+
+        // initialize as the same height
+        lowerBound = getHeight() - getBar();
+    }
+
+    public ScrollableWindow(String name, ResourceLocation icon, Vec2f position, float width, float height, boolean pinned) {
+        super(name, icon, position, width, height, pinned);
 
         // initialize as the same height
         lowerBound = getHeight() - getBar();

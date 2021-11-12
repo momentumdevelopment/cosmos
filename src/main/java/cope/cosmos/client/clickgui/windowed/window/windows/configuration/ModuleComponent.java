@@ -1,6 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration;
 
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.features.modules.Module;
@@ -16,7 +16,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class ModuleComponent extends Component implements Util {
+public class ModuleComponent extends Component implements GUIUtil {
 
     private final ConfigurationWindow window;
     private final Module module;

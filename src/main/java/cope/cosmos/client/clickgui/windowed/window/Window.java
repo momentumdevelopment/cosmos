@@ -1,6 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
@@ -16,9 +16,10 @@ import java.awt.*;
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
-public class Window implements Util, Wrapper {
+public class Window implements GUIUtil, Wrapper {
 
     private final String name;
+    private final ResourceLocation icon;
 
     private Vec2f position;
 
@@ -26,19 +27,35 @@ public class Window implements Util, Wrapper {
     private float width;
     private float height;
 
+    private boolean pinned;
+
     private boolean draggable = true;
     private boolean dragging = false;
 
     private boolean expandable = true;
     private boolean expanding = false;
 
+    private boolean focused = false;
+    private boolean interactable = true;
+
     private Vec2f previousMousePosition = Vec2f.MIN;
 
-    public Window(String name, Vec2f position, float width, float height) {
+    public Window(String name, Vec2f position, float width, float height, boolean pinned) {
         this.name = name;
         this.position = position;
         this.width = width;
         this.height = height;
+        this.icon = new ResourceLocation("cosmos", "textures/icons/warning.png");
+        this.pinned = pinned;
+    }
+
+    public Window(String name, ResourceLocation icon, Vec2f position, float width, float height, boolean pinned) {
+        this.name = name;
+        this.icon = icon;
+        this.position = position;
+        this.width = width;
+        this.height = height;
+        this.pinned = pinned;
     }
 
     public void drawWindow() {
@@ -92,7 +109,7 @@ public class Window implements Util, Wrapper {
 
     public void handleLeftClick() {
         if (mouseOver(position.x + width - 14, position.y, 14, 14)) {
-            getManager().purgeWindow(this);
+            getManager().removeWindow(this);
         }
     }
 
@@ -106,6 +123,14 @@ public class Window implements Util, Wrapper {
 
     public void handleKeyPress(char typedCharacter, int key) {
 
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ResourceLocation getIcon() {
+        return icon;
     }
 
     public void setPosition(Vec2f in) {
@@ -134,6 +159,14 @@ public class Window implements Util, Wrapper {
 
     public float getWidth() {
         return width;
+    }
+
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    public void setPinned(boolean in) {
+        pinned = in;
     }
 
     public void setDraggable(boolean in) {
@@ -166,5 +199,21 @@ public class Window implements Util, Wrapper {
 
     public boolean isExpanding() {
         return expanding;
+    }
+
+    public boolean isInteractable() {
+        return interactable;
+    }
+
+    public void setInteractable(boolean in) {
+        interactable = in;
+    }
+
+    public boolean isFocused() {
+        return focused;
+    }
+
+    public void setFocused(boolean in) {
+        focused = in;
     }
 }

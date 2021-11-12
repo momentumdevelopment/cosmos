@@ -1,21 +1,28 @@
 package cope.cosmos.client.clickgui.windowed;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
+import cope.cosmos.client.clickgui.windowed.taskbar.Taskbar;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.*;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
-public class WindowGUI extends GuiScreen implements Util {
+@SuppressWarnings("unused")
+public class WindowGUI extends GuiScreen implements GUIUtil {
 
     private final WindowManager windowManager = new WindowManager();
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
+
+    private final Taskbar taskbar = new Taskbar();
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
@@ -25,13 +32,17 @@ public class WindowGUI extends GuiScreen implements Util {
         mouse.setRightClick(false);
         mouse.setMousePosition(new Vec2f(mouseX, mouseY));
 
-        new ArrayList<>(windowManager.getWindows()).forEach(window -> {
+        windowManager.getWindows().forEach(window -> {
             window.drawWindow();
 
-            if (mouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
-                window.handleScroll(Mouse.getDWheel());
+            if (window.isInteractable()) {
+                if (mouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
+                    window.handleScroll(Mouse.getDWheel());
+                }
             }
         });
+
+        taskbar.drawTaskbar();
     }
 
     @Override
@@ -43,26 +54,39 @@ public class WindowGUI extends GuiScreen implements Util {
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
 
-                new ArrayList<>(windowManager.getWindows()).forEach(window -> {
+                windowManager.getWindows().forEach(window -> {
                     try {
-                        window.handleLeftClick();
+                        if (window.isInteractable()) {
+                            window.handleLeftClick();
+
+                            // push to the top
+                            windowManager.pushWindow(window);
+                        }
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }
                 });
 
+                taskbar.handleLeftClick();
                 break;
             case 1:
-                new ArrayList<>(windowManager.getWindows()).forEach(window -> {
+                mouse.setRightClick(true);
+                mouse.setRightHeld(true);
+
+                windowManager.getWindows().forEach(window -> {
                     try {
-                        window.handleRightClick();
+                        if (window.isInteractable()) {
+                            window.handleRightClick();
+
+                            // push to the top
+                            windowManager.pushWindow(window);
+                        }
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }
                 });
 
-                mouse.setRightClick(true);
-                mouse.setRightHeld(true);
+                taskbar.handleRightClick();
                 break;
             default:
                 break;
@@ -77,7 +101,7 @@ public class WindowGUI extends GuiScreen implements Util {
             mouse.setLeftHeld(false);
             mouse.setRightHeld(false);
 
-            new ArrayList<>(windowManager.getWindows()).forEach(window -> {
+            windowManager.getWindows().forEach(window -> {
                 window.setDragging(false);
                 window.setExpanding(false);
             });
@@ -88,9 +112,11 @@ public class WindowGUI extends GuiScreen implements Util {
     public void keyTyped(char typedChar, int keyCode) throws IOException {
         super.keyTyped(typedChar, keyCode);
 
-        new ArrayList<>(windowManager.getWindows()).forEach(window -> {
+        windowManager.getWindows().forEach(window -> {
             try {
-                window.handleKeyPress(typedChar, keyCode);
+                if (window.isInteractable()) {
+                    window.handleKeyPress(typedChar, keyCode);
+                }
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
@@ -111,6 +137,8 @@ public class WindowGUI extends GuiScreen implements Util {
         if (mc.entityRenderer.isShaderActive()) {
             mc.entityRenderer.getShaderGroup().deleteShaderGroup();
         }
+
+        MinecraftForge.EVENT_BUS.unregister(this);
     }
 
     @Override
@@ -118,8 +146,19 @@ public class WindowGUI extends GuiScreen implements Util {
         return ClickGUI.pauseGame.getValue();
     }
 
+    @SubscribeEvent
+    public void onRenderHUD(RenderGameOverlayEvent.Pre event) {
+        if (!event.getType().equals(ElementType.TEXT) && !event.getType().equals(ElementType.CHAT)) {
+            event.setCanceled(true);
+        }
+    }
+
     public WindowManager getManager() {
         return windowManager;
+    }
+
+    public Taskbar getTaskbar() {
+        return taskbar;
     }
 
     public MousePosition getMouse() {

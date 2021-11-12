@@ -35,6 +35,8 @@ public class Interact extends Module {
     public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", "Allows you to interact with blocks through walls", false);
     public static Setting<Boolean> noSwing = new Setting<>("NoSwing", "Cancels the server side animation for swinging", false);
 
+    public static Setting<Boolean> ignoreContainer = new Setting<>("IgnoreContainers", "Ignores containers", false);
+
     public static Setting<Boolean> hitBox = new Setting<>("HitBox", "Ignores entity hitboxes", true);
     public static Setting<Double> hitBoxExtend = new Setting<>("Extend", "Entity hitbox extension", 0.0, 0.0, 2.0, 2).setParent(hitBox);
     public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", "Only ignores player hitboxes", true).setParent(hitBox);

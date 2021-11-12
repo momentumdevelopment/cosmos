@@ -43,6 +43,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
@@ -123,12 +125,12 @@ public class AutoCrystal extends Module {
     private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
-    private final Map<Integer, Integer> attemptedExplosions = new HashMap<>();
-    private final List<EntityEnderCrystal> blackListExplosions = new ArrayList<>();
+    private final Map<Integer, Integer> attemptedExplosions = new ConcurrentHashMap<>();
+    private final List<EntityEnderCrystal> blackListExplosions = new CopyOnWriteArrayList<>();
 
     private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
     private final Timer placeTimer = new Timer();
-    private final Map<BlockPos, Integer> attemptedPlacements = new HashMap<>();
+    private final Map<BlockPos, Integer> attemptedPlacements = new ConcurrentHashMap<>();
 
     private int strictTicks;
 
@@ -140,15 +142,14 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onUpdate() {
-        handleTicks();
-
         if (strictTicks > 0) {
             strictTicks--;
-            return;
         }
 
-        explodeCrystal();
-        placeCrystal();
+        else {
+            explodeCrystal();
+            placeCrystal();
+        }
     }
 
     @Override
@@ -171,14 +172,12 @@ public class AutoCrystal extends Module {
         resetProcess();
     }
 
-    public void handleTicks() {
+    public void explodeCrystal() {
         if (!tps.getValue().equals(TPS.NONE)) {
             // skip ticks based on the current tps
             strictTicks += (int) (20 - getCosmos().getTickManager().getTPS(tps.getValue()));
         }
-    }
 
-    public void explodeCrystal() {
         if (explodeCrystal != null) {
             if (!rotate.getValue().equals(Rotate.NONE) && (rotateWhen.getValue().equals(When.BREAK) || rotateWhen.getValue().equals(When.BOTH))) {
                 // our last interaction will be the attack on the crystal
@@ -260,51 +259,48 @@ public class AutoCrystal extends Module {
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
-                RayTraceResult facingResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition()).addVector(0.5, -0.5, 0.5));
-                EnumFacing placementFacing = (facingResult == null || facingResult.sideHit == null) ? EnumFacing.UP : facingResult.sideHit;
-
-                // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
-                if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
-                    placementFacing = EnumFacing.DOWN;
-                }
-
                 // directions of placement
                 double facingX = 0;
                 double facingY = 0;
                 double facingZ = 0;
+                EnumFacing facingDirection = EnumFacing.UP;
+
+                // the vector and angles to the last interaction
+                float[] vectorAngles = AngleUtil.calculateAngles(interactVector);
+                Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1]));
+                RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
 
                 // make sure the direction we are facing is consistent with our rotations
                 switch (placeInteraction.getValue()) {
                     case NONE:
-                        Random interactRandom = new Random();
-                        facingX = interactRandom.nextFloat();
-                        facingY = interactRandom.nextFloat();
-                        facingZ = interactRandom.nextFloat();
-                        break;
-                    case NORMAL:
                         facingX = 0.5;
                         facingY = 0.5;
                         facingZ = 0.5;
                         break;
-                    case STRICT:
-                        placementFacing = EnumFacing.UP;
+                    case NORMAL:
+                        RayTraceResult laxResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), interactVector);
+                        facingDirection = (laxResult == null || laxResult.sideHit == null) ? EnumFacing.UP : laxResult.sideHit;
 
-                        // if the placement is higher than us, we need to place on the lowest/closest visible side
-                        if (placePosition.getPosition().getY() > mc.player.getEntityBoundingBox().minY + mc.player.getEyeHeight()) {
-                            if (mc.world.getBlockState(placePosition.getPosition().down()).getBlock().equals(Blocks.AIR)) {
-                                placementFacing = EnumFacing.DOWN;
-                            }
-
-                            else {
-                                RayTraceResult lowestResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), new Vec3d(placePosition.getPosition()).addVector(0.5, 0.5, 0.5));
-                                placementFacing = (lowestResult == null || lowestResult.sideHit == null) ? EnumFacing.DOWN : lowestResult.sideHit;
-                            }
+                        // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
+                        if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
+                            facingDirection = EnumFacing.DOWN;
                         }
 
-                        float[] vectorAngles = AngleUtil.calculateAngles(interactVector);
-                        Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1]));
+                        if (vectorResult != null && vectorResult.hitVec != null) {
+                            facingX = vectorResult.hitVec.x - placePosition.getPosition().getX();
+                            facingY = vectorResult.hitVec.y - placePosition.getPosition().getY();
+                            facingZ = vectorResult.hitVec.z - placePosition.getPosition().getZ();
+                        }
 
-                        RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
+                        break;
+                    case STRICT:
+                        // if the placement is higher than us, we need to place on the lowest/closest visible side
+                        RayTraceResult strictResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), interactVector, false, true, false);
+
+                        if (strictResult != null && strictResult.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
+                            facingDirection = strictResult.getBlockPos().equals(placePosition.getPosition()) ? strictResult.sideHit : EnumFacing.UP;
+                        }
+
                         if (vectorResult != null && vectorResult.hitVec != null) {
                             facingX = vectorResult.hitVec.x - placePosition.getPosition().getX();
                             facingY = vectorResult.hitVec.y - placePosition.getPosition().getY();
@@ -315,7 +311,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // place the crystal
-                placeCrystal(placePosition.getPosition(), placementFacing, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
+                placeCrystal(placePosition.getPosition(), facingDirection, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
                 swingArm(placeHand.getValue());
 
                 // switch back after placing, should only switch serverside
@@ -625,7 +621,7 @@ public class AutoCrystal extends Module {
 
         // packet for crystal explosions
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
-            mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> mc.player.getDistance(entity) < 6).forEach(entity -> {
+            mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> entity.getDistance(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ()) < 6).forEach(entity -> {
                 // going to be exploded anyway, so don't attempt explosion
                 if (explodeInhibit.getValue()) {
                     blackListExplosions.add((EntityEnderCrystal) entity);

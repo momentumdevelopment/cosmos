@@ -35,7 +35,7 @@ public class PacketFlight extends Module {
 	public static Setting<Mode> mode = new Setting<>("Mode", "Mode for PacketFlight", Mode.FAST);
 	public static Setting<Direction> direction = new Setting<>("Direction", "Direction of the bounds packets", Direction.DOWN);
 	public static Setting<Double> factor = new Setting<>(() -> mode.getValue().equals(Mode.FACTOR), "Factor", "Speed factor", 0.0, 1.0, 5.0, 1);
-	public static Setting<Double> subdivisions = new Setting<>(() -> mode.getValue().equals(Mode.PATCH), "Subdivisions", "How many rotations packets to send", 0.0, 4.0, 10.0, 0);
+	public static Setting<Double> subdivisions = new Setting<>(() -> mode.getValue().equals(Mode.STRICT), "Subdivisions", "How many rotations packets to send", 0.0, 4.0, 10.0, 0);
 	public static Setting<Boolean> antiKick = new Setting<>("AntiKick", "Prevents getting kicked by vanilla anti-cheat", true);
 	public static Setting<Boolean> limitJitter = new Setting<>("LimitJitter", "Proactively confirms packets", true);
 	public static Setting<Boolean> overshoot = new Setting<>("Overshoot", "Slightly overshoots the packet positions", false);
@@ -75,7 +75,7 @@ public class PacketFlight extends Module {
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onMotionUpdate(MotionUpdateEvent event) {
-		if (nullCheck() && !mode.getValue().equals(Mode.QUICK)) {
+		if (nullCheck()) {
 			mc.player.setVelocity(0, 0, 0);
 
 			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
@@ -93,7 +93,7 @@ public class PacketFlight extends Module {
 
 	@SubscribeEvent
 	public void onMove(MotionEvent event) {
-		if (nullCheck() && !mode.getValue().equals(Mode.QUICK)) {
+		if (nullCheck()) {
 			event.setCanceled(true);
 
 			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
@@ -175,7 +175,7 @@ public class PacketFlight extends Module {
 					}
 				}
 
-				if (mode.getValue().equals(Mode.PATCH)) {
+				if (mode.getValue().equals(Mode.STRICT)) {
 					event.setCanceled(stabilize.getValue());
 
 					// teleport us back to the server values
@@ -193,6 +193,8 @@ public class PacketFlight extends Module {
 				else {
 					((ISPacketPlayerPosLook) packet).setYaw(clientYaw);
 					((ISPacketPlayerPosLook) packet).setPitch(clientPitch);
+					((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.X_ROT);
+					((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.Y_ROT);
 				}
 
 				lastTeleportId = packet.getTeleportId();
@@ -250,7 +252,7 @@ public class PacketFlight extends Module {
 			} 
 			
 			else {
-				if (mode.getValue().equals(Mode.PATCH)) {
+				if (mode.getValue().equals(Mode.STRICT)) {
 					motion[0] *= 2.3425;
 					motion[1] *= 2.3425;
 				}
@@ -263,12 +265,12 @@ public class PacketFlight extends Module {
 		} 
 		
 		else {
-			if (mode.getValue().equals(Mode.PATCH)) {
+			if (mode.getValue().equals(Mode.STRICT)) {
 				motion[0] *= 0.8;
 				motion[1] *= 0.8;
 			}
 
-			else if (mode.getValue().equals(Mode.STRICT)) {
+			else if (mode.getValue().equals(Mode.SLOW)) {
 				motion[0] *= 0.75;
 				motion[1] *= 0.75;
 			}
@@ -310,8 +312,9 @@ public class PacketFlight extends Module {
 		return motionY;
 	}
 
-	private Vec3d getBoundingVectors(Vec3d one, Vec3d two) {
-		Vec3d newVector = one.add(two);
+	private Vec3d getBoundingVectors(Vec3d actual, Vec3d bound) {
+		Vec3d newVector = actual.add(bound);
+
 		switch (direction.getValue()) {
 			case UP:
 				return newVector.addVector(0, 80085.69, 0);
@@ -331,7 +334,7 @@ public class PacketFlight extends Module {
 	}
 
 	public enum Mode {
-		FAST, FACTOR, STRICT, PATCH, QUICK
+		FAST, FACTOR, SLOW, STRICT
 	}
 
 	public enum Direction {

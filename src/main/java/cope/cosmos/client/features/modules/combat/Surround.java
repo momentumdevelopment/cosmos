@@ -25,6 +25,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -191,9 +192,27 @@ public class Surround extends Module {
     }
 
     @SubscribeEvent
-    public void onBlockBreak(BlockBreakEvent event) {
-        if (HoleUtil.isPartOfHole(event.getBlockPos().down()) && reactive.getValue()) {
-           BlockUtil.placeBlock(event.getBlockPos().down(), packet.getValue(), confirm.getValue());
+    public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
+        if (event.getPacket() instanceof SPacketBlockChange) {
+            if (surround.getValue().getVectors().contains(new Vec3d(((SPacketBlockChange) event.getPacket()).getBlockPosition()))) {
+                // clear items
+                for (Entity item : mc.world.loadedEntityList) {
+                    if (item instanceof EntityItem && ((EntityItem) item).getItem().getItem().equals(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
+                        item.setDead();
+                        mc.world.removeEntityFromWorld(item.getEntityId());
+                    }
+                }
+
+                // switch to obsidian
+                previousSlot = mc.player.inventory.currentItem;
+                InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
+
+                // place block
+                BlockUtil.placeBlock(new BlockPos(((SPacketBlockChange) event.getPacket()).getBlockPosition()), packet.getValue(), confirm.getValue());
+
+                // switchback
+                InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+            }
         }
     }
 

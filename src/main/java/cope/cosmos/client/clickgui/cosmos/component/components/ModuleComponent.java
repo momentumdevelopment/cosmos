@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.component.components;
 
 import cope.cosmos.client.clickgui.cosmos.component.Component;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ClickGUI;
@@ -18,7 +18,7 @@ import java.awt.Color;
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings({"unchecked", "cast", "rawtypes"})
-public class ModuleComponent extends Component implements Wrapper, Util {
+public class ModuleComponent extends Component implements Wrapper, GUIUtil {
 
     private Vec2f position = Vec2f.ZERO;
 

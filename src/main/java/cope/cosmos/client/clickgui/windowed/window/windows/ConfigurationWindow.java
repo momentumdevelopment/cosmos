@@ -18,6 +18,7 @@ import org.lwjgl.input.Keyboard;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -27,8 +28,8 @@ public class ConfigurationWindow extends TabbedWindow {
 
     private Page page = Page.MODULE;
 
-    private final List<Component> leftColumn = new ArrayList<>();
-    private final List<Component> rightColumn = new ArrayList<>();
+    private final List<Component> leftColumn = new CopyOnWriteArrayList<>();
+    private final List<Component> rightColumn = new CopyOnWriteArrayList<>();
 
     private float leftOffset;
     private float rightOffset;
@@ -49,7 +50,7 @@ public class ConfigurationWindow extends TabbedWindow {
     private float quarterWidth;
 
     public ConfigurationWindow(String name, Vec2f position) {
-        super(name, position, 400, 300);
+        super(name, new ResourceLocation("cosmos", "textures/icons/client.png"), position, 400, 300, true);
 
         // add each of the categories as a tab
         for (Category category : Category.values()) {
@@ -207,7 +208,7 @@ public class ConfigurationWindow extends TabbedWindow {
     public void handleLeftClick() {
         super.handleLeftClick();
 
-        if (mouseOver(getPosition().x + 2, getPosition().y + getBar() + 3, 9, getTab().getHeight())) {
+        if (mouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, 13)) {
             switch (page) {
                 case MODULE:
                     break;
@@ -222,11 +223,11 @@ public class ConfigurationWindow extends TabbedWindow {
             updateColumns();
         }
 
-        new ArrayList<>(leftColumn).forEach(component -> {
+        leftColumn.forEach(component -> {
             component.handleLeftClick();
         });
 
-        new ArrayList<>(rightColumn).forEach(component -> {
+        rightColumn.forEach(component -> {
             component.handleLeftClick();
         });
 
@@ -246,11 +247,11 @@ public class ConfigurationWindow extends TabbedWindow {
     public void handleRightClick() {
         super.handleRightClick();
 
-        new ArrayList<>(leftColumn).forEach(component -> {
+        leftColumn.forEach(component -> {
             component.handleRightClick();
         });
 
-        new ArrayList<>(rightColumn).forEach(component -> {
+        rightColumn.forEach(component -> {
             component.handleRightClick();
         });
     }
@@ -268,11 +269,11 @@ public class ConfigurationWindow extends TabbedWindow {
     public void handleKeyPress(char typedCharacter, int key) {
         super.handleKeyPress(typedCharacter, key);
 
-        new ArrayList<>(leftColumn).forEach(component -> {
+        leftColumn.forEach(component -> {
             component.handleKeyPress(typedCharacter, key);
         });
 
-        new ArrayList<>(rightColumn).forEach(component -> {
+        rightColumn.forEach(component -> {
             component.handleKeyPress(typedCharacter, key);
         });
 

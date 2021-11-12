@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.window.windows;
 
 import cope.cosmos.client.clickgui.cosmos.component.components.ModuleComponent;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.cosmos.window.Window;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.client.ClickGUI;
@@ -28,7 +28,7 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
-public class CategoryWindow extends Window implements Wrapper, Util {
+public class CategoryWindow extends Window implements Wrapper, GUIUtil {
 
     private final float WIDTH = 100;
     private final float TITLE = 19;

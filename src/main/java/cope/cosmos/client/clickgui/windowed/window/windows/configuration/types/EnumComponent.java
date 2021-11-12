@@ -1,6 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
@@ -68,7 +68,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 19), (int) (position.y + boundHeight - 15), 0, 0, 13, 13, 13, 13);
 
         if (open) {
-            buttonOffset = 0;
+            buttonOffset = 1;
             modeComponents.forEach(modeComponent -> {
                 modeComponent.drawComponent(new Vec2f(position.x + 3, position.y + boundHeight + buttonOffset - 4), width - 6);
                 buttonOffset += 13;
@@ -111,7 +111,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         return open;
     }
 
-    public static class ModeComponent implements Util {
+    public static class ModeComponent implements GUIUtil {
 
         private final EnumComponent component;
         private final Setting<Enum<?>> setting;

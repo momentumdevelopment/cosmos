@@ -1,7 +1,7 @@
 package cope.cosmos.client.clickgui.cosmos.navigation.navs;
 
 import cope.cosmos.client.clickgui.cosmos.navigation.Navigation;
-import cope.cosmos.client.clickgui.util.Util;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
@@ -12,7 +12,7 @@ import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class PlayerNavigation extends Navigation implements Wrapper, Util {
+public class PlayerNavigation extends Navigation implements Wrapper, GUIUtil {
 
     @Override
     public void drawNavigation() {

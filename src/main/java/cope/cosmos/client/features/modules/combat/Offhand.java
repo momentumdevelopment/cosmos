@@ -61,7 +61,7 @@ public class Offhand extends Module {
         if (InventoryUtil.getItemCount(offhandItem) == 0 && !InventoryUtil.isSwitching())
             offhandItem = fallBack.getValue().getItem();
 
-        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && mc.player.motionY >= -2 || handlePause())
+        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && mc.player.motionY <= -2 || handlePause())
             offhandItem = Items.TOTEM_OF_UNDYING;
 
         if (armorSafe.getValue()) {

@@ -3,6 +3,7 @@ package cope.cosmos.client.clickgui.windowed.window;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
@@ -20,8 +21,12 @@ public class TabbedWindow extends ScrollableWindow {
     private float offset;
     private final float height = 13;
 
-    public TabbedWindow(String name, Vec2f position, float width, float height) {
-        super(name, position, width, height);
+    public TabbedWindow(String name, Vec2f position, float width, float height, boolean pinned) {
+        super(name, position, width, height, pinned);
+    }
+
+    public TabbedWindow(String name, ResourceLocation icon, Vec2f position, float width, float height, boolean pinned) {
+        super(name, icon, position, width, height, pinned);
     }
 
     @Override
