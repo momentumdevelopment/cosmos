@@ -2,7 +2,7 @@
 name: Feature Request
 about: Issues to request features or really anything.
 title: '[SUGGESTION]'
-labels: 'suggestion'
+labels: 'enhancement'
 assignees: ''
 
 ---
