@@ -67,7 +67,7 @@ public class HoleFill extends Module {
     public static Setting<Box> renderMode = new Setting<>("Mode", "Style of the visual", Box.FILL).setParent(render);
 
     private EntityPlayer fillTarget;
-    private BlockPos fillPosition = BlockPos.ORIGIN;
+    private BlockPos fillPosition = null;
     private Rotation fillRotation = new Rotation(Float.NaN, Float.NaN, rotate.getValue());
 
     private int previousSlot;
@@ -140,7 +140,7 @@ public class HoleFill extends Module {
 
     @Override
     public void onUpdate() {
-        if (fillPosition.equals(BlockPos.ORIGIN) || fillPosition == null) {
+        if (fillPosition == null) {
             fillTarget = null;
             fillPosition = null;
             return;
@@ -162,7 +162,7 @@ public class HoleFill extends Module {
         if (fillPosition == null || !mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(fillPosition)).isEmpty())
             return;
 
-        if (fillPosition != BlockPos.ORIGIN && InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
+        if (InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
             BlockUtil.placeBlock(fillPosition, packet.getValue(), confirm.getValue());
             PlayerUtil.swingArm(swing.getValue());
         }
@@ -185,7 +185,7 @@ public class HoleFill extends Module {
 
     @Override
     public void onRender3D() {
-        if (nullCheck() && fillPosition != BlockPos.ORIGIN && render.getValue()) {
+        if (nullCheck() && fillPosition != null && render.getValue()) {
             RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(ColorUtil.getPrimaryAlphaColor(60)).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
         }
     }

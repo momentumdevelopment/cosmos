@@ -5,6 +5,7 @@ import cope.cosmos.util.Wrapper;
 
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.BlockResistance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +31,9 @@ public class HoleManager extends Manager implements Wrapper {
 
     @Override
     public void onThread() {
-        holes = searchHoles();
+        if (nullCheck()) {
+            holes = searchHoles();
+        }
     }
 
     public List<Hole> searchHoles() {

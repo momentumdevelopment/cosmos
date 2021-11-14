@@ -51,21 +51,31 @@ public class BlockUtil implements Wrapper {
         }
     }
 
-    public synchronized static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double blockRange, boolean motion) {
+    public static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double blockRange, boolean motion) {
+        if (player == null) { // bruh momentum
+            return new ArrayList<>();
+        }
+
         List<BlockPos> nearbyBlocks = new ArrayList<>();
 
         int rangeX = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionX: MathUtil.roundDouble(blockRange, 0));
         int rangeY = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionY: MathUtil.roundDouble(blockRange, 0));
         int rangeZ = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionZ: MathUtil.roundDouble(blockRange, 0));
+
         for (int x = -rangeX; x <= rangeX; x++) {
             for (int y = -rangeY; y <= rangeY; y++) {
                 for (int z = -rangeZ; z <= rangeZ; z++) {
-                    nearbyBlocks.add(player.getPosition().add(x, y, z));
+                    BlockPos pos = player.getPosition().add(x, y, z);
+                    if (mc.player.getDistance(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5) >= blockRange) {
+                        continue;
+                    }
+
+                    nearbyBlocks.add(pos);
                 }
             }
         }
 
-        return nearbyBlocks.stream().filter(blockPos -> mc.player.getDistance(blockPos.getX() + 0.5, blockPos.getY() + 1, blockPos.getZ() + 0.5) <= blockRange).sorted(Comparator.comparing(blockPos -> mc.player.getDistanceSq(blockPos))).collect(Collectors.toList());
+        return nearbyBlocks;
     }
 
     public static double getNearestBlockBelow() {
