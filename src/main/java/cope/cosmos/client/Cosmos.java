@@ -26,7 +26,7 @@ public class Cosmos {
 
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
 
     public static String PREFIX = "*";
     public static boolean SETUP = false;
