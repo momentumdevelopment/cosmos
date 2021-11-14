@@ -41,45 +41,46 @@ public class Step extends Module {
 
     @Override
     public void onUpdate() {
-        if (mode.getValue() == Mode.NCP) {
-            if (!mc.player.onGround) {
-                return;
-            }
-
-            double stepHeight = 0.0; // the amount of blocks we have to step up
-            for (double[] collisions : COLLISIONS) {
-                if (isBoundingBoxEmpty(mc.player.motionX, collisions[0], mc.player.motionZ) && !isBoundingBoxEmpty(mc.player.motionX, collisions[1], mc.player.motionZ)) {
-                    stepHeight = Math.round(collisions[0] * 2.0) / 2.0; // round to nearest half
-                }
-            }
-
-            // @todo: maybe use NCP lag compensation against itself? or find a way to do 1.5-2.5 step
-            if (stepHeight != 0.0 && height.getValue() >= stepHeight) { // if we have blocks to step up and we're within our step height range
-                double[] ncpHeights = ncpStepHeights.getOrDefault(stepHeight, null); // get our step heights from the map assigned to the block height
-                if (ncpHeights == null || ncpHeights.length == 0) {
+        switch (mode.getValue()) {
+            case NCP: {
+                if (!mc.player.onGround) {
                     return;
                 }
 
-                for (double height : ncpHeights) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + height, mc.player.posZ, mc.player.onGround));
+                double stepHeight = 0.0; // the amount of blocks we have to step up
+                for (double[] collisions : COLLISIONS) {
+                    if (isBoundingBoxEmpty(mc.player.motionX, collisions[0], mc.player.motionZ) && !isBoundingBoxEmpty(mc.player.motionX, collisions[1], mc.player.motionZ)) {
+                        stepHeight = Math.round(collisions[0] * 2.0) / 2.0; // round to nearest half
+                    }
                 }
 
-                // since we're ony sending packets, we're desynced with the server in our position. let's fix that by setting our clientside position
-                mc.player.setPosition(mc.player.posX, mc.player.posY + stepHeight, mc.player.posZ);
+                // @todo: maybe use NCP lag compensation against itself? or find a way to do 1.5-2.5 step
+                if (stepHeight != 0.0 && height.getValue() >= stepHeight) { // if we have blocks to step up and we're within our step height range
+                    double[] ncpHeights = ncpStepHeights.getOrDefault(stepHeight, null); // get our step heights from the map assigned to the block height
+                    if (ncpHeights == null || ncpHeights.length == 0) {
+                        return;
+                    }
+
+                    for (double height : ncpHeights) {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + height, mc.player.posZ, mc.player.onGround));
+                    }
+
+                    // since we're ony sending packets, we're desynced with the server in our position. let's fix that by setting our clientside position
+                    mc.player.setPosition(mc.player.posX, mc.player.posY + stepHeight, mc.player.posZ);
+                }
+                break;
             }
-        } else {
-            switch (mode.getValue()) {
-                case Vanilla: {
-                    // simple, vanilla stepheight.
-                    mc.player.stepHeight = height.getValue().floatValue();
-                    break;
-                }
 
-                case Spider: {
-                    // honestly the anticheat has to be complete dog for this to work, but just in case
-                    mc.player.motionY = 0.239;
-                    break;
-                }
+            case Vanilla: {
+                // simple, vanilla stepheight.
+                mc.player.stepHeight = height.getValue().floatValue();
+                break;
+            }
+
+            case Spider: {
+                // honestly the anticheat has to be complete dog for this to work, but just in case
+                mc.player.motionY = 0.239;
+                break;
             }
         }
     }
