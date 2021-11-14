@@ -1,16 +1,25 @@
 [
-{
-  "modid": "cosmos",
-  "name": "Cosmos",
-  "description": "cope",
-  "version": "1.0.1",
-  "mcversion": "1.12.2",
-  "url": "https://github.com/momentumdevelopment/cosmos",
-  "updateUrl": "https://github.com/momentumdevelopment/cosmos",
-  "authorList": ["bon", "linustouchtips", "doctor swag", "Hoosiers"],
-  "credits": "",
-  "logoFile": "logo.png",
-  "screenshots": [],
-  "dependencies": []
-}
+  {
+    "modid": "cosmos",
+    "name": "Cosmos",
+    "description": "cope",
+    "version": "1.1.0",
+    "mcversion": "1.12.2",
+    "url": "https://github.com/momentumdevelopment/cosmos",
+    "updateUrl": "https://github.com/momentumdevelopment/cosmos/releases",
+  
+    "authorList": [
+      "bon55", 
+      "linustouchtips", 
+      "doctor swag", 
+      "Hoosiers", 
+      "Sxmurai", 
+      "Gav06"
+    ],
+  
+    "credits": "Thanks to SpongePowered's Mixin, Moandjiezana's TOMLJ, Minnced's Discord RPC, Mojang's Brigadier",
+    "logoFile": "/assets/cosmos/textures/imgs/logotransparentnotext.png",
+    "screenshots": [],
+    "dependencies": []
+  }
 ]
