@@ -53,11 +53,15 @@ public class PlayerUtil implements Wrapper {
     }
 
     public static boolean isEating() {
-        return mc.player.getHeldItemMainhand().getItemUseAction().equals(EnumAction.EAT) || mc.player.getHeldItemMainhand().getItemUseAction().equals(EnumAction.DRINK);
+        if (!mc.player.isHandActive()) {
+            return false;
+        }
+
+        return mc.player.getActiveItemStack().getItemUseAction().equals(EnumAction.EAT) || mc.player.getActiveItemStack().getItemUseAction().equals(EnumAction.DRINK);
     }
 
     public static boolean isMending() {
-        return InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && Mouse.isButtonDown(1);
+        return mc.player.isHandActive() && mc.player.getActiveItemStack().getItem() == Items.EXPERIENCE_BOTTLE && mc.gameSettings.keyBindUseItem.isKeyDown();
     }
 
     public static boolean isMining() {
