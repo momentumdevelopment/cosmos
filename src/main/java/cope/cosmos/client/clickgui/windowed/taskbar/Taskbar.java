@@ -76,9 +76,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         public void drawIcon(Vec2f position) {
             setPosition(position);
 
-            if (getManager().getWindows().contains(window)) {
-                RenderUtil.drawRect(position.x + 2, position.y + 27, 26, 2, ColorUtil.getPrimaryAlphaColor(120));
-            }
+            RenderUtil.drawRect(position.x - 1, position.y - 2, 30, 28, getManager().getWindows().contains(window) ? ColorUtil.getPrimaryAlphaColor(120) : new Color(25, 25, 25, 90));
 
             // hover animation
             if (mouseOver(position.x, position.y, 28, 28)) {
