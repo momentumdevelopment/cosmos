@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IKeybinding;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SlimeEvent;
@@ -7,6 +8,8 @@ import cope.cosmos.client.events.SoulSandEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.system.Timer;
+import cope.cosmos.util.system.Timer.*;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
@@ -32,10 +35,12 @@ public class NoSlow extends Module {
         INSTANCE = this;
     }
 
+    // anti-cheat
     public static final Setting<Boolean> strict = new Setting<>("Strict", "Allows you to bypass normal NCP server", false);
     public static final Setting<Boolean> airStrict = new Setting<>("AirStrict", "Allows you to bypass strict NCP servers while in the air", false);
     public static final Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", "Allows you to bypass strict NCP servers", false);
     public static final Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", "Allows you to bypass strict servers", false);
+    public static final Setting<Boolean> groundStrict = new Setting<>("GroundStrict", "Allows you to bypass strict NCP servers while on the ground", false);
 
     public static final Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
     public static final Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
@@ -45,6 +50,8 @@ public class NoSlow extends Module {
     public static final Setting<Boolean> slime = new Setting<>("Slime", "If to remove the slowdown effect when walking on slime", false);
 
     private boolean isSneaking = false;
+
+    private final Timer groundTimer = new Timer();
 
     private final KeyBinding[] KEYS = new KeyBinding[] {
             mc.gameSettings.keyBindForward,
@@ -59,14 +66,12 @@ public class NoSlow extends Module {
     public void onDisable() {
         super.onDisable();
 
-        if (nullCheck()) {
-            if (isSneaking && airStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-            }
+        if (isSneaking && airStrict.getValue()) {
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+        }
 
-            for (KeyBinding binding : KEYS) {
-                binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
-            }
+        for (KeyBinding binding : KEYS) {
+            binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
         }
 
         isSneaking = false;
@@ -127,8 +132,20 @@ public class NoSlow extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (isSlowed() && strict.getValue() && event.getPacket() instanceof CPacketPlayer) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
+        if (event.getPacket() instanceof CPacketPlayer) {
+            if (isSlowed()) {
+                if (strict.getValue()) {
+                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
+                }
+
+                if (groundStrict.getValue() && ((CPacketPlayer) event.getPacket()).isOnGround()) {
+                    if (groundTimer.passed(2, Format.TICKS)) {
+                        ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(0) + 0.05);
+                    }
+
+                    ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+                }
+            }
         }
     }
 

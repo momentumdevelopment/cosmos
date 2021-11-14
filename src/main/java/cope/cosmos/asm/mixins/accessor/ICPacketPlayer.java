@@ -13,6 +13,15 @@ public interface ICPacketPlayer {
     @Accessor("moving")
     boolean isMoving();
 
+    @Accessor("x")
+    void setX(double x);
+
+    @Accessor("y")
+    void setY(double y);
+
+    @Accessor("z")
+    void setZ(double z);
+
     @Accessor("yaw")
     void setYaw(float yaw);
 
