@@ -42,7 +42,6 @@ public class Offhand extends Module {
     public static Setting<Boolean> recursive = new Setting<>("Recursive", "Allow the use of hotbar items", false);
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", "Stop motion when switching items", false);
     public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", "Swaps to a totem when you have armor slots empty, prevents totem fails", false);
-    public static Setting<Boolean> fallSafe = new Setting<>("FallSafe", "Swaps to a totem when stepping/fast falling, prevents totem fails on crystalpvp.cc", false);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", "When to pause and use a totem", true);
     public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", "When in liquid", false).setParent(pause);
@@ -61,7 +60,7 @@ public class Offhand extends Module {
         if (InventoryUtil.getItemCount(offhandItem) == 0 && !InventoryUtil.isSwitching())
             offhandItem = fallBack.getValue().getItem();
 
-        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || fallSafe.getValue() && mc.player.motionY <= -2 || handlePause())
+        if (PlayerUtil.getHealth() <= health.getValue() || !isSynced() || patchGapple.getValue() && mc.player.getHeldItemMainhand().getItem().equals(Items.GOLDEN_APPLE) || handlePause())
             offhandItem = Items.TOTEM_OF_UNDYING;
 
         if (armorSafe.getValue()) {
