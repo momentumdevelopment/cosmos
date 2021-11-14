@@ -10,22 +10,28 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class AntiHunger extends Module {
-    public static final Setting<Boolean> stopSprint = new Setting<>("StopSprint", "If to cancel sprint packets", true);
-    public static final Setting<Boolean> onGround = new Setting<>("OnGround", "Spoof your on ground state", true);
+    public static AntiHunger INSTANCE;
 
     public AntiHunger() {
         super("AntiHunger", Category.PLAYER, "Attempts to negate hunger loss");
+        INSTANCE = this;
     }
+
+    public static final Setting<Boolean> stopSprint = new Setting<>("StopSprint", "If to cancel sprint packets", true);
+    public static final Setting<Boolean> stopJump = new Setting<>("StopJump", "Spoof your on ground state", true);
+
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
-            if (!onGround.getValue()) {
+            if (!stopJump.getValue()) {
                 return;
             }
 
             ((ICPacketPlayer) event.getPacket()).setOnGround(true);
-        } else if (event.getPacket() instanceof CPacketEntityAction) {
+        }
+
+        else if (event.getPacket() instanceof CPacketEntityAction) {
             if (!stopSprint.getValue()) {
                 return;
             }

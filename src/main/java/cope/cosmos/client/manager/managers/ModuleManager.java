@@ -45,7 +45,6 @@ public class ModuleManager extends Manager {
 			new ChatModifications(),
 			new FakePlayer(),
 			new Notifier(),
-			new PacketQueuer(),
 			new Portal(),
 			new Timer(),
 			new XCarry(),
