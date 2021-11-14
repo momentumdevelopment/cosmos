@@ -56,6 +56,7 @@ public class ModuleManager extends Manager {
 			new PacketFlight(),
 			new ReverseStep(),
 			new Sprint(),
+			new Step(),
 			new Velocity(),
 
 			//Player
