@@ -148,7 +148,7 @@ public class Aura extends Module {
             if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || !InventoryUtil.isHolding32k() && weaponThirtyTwoK.getValue())
                 return;
 
-            if (AngleUtil.calculateAngleDifference(mc.player.rotationYaw, AngleUtil.calculateAngles(auraTarget)[0]) > fov.getValue())
+            if (AngleUtil.calculateAngleDifference(mc.player.rotationYaw, AngleUtil.calculateAngles(auraTarget.getPositionVector())[0]) > fov.getValue())
                 return;
 
             if (!RaytraceUtil.raytraceEntity(auraTarget, auraTarget.getEyeHeight())) {

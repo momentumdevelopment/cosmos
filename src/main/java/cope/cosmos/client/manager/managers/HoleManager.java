@@ -3,118 +3,175 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
+import cope.cosmos.util.world.BlockUtil;
+import cope.cosmos.util.world.BlockUtil.BlockResistance;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@SuppressWarnings("unused")
 public class HoleManager extends Manager implements Wrapper {
 
-    public static final List<Hole> holes = new CopyOnWriteArrayList<>();
+    private List<Hole> holes = new CopyOnWriteArrayList<>();
 
     public HoleManager() {
         super("HoleManager", "Manages all nearby holes");
     }
 
+    public static final Vec3i[] HOLE = {
+            new Vec3i(1, 0, 0),
+            new Vec3i(-1, 0, 0),
+            new Vec3i(0, 0, 1),
+            new Vec3i(0, 0, -1),
+    };
+
     @Override
-    public void onUpdate() {
-        holes.clear();
-        // holes.addAll(searchHoles());
+    public void onThread() {
+        holes = searchHoles();
     }
 
-    /*
     public List<Hole> searchHoles() {
         List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
-        for (BlockPos blockPos : BlockUtil.getSurroundingBlocks(mc.player, 6, false)) {
+        for (BlockPos blockPos : BlockUtil.getSurroundingBlocks(mc.player, 10, false)) {
+            // number of sides that are resistant, unbreakable, or air
             int resistantSides = 0;
             int unbreakableSides = 0;
+            int airSides = 0;
 
-            // must be an air block and have a block under it
-            if (!mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, -1, 0)).getBlock().equals(Blocks.AIR))
+            // air side
+            Side airSide = null;
+
+            if (!BlockUtil.getBlockResistance(blockPos).equals(BlockResistance.UNBREAKABLE) && (mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) : blockPos.getY() == 0)) {
+                searchedHoles.add(new Hole(blockPos, Type.VOID));
                 continue;
-
-            {
-                if (BlockUtil.getBlockResistance(blockPos.add(1, 0, 0)).equals(BlockResistance.RESISTANT)) {
-                    resistantSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(-1, 0, 0)).equals(BlockResistance.RESISTANT)) {
-                    resistantSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, 1)).equals(BlockResistance.RESISTANT)) {
-                    resistantSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, -1)).equals(BlockResistance.RESISTANT)) {
-                    resistantSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(1, 0, 0)).equals(BlockResistance.UNBREAKABLE)) {
-                    unbreakableSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(-1, 0, 0)).equals(BlockResistance.UNBREAKABLE)) {
-                    unbreakableSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, 1)).equals(BlockResistance.UNBREAKABLE)) {
-                    unbreakableSides++;
-                }
-
-                if (BlockUtil.getBlockResistance(blockPos.add(0, 0, -1)).equals(BlockResistance.UNBREAKABLE)) {
-                    unbreakableSides++;
-                }
             }
 
-            if (unbreakableSides == 4) {
-                searchedHoles.add(new Hole(blockPos, Type.BEDROCK));
-            }
+            // must be an air block & be able to fit a player & have a block below it
+            if (mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(blockPos.up()).getBlock().equals(Blocks.AIR) && !mc.world.getBlockState(blockPos.down()).getBlock().equals(Blocks.AIR)) {
+                // count sides
+                for (Vec3i side : HOLE) {
+                    if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.RESISTANT)) {
+                        resistantSides++;
+                    }
 
-            if (resistantSides == 4) {
-                searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
-            }
+                    else if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.UNBREAKABLE)) {
+                        unbreakableSides++;
+                    }
 
-            if (unbreakableSides + resistantSides == 4) {
-                searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
-            }
+                    else if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.BLANK)) {
+                        airSides++;
 
-            if (unbreakableSides == 3) {
+                        EnumFacing facing = getFacingFromVector(side);
 
-            }
+                        if (!facing.equals(EnumFacing.SOUTH) && !facing.equals(EnumFacing.WEST)) {
+                            airSide = new Side(blockPos.add(side), facing);
+                        }
+                    }
+                }
 
-            if (resistantSides == 3) {
+                // too many air sides
+                if (airSides > 1) {
+                    continue;
+                }
 
-            }
+                // reg holes
+                if (unbreakableSides == 4) {
+                    searchedHoles.add(new Hole(blockPos, Type.BEDROCK));
+                }
 
-            if (unbreakableSides + resistantSides == 3) {
+                else if (resistantSides == 4) {
+                    searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
+                }
 
+                else if (unbreakableSides + resistantSides == 4) {
+                    searchedHoles.add(new Hole(blockPos, Type.MIXED));
+                }
+
+                // double holes
+                if (airSide != null) {
+                    for (Vec3i side : HOLE) {
+                        if (getFacingFromVector(side).equals(airSide.getFacing().getOpposite())) {
+                            continue;
+                        }
+
+                        if (BlockUtil.getBlockResistance(airSide.getSide().add(side)).equals(BlockResistance.RESISTANT)) {
+                            resistantSides++;
+                        }
+
+                        else if (BlockUtil.getBlockResistance(airSide.getSide().add(side)).equals(BlockResistance.UNBREAKABLE)) {
+                            unbreakableSides++;
+                        }
+                    }
+
+                    if (!mc.world.getBlockState(airSide.getSide().down()).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(airSide.getSide().up()).getBlock().equals(Blocks.AIR)) {
+                        if (unbreakableSides == 6) {
+                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEBEDROCKX : Type.DOUBLEBEDROCKZ));
+                        }
+
+                        else if (resistantSides == 6) {
+                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEOBSIDIANX : Type.DOUBLEOBSIDIANZ));
+                        }
+
+                        else if (unbreakableSides + resistantSides == 6) {
+                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEMIXEDX : Type.DOUBLEMIXEDZ));
+                        }
+                    }
+                }
             }
         }
 
         return searchedHoles;
     }
 
-     */
-
-    public enum Type {
-        OBSIDIAN(true), BEDROCK(false), DOUBLEOBSIDIANX(true), DOUBLEOBSIDIANZ(true), DOUBLEBEDROCKX(false), DOUBLEBEDROCKZ(false), VOID(false);
-
-        boolean obsidian;
-
-        Type(boolean obsidian) {
-            this.obsidian = obsidian;
+    public EnumFacing getFacingFromVector(Vec3i in) {
+        if (in.equals(new Vec3i(1, 0, 0))) {
+            return EnumFacing.EAST;
         }
 
-        public boolean isObsidian() {
-            return obsidian;
+        if (in.equals(new Vec3i(-1, 0, 0))) {
+            return EnumFacing.WEST;
         }
+
+        if (in.equals(new Vec3i(0, 0, 1))) {
+            return EnumFacing.NORTH;
+        }
+
+        if (in.equals(new Vec3i(0, 0, -1))) {
+            return EnumFacing.SOUTH;
+        }
+
+        return null;
     }
 
     public List<Hole> getHoles() {
         return holes;
+    }
+
+    public enum Type {
+        OBSIDIAN, MIXED, BEDROCK, DOUBLEOBSIDIANX, DOUBLEOBSIDIANZ, DOUBLEMIXEDX, DOUBLEMIXEDZ, DOUBLEBEDROCKX, DOUBLEBEDROCKZ, VOID
+    }
+
+    public static class Side {
+
+        private final BlockPos side;
+        private final EnumFacing facing;
+
+        public Side(BlockPos side, EnumFacing facing) {
+            this.side = side;
+            this.facing = facing;
+        }
+
+        public BlockPos getSide() {
+            return side;
+        }
+
+        public EnumFacing getFacing() {
+            return facing;
+        }
     }
 
     public static class Hole {
@@ -133,6 +190,10 @@ public class HoleManager extends Manager implements Wrapper {
 
         public Type getType() {
             return type;
+        }
+
+        public boolean isDouble() {
+            return type.equals(Type.DOUBLEOBSIDIANX) || type.equals(Type.DOUBLEMIXEDX) || type.equals(Type.DOUBLEBEDROCKX) || type.equals(Type.DOUBLEOBSIDIANZ) || type.equals(Type.DOUBLEMIXEDZ) || type.equals(Type.DOUBLEBEDROCKZ);
         }
     }
 }

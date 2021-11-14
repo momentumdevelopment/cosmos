@@ -9,16 +9,8 @@ import net.minecraft.util.math.Vec3d;
 
 public class AngleUtil implements Wrapper {
 
-    public static float[] calculateAngles(Entity entity) {
-        return calculateAngle(InterpolationUtil.interpolateEntityTime(mc.player, mc.getRenderPartialTicks()), InterpolationUtil.interpolateEntityTime(entity, mc.getRenderPartialTicks()));
-    }
-
     public static float[] calculateAngles(BlockPos blockPos) {
         return calculateAngle(InterpolationUtil.interpolateEntityTime(mc.player, mc.getRenderPartialTicks()), new Vec3d(blockPos));
-    }
-
-    public static float[] calculateCenter(Entity entity) {
-        return calculateAngle(InterpolationUtil.interpolateEntityTime(mc.player, mc.getRenderPartialTicks()), InterpolationUtil.interpolateEntityTime(entity, mc.getRenderPartialTicks()).add(new Vec3d(entity.width / 2, entity.getEyeHeight() / 2, entity.width / 2)));
     }
 
     public static float[] calculateCenter(BlockPos blockPos) {
@@ -38,11 +30,10 @@ public class AngleUtil implements Wrapper {
         float pitch = (float) Math.toDegrees(-Math.atan2(vector.y, Math.hypot(vector.x, vector.z)));
 
         return new float[] {
-                MathHelper.wrapDegrees(yaw), MathHelper.wrapDegrees(pitch)
+                MathHelper.wrapDegrees(yaw),
+                MathHelper.wrapDegrees(pitch)
         };
     }
-
-
 
     public static Vec3d getVectorForRotation(Rotation rotation) {
         float yawCos = MathHelper.cos(-rotation.getYaw() * 0.017453292F - (float) Math.PI);
@@ -52,11 +43,7 @@ public class AngleUtil implements Wrapper {
         return new Vec3d(yawSin * pitchCos, pitchSin, yawCos * pitchCos);
     }
 
-    public static float calculateAngleDifference(float serverValue, float currentValue, double divisions, int steps) {
-        return (float) (serverValue - currentValue / (divisions * steps));
-    }
-
     public static float calculateAngleDifference(float from, float to) {
-        return ((((from - to) % 360) + 540) % 360) - 180;
+        return Math.abs(from - to) % 180;
     }
 }

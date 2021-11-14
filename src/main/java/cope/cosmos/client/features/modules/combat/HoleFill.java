@@ -30,7 +30,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -78,7 +77,6 @@ public class HoleFill extends Module {
         fillPosition = searchFill();
     }
 
-
     public BlockPos searchFill() {
         fillTarget = (EntityPlayer) TargetUtil.getTargetEntity(targetRange.getValue(), Target.CLOSEST, true, false, false, false);
 
@@ -86,47 +84,47 @@ public class HoleFill extends Module {
             return null;
 
         TreeMap<Double, BlockPos> fillMap = new TreeMap<>();
-        List<BlockPos> potentialHoles = null;
 
-        switch (mode.getValue()) {
-            case TARGETED:
-                potentialHoles = BlockUtil.getSurroundingBlocks(fillTarget, threshold.getValue(), false);
-                break;
-            case ALL:
-                potentialHoles = BlockUtil.getSurroundingBlocks(mc.player, range.getValue(), false);
-                break;
-        }
+        getCosmos().getHoleManager().getHoles().forEach(hole -> {
+            if (mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(hole.getHole())).isEmpty()) {
+                double targetDistance = Math.sqrt(fillTarget.getDistanceSq(hole.getHole()));
+                double localDistance = Math.sqrt(mc.player.getDistanceSq(hole.getHole()));
 
-        EntityPlayer distanceTarget = mode.getValue().equals(Filler.TARGETED) ? fillTarget : mc.player;
+                boolean fillable = true;
+                switch (mode.getValue()) {
+                    case TARGETED:
+                        fillable = targetDistance <= threshold.getValue() && localDistance <= range.getValue();
+                        break;
+                    case ALL:
+                        fillable = localDistance <= range.getValue();
+                        break;
+                }
 
-        while (potentialHoles.iterator().hasNext()) {
-            BlockPos calculatedHole = potentialHoles.iterator().next();
+                if (localDistance < targetDistance && safety.getValue()) {
+                    fillable = false;
+                }
 
-            if (!mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(calculatedHole)).isEmpty())
-                continue;
+                if (!doubles.getValue() && hole.isDouble()) {
+                    fillable = false;
+                }
 
-            double targetDistance = distanceTarget.getDistanceSq(calculatedHole);
-            double localDistance = mc.player.getDistanceSq(calculatedHole);
-
-            if (localDistance < targetDistance && safety.getValue())
-                continue;
-
-            if (HoleUtil.isBedRockHole(calculatedHole) || HoleUtil.isObsidianHole(calculatedHole))
-                fillMap.put(targetDistance, calculatedHole);
-
-            if (doubles.getValue() && (HoleUtil.isDoubleBedrockHoleZ(calculatedHole) || HoleUtil.isDoubleBedrockHoleX(calculatedHole) || HoleUtil.isDoubleObsidianHoleZ(calculatedHole) || HoleUtil.isDoubleObsidianHoleX(calculatedHole)))
-                fillMap.put(targetDistance, calculatedHole);
-        }
+                if (fillable) {
+                    fillMap.put(mode.getValue().equals(Filler.TARGETED) ? targetDistance : localDistance, hole.getHole());
+                }
+            }
+        });
 
         switch (completion.getValue()) {
             case COMPLETION:
-                if (fillMap.isEmpty())
+                if (fillMap.isEmpty()) {
                     disable();
+                }
 
                 break;
             case TARGET:
-                if (fillTarget == null || EnemyUtil.isDead(fillTarget))
+                if (fillTarget == null || EnemyUtil.isDead(fillTarget)) {
                     disable();
+                }
 
                 break;
             case PERSISTENT:
@@ -210,7 +208,7 @@ public class HoleFill extends Module {
         }
 
         public Item getItem() {
-            return this.item;
+            return item;
         }
     }
 }

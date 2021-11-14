@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -77,14 +78,14 @@ public class ModuleManager extends Manager {
 	);
 
 	public static List<Module> getAllModules() {
-		return ModuleManager.modules;
+		return new CopyOnWriteArrayList<>(ModuleManager.modules);
 	}
 	
 	public static List<Module> getModules(Predicate<? super Module> predicate) {
-		return ModuleManager.modules.stream().filter(predicate).collect(Collectors.toList());
+		return new CopyOnWriteArrayList<>(ModuleManager.modules).stream().filter(predicate).collect(Collectors.toList());
 	}
 	
 	public static Module getModule(Predicate<? super Module> predicate) {
-		return ModuleManager.modules.stream().filter(predicate).findFirst().orElse(null);
+		return new CopyOnWriteArrayList<>(ModuleManager.modules).stream().filter(predicate).findFirst().orElse(null);
 	}
 }

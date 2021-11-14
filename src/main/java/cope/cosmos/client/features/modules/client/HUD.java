@@ -58,6 +58,7 @@ public class HUD extends Module {
         if (mc.currentScreen == null) {
             if (activeModules.getValue()) {
                 listOffset = 0;
+
                 ModuleManager.getAllModules().stream().filter(Module::isDrawn).filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
                     FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor().getRGB());
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1);
@@ -102,8 +103,8 @@ public class HUD extends Module {
                         RenderHelper.enableGUIStandardItemLighting();
 
                         mc.getRenderItem().zLevel = 200;
-                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 88, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55);
-                        mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 88, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55, "");
+                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55);
+                        mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55, "");
                         mc.getRenderItem().zLevel = 0;
 
                         RenderHelper.disableStandardItemLighting();
