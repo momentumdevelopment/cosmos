@@ -24,7 +24,7 @@ public class ClickGUI extends Module {
 		INSTANCE = this;
 	}
 
-	public static Setting<cope.cosmos.client.features.modules.client.ClickGUI.GUI> mode = new Setting<>("Mode", "The mode for the GUI screen", cope.cosmos.client.features.modules.client.ClickGUI.GUI.WINDOW);
+	public static Setting<GUI> mode = new Setting<>("Mode", "The mode for the GUI screen", GUI.WINDOW);
 	public static Setting<Color> primaryColor = new Setting<>("PrimaryColor", "The primary color for the GUI", new Color(154, 81, 200, 255));
 	public static Setting<Color> backgroundColor = new Setting<>("BackgroundColor", "The background color for the GUI", new Color(23, 23, 29, 255));
 	public static Setting<Color> accentColor = new Setting<>("AccentColor", "The accent color for the GUI", new Color(35, 35, 45, 255));
