@@ -1,6 +1,8 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
+import cope.cosmos.client.clickgui.util.BlurUtil;
 import cope.cosmos.client.clickgui.util.GUIUtil;
+import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
@@ -59,6 +61,11 @@ public class Window implements GUIUtil, Wrapper {
     }
 
     public void drawWindow() {
+
+        // do window blur if it is necessary
+        if (ClickGUI.windowBlur.getValue())
+            BlurUtil.blurRect((int)position.x, (int)position.y, (int)width, (int)height, 6, 1, 1);
+
         // check if we are dragging our window and update position accordingly
         if (mouseOver(position.x, position.y, width, bar) && getGUI().getMouse().isLeftHeld()) {
             setDragging(true);
