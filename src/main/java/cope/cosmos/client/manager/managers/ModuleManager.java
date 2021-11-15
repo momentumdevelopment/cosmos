@@ -50,7 +50,6 @@ public class ModuleManager extends Manager {
 			new XCarry(),
 			
 			//Movement
-			// new BlockPhase(),
 			new ElytraFlight(),
 			new NoSlow(),
 			new PacketFlight(),
