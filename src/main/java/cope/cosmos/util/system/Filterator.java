@@ -81,5 +81,4 @@ public class Filterator<E> implements Iterator<E> {
         
         return false;
     }
-
 }
