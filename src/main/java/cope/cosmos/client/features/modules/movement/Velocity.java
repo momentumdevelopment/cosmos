@@ -85,21 +85,21 @@ public class Velocity extends Module {
 
 	@SubscribeEvent
 	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
-		event.setCanceled(nullCheck() && noPush.getValue() && blocks.getValue());
+		event.setCanceled(noPush.getValue() && blocks.getValue());
 	}
 
 	@SubscribeEvent
 	public void onKnockback(LivingKnockBackEvent event) {
-		event.setCanceled(nullCheck() && horizontal.getValue() == 0 && vertical.getValue() == 0);
+		event.setCanceled(horizontal.getValue() == 0 && vertical.getValue() == 0);
 	}
 
 	@SubscribeEvent
 	public void onEntityCollision(EntityCollisionEvent event) {
-		event.setCanceled(nullCheck() && noPush.getValue() && entities.getValue());
+		event.setCanceled(noPush.getValue() && entities.getValue());
 	}
 
 	@SubscribeEvent
 	public void onWaterCollision(WaterCollisionEvent event) {
-		event.setCanceled(nullCheck() && noPush.getValue() && liquid.getValue());
+		event.setCanceled(noPush.getValue() && liquid.getValue());
 	}
 }

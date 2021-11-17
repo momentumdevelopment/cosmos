@@ -14,6 +14,13 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Blink extends Module {
+    public static Blink INSTANCE;
+
+    public Blink() {
+        super("Blink", Category.PLAYER, "Suspends movement packets until a requirement is met", () -> Setting.formatEnum(mode.getValue()));
+        INSTANCE = this;
+    }
+
     public static final Setting<Mode> mode = new Setting<>("Mode", "How to meet the requirement", Mode.MANUAL);
     public static final Setting<Boolean> spawnFake = new Setting<>("SpawnFake", "If to spawn a fake player", true);
 
@@ -28,20 +35,16 @@ public class Blink extends Module {
 
     private BlockPos lastPos = null;
 
-    public Blink() {
-        super("Blink", Category.PLAYER, "Suspends movement packets until a requirement is met", () -> Setting.formatEnum(mode.getValue()));
-    }
-
     @Override
     public void onEnable() {
         super.onEnable();
 
         if (!nullCheck()) {
-            this.toggle();
+            toggle();
             return;
         }
 
-        this.setup(true);
+        setup(true);
     }
 
     @Override
@@ -49,16 +52,16 @@ public class Blink extends Module {
         super.onDisable();
 
         if (nullCheck()) {
-            this.process(false);
+            process(false);
 
-            if (this.fakePlayer != null) {
-                mc.world.removeEntity(this.fakePlayer);
-                mc.world.removeEntityDangerously(this.fakePlayer);
+            if (fakePlayer != null) {
+                mc.world.removeEntity(fakePlayer);
+                mc.world.removeEntityDangerously(fakePlayer);
             }
 
-            this.fakePlayer = null;
-            this.lastPos = null;
-            this.processing = false;
+            fakePlayer = null;
+            lastPos = null;
+            processing = false;
         }
     }
 
@@ -66,28 +69,28 @@ public class Blink extends Module {
     public void onUpdate() {
         switch (mode.getValue()) {
             case DELAY: {
-                if (this.timer.passed(delay.getValue().longValue() * 1000L, Timer.Format.SYSTEM)) {
-                    this.timer.reset();
-                    this.process(true);
+                if (timer.passed(delay.getValue().longValue() * 1000L, Timer.Format.SYSTEM)) {
+                    timer.reset();
+                    process(true);
                 }
                 break;
             }
 
             case PACKETS: {
-                if (this.packets.size() >= packetCount.getValue()) {
-                    this.process(true);
+                if (packets.size() >= packetCount.getValue()) {
+                    process(true);
                 }
                 break;
             }
 
             case DISTANCE: {
-                if (this.lastPos == null) {
-                    this.lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+                if (lastPos == null) {
+                    lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
                     return;
                 }
 
-                if (mc.player.getDistance(this.lastPos.getX(), this.lastPos.getY(), this.lastPos.getZ()) >= distance.getValue()) {
-                    this.process(true);
+                if (mc.player.getDistance(lastPos.getX(), lastPos.getY(), lastPos.getZ()) >= distance.getValue()) {
+                    process(true);
                 }
                 break;
             }
@@ -96,20 +99,20 @@ public class Blink extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer && !this.processing) {
+        if (event.getPacket() instanceof CPacketPlayer && !processing) {
             event.setCanceled(true);
-            this.packets.add((CPacketPlayer) event.getPacket());
+            packets.add((CPacketPlayer) event.getPacket());
         }
     }
 
     private void process(boolean setup) {
-        if (this.processing) {
+        if (processing) {
             return;
         }
 
-        this.processing = true;
-        while (!this.packets.isEmpty()) {
-            CPacketPlayer packet = this.packets.poll();
+        processing = true;
+        while (!packets.isEmpty()) {
+            CPacketPlayer packet = packets.poll();
             if (packet == null) {
                 break;
             }
@@ -118,27 +121,27 @@ public class Blink extends Module {
         }
 
         if (setup) {
-            this.setup(true);
+            setup(true);
         }
 
-        this.processing = false;
+        processing = false;
     }
 
     private void setup(boolean spawn) {
         if (spawnFake.getValue() && spawn) {
-            if (this.fakePlayer != null) {
-                mc.world.removeEntity(this.fakePlayer);
-                mc.world.removeEntityDangerously(this.fakePlayer);
+            if (fakePlayer != null) {
+                mc.world.removeEntity(fakePlayer);
+                mc.world.removeEntityDangerously(fakePlayer);
             }
 
-            this.fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
-            this.fakePlayer.copyLocationAndAnglesFrom(mc.player);
-            this.fakePlayer.inventory.copyInventory(mc.player.inventory);
+            fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+            fakePlayer.copyLocationAndAnglesFrom(mc.player);
+            fakePlayer.inventory.copyInventory(mc.player.inventory);
 
-            mc.world.spawnEntity(this.fakePlayer);
+            mc.world.spawnEntity(fakePlayer);
         }
 
-        this.lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+        lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
     }
 
     public enum Mode {

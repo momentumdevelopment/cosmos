@@ -17,26 +17,17 @@ public class AntiHunger extends Module {
         INSTANCE = this;
     }
 
-    public static final Setting<Boolean> stopSprint = new Setting<>("StopSprint", "If to cancel sprint packets", true);
-    public static final Setting<Boolean> stopJump = new Setting<>("StopJump", "Spoof your on ground state", true);
-
+    public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", "If to cancel sprint packets", true);
+    public static Setting<Boolean> stopJump = new Setting<>("StopJump", "Spoof your on ground state", true);
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer) {
-            if (!stopJump.getValue()) {
-                return;
-            }
-
+        if (stopJump.getValue() && event.getPacket() instanceof CPacketPlayer) {
             ((ICPacketPlayer) event.getPacket()).setOnGround(true);
         }
 
         else if (event.getPacket() instanceof CPacketEntityAction) {
-            if (!stopSprint.getValue()) {
-                return;
-            }
-
-            if (((CPacketEntityAction) event.getPacket()).getAction() == CPacketEntityAction.Action.START_SPRINTING) {
+            if (stopSprint.getValue() && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SPRINTING)) {
                 event.setCanceled(true);
             }
         }

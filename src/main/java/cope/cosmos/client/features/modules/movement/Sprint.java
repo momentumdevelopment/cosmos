@@ -28,6 +28,9 @@ public class Sprint extends Module {
 
     @Override
     public void onUpdate() {
+        // reset sprint state
+        mc.player.setSprinting(false);
+
         switch (mode.getValue()) {
             case DIRECTIONAL:
                 mc.player.setSprinting(handleSprint() && MotionUtil.isMoving());
@@ -40,20 +43,22 @@ public class Sprint extends Module {
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
-        event.setCanceled(nullCheck() && handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
+        event.setCanceled(handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
     }
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
-        event.setCanceled(nullCheck() && handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
+        event.setCanceled(handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
     }
 
     public boolean handleSprint() {
-        if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue())
+        if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
             return false;
+        }
 
-        else
+        else {
             return (!mc.player.isHandActive() && !mc.player.isSneaking()) || !strict.getValue();
+        }
     }
 
     public enum Mode {

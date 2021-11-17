@@ -15,44 +15,41 @@ import org.lwjgl.opengl.GL11;
  */
 public class BlurUtil implements Wrapper {
 
-    private static final ResourceLocation BLUR = new ResourceLocation("shader/blur/blur.json");
     private static ShaderGroup blurShader;
     private static Framebuffer framebuffer;
     private static int lastScale;
     private static int lastScaleWidth;
     private static int lastScaleHeight;
 
-    public static void initShaderAndFBuffer() {
+    public static void initShaderAndFrameBuffer() {
         try {
-            blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), BLUR);
+            blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("shader/blur/blur.json"));
             blurShader.createBindFramebuffers(mc.displayWidth, mc.displayHeight);
             framebuffer = ((IShaderGroup) blurShader).getMainFramebuffer();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
     private static void configureShader(float intensity, float blurWidth, float blurHeight) {
-        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(intensity);
-        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(intensity);
-        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(blurWidth, blurHeight);
-        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(blurHeight, blurWidth);
+        if (((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius") != null && ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius") != null && ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir") != null && ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir") != null) {
+            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(intensity);
+            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(intensity);
+            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(blurWidth, blurHeight);
+            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(blurHeight, blurWidth);
+        }
     }
 
     public static void blurRect(int x, int y, int width, int height, float intensity, float blurWidth, float blurHeight) {
         ScaledResolution resolution = new ScaledResolution(mc);
-        initShaderAndFBuffer();
+        initShaderAndFrameBuffer();
 
         int scaleFactor = resolution.getScaleFactor();
         int widthFactor = resolution.getScaledWidth();
         int heightFactor = resolution.getScaledHeight();
 
-        if (lastScale != scaleFactor
-                || lastScaleWidth != widthFactor
-                || lastScaleHeight != heightFactor
-                || framebuffer == null
-                || blurShader == null) {
-            initShaderAndFBuffer();
+        if (lastScale != scaleFactor || lastScaleWidth != widthFactor || lastScaleHeight != heightFactor || framebuffer == null || blurShader == null) {
+            initShaderAndFrameBuffer();
         }
 
         lastScale = scaleFactor;

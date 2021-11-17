@@ -22,7 +22,7 @@ public class Criticals extends Module {
     public static Criticals INSTANCE;
 
     public Criticals() {
-        super("Criticals", Category.COMBAT, "Ensures all hits are criticals");
+        super("Criticals", Category.COMBAT, "Ensures all hits are criticals", () -> Setting.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
@@ -52,7 +52,7 @@ public class Criticals extends Module {
                 if (PlayerUtil.isInLiquid() && pauseLiquid.getValue())
                     return;
 
-                if (!mode.getValue().equals(Mode.MOTION) && (mc.player.fallDistance > 5 || !mc.player.onGround) && pauseAir.getValue())
+                if (mc.player.fallDistance >= 5 && pauseAir.getValue())
                     return;
 
                 if (((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world) instanceof EntityEnderCrystal && pauseCrystal.getValue())
@@ -62,22 +62,20 @@ public class Criticals extends Module {
                     return;
             }
 
-            handleCriticals(((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world));
+            handleCritical(((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world));
         }
     }
 
     @SubscribeEvent
     public void onCriticalHit(CriticalHitEvent event) {
-        if (nullCheck()) {
-            event.setDamageModifier(modifier.getValue().floatValue());
-        }
+        event.setDamageModifier(modifier.getValue().floatValue());
     }
 
-    public void handleCriticals(Entity entity) {
+    public void handleCritical(Entity entity) {
         if (Aura.INSTANCE.isActive() && Aura.timing.getValue().equals(Timing.SEQUENTIAL))
             return;
 
-        if (criticalTimer.passed((long) ((double) (InventoryUtil.isHolding32k() ? delayThirtyTwoK.getValue() : delay.getValue())), Format.SYSTEM)) {
+        if (criticalTimer.passed(InventoryUtil.isHolding32k() ? delayThirtyTwoK.getValue().longValue() : delay.getValue().longValue(), Format.SYSTEM)) {
             if (mode.getValue().equals(Mode.MOTION)) {
                 mc.player.jump();
             }
