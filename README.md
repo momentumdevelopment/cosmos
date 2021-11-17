@@ -6,6 +6,15 @@
 
 Cosmos is a free, open-source, Minecraft 1.12.2 PvP Client aimed at the anarchy community.
 
+## ClickGUI:
+![clickgui](https://cdn.discordapp.com/attachments/869399835151835159/910633520223899718/unknown.png)
+
+## Usage:
+- Download the .jar file from [releases](https://github.com/momentumdevelopment/cosmos/releases/)
+- Put the .jar in your mods folder by pressing `Windows + R` and typing in `%appdata%` open the `.minecraft/mods` folder.
+- Press `RSHIFT` to open the ClickGUI
+- The prefix is `*`
+
 ## Setting up:
 - Run `gradlew setupDecompWorkspace` in terminal.
 - Refresh Gradle.
