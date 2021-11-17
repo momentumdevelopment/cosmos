@@ -225,7 +225,7 @@ public class AutoCrystal extends Module {
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
-                    explodeCrystal.getCrystal().setDead();
+                    mc.world.removeEntityDangerously(explodeCrystal.getCrystal());
                 }
             }
         }
@@ -487,7 +487,7 @@ public class AutoCrystal extends Module {
             // cancel the existing rotations, we'll send our own
             event.setCanceled(true);
 
-            float[] packetAngles = AngleUtil.calculateAngle(interactVector);
+            float[] packetAngles = AngleUtil.calculateAngles(interactVector);
 
             // add random values to our rotations to simulate vanilla rotations
             if (rotateRandom.getValue() > 0) {
@@ -523,7 +523,7 @@ public class AutoCrystal extends Module {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             event.setCanceled(true);
 
-            float[] packetAngles = AngleUtil.calculateAngle(interactVector);
+            float[] packetAngles = AngleUtil.calculateAngles(interactVector);
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
                 packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
@@ -629,8 +629,7 @@ public class AutoCrystal extends Module {
 
                 // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                 if (sync.getValue().equals(Sync.SOUND)) {
-                    entity.setDead();
-                    mc.world.removeEntityFromWorld(entity.getEntityId());
+                    mc.world.removeEntityDangerously(entity);
                 }
             }));
         }

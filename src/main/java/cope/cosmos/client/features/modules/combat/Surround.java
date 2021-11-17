@@ -1,7 +1,5 @@
 package cope.cosmos.client.features.modules.combat;
 
-import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.BlockBreakEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.combat.AutoCrystal.Raytrace;
 import cope.cosmos.client.events.TotemPopEvent;
@@ -10,9 +8,6 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.*;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.PlayerUtil.Hand;
-import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -24,7 +19,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -35,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
 public class Surround extends Module {
@@ -50,11 +43,9 @@ public class Surround extends Module {
     public static Setting<Completion> completion = new Setting<>("Completion", "When to toggle surround", Completion.AIR);
     public static Setting<Center> center = new Setting<>("Center", "Mode to center the player position", Center.TELEPORT);
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode to switch to blocks", Switch.NORMAL);
-    public static Setting<Hand> swing = new Setting<>("Swing", "Hand to swing when placing blocks", Hand.MAINHAND);
+
     public static Setting<Double> blocks = new Setting<>("Blocks", "Allowed block placements per tick", 0.0, 4.0, 10.0, 0);
     public static Setting<Boolean> raytrace = new Setting<>("Raytrace", "Verify if the placement is visible", false);
-    public static Setting<Boolean> packet = new Setting<>("Packet", "Place with packets", false);
-    public static Setting<Boolean> confirm = new Setting<>("Confirm", "Confirm the placement", false);
     public static Setting<Boolean> reactive = new Setting<>("Reactive", "Replaces surround blocks when they break", true);
     public static Setting<Boolean> chainPop = new Setting<>("ChainPop", "Surround when popping totems", false);
 
@@ -71,7 +62,6 @@ public class Surround extends Module {
     int surroundPlaced = 0;
     BlockPos previousPosition = BlockPos.ORIGIN;
     BlockPos surroundPosition = BlockPos.ORIGIN;
-    Rotation surroundRotation = new Rotation(Float.NaN, Float.NaN, Rotate.NONE);
 
     @Override
     public void onEnable() {
@@ -162,16 +152,6 @@ public class Surround extends Module {
                 if (RaytraceUtil.raytraceBlock(surroundPosition, Raytrace.NORMAL) && raytrace.getValue())
                     return;
 
-                if (surroundPosition != BlockPos.ORIGIN) {
-                    if (!rotate.getValue().equals(Rotate.NONE)) {
-                        float[] surroundAngles = rotateCenter.getValue() ? AngleUtil.calculateCenter(surroundPosition) : AngleUtil.calculateAngles(surroundPosition);
-                        surroundRotation = new Rotation((float) (surroundAngles[0] + (rotateRandom.getValue() ?ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), (float) (surroundAngles[1] + (rotateRandom.getValue() ? ThreadLocalRandom.current().nextDouble(-4, 4) : 0)), rotate.getValue());
-
-                        if (!Float.isNaN(surroundRotation.getYaw()) && !Float.isNaN(surroundRotation.getPitch()))
-                            surroundRotation.updateRotations();
-                    }
-                }
-
                 for (Entity item : mc.world.loadedEntityList) {
                     if (item instanceof EntityItem && ((EntityItem) item).getItem().getItem().equals(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
                         item.setDead();
@@ -179,8 +159,8 @@ public class Surround extends Module {
                     }
                 }
 
-                BlockUtil.placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), packet.getValue(), confirm.getValue());
-                PlayerUtil.swingArm(swing.getValue());
+                getCosmos().getInteractionManager().placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), rotate.getValue());
+
                 surroundPlaced++;
             }
         }
@@ -208,7 +188,7 @@ public class Surround extends Module {
                 InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
 
                 // place block
-                BlockUtil.placeBlock(new BlockPos(((SPacketBlockChange) event.getPacket()).getBlockPosition()), packet.getValue(), confirm.getValue());
+                getCosmos().getInteractionManager().placeBlock(((SPacketBlockChange) event.getPacket()).getBlockPosition(), rotate.getValue());
 
                 // switchback
                 InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
@@ -226,14 +206,6 @@ public class Surround extends Module {
 
             // switch back
             InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
-        }
-    }
-
-    @SubscribeEvent
-    public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer && !Float.isNaN(surroundRotation.getYaw()) && !Float.isNaN(surroundRotation.getPitch())) {
-            ((ICPacketPlayer) event.getPacket()).setYaw(surroundRotation.getYaw());
-            ((ICPacketPlayer) event.getPacket()).setPitch(surroundRotation.getPitch());
         }
     }
 

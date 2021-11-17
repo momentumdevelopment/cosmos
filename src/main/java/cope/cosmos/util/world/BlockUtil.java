@@ -22,45 +22,16 @@ import java.util.stream.Collectors;
 
 public class BlockUtil implements Wrapper {
 
-    public static void placeBlock(BlockPos blockPos, boolean packet, boolean antiGlitch) {
-        for (EnumFacing enumFacing : EnumFacing.values()) {
-            if (!(getBlockResistance(blockPos.offset(enumFacing)) == BlockResistance.BLANK)) {
-                for (Entity entity : mc.world.loadedEntityList) {
-                    if (new AxisAlignedBB(blockPos).intersects(entity.getEntityBoundingBox()))
-                        return;
-                }
-
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
-
-                if (packet) {
-                    mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(blockPos.offset(enumFacing), enumFacing.getOpposite(), EnumHand.MAIN_HAND, 0, 0, 0));
-                }
-
-                else {
-                    mc.playerController.processRightClickBlock(mc.player, mc.world, blockPos.offset(enumFacing), enumFacing.getOpposite(), new Vec3d(blockPos), EnumHand.MAIN_HAND);
-                }
-
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-
-                if (antiGlitch) {
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, blockPos.offset(enumFacing), enumFacing.getOpposite()));
-                }
-
-                return;
-            }
-        }
-    }
-
     public static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double blockRange, boolean motion) {
         if (player == null) { // bruh momentum
-            return new ArrayList<>();
+            return new ArrayList<>(); // rofl, threading is so funny
         }
 
         List<BlockPos> nearbyBlocks = new ArrayList<>();
 
-        int rangeX = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionX: MathUtil.roundDouble(blockRange, 0));
-        int rangeY = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionY: MathUtil.roundDouble(blockRange, 0));
-        int rangeZ = (int) (motion ? MathUtil.roundDouble(blockRange, 0) + player.motionZ: MathUtil.roundDouble(blockRange, 0));
+        int rangeX = (int) (Math.round(blockRange) + (motion ? player.motionX : 0));
+        int rangeY = (int) (Math.round(blockRange) + (motion ? player.motionY : 0));
+        int rangeZ = (int) (Math.round(blockRange) + (motion ? player.motionZ : 0));
 
         for (int x = -rangeX; x <= rangeX; x++) {
             for (int y = -rangeY; y <= rangeY; y++) {

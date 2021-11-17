@@ -47,6 +47,8 @@ public class AutoTrap extends Module {
     public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
     public static Setting<Double> targetRange = new Setting<>("Range", "Range to trap players", 0.0, 5.0, 10.0, 0).setParent(target);
 
+    /*
+
     int previousSlot = -1;
     int trapPlaced = 0;
     EntityPlayer trapTarget = null;
@@ -61,6 +63,7 @@ public class AutoTrap extends Module {
             autoTrap(mapTrapPositions());
         }
     }
+
 
     public void autoTrap(Iterator<Vec3d> trapPositions) {
         previousSlot = mc.player.inventory.currentItem;
@@ -185,4 +188,6 @@ public class AutoTrap extends Module {
 
         return null;
     }
+
+     */
 }

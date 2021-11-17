@@ -6,10 +6,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.PlayerUtil.Hand;
 import cope.cosmos.util.player.InventoryUtil.*;
-import cope.cosmos.util.world.BlockUtil;
+import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketHeldItemChange;
@@ -27,9 +25,8 @@ public class Burrow extends Module {
 	}
 
 	public static Setting<Mode> mode = new Setting<>("Mode", "Block to prefer",  Mode.OBSIDIAN);
-	public static Setting<Hand> swing = new Setting<>("Swing", "Hand to swing when placing", Hand.MAINHAND);
+	public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack rotations", Rotate.NONE);
 	public static Setting<Double> offset = new Setting<>("Offset", "How high to rubberband", -10.0, 2.2, 10.0, 1);
-	public static Setting<Boolean> packet = new Setting<>("Packet", "Place with packets", true);
 
 	@Override
 	public void onEnable() {
@@ -83,8 +80,7 @@ public class Burrow extends Module {
 		mc.player.inventory.currentItem = block;
 		mc.player.connection.sendPacket(new CPacketHeldItemChange(block));
 
-		BlockUtil.placeBlock(originalPos, packet.getValue(), false);
-		PlayerUtil.swingArm(swing.getValue());
+		getCosmos().getInteractionManager().placeBlock(originalPos, rotate.getValue());
 
 		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
