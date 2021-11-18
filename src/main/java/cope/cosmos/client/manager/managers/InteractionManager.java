@@ -1,6 +1,5 @@
 package cope.cosmos.client.manager.managers;
 
-import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -8,12 +7,16 @@ import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -62,14 +65,29 @@ public class InteractionManager extends Manager implements Wrapper {
      * Places a block at a specified position
      * @param position Position of the block to place on
      * @param rotate Mode for rotating
+     * @param strict Only place on visible offsets
      */
-    public void placeBlock(BlockPos position, Rotate rotate) {
+    public void placeBlock(BlockPos position, Rotate rotate, boolean strict) {
         for (EnumFacing direction : EnumFacing.values()) {
             // find a block to place against
             BlockPos directionOffset = position.offset(direction);
 
+            // make sure there is no entity on the block
+            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
+                if (entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                    continue;
+                }
+
+                return;
+            }
+
+            // make sure the side is visible, strict NCP flags for non-visible interactions
+            if (strict && !getVisibleSides(directionOffset).contains(direction.getOpposite())) {
+                continue;
+            }
+
             // make sure the offset is empty
-            if (mc.world.getBlockState(directionOffset).getMaterial().isReplaceable()) {
+            if (!mc.world.getBlockState(position).getMaterial().isReplaceable()) {
                 continue;
             }
 
@@ -171,7 +189,7 @@ public class InteractionManager extends Manager implements Wrapper {
                 visibleSides.add(EnumFacing.EAST);
             }
 
-            else if (!mc.world.getBlockState(position).isFullBlock()) {
+            else if (!mc.world.getBlockState(position).isFullBlock() || !mc.world.isAirBlock(position)) {
                 visibleSides.add(EnumFacing.WEST);
                 visibleSides.add(EnumFacing.EAST);
             }
@@ -203,12 +221,20 @@ public class InteractionManager extends Manager implements Wrapper {
                 visibleSides.add(EnumFacing.SOUTH);
             }
 
-            else if (!mc.world.getBlockState(position).isFullBlock()) {
+            else if (!mc.world.getBlockState(position).isFullBlock() || !mc.world.isAirBlock(position)) {
                 visibleSides.add(EnumFacing.NORTH);
                 visibleSides.add(EnumFacing.SOUTH);
             }
         }
 
         return visibleSides;
+    }
+
+    /**
+     * Gets all the blocks that need to be shift clicked
+     * @return All the blocks that need to be shift clicked
+     */
+    public List<Block> getSneakBlocks() {
+        return sneakBlocks;
     }
 }

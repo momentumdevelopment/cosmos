@@ -4,6 +4,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.client.Colors;
+import cope.cosmos.client.features.modules.client.DiscordPresence;
+import cope.cosmos.client.features.modules.client.Font;
+import cope.cosmos.client.features.modules.client.Social;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.util.render.FontUtil;
@@ -50,6 +54,7 @@ public class Cosmos {
     private ReloadManager reloadManager;
     private PatchManager patchManager;
     private PopManager popManager;
+    private InteractionManager interactionManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -63,7 +68,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 13);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 14);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -115,6 +120,10 @@ public class Cosmos {
         holeManager = new HoleManager();
         managers.add(holeManager);
         progressManager.step("Setting up Hole Manager");
+
+        interactionManager = new InteractionManager();
+        managers.add(interactionManager);
+        progressManager.step("Setting up Interaction Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -179,6 +188,10 @@ public class Cosmos {
         return popManager;
     }
 
+    public InteractionManager getInteractionManager() {
+        return interactionManager;
+    }
+
     public NotificationManager getNotificationManager() {
         return notificationManager;
     }
@@ -189,7 +202,10 @@ public class Cosmos {
     
     public List<Module> getNullSafeMods() {
     	return Arrays.asList(
-
+                DiscordPresence.INSTANCE,
+                Colors.INSTANCE,
+                Font.INSTANCE,
+                Social.INSTANCE
         );
     }
 }

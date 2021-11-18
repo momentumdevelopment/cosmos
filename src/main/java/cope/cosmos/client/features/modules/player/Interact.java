@@ -132,6 +132,10 @@ public class Interact extends Module {
                         break;
                 }
             }
+
+            if (getCosmos().getInteractionManager().getSneakBlocks().contains(mc.world.getBlockState(limitPosition).getBlock()) && ignoreContainer.getValue()) {
+                event.setCanceled(true);
+            }
         }
 
         if (event.getPacket() instanceof CPacketAnimation && noSwing.getValue()) {
