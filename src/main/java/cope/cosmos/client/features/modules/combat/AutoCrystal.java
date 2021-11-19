@@ -52,7 +52,7 @@ public class AutoCrystal extends Module {
     public static AutoCrystal INSTANCE;
 
     public AutoCrystal() {
-        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> AutoCrystal.INSTANCE.getRenderInfo());
+        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals");
         INSTANCE = this;
     }
 
@@ -96,7 +96,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> overrideArmor = new Setting<>("Armor", "Override when target's armor is below this percent", 0.0, 0.0, 100.0, 0).setParent(override);
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack and placement rotation", Rotate.NONE);
-    public static Setting<Limit> rotateLimit = new Setting<>("Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
+    public static Setting<Limit> rotateLimit = new Setting<>(() -> rotate.getValue().equals(Rotate.PACKET), "Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
     public static Setting<When> rotateWhen = new Setting<>("When", "Mode for when to rotate", When.BOTH).setParent(rotate);
     public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 0.0, 5.0, 1).setParent(rotate);
 
@@ -119,7 +119,6 @@ public class AutoCrystal extends Module {
     public static Setting<Boolean> render = new Setting<>("Render", "Render a visual for calculated placement", true);
     public static Setting<Box> renderMode = new Setting<>("Mode", "Style for visual", Box.BOTH).setParent(render);
     public static Setting<Text> renderText = new Setting<>("Text", "Text for the visual", Text.NONE).setParent(render);
-    public static Setting<Info> renderInfo = new Setting<>("Info", "Arraylist information", Info.NONE).setParent(render);
     public static Setting<Double> renderWidth = new Setting<>(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE), "Width", "Line width for the visual", 0.0, 1.5, 3.0, 1).setParent(render);
 
     private Crystal explodeCrystal = new Crystal(null, 0, 0);
@@ -448,7 +447,7 @@ public class AutoCrystal extends Module {
                     if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget()))
                         requiredDamage = 0.5;
 
-                    if (HoleUtil.isInHole(idealPosition.getPlaceTarget())) {
+                    if (getCosmos().getHoleManager().isHoleEntity(idealPosition.getPlaceTarget())) {
                         if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue())
                             requiredDamage = 0.5;
 
@@ -729,24 +728,6 @@ public class AutoCrystal extends Module {
         }
     }
 
-    public String getRenderInfo() {
-        if (placePosition != null) {
-            switch (renderInfo.getValue()) {
-                case DAMAGE:
-                    return String.valueOf(MathUtil.roundDouble(placePosition.getTargetDamage(), 1));
-                case LATENCY:
-                    return String.valueOf(explodeTimer.getMS(System.nanoTime() - explodeTimer.time) / 100);
-                case TARGET:
-                    return placePosition.getPlaceTarget().getName();
-                case NONE:
-                default:
-                    return "";
-            }
-        }
-
-        return "";
-    }
-
     public String getText(Text text) {
         switch (text) {
             case TARGET:
@@ -794,10 +775,6 @@ public class AutoCrystal extends Module {
 
     public enum When {
         BREAK, PLACE, BOTH
-    }
-
-    public enum Info {
-        DAMAGE, LATENCY, TARGET, NONE
     }
 
     public enum Text {

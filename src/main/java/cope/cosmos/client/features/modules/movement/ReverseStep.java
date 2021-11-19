@@ -6,7 +6,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.world.HoleUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -28,7 +27,7 @@ public class ReverseStep extends Module {
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
-        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder() || mc.gameSettings.keyBindJump.isKeyDown() || mc.player.fallDistance > height.getValue() || hole.getValue() && !HoleUtil.isAboveHole(height.getValue()) || ((IEntity) mc.player).getInWeb() && !webs.getValue()) {
+        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder() || mc.gameSettings.keyBindJump.isKeyDown() || mc.player.fallDistance > height.getValue() || hole.getValue() && !getCosmos().getHoleManager().isHoleEntity(mc.player) || ((IEntity) mc.player).getInWeb() && !webs.getValue()) {
             getCosmos().getTickManager().setClientTicks(1);
             return;
         }

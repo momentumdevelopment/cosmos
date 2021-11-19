@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
+import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -8,15 +9,17 @@ import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+@SuppressWarnings("unused")
 public class FastUse extends Module {
     public static FastUse INSTANCE;
 
@@ -25,9 +28,11 @@ public class FastUse extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> speed = new Setting<>("Speed", "Place speed", 0.0, 0.0, 4.0, 0);
+    public static Setting<Double> speed = new Setting<>("Speed", "Place speed", 0.0, 4.0, 4.0, 0);
 
     public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", "Fixes the item ghost issue on some servers", false);
+    public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", "Drops items faster", false);
+
     public static Setting<Boolean> packetUse = new Setting<>("PacketUse", "Uses packets when using items", false);
     public static Setting<Boolean> packetGapple = new Setting<>("Gapple", "Uses packets when eating gapples", false).setParent(packetUse);
     public static Setting<Boolean> packetPotion = new Setting<>("Potions", "Uses packets when drinking potions", true).setParent(packetUse);
@@ -47,41 +52,40 @@ public class FastUse extends Module {
             }
 
             else {
-                ((IMinecraft) mc).setRightClickDelayTimer(speed.getValue().intValue());
+                ((IMinecraft) mc).setRightClickDelayTimer(4 - speed.getValue().intValue());
             }
         }
 
-        if (packetUse.getValue() && mc.player.isHandActive()) {
-            if (packetGapple.getValue() && !InventoryUtil.isHolding(Items.GOLDEN_APPLE))
-                return;
-
-            if (packetPotion.getValue() && !InventoryUtil.isHolding(Items.POTIONITEM))
-                return;
-
-            for (int i = 0; i < (speed.getValue() * 8); i++) {
-                mc.player.connection.sendPacket(new CPacketPlayer());
-            }
+        if (fastDrop.getValue() && mc.gameSettings.keyBindDrop.isKeyDown()) {
+            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
         }
 
-        if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive() && mc.player.getItemInUseMaxCount() >= (3 - speed.getValue())) {
+        if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive() && mc.player.getItemInUseMaxCount() >= speed.getValue() - 1) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
             mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
             mc.player.stopActiveHand();
         }
     }
 
-    @SuppressWarnings("unused")
+    @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        if (ghostFix.getValue() && InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     public void onPlayerRightClick(PlayerInteractEvent.RightClickItem event) {
         if (packetUse.getValue() && event.getEntityPlayer().equals(mc.player)) {
-            if (packetGapple.getValue() && !event.getItemStack().getItem().equals(Items.GOLDEN_APPLE))
-                return;
+            if ((packetGapple.getValue() && event.getItemStack().getItem().equals(Items.GOLDEN_APPLE)) || (packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM))) {
+                event.setCanceled(true);
+                event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
 
-            if (packetPotion.getValue() && !event.getItemStack().getItem().equals(Items.POTIONITEM))
-                return;
-
-            event.setCanceled(true);
-            event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
+                // skip ticks lolololol
+                for (int i = 0; i < ((4 - speed.getValue()) * 8); i++) {
+                    mc.player.connection.sendPacket(new CPacketPlayer());
+                }
+            }
         }
     }
 
