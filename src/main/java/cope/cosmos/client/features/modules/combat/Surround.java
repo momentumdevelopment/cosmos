@@ -1,8 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.features.modules.combat.AutoCrystal.Raytrace;
-import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -15,8 +13,6 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.MathUtil;
 import cope.cosmos.util.world.*;
 import cope.cosmos.util.world.BlockUtil.BlockResistance;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.server.SPacketBlockChange;
@@ -25,7 +21,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -45,9 +40,9 @@ public class Surround extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode to switch to blocks", Switch.NORMAL);
 
     public static Setting<Double> blocks = new Setting<>("Blocks", "Allowed block placements per tick", 0.0, 4.0, 10.0, 0);
-    public static Setting<Boolean> raytrace = new Setting<>("Raytrace", "Verify if the placement is visible", false);
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", "Only places on visible sides", false);
     public static Setting<Boolean> reactive = new Setting<>("Reactive", "Replaces surround blocks when they break", true);
-    public static Setting<Boolean> chainPop = new Setting<>("ChainPop", "Surround when popping totems", false);
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack rotations", Rotate.NONE);
     public static Setting<Boolean> rotateCenter = new Setting<>("Center", "Center rotations on target", false).setParent(rotate);
@@ -60,6 +55,7 @@ public class Surround extends Module {
 
     int previousSlot = -1;
     int surroundPlaced = 0;
+
     BlockPos previousPosition = BlockPos.ORIGIN;
     BlockPos surroundPosition = BlockPos.ORIGIN;
 
@@ -101,7 +97,7 @@ public class Surround extends Module {
 
         switch (completion.getValue()) {
             case AIR:
-                if (!previousPosition.equals(new BlockPos(new Vec3d(MathUtil.roundFloat(mc.player.getPositionVector().x, 0), MathUtil.roundFloat(mc.player.getPositionVector().y, 0), MathUtil.roundFloat(mc.player.getPositionVector().z, 0)))) || mc.player.posY > previousPosition.getY()) {
+                if (!previousPosition.equals(new BlockPos(MathUtil.roundFloat(mc.player.getPositionVector().x, 0), MathUtil.roundFloat(mc.player.getPositionVector().y, 0), MathUtil.roundFloat(mc.player.getPositionVector().z, 0))) || mc.player.posY > previousPosition.getY()) {
                     disable();
                     getAnimation().setState(false);
                     return;
@@ -109,7 +105,7 @@ public class Surround extends Module {
 
                 break;
             case SURROUNDED:
-                if (HoleUtil.isInHole(mc.player)) {
+                if (getCosmos().getHoleManager().isHoleEntity(mc.player)) {
                     disable();
                     getAnimation().setState(false);
                     return;
@@ -135,7 +131,7 @@ public class Surround extends Module {
     public void handleSurround() {
         previousSlot = mc.player.inventory.currentItem;
 
-        if (!HoleUtil.isInHole(mc.player)) {
+        if (!getCosmos().getHoleManager().isHoleEntity(mc.player)) {
             InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
 
             placeSurround();
@@ -149,17 +145,7 @@ public class Surround extends Module {
             if (Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.BLANK) && surroundPlaced <= blocks.getValue()) {
                 surroundPosition = new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)));
 
-                if (RaytraceUtil.raytraceBlock(surroundPosition, Raytrace.NORMAL) && raytrace.getValue())
-                    return;
-
-                for (Entity item : mc.world.loadedEntityList) {
-                    if (item instanceof EntityItem && ((EntityItem) item).getItem().getItem().equals(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
-                        item.setDead();
-                        mc.world.removeEntityFromWorld(item.getEntityId());
-                    }
-                }
-
-                getCosmos().getInteractionManager().placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), rotate.getValue());
+                getCosmos().getInteractionManager().placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), rotate.getValue(), strict.getValue());
 
                 surroundPlaced++;
             }
@@ -168,27 +154,19 @@ public class Surround extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && !HoleUtil.isInHole(mc.player);
+        return isEnabled() && !getCosmos().getHoleManager().isHoleEntity(mc.player);
     }
 
     @SubscribeEvent
     public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketBlockChange) {
             if (surround.getValue().getVectors().contains(new Vec3d(((SPacketBlockChange) event.getPacket()).getBlockPosition()))) {
-                // clear items
-                for (Entity item : mc.world.loadedEntityList) {
-                    if (item instanceof EntityItem && ((EntityItem) item).getItem().getItem().equals(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
-                        item.setDead();
-                        mc.world.removeEntityFromWorld(item.getEntityId());
-                    }
-                }
-
                 // switch to obsidian
                 previousSlot = mc.player.inventory.currentItem;
                 InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
 
                 // place block
-                getCosmos().getInteractionManager().placeBlock(((SPacketBlockChange) event.getPacket()).getBlockPosition(), rotate.getValue());
+                getCosmos().getInteractionManager().placeBlock(((SPacketBlockChange) event.getPacket()).getBlockPosition(), rotate.getValue(), false);
 
                 // switchback
                 InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
@@ -196,21 +174,42 @@ public class Surround extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onTotemPop(TotemPopEvent event) {
-        if (!HoleUtil.isInHole(mc.player) && event.getPopEntity().equals(mc.player) && chainPop.getValue()) {
-            // switch to obsidian
-            InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
-
-            placeSurround();
-
-            // switch back
-            InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
-        }
-    }
-
     public enum SurroundVectors {
-        BASE(new ArrayList<>(Arrays.asList(new Vec3d(0, -1, 0), new Vec3d(1, -1, 0), new Vec3d(0, -1, 1), new Vec3d(-1, -1, 0), new Vec3d(0, -1, -1), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), new Vec3d(-1, 0, 0), new Vec3d(0, 0, -1)))), STANDARD(new ArrayList<>(Arrays.asList(new Vec3d(0, -1, 0), new Vec3d(1, 0, 0), new Vec3d(-1, 0, 0), new Vec3d(0, 0, 1), new Vec3d(0, 0, -1)))), PROTECT(new ArrayList<>(Arrays.asList(new Vec3d(0, -1, 0), new Vec3d(1, 0, 0), new Vec3d(-1, 0, 0), new Vec3d(0, 0, 1), new Vec3d(0, 0, -1), new Vec3d(2, 0, 0), new Vec3d(-2, 0, 0), new Vec3d(0, 0, 2), new Vec3d(0, 0, -2), new Vec3d(3, 0, 0), new Vec3d(-3, 0, 0), new Vec3d(0, 0, 3), new Vec3d(0, 0, -3))));
+        BASE(Arrays.asList(
+                new Vec3d(0, -1, 0),
+                new Vec3d(1, -1, 0),
+                new Vec3d(0, -1, 1),
+                new Vec3d(-1, -1, 0),
+                new Vec3d(0, -1, -1),
+                new Vec3d(1, 0, 0),
+                new Vec3d(0, 0, 1),
+                new Vec3d(-1, 0, 0),
+                new Vec3d(0, 0, -1)
+        )),
+
+        STANDARD(Arrays.asList(
+                new Vec3d(0, -1, 0),
+                new Vec3d(1, 0, 0),
+                new Vec3d(-1, 0, 0),
+                new Vec3d(0, 0, 1),
+                new Vec3d(0, 0, -1)
+        )),
+
+        PROTECT(Arrays.asList(
+                new Vec3d(0, -1, 0),
+                new Vec3d(1, 0, 0),
+                new Vec3d(-1, 0, 0),
+                new Vec3d(0, 0, 1),
+                new Vec3d(0, 0, -1),
+                new Vec3d(2, 0, 0),
+                new Vec3d(-2, 0, 0),
+                new Vec3d(0, 0, 2),
+                new Vec3d(0, 0, -2),
+                new Vec3d(3, 0, 0),
+                new Vec3d(-3, 0, 0),
+                new Vec3d(0, 0, 3),
+                new Vec3d(0, 0, -3)
+        ));
 
         private final List<Vec3d> vectors;
 
@@ -219,7 +218,7 @@ public class Surround extends Module {
         }
 
         public List<Vec3d> getVectors() {
-            return this.vectors;
+            return vectors;
         }
     }
 

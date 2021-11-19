@@ -38,6 +38,7 @@ public class HoleFill extends Module {
     public static Setting<Double> threshold = new Setting<>(() -> mode.getValue().equals(Filler.TARGETED), "Threshold", "Target's distance from hole for it to be considered fill-able", 0.0, 3.0, 15.0, 1);
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode for switching to block", Switch.NORMAL);
 
+    public static Setting<Boolean> strict = new Setting<>("Strict", "Only places on visible sides", false);
     public static Setting<Boolean> safety = new Setting<>("Safety", "Makes sure you are not the closest player for the current hole fill", false);
     public static Setting<Boolean> doubles = new Setting<>("Doubles", "Fills in double holes", true);
 
@@ -137,7 +138,7 @@ public class HoleFill extends Module {
             return;
 
         if (InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
-            getCosmos().getInteractionManager().placeBlock(fillPosition, rotate.getValue());
+            getCosmos().getInteractionManager().placeBlock(fillPosition, rotate.getValue(), strict.getValue());
         }
 
         InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);

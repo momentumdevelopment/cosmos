@@ -80,7 +80,7 @@ public class Burrow extends Module {
 		mc.player.inventory.currentItem = block;
 		mc.player.connection.sendPacket(new CPacketHeldItemChange(block));
 
-		getCosmos().getInteractionManager().placeBlock(originalPos, rotate.getValue());
+		getCosmos().getInteractionManager().placeBlock(originalPos, rotate.getValue(), false);
 
 		TeleportUtil.teleportPlayerNoPacket(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 

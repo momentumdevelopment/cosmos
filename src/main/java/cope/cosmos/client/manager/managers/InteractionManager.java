@@ -3,7 +3,6 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
@@ -18,7 +17,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
@@ -64,7 +62,7 @@ public class InteractionManager extends Manager implements Wrapper {
     /**
      * Places a block at a specified position
      * @param position Position of the block to place on
-     * @param rotate Mode for rotating
+     * @param rotate Mode for rotating {@link Rotate}
      * @param strict Only place on visible offsets
      */
     public void placeBlock(BlockPos position, Rotate rotate, boolean strict) {
@@ -103,11 +101,6 @@ public class InteractionManager extends Manager implements Wrapper {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
             }
 
-            // facing directions
-            double facingX = 0;
-            double facingY = 0;
-            double facingZ = 0;
-
             // rotate to block
             if (!rotate.equals(Rotate.NONE)) {
                 float[] blockAngles = AngleUtil.calculateAngles(new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5)));
@@ -125,20 +118,10 @@ public class InteractionManager extends Manager implements Wrapper {
                         // ((IEntityPlayerSP) mc).setLastReportedPitch(blockAngles[1]);
                         break;
                 }
-
-                // make sure our facing directions are consistent with our rotations
-                Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(blockAngles[0], blockAngles[1]));
-                RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * mc.playerController.getBlockReachDistance(), placeVector.y * mc.playerController.getBlockReachDistance(), placeVector.z * mc.playerController.getBlockReachDistance()), false, false, true);
-
-                if (vectorResult != null && vectorResult.hitVec != null) {
-                    facingX = vectorResult.hitVec.x - position.getX();
-                    facingY = vectorResult.hitVec.y - position.getY();
-                    facingZ = vectorResult.hitVec.z - position.getZ();
-                }
             }
 
             // right click direction offset block
-            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), new Vec3d(facingX, facingY, facingZ), EnumHand.MAIN_HAND);
+            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5), EnumHand.MAIN_HAND);
 
             // reset sneak
             if (sneak) {
