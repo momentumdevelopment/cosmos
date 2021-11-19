@@ -70,7 +70,7 @@ public class Aura extends Module {
     public static Setting<Boolean> weaponBlock = new Setting<>("Block", "Automatically blocks if you're holding a shield", false).setParent(weapon);
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack rotations", Rotate.NONE);
-    public static Setting<Limit> rotateLimit = new Setting<>("Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
+    public static Setting<Limit> rotateLimit = new Setting<>(() -> rotate.getValue().equals(Rotate.PACKET), "Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
     public static Setting<Bone> rotateBone = new Setting<>("Bone", "What body part to rotate to", Bone.EYES);
     public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 0.0, 5.0, 1).setParent(rotate);
 
@@ -114,21 +114,22 @@ public class Aura extends Module {
     public void onUpdate() {
         if (strictTicks > 0) {
             strictTicks--;
-            return;
         }
 
-        // find our target
-        auraTarget = TargetUtil.getTargetEntity(range.getValue(), target.getValue(), targetPlayers.getValue(), targetPassives.getValue(), targetNeutrals.getValue(), targetHostiles.getValue());
+        else {
+            // find our target
+            auraTarget = TargetUtil.getTargetEntity(range.getValue(), target.getValue(), targetPlayers.getValue(), targetPassives.getValue(), targetNeutrals.getValue(), targetHostiles.getValue());
 
-        if (pause.getValue()) {
-            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue())
-                return;
+            if (pause.getValue()) {
+                if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue())
+                    return;
 
-            else if (PlayerUtil.getHealth() <= pauseHealth.getValue())
-                return;
+                else if (PlayerUtil.getHealth() <= pauseHealth.getValue())
+                    return;
+            }
+
+            killAura();
         }
-
-        killAura();
     }
 
     @Override
@@ -276,7 +277,7 @@ public class Aura extends Module {
             // cancel the existing rotations, we'll send our own
             event.setCanceled(true);
 
-            float[] packetAngles = AngleUtil.calculateAngle(attackVector);
+            float[] packetAngles = AngleUtil.calculateAngles(attackVector);
 
             // add random values to our rotations to simulate vanilla rotations
             if (rotateRandom.getValue() > 0) {
@@ -312,7 +313,7 @@ public class Aura extends Module {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             event.setCanceled(true);
 
-            float[] packetAngles = AngleUtil.calculateAngle(attackVector);
+            float[] packetAngles = AngleUtil.calculateAngles(attackVector);
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
                 packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
