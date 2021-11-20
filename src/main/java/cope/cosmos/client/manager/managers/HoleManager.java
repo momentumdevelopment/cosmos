@@ -5,7 +5,7 @@ import cope.cosmos.util.Wrapper;
 
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.BlockResistance;
+import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
@@ -49,7 +49,7 @@ public class HoleManager extends Manager implements Wrapper {
             // air side
             Side airSide = null;
 
-            if (!BlockUtil.getBlockResistance(blockPos).equals(BlockResistance.UNBREAKABLE) && (mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) : blockPos.getY() == 0)) {
+            if (BlockUtil.isBreakable(blockPos) && (mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) : blockPos.getY() == 0)) {
                 searchedHoles.add(new Hole(blockPos, Type.VOID));
                 continue;
             }
@@ -58,15 +58,15 @@ public class HoleManager extends Manager implements Wrapper {
             if (mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(blockPos.up()).getBlock().equals(Blocks.AIR) && !mc.world.getBlockState(blockPos.down()).getBlock().equals(Blocks.AIR)) {
                 // count sides
                 for (Vec3i side : HOLE) {
-                    if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.RESISTANT)) {
+                    if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.RESISTANT)) {
                         resistantSides++;
                     }
 
-                    else if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.UNBREAKABLE)) {
+                    else if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.UNBREAKABLE)) {
                         unbreakableSides++;
                     }
 
-                    else if (BlockUtil.getBlockResistance(blockPos.add(side)).equals(BlockResistance.BLANK)) {
+                    else if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.REPLACEABLE)) {
                         airSides++;
 
                         EnumFacing facing = getFacingFromVector(side);
@@ -102,11 +102,11 @@ public class HoleManager extends Manager implements Wrapper {
                             continue;
                         }
 
-                        if (BlockUtil.getBlockResistance(airSide.getSide().add(side)).equals(BlockResistance.RESISTANT)) {
+                        if (BlockUtil.getResistance(airSide.getSide().add(side)).equals(Resistance.RESISTANT)) {
                             resistantSides++;
                         }
 
-                        else if (BlockUtil.getBlockResistance(airSide.getSide().add(side)).equals(BlockResistance.UNBREAKABLE)) {
+                        else if (BlockUtil.getResistance(airSide.getSide().add(side)).equals(Resistance.UNBREAKABLE)) {
                             unbreakableSides++;
                         }
                     }

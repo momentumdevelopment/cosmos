@@ -38,8 +38,8 @@ public class Interact extends Module {
     public static Setting<Boolean> ignoreContainer = new Setting<>("IgnoreContainers", "Ignores containers", false);
 
     public static Setting<Boolean> hitBox = new Setting<>("HitBox", "Ignores entity hitboxes", true);
-    public static Setting<Double> hitBoxExtend = new Setting<>("Extend", "Entity hitbox extension", 0.0, 0.0, 2.0, 2).setParent(hitBox);
-    public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", "Only ignores player hitboxes", true).setParent(hitBox);
+    public static Setting<Double> hitBoxExtend = new Setting<>(() -> !hitBox.getValue(),"Extend", "Entity hitbox extension", 0.0, 0.0, 2.0, 2).setParent(hitBox);
+    public static Setting<Boolean> hitBoxPlayers = new Setting<>(() -> hitBox.getValue(), "PlayersOnly", "Only ignores player hitboxes", true).setParent(hitBox);
 
     public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows you to place blocks on liquid", false);
     public static Setting<Boolean> heightLimit = new Setting<>("HeightLimit", "Allows you to interact with blocks at height limit", true);

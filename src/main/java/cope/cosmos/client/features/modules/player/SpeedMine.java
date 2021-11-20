@@ -14,7 +14,7 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.BlockResistance;
+import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -74,14 +74,14 @@ public class SpeedMine extends Module {
             }
         }
 
-        if (Objects.equals(BlockUtil.getBlockResistance(minePosition), BlockResistance.BLANK))
+        if (Objects.equals(BlockUtil.getResistance(minePosition), Resistance.REPLACEABLE))
             minePosition = BlockPos.ORIGIN;
     }
 
     @SubscribeEvent
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         try {
-            if ((Objects.equals(BlockUtil.getBlockResistance(event.getPos()), BlockResistance.RESISTANT) || Objects.equals(BlockUtil.getBlockResistance(event.getPos()), BlockResistance.BREAKABLE))) {
+            if ((Objects.equals(BlockUtil.getResistance(event.getPos()), Resistance.RESISTANT) || Objects.equals(BlockUtil.getResistance(event.getPos()), Resistance.BREAKABLE))) {
                 BlockPos mineBlock = event.getPos();
                 EnumFacing mineFacing = event.getFace();
 
@@ -120,7 +120,7 @@ public class SpeedMine extends Module {
 
                 minePosition = mineBlock;
 
-                if (doubleBreak.getValue() && Objects.equals(BlockUtil.getBlockResistance(mineBlock.up()), BlockResistance.BREAKABLE) || Objects.equals(BlockUtil.getBlockResistance(mineBlock.up()), BlockResistance.RESISTANT)) {
+                if (doubleBreak.getValue() && Objects.equals(BlockUtil.getResistance(mineBlock.up()), Resistance.BREAKABLE) || Objects.equals(BlockUtil.getResistance(mineBlock.up()), Resistance.RESISTANT)) {
                     switch (mode.getValue()) {
                         case PACKET:
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, mineBlock.up(), mineFacing));
@@ -150,7 +150,7 @@ public class SpeedMine extends Module {
                     if (mineTimer.passed(breakDelay + 50, Format.SYSTEM) && !switchTimer.passed(breakDelay + 200, Format.SYSTEM))
                         InventoryUtil.switchToSlot(getBestItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
 
-                    if (switchTimer.passed(breakDelay + 400, Format.SYSTEM) || Objects.equals(BlockUtil.getBlockResistance(minePosition), BlockResistance.BLANK)) {
+                    if (switchTimer.passed(breakDelay + 400, Format.SYSTEM) || Objects.equals(BlockUtil.getResistance(minePosition), Resistance.BLANK)) {
                         InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
                         minePosition = BlockPos.ORIGIN;
                     }

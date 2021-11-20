@@ -36,18 +36,18 @@ public class NoSlow extends Module {
     }
 
     // anti-cheat
-    public static final Setting<Boolean> strict = new Setting<>("Strict", "Allows you to bypass normal NCP server", false);
-    public static final Setting<Boolean> airStrict = new Setting<>("AirStrict", "Allows you to bypass strict NCP servers while in the air", false);
-    public static final Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", "Allows you to bypass strict NCP servers", false);
-    public static final Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", "Allows you to bypass strict servers", false);
-    public static final Setting<Boolean> groundStrict = new Setting<>("GroundStrict", "Allows you to bypass strict NCP servers while on the ground", false);
+    public static Setting<Boolean> strict = new Setting<>("Strict", "Allows you to bypass normal NCP server", false);
+    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", "Allows you to bypass strict NCP servers while in the air", false);
+    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", "Allows you to bypass strict NCP servers", false);
+    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", "Allows you to bypass strict servers", false);
+    public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", "Allows you to bypass strict NCP servers while on the ground", false);
 
-    public static final Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
-    public static final Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
+    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
+    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
 
-    public static final Setting<Boolean> items = new Setting<>("Items", "If to remove the slowdown effect while using items", true);
-    public static final Setting<Boolean> soulsand = new Setting<>("SoulSand", "If to remove the slowdown effect when walking on soulsand", false);
-    public static final Setting<Boolean> slime = new Setting<>("Slime", "If to remove the slowdown effect when walking on slime", false);
+    public static Setting<Boolean> items = new Setting<>("Items", "If to remove the slowdown effect while using items", true);
+    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", "If to remove the slowdown effect when walking on soulsand", false);
+    public static Setting<Boolean> slime = new Setting<>("Slime", "If to remove the slowdown effect when walking on slime", false);
 
     private boolean isSneaking = false;
 
@@ -140,7 +140,7 @@ public class NoSlow extends Module {
 
                 if (groundStrict.getValue() && ((CPacketPlayer) event.getPacket()).isOnGround()) {
                     if (groundTimer.passed(2, Format.TICKS)) {
-                        ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(0) + 0.05);
+                        ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) + 0.05);
                     }
 
                     ((ICPacketPlayer) event.getPacket()).setOnGround(false);

@@ -47,7 +47,6 @@ public class Step extends Module {
         switch (mode.getValue()) {
             case NCP: {
                 if (mc.player.onGround) {
-
                     double stepHeight = 0.0; // the amount of blocks we have to step up
 
                     for (double[] collisions : COLLISIONS) {

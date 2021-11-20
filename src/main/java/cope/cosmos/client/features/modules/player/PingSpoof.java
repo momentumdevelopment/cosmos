@@ -27,7 +27,7 @@ public class PingSpoof extends Module {
     public void onDisable() {
         super.onDisable();
 
-        if (nullCheck() && !packets.isEmpty()) {
+        if (!packets.isEmpty()) {
             process();
         }
     }

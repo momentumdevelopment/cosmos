@@ -12,11 +12,14 @@ public class ThreadManager extends Manager {
 
     // thread used by all modules
     private final ClientService clientService = new ClientService();
+
+    // processes
     private static final Queue<Runnable> clientProcesses = new ArrayDeque<>();
 
     public ThreadManager() {
         super("ThreadManager", "Manages the main client service thread");
 
+        clientService.setName("cosmos-client-thread");
         clientService.setDaemon(true);
         clientService.start();
     }

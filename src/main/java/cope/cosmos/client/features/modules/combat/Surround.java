@@ -12,7 +12,7 @@ import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.MathUtil;
 import cope.cosmos.util.world.*;
-import cope.cosmos.util.world.BlockUtil.BlockResistance;
+import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.server.SPacketBlockChange;
@@ -123,7 +123,7 @@ public class Surround extends Module {
     public void onRender3D() {
         if (render.getValue()) {
             for (Vec3d surroundVectors : surround.getValue().getVectors()) {
-                RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.RESISTANT) || Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.UNBREAKABLE)) ? renderSafe.getValue() : renderUnsafe.getValue()).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+                RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.RESISTANT) || Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.UNBREAKABLE)) ? renderSafe.getValue() : renderUnsafe.getValue()).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             }
         }
     }
@@ -142,7 +142,7 @@ public class Surround extends Module {
 
     public void placeSurround() {
         for (Vec3d surroundVectors : surround.getValue().getVectors()) {
-            if (Objects.equals(BlockUtil.getBlockResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), BlockResistance.BLANK) && surroundPlaced <= blocks.getValue()) {
+            if (Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.REPLACEABLE) && surroundPlaced <= blocks.getValue()) {
                 surroundPosition = new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)));
 
                 getCosmos().getInteractionManager().placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), rotate.getValue(), strict.getValue());

@@ -20,7 +20,7 @@ public class Timer implements Wrapper {
             default:
                 return getMS(System.nanoTime() - this.time) >= time;
             case TICKS:
-                return mc.player.ticksExisted % (int) time == 0;
+                return mc.player.ticksExisted % time == 0;
         }
     }
 
@@ -30,7 +30,7 @@ public class Timer implements Wrapper {
             default:
                 return getMS(System.nanoTime() - this.time) <= time;
             case TICKS:
-                return mc.player.ticksExisted % (int) time != 0;
+                return mc.player.ticksExisted % time != 0;
         }
     }
 

@@ -1,24 +1,15 @@
 package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.system.MathUtil;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketPlayerDigging;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BlockUtil implements Wrapper {
 
@@ -51,37 +42,89 @@ public class BlockUtil implements Wrapper {
 
     public static double getNearestBlockBelow() {
         for (double y = mc.player.posY; y > 0.0; y -= 0.001) {
-            if (mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock() instanceof BlockSlab || mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock().getDefaultState().getCollisionBoundingBox(mc.world, new BlockPos(0, 0, 0)) == null) 
+            if (mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock() instanceof BlockSlab || mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock().getDefaultState().getCollisionBoundingBox(mc.world, new BlockPos(0, 0, 0)) == null)
                 continue;
-            
+
             return y;
         }
-        
+
         return -1;
     }
 
-    @SuppressWarnings("deprecation")
-    public static BlockResistance getBlockResistance(BlockPos block) {
-        if (mc.world.isAirBlock(block)) {
-            return BlockResistance.BLANK;
-        }
+    // All blocks that are resistant to explosions
+    public static final List<Block> resistantBlocks = Arrays.asList(
+            Blocks.OBSIDIAN,
+            Blocks.ANVIL,
+            Blocks.ENCHANTING_TABLE,
+            Blocks.ENDER_CHEST,
+            Blocks.BEACON
+    );
 
-        else if (mc.world.getBlockState(block).getBlock().getBlockHardness(mc.world.getBlockState(block), mc.world, block) != -1 && !(mc.world.getBlockState(block).getBlock().equals(Blocks.OBSIDIAN) || mc.world.getBlockState(block).getBlock().equals(Blocks.ANVIL) || mc.world.getBlockState(block).getBlock().equals(Blocks.ENCHANTING_TABLE) || mc.world.getBlockState(block).getBlock().equals(Blocks.ENDER_CHEST))) {
-            return BlockResistance.BREAKABLE;
-        }
+    // All blocks that are unbreakable with tools in survival mode
+    public static final List<Block> unbreakableBlocks = Arrays.asList(
+            Blocks.BEDROCK,
+            Blocks.COMMAND_BLOCK,
+            Blocks.CHAIN_COMMAND_BLOCK,
+            Blocks.END_PORTAL_FRAME,
+            Blocks.BARRIER
+    );
 
-        else if (mc.world.getBlockState(block).getBlock().equals(Blocks.OBSIDIAN) || mc.world.getBlockState(block).getBlock().equals(Blocks.ANVIL) || mc.world.getBlockState(block).getBlock().equals(Blocks.ENCHANTING_TABLE) || mc.world.getBlockState(block).getBlock().equals(Blocks.ENDER_CHEST)) {
-            return BlockResistance.RESISTANT;
-        }
-
-        else if (mc.world.getBlockState(block).getBlock().equals(Blocks.BEDROCK) || mc.world.getBlockState(block).getBlock().equals(Blocks.BARRIER) || mc.world.getBlockState(block).getBlock().equals(Blocks.COMMAND_BLOCK) || mc.world.getBlockState(block).getBlock().equals(Blocks.CHAIN_COMMAND_BLOCK) || mc.world.getBlockState(block).getBlock().equals(Blocks.END_PORTAL_FRAME)) {
-            return BlockResistance.UNBREAKABLE;
-        }
-
-        return BlockResistance.BLANK;
+    /**
+     * Finds the if a given position is breakable
+     * @param position The position to check
+     * @return Whether or not the given position is breakable
+     */
+    public static boolean isBreakable(BlockPos position) {
+        return !getResistance(position).equals(Resistance.UNBREAKABLE);
     }
 
-    public enum BlockResistance {
-        BLANK, BREAKABLE, RESISTANT, UNBREAKABLE
+    /**
+     * Finds the resistance of a given position
+     * @param position The position to find the resistance for
+     * @return The {@link Resistance} resistance of the given position
+     */
+    public static Resistance getResistance(BlockPos position) {
+        // the block at the given position
+        Block block = mc.world.getBlockState(position).getBlock();
+
+        // find resistance
+        if (resistantBlocks.contains(block)) {
+            return Resistance.RESISTANT;
+        }
+
+        else if (unbreakableBlocks.contains(block)) {
+            return Resistance.UNBREAKABLE;
+        }
+
+        else if (block.getDefaultState().getMaterial().isReplaceable()) {
+            return Resistance.REPLACEABLE;
+        }
+
+        else {
+            return Resistance.BREAKABLE;
+        }
+    }
+
+    // the resistance level of the block
+    public enum Resistance {
+        /**
+         * Blocks that are able to be replaced by other blocks
+         */
+        REPLACEABLE,
+
+        /**
+         * Blocks that are able to be broken with tools in survival mode
+         */
+        BREAKABLE,
+
+        /**
+         * Blocks that are resistant to explosions
+         */
+        RESISTANT,
+
+        /**
+         * Blocks that are unbreakable with tools in survival mode
+         */
+        UNBREAKABLE
     }
 }

@@ -17,7 +17,7 @@ import net.minecraft.util.text.event.HoverEvent;
 
 public class ChatUtil implements Wrapper {
 
-	private static Map<Module, Integer> messageMap = new HashMap<>();
+	private static final Map<Module, Integer> messageMap = new HashMap<>();
 	
 	public static String getPrefix() {
 		return ChatFormatting.BLUE + "<" + ChatFormatting.DARK_PURPLE + "Cosmos" + ChatFormatting.BLUE + "> " + ChatFormatting.GRAY;
