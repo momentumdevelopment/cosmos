@@ -15,7 +15,9 @@ import java.util.Objects;
 
 public class InventoryUtil implements Wrapper {
 
-    private static boolean switching = false;
+    public static boolean isHolding(Item item) {
+        return mc.player.getHeldItemMainhand().getItem().equals(item) || mc.player.getHeldItemOffhand().getItem().equals(item);
+    }
 
     public static void switchToSlot(int slot, Switch switchMode) {
         if (slot != -1 && mc.player.inventory.currentItem != slot) {
@@ -35,55 +37,27 @@ public class InventoryUtil implements Wrapper {
     }
 
     public static void switchToSlot(Item item, Switch switchMode) {
-        if (getItemSlot(item, Inventory.HOTBAR, true) != -1 && mc.player.inventory.currentItem != getItemSlot(item, Inventory.HOTBAR, true))
-            switchToSlot(getItemSlot(item, Inventory.HOTBAR, true), switchMode);
+        if (getItemSlot(item, Inventory.HOTBAR) != -1 && mc.player.inventory.currentItem != getItemSlot(item, Inventory.HOTBAR)) {
+            switchToSlot(getItemSlot(item, Inventory.HOTBAR), switchMode);
+        }
 
         ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
     }
 
-    public static void moveItemToOffhand(Item item, boolean hotbar) {
-        moveItemToOffhand(getItemSlot(item, Inventory.INVENTORY, hotbar));
-    }
-
-    public static void moveItemToOffhand(int slot) {
-        int returnSlot = -1;
-
-        if (slot == -1)
-            return;
-
-        switching = true;
-        mc.playerController.windowClick(0, slot < 9 ? slot + 36 : slot, 0, ClickType.PICKUP, mc.player);
-        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
-
-        for (int i = 9; i < 45; i++) {
-            if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
-                returnSlot = i;
-                break;
-            }
-        }
-
-        if (returnSlot != -1)
-            mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
-
-        switching = false;
-    }
-
-    public static int getItemSlot(Item item, Inventory inventory, boolean hotbar) {
+    public static int getItemSlot(Item item, Inventory inventory) {
         switch (inventory) {
             case HOTBAR:
                 for (int i = 0; i < 9; i++) {
-                    if (mc.player.inventory.getStackInSlot(i).getItem() == item)
+                    if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
                         return i;
+                    }
                 }
-
-                break;
             case INVENTORY:
-                for (int i = hotbar ? 9 : 0; i < 45; i++) {
-                    if (mc.player.inventory.getStackInSlot(i).getItem() == item)
+                for (int i = 9; i <= 44; i++) {
+                    if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
                         return i;
+                    }
                 }
-
-                break;
         }
 
         return -1;
@@ -94,19 +68,19 @@ public class InventoryUtil implements Wrapper {
             case INVENTORY:
                 for (int i = 0; i < 9; i++) {
                     Item item = mc.player.inventory.getStackInSlot(i).getItem();
-                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block))
-                        return i;
-                }
 
-                break;
+                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {
+                        return i;
+                    }
+                }
             case HOTBAR:
-                for (int i = hotbar ? 9 : 0; i < 45; i++) {
+                for (int i = 0; i <= 44; i++) {
                     Item item = mc.player.inventory.getStackInSlot(i).getItem();
-                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block))
-                        return i;
-                }
 
-                break;
+                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {
+                        return i;
+                    }
+                }
         }
 
         return -1;
@@ -125,24 +99,18 @@ public class InventoryUtil implements Wrapper {
             mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i);
             if (Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getByte("id")) != null) {
                 if (Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("id")) != null) {
-                    if (Objects.requireNonNull(Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("id"))).isCurse())
+                    if (Objects.requireNonNull(Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("id"))).isCurse()) {
                         continue;
+                    }
 
-                    if (mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("lvl") >= 1000)
+                    if (mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("lvl") >= 1000) {
                         return true;
+                    }
                 }
             }
         }
 
         return false;
-    }
-
-    public static boolean isHolding(Item item) {
-        return mc.player.getHeldItemMainhand().getItem().equals(item) || mc.player.getHeldItemOffhand().getItem().equals(item);
-    }
-
-    public static boolean isSwitching() {
-        return switching;
     }
 
     public enum Switch {
