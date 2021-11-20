@@ -141,6 +141,16 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onUpdate() {
+        if (pause.getValue()) {
+            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
+                return;
+            }
+
+            if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode) {
+                return;
+            }
+        }
+
         if (strictTicks > 0) {
             strictTicks--;
         }
@@ -153,14 +163,6 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onThread() {
-        if (pause.getValue()) {
-            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue())
-                return;
-
-            if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode)
-                return;
-        }
-
         explodeCrystal = searchCrystal();
         placePosition = searchPosition();
     }
@@ -199,16 +201,18 @@ public class AutoCrystal extends Module {
 
                 // verify that we cannot break the crystal due to weakness
                 if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
-                    int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.INVENTORY, true);
-                    int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.INVENTORY, true);
+                    int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
+                    int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
 
                     if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
                         // prefer the sword over a pickaxe
-                        if (swordSlot != -1)
+                        if (swordSlot != -1) {
                             InventoryUtil.switchToSlot(swordSlot, explodeWeakness.getValue());
+                        }
 
-                        else if (pickSlot != -1)
+                        else if (pickSlot != -1) {
                             InventoryUtil.switchToSlot(pickSlot, explodeWeakness.getValue());
+                        }
                     }
                 }
             }
@@ -250,8 +254,9 @@ public class AutoCrystal extends Module {
             if (placeSwitch.getValue().equals(Switch.PACKET)) {
                 previousSlot = mc.player.inventory.currentItem;
 
-                if (mc.player.isHandActive())
+                if (mc.player.isHandActive()) {
                     previousHand = mc.player.getActiveHand();
+                }
             }
 
             // switch to crystals if needed
@@ -315,10 +320,11 @@ public class AutoCrystal extends Module {
 
                 // switch back after placing, should only switch serverside
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
-                    InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+                    InventoryUtil.switchToSlot(previousSlot, placeSwitch.getValue());
 
-                    if (previousHand != null)
+                    if (previousHand != null) {
                         mc.player.setActiveHand(previousHand);
+                    }
                 }
 
                 placeTimer.reset();
@@ -336,40 +342,48 @@ public class AutoCrystal extends Module {
 
             for (Entity calculatedCrystal : new ArrayList<>(mc.world.loadedEntityList)) {
                 // make sure it's a viable crystal
-                if (!(calculatedCrystal instanceof EntityEnderCrystal) || calculatedCrystal.isDead)
+                if (!(calculatedCrystal instanceof EntityEnderCrystal) || calculatedCrystal.isDead) {
                     continue;
+                }
 
                 // make sure it's in range
                 float distance = mc.player.getDistance(calculatedCrystal);
-                if (distance > explodeRange.getValue() || (!mc.player.canEntityBeSeen(calculatedCrystal) && distance > explodeWall.getValue()))
+                if (distance > explodeRange.getValue() || (!mc.player.canEntityBeSeen(calculatedCrystal) && distance > explodeWall.getValue())) {
                     continue;
+                }
 
-                if (blackListExplosions.contains(calculatedCrystal) && explodeInhibit.getValue())
+                if (blackListExplosions.contains(calculatedCrystal) && explodeInhibit.getValue()) {
                     continue;
+                }
 
-                if (calculatedCrystal.ticksExisted < explodeTicksExisted.getValue().intValue())
+                if (calculatedCrystal.ticksExisted < explodeTicksExisted.getValue().intValue()) {
                     continue;
+                }
 
                 // make sure it doesn't do too much dmg to us or kill us
                 float localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(calculatedCrystal.posX, calculatedCrystal.posY, calculatedCrystal.posZ, mc.player, ignoreTerrain.getValue(), false);
-                if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
+                if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue())) {
                     continue;
+                }
 
                 // check if we've attacked this crystal too many times
                 if (attemptedExplosions.containsKey(calculatedCrystal.getEntityId()) && explodeLimit.getValue() < 10) {
-                    if (attemptedExplosions.get(calculatedCrystal.getEntityId()) > explodeLimit.getValue())
+                    if (attemptedExplosions.get(calculatedCrystal.getEntityId()) > explodeLimit.getValue()) {
                         continue;
+                    }
                 }
 
                 for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
                     // make sure the target is not dead, a friend, or the local player
-                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND))
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
                         continue;
+                    }
 
                     // make sure target's within our specified target range
                     float targetDistance = mc.player.getDistance(calculatedTarget);
-                    if (targetDistance > targetRange.getValue())
+                    if (targetDistance > targetRange.getValue()) {
                         continue;
+                    }
 
                     // calculate the damage this crystal will do to each target, we can verify if it meets our requirements later
                     float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(calculatedCrystal.posX, calculatedCrystal.posY, calculatedCrystal.posZ, calculatedTarget, ignoreTerrain.getValue(), prediction.getValue()), localDamage, distance);
@@ -401,31 +415,36 @@ public class AutoCrystal extends Module {
 
             for (BlockPos calculatedPosition : BlockUtil.getSurroundingBlocks(mc.player, placeRange.getValue(), false)) {
                 // make sure it's actually a viable position
-                if (!canPlaceCrystal(calculatedPosition, placements.getValue()))
+                if (!canPlaceCrystal(calculatedPosition, placements.getValue())) {
                     continue;
+                }
 
                 // make sure it doesn't do too much dmg to us or kill us
                 float localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
-                if (localDamage > placeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
+                if (localDamage > placeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue())) {
                     continue;
+                }
 
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
                 boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(calculatedPosition, placeRaytrace.getValue());
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5);
-                if (distance > placeWall.getValue() && wallPlacement)
+                if (distance > placeWall.getValue() && wallPlacement) {
                     continue;
+                }
 
                 for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
                     // make sure the target is not dead, a friend, or the local player
-                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND))
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
                         continue;
+                    }
 
                     // make sure target's within our specified target range
                     float targetDistance = mc.player.getDistance(calculatedTarget);
-                    if (targetDistance > targetRange.getValue())
+                    if (targetDistance > targetRange.getValue()) {
                         continue;
+                    }
 
                     // calculate the damage this position will do to each target, we can verify if it meets our requirements later
                     float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5, calculatedTarget, ignoreTerrain.getValue(), prediction.getValue()), localDamage, distance);
@@ -444,15 +463,18 @@ public class AutoCrystal extends Module {
 
                 // find out if we need to override our min dmg, 2 sounds like a good number for face placing but might need to be lower
                 if (override.getValue()) {
-                    if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget()))
+                    if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget())) {
                         requiredDamage = 0.5;
+                    }
 
                     if (getCosmos().getHoleManager().isHoleEntity(idealPosition.getPlaceTarget())) {
-                        if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue())
+                        if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
                             requiredDamage = 0.5;
+                        }
 
-                        if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue()))
+                        if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
                             requiredDamage = 0.5;
+                        }
                     }
                 }
 
@@ -563,24 +585,28 @@ public class AutoCrystal extends Module {
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
-                if (distance > explodeWall.getValue() && wallLinear)
+                if (distance > explodeWall.getValue() && wallLinear) {
                     return;
+                }
 
                 // make sure it doesn't do too much dmg to us or kill us
                 float localDamage = ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
-                if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue()))
+                if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue())) {
                     return;
+                }
 
                 TreeMap<Float, Integer> linearMap = new TreeMap<>();
                 for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
                     // make sure the target is not dead or the local player
-                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget))
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget)) {
                         continue;
+                    }
 
                     // make sure target's within our specified target range
                     float targetDistance = mc.player.getDistance(calculatedTarget);
-                    if (targetDistance > targetRange.getValue())
+                    if (targetDistance > targetRange.getValue()) {
                         continue;
+                    }
 
                     // calculate the damage this crystal will do to each target, we can verify if it meets our requirements later
                     float targetDamage = calculateLogic(ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, calculatedTarget, ignoreTerrain.getValue(), false), localDamage, distance);
@@ -685,7 +711,7 @@ public class AutoCrystal extends Module {
                 mc.player.swingArm(EnumHand.OFF_HAND);
                 break;
             case PACKET:
-                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
+                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
                 break;
             case NONE:
                 break;
@@ -698,8 +724,9 @@ public class AutoCrystal extends Module {
                 return false;
 
             for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(blockPos.add(0, 1, 0)))) {
-                if (entity.isDead || (entity instanceof EntityEnderCrystal && entity.getPosition().equals(blockPos.add(0, 1, 0))))
+                if (entity.isDead || (entity instanceof EntityEnderCrystal && entity.getPosition().equals(blockPos.add(0, 1, 0)))) {
                     continue;
+                }
 
                 return false;
             }
