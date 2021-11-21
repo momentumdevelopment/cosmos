@@ -33,10 +33,6 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static int getFontHeight() {
-		if (Font.INSTANCE.isEnabled()) {
-			return globalFont.FONT_HEIGHT;
-		}
-
 		return mc.fontRenderer.FONT_HEIGHT;
 	}
 

@@ -67,7 +67,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
 
         if (motionEvent.isCanceled()) {
             info.cancel();
-            super.move(type, motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
+            super.move(motionEvent.getType(), motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
         }
     }
 
