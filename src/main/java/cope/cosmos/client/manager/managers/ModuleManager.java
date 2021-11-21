@@ -60,6 +60,7 @@ public class ModuleManager extends Manager {
 
 			//Player
 			new AntiHunger(),
+			new AntiVoid(),
 			new Blink(),
 			new FastUse(),
 			new Interact(),
