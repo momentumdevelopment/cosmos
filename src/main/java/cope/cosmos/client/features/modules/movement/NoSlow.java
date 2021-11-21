@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.asm.mixins.accessor.IKeybinding;
+import cope.cosmos.client.events.IsKeyDownEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SlimeEvent;
 import cope.cosmos.client.events.SoulSandEvent;
@@ -9,19 +9,16 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.*;
+import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.InputUpdateEvent;
-import net.minecraftforge.client.settings.IKeyConflictContext;
-import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
@@ -70,10 +67,6 @@ public class NoSlow extends Module {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
         }
 
-        for (KeyBinding binding : KEYS) {
-            binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
-        }
-
         isSneaking = false;
     }
 
@@ -95,11 +88,8 @@ public class NoSlow extends Module {
         }
 
         if (inventoryMove.getValue() && isInScreen()) {
-            mc.currentScreen.allowUserInput = true;
-
-            for (KeyBinding bind : KEYS) {
-                ((IKeybinding) bind).setPressed(GameSettings.isKeyDown(bind));
-                bind.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
+            for (KeyBinding binding : KEYS) {
+                KeyBinding.setKeyBindState(binding.getKeyCode(), Keyboard.isKeyDown(binding.getKeyCode()));
             }
 
             if (arrowLook.getValue() != 0) {
@@ -120,12 +110,6 @@ public class NoSlow extends Module {
                 }
 
                 mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -90, 90);
-            }
-        }
-
-        else {
-            for (KeyBinding binding : KEYS) {
-                binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
             }
         }
     }
@@ -175,27 +159,19 @@ public class NoSlow extends Module {
         event.setCanceled(slime.getValue());
     }
 
+    @SubscribeEvent
+    public void onIsKeyDown(IsKeyDownEvent event) {
+        if (inventoryMove.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
     public boolean isInScreen() {
         return mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiEditSign || mc.currentScreen instanceof GuiRepair);
     }
 
     private boolean isSlowed() {
         return (mc.player.isHandActive() && items.getValue()) && !mc.player.isRiding() && !mc.player.isElytraFlying();
-    }
-
-    public enum ConflictContext implements IKeyConflictContext {
-
-        FAKE_CONTEXT {
-            @Override
-            public boolean isActive() {
-                return false;
-            }
-
-            @Override
-            public boolean conflicts(IKeyConflictContext other) {
-                return false;
-            }
-        }
     }
 }
 

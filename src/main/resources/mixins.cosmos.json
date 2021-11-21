@@ -34,6 +34,7 @@
       "MixinLayerBipedArmor",
       "MixinRenderWitherSkull",
       "MixinGuiPlayerTabOverlay",
+      "MixinKeyBinding",
       "MixinRenderLivingBase",
       "MixinRenderEnderCrystal",
       "MixinAbstractClientPlayer",
