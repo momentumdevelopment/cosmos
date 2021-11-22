@@ -48,8 +48,8 @@ public class Aura extends Module {
 
     public static Setting<Double> iterations = new Setting<>("Iterations", "Attacks per iteration", 0.0, 1.0, 5.0, 0);
     public static Setting<Double> variation = new Setting<>("Variation", "Probability of your hits doing damage", 0.0, 100.0, 100.0, 0);
-    public static Setting<Double> range = new Setting<>("Range", "Range to attack entities", 0.0, 4.0, 7.0, 1);
-    public static Setting<Double> wallsRange = new Setting<>("WallsRange", "Range to attack entities through walls", 0.0, 4.0, 7.0, 1);
+    public static Setting<Double> range = new Setting<>("Range", "Range to attack entities", 0.0, 6.0, 7.0, 1);
+    public static Setting<Double> wallsRange = new Setting<>("WallsRange", "Range to attack entities through walls", 0.0, 6.0, 7.0, 1);
 
     public static Setting<Timing> timing = new Setting<>("Timing", "Mode for timing attacks", Timing.VANILLA);
     public static Setting<Delay> delayMode = new Setting<>("Mode", "Mode for timing units", Delay.SWING).setParent(timing);

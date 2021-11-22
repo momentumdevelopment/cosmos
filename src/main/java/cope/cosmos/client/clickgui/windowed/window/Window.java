@@ -1,6 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
-import cope.cosmos.client.clickgui.util.BlurUtil;
+import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.Wrapper;
@@ -9,6 +9,9 @@ import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.client.shader.ShaderGroup;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
@@ -42,6 +45,14 @@ public class Window implements GUIUtil, Wrapper {
 
     private Vec2f previousMousePosition = Vec2f.MIN;
 
+    // blur shader
+    private ShaderGroup blurShader;
+    private Framebuffer framebuffer;
+
+    private int lastScale;
+    private int lastScaleWidth;
+    private int lastScaleHeight;
+
     public Window(String name, Vec2f position, float width, float height, boolean pinned) {
         this.name = name;
         this.position = position;
@@ -61,12 +72,6 @@ public class Window implements GUIUtil, Wrapper {
     }
 
     public void drawWindow() {
-
-        // do window blur if it is necessary
-        if (ClickGUI.windowBlur.getValue()) {
-            BlurUtil.blurRect((int) position.x, (int) position.y, (int) width, (int) height, 6, 1, 1);
-        }
-
         // check if we are dragging our window and update position accordingly
         if (mouseOver(position.x, position.y, width, bar) && getGUI().getMouse().isLeftHeld()) {
             setDragging(true);
@@ -85,6 +90,11 @@ public class Window implements GUIUtil, Wrapper {
             // make sure the window isn't expanded past a certain point
             height = MathHelper.clamp(getGUI().getMouse().getMousePosition().y - position.y, 100, new ScaledResolution(mc).getScaledHeight());
             width = MathHelper.clamp(getGUI().getMouse().getMousePosition().x - position.x, 150, new ScaledResolution(mc).getScaledWidth());
+        }
+
+        // blur window background
+        if (ClickGUI.windowBlur.getValue()) {
+            drawBlurRect((int) position.x, (int) position.y - 6, (int) width, (int) height + 6, 6, 1, 0);
         }
 
         glPushMatrix();
@@ -131,6 +141,66 @@ public class Window implements GUIUtil, Wrapper {
 
     public void handleKeyPress(char typedCharacter, int key) {
 
+    }
+
+    /**
+     * @author Gopro336
+     */
+
+    private void createShaderAndFrameBuffer() {
+        try {
+            blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("shaders/post/blur.json"));
+            blurShader.createBindFramebuffers(mc.displayWidth, mc.displayHeight);
+            framebuffer = ((IShaderGroup) blurShader).getMainFramebuffer();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void configureShader(float intensity, float blurWidth, float blurHeight) {
+        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(intensity);
+        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(intensity);
+        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(blurWidth, blurHeight);
+        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(blurHeight, blurWidth);
+    }
+
+    private void drawBlurRect(int x, int y, int width, int height, float intensity, float blurWidth, float blurHeight) {
+        ScaledResolution resolution = new ScaledResolution(mc);
+
+        createShaderAndFrameBuffer();
+
+        int scaleFactor = resolution.getScaleFactor();
+        int widthFactor = resolution.getScaledWidth();
+        int heightFactor = resolution.getScaledHeight();
+
+        if (lastScale != scaleFactor || lastScaleWidth != widthFactor || lastScaleHeight != heightFactor || framebuffer == null || blurShader == null) {
+            createShaderAndFrameBuffer();
+        }
+
+        lastScale = scaleFactor;
+        lastScaleWidth = widthFactor;
+        lastScaleHeight = heightFactor;
+
+        if (!OpenGlHelper.isFramebufferEnabled()) {
+            return;
+        }
+
+        glScissor(x * scaleFactor, (mc.displayHeight - (y * scaleFactor) - height * scaleFactor), width * scaleFactor, height * scaleFactor - 12);
+        glEnable(GL_SCISSOR_TEST);
+
+        configureShader(intensity, blurWidth, blurHeight);
+        framebuffer.bindFramebuffer(true);
+        blurShader.render(mc.getRenderPartialTicks());
+        mc.getFramebuffer().bindFramebuffer(true);
+
+        glDisable(GL_SCISSOR_TEST);
+
+        // GlStateManager.enableBlend();
+        // GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+        framebuffer.framebufferRenderExt(mc.displayWidth, mc.displayHeight, false);
+        // GlStateManager.disableBlend();
+
+        glScalef(scaleFactor, scaleFactor, 0);
     }
 
     public String getName() {

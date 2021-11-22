@@ -51,7 +51,6 @@ public class ClickGUI extends Module {
 	@SubscribeEvent
 	public void onSettingEnable(SettingEnableEvent event) {
 		if (event.getSetting().equals(blur)) {
-
 			if (blur.getValue()) {
 				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
 			}

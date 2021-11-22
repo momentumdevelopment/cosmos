@@ -4,11 +4,11 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
-public class IsKeyDownEvent extends Event {
+public class KeyDownEvent extends Event {
     private final int keyCode;
     private boolean pressed;
 
-    public IsKeyDownEvent(int keyCode, boolean pressed) {
+    public KeyDownEvent(int keyCode, boolean pressed) {
         this.pressed = pressed;
         this.keyCode = keyCode;
     }

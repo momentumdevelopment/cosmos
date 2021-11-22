@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.IsKeyDownEvent;
+import cope.cosmos.client.events.KeyDownEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SlimeEvent;
 import cope.cosmos.client.events.SoulSandEvent;
@@ -160,7 +160,7 @@ public class NoSlow extends Module {
     }
 
     @SubscribeEvent
-    public void onIsKeyDown(IsKeyDownEvent event) {
+    public void onIsKeyDown(KeyDownEvent event) {
         if (inventoryMove.getValue()) {
             event.setCanceled(true);
         }
