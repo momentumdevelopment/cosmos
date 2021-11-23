@@ -10,10 +10,15 @@ import net.minecraft.item.ItemStack;
 public class EnemyUtil implements Wrapper {
 
     public static float getHealth(Entity entity) {
-        if (entity instanceof EntityPlayer)
+        if (entity instanceof EntityPlayer) {
             return ((EntityPlayer) entity).getHealth() + ((EntityPlayer) entity).getAbsorptionAmount();
-        else
+        }
+
+        else if (entity instanceof EntityLivingBase) {
             return ((EntityLivingBase) entity).getHealth();
+        }
+
+        return 0;
     }
 
     public static float getArmor(Entity target) {
