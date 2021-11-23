@@ -57,34 +57,34 @@ public class AutoCrystal extends Module {
     }
 
     public static Setting<Boolean> explode = new Setting<>("Explode", "Explode crystals", true);
-    public static Setting<Double> explodeRange = new Setting<>("Range", "Range to explode crystals", 0.0, 6.0, 8.0, 1).setParent(explode);
-    public static Setting<Double> explodeWall = new Setting<>("WallRange", "Range to explode crystals through walls", 0.0, 3.5, 8.0, 1).setParent(explode);
-    public static Setting<Double> explodeDelay = new Setting<>("Delay", "Delay to explode crystals", 0.0, 60.0, 500.0, 0).setParent(explode);
+    public static Setting<Double> explodeRange = new Setting<>("Range", "Range to explode crystals", 0.0, 4.5, 8.0, 1).setParent(explode);
+    public static Setting<Double> explodeWall = new Setting<>("WallRange", "Range to explode crystals through walls", 0.0, 3.0, 8.0, 1).setParent(explode);
+    public static Setting<Double> explodeDelay = new Setting<>("Delay", "Delay to explode crystals", 0.0, 50.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", "Randomize the delay slightly to simulate real explosions", 0.0, 0.0, 500.0, 0).setParent(explode);
-    public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 0.0, 500.0, 0).setParent(explode);
+    public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", "Delay to wait after switching", 0.0, 10.0, 500.0, 0).setParent(explode);
     public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", "The minimum age of the crystal to explode", 0.0, 0.0, 5.0, 0).setParent(explode);
-    public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 5.0, 36.0, 1).setParent(explode);
-    public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(explode);
+    public static Setting<Double> explodeDamage = new Setting<>("Damage", "Required damage to explode a crystal", 0.0, 6.0, 36.0, 1).setParent(explode);
+    public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 6.0, 36.0, 1).setParent(explode);
     public static Setting<Double> explodeLimit = new Setting<>("Limit", "Attacks per crystal limiter", 0.0, 10.0, 10.0, 0).setParent(explode);
     public static Setting<Boolean> explodePacket = new Setting<>("Packet", "Explode with packets", true).setParent(explode);
-    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", false).setParent(explode);
+    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", "Prevents attacks on crystals that would already be exploded", true).setParent(explode);
     public static Setting<Hand> explodeHand = new Setting<>("Hand", "Hand to swing when exploding crystals", Hand.SYNC).setParent(explode);
     public static Setting<Switch> explodeWeakness = new Setting<>("Weakness", "Switch to a tool when weakness is active", Switch.NONE).setParent(explode);
 
     public static Setting<Boolean> place = new Setting<>("Place", "Place Crystals", true);
     public static Setting<Double> placeRange = new Setting<>("Range", "Range to place crystals", 0.0, 5.0, 8.0, 1).setParent(place);
-    public static Setting<Double> placeWall = new Setting<>("WallRange", "Range to place crystals through walls", 0.0, 3.5, 8.0, 1).setParent(place);
-    public static Setting<Double> placeDelay = new Setting<>("Delay", "Delay to place crystals", 0.0, 20.0, 500.0, 0).setParent(place);
-    public static Setting<Double> placeDamage = new Setting<>("Damage", "Required damage to be considered for placement", 0.0, 5.0, 36.0, 1).setParent(place);
-    public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 5.0, 36.0, 1).setParent(place);
+    public static Setting<Double> placeWall = new Setting<>("WallRange", "Range to place crystals through walls", 0.0, 3.0, 8.0, 1).setParent(place);
+    public static Setting<Double> placeDelay = new Setting<>("Delay", "Delay to place crystals", 0.0, 0.0, 500.0, 0).setParent(place);
+    public static Setting<Double> placeDamage = new Setting<>("Damage", "Required damage to be considered for placement", 0.0, 6.0, 36.0, 1).setParent(place);
+    public static Setting<Double> placeLocal = new Setting<>("LocalDamage", "Maximum allowed local damage to the player", 0.0, 6.0, 36.0, 1).setParent(place);
     public static Setting<Boolean> placePacket = new Setting<>("Packet", "Place with packets", true).setParent(place);
-    public static Setting<Interact> placeInteraction = new Setting<>("Interact", "Limits the direction of placements", Interact.NORMAL).setParent(place);
+    public static Setting<Interact> placeInteraction = new Setting<>("Interact", "Limits the direction of placements", Interact.STRICT).setParent(place);
     public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", "Mode to verify placements through walls", Raytrace.DOUBLE).setParent(place);
     public static Setting<Hand> placeHand = new Setting<>("Hand", "Hand to swing when placing crystals", Hand.SYNC).setParent(place);
     public static Setting<Switch> placeSwitch = new Setting<>("Switch", "Mode to use when switching to a crystal", Switch.NONE).setParent(place);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", "When to pause", true);
-    public static Setting<Double> pauseHealth = new Setting<>("Health", "Pause below this health", 0.0, 10.0, 36.0, 0).setParent(pause);
+    public static Setting<Double> pauseHealth = new Setting<>("Health", "Pause below this health", 0.0, 2.0, 36.0, 0).setParent(pause);
     public static Setting<Boolean> pauseSafety = new Setting<>("Safety", "Pause when the current crystal will kill you", true).setParent(pause);
     public static Setting<Boolean> pauseEating = new Setting<>("Eating", "Pause when eating", false).setParent(pause);
     public static Setting<Boolean> pauseMining = new Setting<>("Mining", "Pause when mining", false).setParent(pause);
@@ -95,13 +95,13 @@ public class AutoCrystal extends Module {
     public static Setting<Double> overrideThreshold = new Setting<>("Threshold", "Override if we can do lethal damage in this amount of crystals", 0.0, 0.0, 4.0, 1).setParent(override);
     public static Setting<Double> overrideArmor = new Setting<>("Armor", "Override when target's armor is below this percent", 0.0, 0.0, 100.0, 0).setParent(override);
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack and placement rotation", Rotate.NONE);
-    public static Setting<Limit> rotateLimit = new Setting<>(() -> rotate.getValue().equals(Rotate.PACKET), "Limit", "Mode for when to restrict rotations", Limit.NONE).setParent(rotate);
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack and placement rotation", Rotate.PACKET);
+    public static Setting<Limit> rotateLimit = new Setting<>(() -> rotate.getValue().equals(Rotate.PACKET), "Limit", "Mode for when to restrict rotations", Limit.STRICT).setParent(rotate);
     public static Setting<When> rotateWhen = new Setting<>("When", "Mode for when to rotate", When.BOTH).setParent(rotate);
     public static Setting<Double> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", 0.0, 0.0, 5.0, 1).setParent(rotate);
 
     public static Setting<Boolean> calculations = new Setting<>("Calculations", "Preferences for calculations", true);
-    public static Setting<Timing> timing = new Setting<>("Timing", "Optimizes process at the cost of anti-cheat compatibility", Timing.LINEAR).setParent(calculations);
+    public static Setting<Timing> timing = new Setting<>("Timing", "Optimizes process at the cost of anti-cheat compatibility", Timing.SEQUENTIAL).setParent(calculations);
     public static Setting<TPS> tps = new Setting<>("TPS", "Syncs attack timing to current server ticks", TPS.NONE).setParent(calculations);
     public static Setting<Placements> placements = new Setting<>("Placements", "Placement calculations for current version", Placements.NATIVE).setParent(calculations);
     public static Setting<Logic> logic = new Setting<>("Logic", "Logic for heuristic to prioritize", Logic.DAMAGE).setParent(calculations);
