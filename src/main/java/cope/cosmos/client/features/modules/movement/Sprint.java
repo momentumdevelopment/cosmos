@@ -2,15 +2,10 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.client.events.LivingUpdateEvent;
 import cope.cosmos.client.events.MotionEvent;
-import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ChatUtil;
-import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.MotionUtil;
-import net.minecraft.init.Items;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")

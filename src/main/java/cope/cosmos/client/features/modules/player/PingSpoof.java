@@ -17,7 +17,7 @@ public class PingSpoof extends Module {
         super("PingSpoof", Category.PLAYER, "Spoofs your latency to the server", () -> delay.getValue() + "s");
     }
 
-    public static final Setting<Double> delay = new Setting<>("Delay", "The delay in seconds to hold off sending keep alive packets", 0.1, 0.5, 5.0, 1);
+    public static Setting<Double> delay = new Setting<>("Delay", "The delay in seconds to hold off sending keep alive packets", 0.1, 0.5, 5.0, 1);
 
     private final Queue<CPacketKeepAlive> packets = new ConcurrentLinkedQueue<>();
     private final Timer timer = new Timer();

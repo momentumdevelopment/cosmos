@@ -32,7 +32,6 @@ public class ClickGUI extends Module {
 	public static Setting<Color> complexionColor = new Setting<>("ComplexionColor", "The complexion color for the GUI", new Color(18, 18, 24, 255));
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", "Pause the game when in GUI", false);
 	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", "Blur shader for GUI Panels", true);
-	public static Setting<Integer> panelBlurInt = new Setting<>("BlurIntensity", "Intensity for panel blur shader", 1, 6, 10, 1).setParent(windowBlur);
 	public static Setting<Boolean> blur = new Setting<>("Blur", "Blur shader for GUI background", false);
 
 	@Override

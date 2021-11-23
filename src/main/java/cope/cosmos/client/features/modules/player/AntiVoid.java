@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 
 public class AntiVoid extends Module {
@@ -14,8 +15,8 @@ public class AntiVoid extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", "How to stop you from falling into the void", Mode.SUSPEND);
-    public static Setting<Double> glide = new Setting<>("Glide", "The value to divide your vertical motion by", 1.0, 5.0, 10.0, 1);
-    public static Setting<Double> floatUp = new Setting<>("Float", "What to set your vertical motion to", 0.1, 0.5, 5.0, 0);
+    public static Setting<Double> glide = new Setting<>(() -> mode.getValue().equals(Mode.GLIDE), "Glide", "The value to divide your vertical motion by", 1.0, 5.0, 10.0, 1);
+    public static Setting<Double> floatUp = new Setting<>(() -> mode.getValue().equals(Mode.FLOAT), "Float", "What to set your vertical motion to", 0.1, 0.5, 5.0, 0);
 
     @Override
     public void onUpdate() {
@@ -28,8 +29,7 @@ public class AntiVoid extends Module {
                     mc.player.motionY /= glide.getValue();
                     break;
                 case RUBBERBAND:
-                    mc.player.setPosition(mc.player.posX, mc.player.posY + 4.0, mc.player.posZ);
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 4.0, mc.player.posZ, false));
+                    TeleportUtil.teleportPlayerKeepMotion(mc.player.posX, mc.player.posY + 4.0, mc.player.posZ);
                     break;
                 case FLOAT:
                     mc.player.motionY = floatUp.getValue();

@@ -15,16 +15,10 @@ public class Preset extends Command {
                         .executes(context -> {
                             switch (StringArgumentType.getString(context, "action")) {
                                 case "save":
-                                    String previousPreset = Cosmos.INSTANCE.getPresetManager().getCurrentPreset();
                                     Cosmos.INSTANCE.getPresetManager().createPreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getPresetManager().setPreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getPresetManager().writeDirectories();
-                                    Cosmos.INSTANCE.getPresetManager().save();
-                                    Cosmos.INSTANCE.getPresetManager().setPreset(previousPreset);
                                     ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Saved current prefix");
                                 case "load":
                                     Cosmos.INSTANCE.getPresetManager().setPreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getPresetManager().load();
                                     ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Loaded current preset");
                                     break;
                                 case "remove":
@@ -43,7 +37,7 @@ public class Preset extends Command {
                 }))
 
                 .executes(context -> {
-                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting create, save, remove, load, or set!");
+                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting save, remove, or load!");
                     return 1;
                 })
         );

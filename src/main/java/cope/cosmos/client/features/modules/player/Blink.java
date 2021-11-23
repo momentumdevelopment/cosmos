@@ -21,12 +21,12 @@ public class Blink extends Module {
         INSTANCE = this;
     }
 
-    public static final Setting<Mode> mode = new Setting<>("Mode", "How to meet the requirement", Mode.MANUAL);
-    public static final Setting<Boolean> spawnFake = new Setting<>("SpawnFake", "If to spawn a fake player", true);
+    public static Setting<Mode> mode = new Setting<>("Mode", "How to meet the requirement", Mode.MANUAL);
+    public static Setting<Boolean> spawnFake = new Setting<>("SpawnFake", "If to spawn a fake player", true);
 
-    public static final Setting<Double> delay = new Setting<>("Delay", "The delay in seconds until sending all packets", 0.1, 5.0, 50.0, 1);
-    public static final Setting<Integer> packetCount = new Setting<>("Packets", "The amount of packets until sending all packets", 0, 10, 200, 1);
-    public static final Setting<Integer> distance = new Setting<>("Distance", "The distance in blocks from the last position until sending all packets", 1, 10, 20, 1);
+    public static Setting<Double> delay = new Setting<>("Delay", "The delay in seconds until sending all packets", 0.1, 5.0, 50.0, 1);
+    public static Setting<Integer> packetCount = new Setting<>("Packets", "The amount of packets until sending all packets", 0, 10, 200, 1);
+    public static Setting<Integer> distance = new Setting<>("Distance", "The distance in blocks from the last position until sending all packets", 1, 10, 20, 1);
 
     private final Queue<CPacketPlayer> packets = new ConcurrentLinkedQueue<>();
     private EntityOtherPlayerMP fakePlayer = null;

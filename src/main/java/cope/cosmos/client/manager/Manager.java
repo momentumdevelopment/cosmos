@@ -1,6 +1,8 @@
 package cope.cosmos.client.manager;
 
-public class Manager {
+import cope.cosmos.util.Wrapper;
+
+public class Manager implements Wrapper {
 
     private final String name;
     private final String description;

@@ -123,7 +123,7 @@ public class EventManager extends Manager implements Wrapper {
 			try {
 				getCosmos().getCommandDispatcher().execute(Cosmos.INSTANCE.getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
 			} catch (Exception exception) {
-				exception.printStackTrace();
+				// exception.printStackTrace();
 				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "No such command was found");
 			}
 		}

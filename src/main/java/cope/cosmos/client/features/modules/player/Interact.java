@@ -79,7 +79,7 @@ public class Interact extends Module {
 
             RayTraceResult hitboxResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 
-            if (hitboxResult != null && hitboxResult.typeOfHit == RayTraceResult.Type.BLOCK) {
+            if (hitboxResult != null && hitboxResult.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
                 BlockPos hitboxPos = hitboxResult.getBlockPos();
 
                 if (mc.gameSettings.keyBindAttack.isKeyDown()) {

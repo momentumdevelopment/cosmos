@@ -15,12 +15,14 @@ public class PresenceManager extends Manager implements Wrapper {
     private static final DiscordRPC discordPresence = DiscordRPC.INSTANCE;
     private static final DiscordRichPresence richPresence = new DiscordRichPresence();
     private static final DiscordEventHandlers presenceHandlers = new DiscordEventHandlers();
+
     private static Thread presenceThread;
 
     public PresenceManager() {
         super("PresenceManager", "Manages the client Discord RPC");
     }
 
+    // funy
     private static final String[] presenceDetails = {
             "Asking linus for config help",
             "Begging bon to make a new GUI",
