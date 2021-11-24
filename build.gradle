@@ -52,7 +52,7 @@ repositories {
 }
 
 dependencies {
-    compile 'club.minnced:java-discord-rpc:2.0.1'
+    compile 'club.minnced:java-discord-rpc:2.0.2'
     compile 'com.mojang:brigadier:1.0.17'
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile ('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
@@ -70,7 +70,7 @@ mixin {
 
 shadowJar {
     dependencies {
-        include dependency('club.minnced:java-discord-rpc:2.0.1')
+        include dependency('club.minnced:java-discord-rpc:2.0.2')
         include dependency('org.spongepowered:mixin')
         include dependency('com.mojang:brigadier:1.0.17')
         include dependency('com.moandjiezana.toml:toml4j:0.7.2')
