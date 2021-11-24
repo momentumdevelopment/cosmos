@@ -2,7 +2,7 @@
     "required": true,
     "package": "cope.cosmos.asm.mixins",
     "refmap": "mixins.cosmos.refmap.json",
-    "minVersion": "0.7.3",
+    "minVersion": "0.7.11",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
       "MixinAbstractClientPlayer",
