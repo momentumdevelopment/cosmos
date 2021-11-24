@@ -8,8 +8,6 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 
-import javax.annotation.Nullable;
-
 public class SoundUtil implements Wrapper {
 
     public static void clickSound() {
@@ -20,7 +18,7 @@ public class SoundUtil implements Wrapper {
                 return new ResourceLocation("cosmos", "sounds/click.ogg");
             }
 
-            @Nullable
+            //@Nullable // This always returns a non-null value so why tf is this here lol.
             @Override
             public SoundEventAccessor createAccessor(SoundHandler handler) {
                 return new SoundEventAccessor(new ResourceLocation("cosmos", "sounds/click.ogg"), "click");

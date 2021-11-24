@@ -1,11 +1,5 @@
 package cope.cosmos.client.manager.managers;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.*;
 import cope.cosmos.client.features.modules.combat.*;
@@ -14,6 +8,12 @@ import cope.cosmos.client.features.modules.movement.*;
 import cope.cosmos.client.features.modules.player.*;
 import cope.cosmos.client.features.modules.visual.*;
 import cope.cosmos.client.manager.Manager;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ModuleManager extends Manager {
 	public ModuleManager() {

@@ -1,28 +1,26 @@
 package cope.cosmos.client.alts;
 
-import java.util.Map;
-
-import org.lwjgl.opengl.GL11;
-
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication;
-
 import cope.cosmos.client.manager.managers.AltManager;
-import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiListExtended.IGuiListEntry;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+
+import java.util.Map;
 
 public class AltEntry implements IGuiListEntry, Wrapper
 {
-	private String email;
-	private String password;
-	private YggdrasilUserAuthentication auth;
-	private ResourceLocation unknown = new ResourceLocation("textures/misc/unknown_server.png");
-	private ResourceLocation selected = new ResourceLocation("textures/gui/world_selection.png");
+	private final String email;
+	private final String password;
+	private final YggdrasilUserAuthentication auth;
+	private final ResourceLocation unknown = new ResourceLocation("textures/misc/unknown_server.png");
+	private final ResourceLocation selected = new ResourceLocation("textures/gui/world_selection.png");
 	
 	public AltEntry(String email, String password) {
 		this.email = email;

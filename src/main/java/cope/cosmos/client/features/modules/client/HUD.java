@@ -1,10 +1,10 @@
 package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
@@ -19,8 +19,6 @@ import net.minecraft.util.text.TextFormatting;
 import java.awt.*;
 import java.util.Comparator;
 import java.util.Objects;
-
-import static org.lwjgl.opengl.GL11.*;
 
 public class HUD extends Module {
     public static HUD INSTANCE;

@@ -1,23 +1,21 @@
 package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
-
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import org.lwjgl.input.Keyboard;
-
-import cope.cosmos.client.Cosmos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
+import org.lwjgl.input.Keyboard;
 
 @SuppressWarnings("unused")
 public class EventManager extends Manager implements Wrapper {

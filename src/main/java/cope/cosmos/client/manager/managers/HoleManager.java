@@ -2,7 +2,6 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;

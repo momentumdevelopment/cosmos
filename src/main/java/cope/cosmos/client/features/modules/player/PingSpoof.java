@@ -5,7 +5,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.*;
+import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.network.play.client.CPacketKeepAlive;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 

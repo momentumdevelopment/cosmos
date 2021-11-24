@@ -1,13 +1,13 @@
 package cope.cosmos.client.features.modules.misc;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.world.WorldUtil;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
 public class FakePlayer extends Module {

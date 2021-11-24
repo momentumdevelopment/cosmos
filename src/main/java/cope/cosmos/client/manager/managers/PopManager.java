@@ -9,7 +9,6 @@ import cope.cosmos.util.combat.EnemyUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;

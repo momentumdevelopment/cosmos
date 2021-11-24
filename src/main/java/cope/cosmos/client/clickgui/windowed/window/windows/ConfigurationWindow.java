@@ -15,8 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
 import org.lwjgl.input.Keyboard;
 
-import java.awt.Color;
-import java.util.ArrayList;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -106,7 +105,7 @@ public class ConfigurationWindow extends TabbedWindow {
 
             boolean lower = false;
             for (String word : words) {
-                if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > halfWidth) {
+                if ((FontUtil.getStringWidth(upperLine + word) * 0.6) > halfWidth) {
                     lowerLine.append(" ").append(word);
                     lower = true;
                 }

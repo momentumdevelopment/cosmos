@@ -4,7 +4,6 @@ import com.google.common.base.Predicate;
 import cope.cosmos.client.events.CameraClipEvent;
 import cope.cosmos.client.events.HitboxInteractEvent;
 import cope.cosmos.client.events.HurtCameraEvent;
-import cope.cosmos.client.features.modules.visual.CameraClip;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;

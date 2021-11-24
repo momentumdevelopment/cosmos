@@ -2,14 +2,14 @@ package cope.cosmos.client.clickgui.windowed;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.util.GUIUtil;
+import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.clickgui.windowed.taskbar.Taskbar;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
-import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent.*;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;

@@ -6,7 +6,6 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
 

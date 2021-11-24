@@ -7,7 +7,6 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.util.EnumHand;
-import org.lwjgl.input.Mouse;
 
 public class PlayerUtil implements Wrapper {
 

@@ -10,7 +10,7 @@ import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.glScaled;
 
 public class EnumComponent extends SettingComponent<Enum<?>> {
 

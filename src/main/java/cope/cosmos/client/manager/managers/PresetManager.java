@@ -1,17 +1,16 @@
 package cope.cosmos.client.manager.managers;
 
 import com.moandjiezana.toml.Toml;
-import cope.cosmos.client.manager.Manager;
-import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.Manager;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -349,10 +348,9 @@ public class PresetManager extends Manager {
             if (inputTOML != null) {
                 try {
                     if (inputTOML.getList("Social.Friends") != null) {
-                        Iterator<Object> friendsList = inputTOML.getList("Social.Friends", new CopyOnWriteArrayList<>()).iterator();
 
-                        while (friendsList.hasNext()) {
-                            String friend = (String) friendsList.next();
+                        for (Object o : inputTOML.getList("Social.Friends", new CopyOnWriteArrayList <>())) {
+                            String friend = (String) o;
                             getCosmos().getSocialManager().addSocial(friend, Relationship.FRIEND);
                         }
                     }

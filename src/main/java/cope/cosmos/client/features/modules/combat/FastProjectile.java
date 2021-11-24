@@ -6,7 +6,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.*;
+import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;

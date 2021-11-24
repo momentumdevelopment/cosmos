@@ -2,7 +2,6 @@ package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class InterpolationUtil implements Wrapper {

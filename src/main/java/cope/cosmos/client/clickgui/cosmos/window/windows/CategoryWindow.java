@@ -1,8 +1,8 @@
 package cope.cosmos.client.clickgui.cosmos.window.windows;
 
 import cope.cosmos.client.clickgui.cosmos.component.components.ModuleComponent;
-import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.cosmos.window.Window;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 

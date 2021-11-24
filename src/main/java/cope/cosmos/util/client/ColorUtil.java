@@ -3,7 +3,7 @@ package cope.cosmos.util.client;
 import cope.cosmos.client.features.modules.client.Colors;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class ColorUtil {
 
@@ -35,7 +35,7 @@ public class ColorUtil {
 	}
 	
 	public static int toInt(Color color) {
-		return (color.getRed() << 16) + (color.getGreen() << 8) + (color.getBlue() << 0) + (color.getAlpha() << 24);
+		return (color.getRed() << 16) + (color.getGreen() << 8) + (color.getBlue()) + (color.getAlpha() << 24);
 	}
 
 	public static void setColor(Color color) {

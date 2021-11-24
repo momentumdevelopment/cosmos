@@ -1,9 +1,8 @@
 package cope.cosmos.asm.mixins.accessor;
 
+import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
-
-import net.minecraft.network.play.server.SPacketPlayerPosLook;
 
 @Mixin(SPacketPlayerPosLook.class)
 public interface ISPacketPlayerPosLook {

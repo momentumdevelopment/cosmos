@@ -1,12 +1,13 @@
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.manager.managers.NotificationManager.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.NotificationManager.Notification;
+import cope.cosmos.client.manager.managers.NotificationManager.Type;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.*;
+import cope.cosmos.util.player.InventoryUtil.Inventory;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.init.Blocks;
