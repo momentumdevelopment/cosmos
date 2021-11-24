@@ -4,7 +4,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.world.TeleportUtil;
-import net.minecraft.network.play.client.CPacketPlayer;
 
 public class AntiVoid extends Module {
     public static AntiVoid INSTANCE;

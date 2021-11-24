@@ -8,17 +8,21 @@ import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.Burrow;
 import cope.cosmos.client.features.modules.combat.Surround;
-import cope.cosmos.client.features.modules.combat.Surround.*;
+import cope.cosmos.client.features.modules.combat.Surround.SurroundVectors;
 import cope.cosmos.client.features.modules.movement.ElytraFlight;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.client.manager.managers.NotificationManager.*;
+import cope.cosmos.client.manager.managers.NotificationManager.Notification;
+import cope.cosmos.client.manager.managers.NotificationManager.Type;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")

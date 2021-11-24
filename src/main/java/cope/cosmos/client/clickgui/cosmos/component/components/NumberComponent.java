@@ -15,7 +15,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.glScaled;
 
 @SuppressWarnings("unused")
 public class NumberComponent<T extends Number> extends SettingComponent<Number> {

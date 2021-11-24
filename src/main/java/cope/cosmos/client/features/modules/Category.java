@@ -11,7 +11,7 @@ public enum Category {
 	MISC(new ResourceLocation("cosmos", "textures/icons/misc.png")),
 	HIDDEN(new ResourceLocation("cosmos", "textures/icons/client.png"));
 
-	private ResourceLocation resourceLocation;
+	private final ResourceLocation resourceLocation;
 
 	Category(ResourceLocation resourceLocation) {
 		this.resourceLocation = resourceLocation;

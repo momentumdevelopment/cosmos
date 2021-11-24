@@ -4,7 +4,6 @@ import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;

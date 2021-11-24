@@ -2,14 +2,12 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeComponent;
-import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
-import net.minecraftforge.common.MinecraftForge;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class BooleanComponent extends TypeComponent<Boolean> {
     public BooleanComponent(SettingComponent settingComponent, Setting<Boolean> setting) {

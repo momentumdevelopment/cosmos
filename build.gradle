@@ -1,10 +1,10 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url = "https://files.minecraftforge.net/maven" }
-        maven { url = "https://repo.spongepowered.org/repository/maven-public" }
-        maven { url = "https://plugins.gradle.org/m2" }
-        maven { url = "https://libraries.minecraft.net" }
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
+        maven { url = 'https://plugins.gradle.org/m2' }
+        maven { url = 'https://libraries.minecraft.net' }
     }
 
     dependencies {
@@ -18,9 +18,9 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "1.1.0"
-group = "cope.cosmos"
-archivesBaseName = "cosmos"
+version = '1.1.0'
+group = 'cope.cosmos'
+archivesBaseName = 'cosmos'
 
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
@@ -36,10 +36,10 @@ jar.manifest.attributes(
 )
 
 minecraft {
-    version = "1.12.2-14.23.5.2847"
-    runDir = "run"
-    mappings = "snapshot_20171003"
-    coreMod = "cope.cosmos.asm.MixinLoader"
+    version = '1.12.2-14.23.5.2847'
+    runDir = 'run'
+    mappings = 'snapshot_20171003'
+    coreMod = 'cope.cosmos.asm.MixinLoader'
     makeObfSourceJar = false
 }
 
@@ -52,9 +52,9 @@ repositories {
 }
 
 dependencies {
-    compile "club.minnced:java-discord-rpc:2.0.1"
-    compile "com.mojang:brigadier:1.0.17"
-    compile "com.moandjiezana.toml:toml4j:0.7.2"
+    compile 'club.minnced:java-discord-rpc:2.0.1'
+    compile 'com.mojang:brigadier:1.0.17'
+    compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile ('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         exclude module: 'launchwrapper'
         exclude module: 'guava'
@@ -70,18 +70,15 @@ mixin {
 
 shadowJar {
     dependencies {
-        include(dependency('club.minnced:java-discord-rpc:2.0.1'))
-        include(dependency('org.spongepowered:mixin'))
-        include(dependency('com.mojang:brigadier:1.0.17'))
-        include(dependency('com.moandjiezana.toml:toml4j:0.7.2'))
+        include dependency('club.minnced:java-discord-rpc:2.0.1')
+        include dependency('org.spongepowered:mixin')
+        include dependency('com.mojang:brigadier:1.0.17')
+        include dependency('com.moandjiezana.toml:toml4j:0.7.2')
     }
-
-    exclude 'dummyThing'
-    exclude 'LICENSE.txt'
+    exclude 'dummyThing', 'LICENSE.txt', 'org/**/*.html', 'META-INF/maven/**' // Removes unneeded files that are legit just useless text files.
     classifier = ''
 }
 
-build.dependsOn(shadowJar)
 
 reobf {
     shadowJar {
@@ -91,8 +88,8 @@ reobf {
 }
 
 processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property 'version', project.version
+    inputs.property 'mcversion', project.minecraft.version
 
     from (sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
@@ -103,3 +100,5 @@ processResources {
         exclude 'mcmod.info'
     }
 }
+
+build.dependsOn shadowJar

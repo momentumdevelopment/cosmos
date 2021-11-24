@@ -9,7 +9,6 @@ import net.minecraft.util.math.Vec2f;
 import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 
 public class ScrollableWindow extends Window {
 

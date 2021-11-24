@@ -1,17 +1,16 @@
 package cope.cosmos.client.alts;
 
-import java.io.IOException;
-
-import org.lwjgl.input.Keyboard;
-
 import cope.cosmos.client.manager.managers.AltManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import org.lwjgl.input.Keyboard;
+
+import java.io.IOException;
 
 public class AltCreatorGUI extends GuiScreen
 {
-	private GuiScreen lastGui;
+	private final GuiScreen lastGui;
 	private GuiTextField passField;
 	private GuiTextField emailField;
 	
@@ -65,7 +64,7 @@ public class AltCreatorGUI extends GuiScreen
 	}
 	
 	@Override
-	protected void actionPerformed(GuiButton button) throws IOException {
+	protected void actionPerformed(GuiButton button) {
 		switch(button.id) {
 			case 3 : {
 				AltEntry alt = new AltEntry(this.emailField.getText(), this.passField.getText());

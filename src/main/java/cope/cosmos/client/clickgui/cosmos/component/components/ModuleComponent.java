@@ -1,8 +1,8 @@
 package cope.cosmos.client.clickgui.cosmos.component.components;
 
 import cope.cosmos.client.clickgui.cosmos.component.Component;
-import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.cosmos.window.windows.CategoryWindow;
+import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
@@ -13,9 +13,9 @@ import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
-import java.awt.Color;
+import java.awt.*;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.glScaled;
 
 @SuppressWarnings({"unchecked", "cast", "rawtypes"})
 public class ModuleComponent extends Component implements Wrapper, GUIUtil {

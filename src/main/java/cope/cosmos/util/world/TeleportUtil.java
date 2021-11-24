@@ -2,7 +2,6 @@ package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.util.math.Vec3d;
 
 public class TeleportUtil implements Wrapper {
 

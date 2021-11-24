@@ -1,12 +1,5 @@
 package cope.cosmos.client.alts;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
-import org.lwjgl.input.Keyboard;
-
 import cope.cosmos.asm.mixins.accessor.ISession;
 import cope.cosmos.client.manager.managers.AltManager;
 import net.minecraft.client.Minecraft;
@@ -14,11 +7,17 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import org.lwjgl.input.Keyboard;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class AltManagerGUI extends GuiScreen
 {
 	private GuiButton delete;
-	private GuiScreen lastGui;
+	private final GuiScreen lastGui;
 	private AltSlotList altList;
 	private GuiTextField crackedNameField;
 	
@@ -82,7 +81,7 @@ public class AltManagerGUI extends GuiScreen
 	}
 	
 	@Override
-	protected void actionPerformed(GuiButton button) throws IOException {
+	protected void actionPerformed(GuiButton button) {
 		this.altList.actionPerformed(button);
 		switch(button.id) {
 			case 1 : {
@@ -114,7 +113,7 @@ public class AltManagerGUI extends GuiScreen
 		public AltSlotList(AltManagerGUI parentGui, Minecraft mc, int width, int height, int top, int bottom, int slotHeight) {
 			super(mc, width, height, top, bottom, slotHeight);
 			alts.clear();
-			AltManager.getAlts().forEach(alt -> this.alts.add(alt));
+			this.alts.addAll(AltManager.getAlts());
 			/* TODO Add saved alts here once configging is done. */
 		}
 

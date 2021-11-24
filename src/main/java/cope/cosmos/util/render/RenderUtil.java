@@ -2,7 +2,9 @@ package cope.cosmos.util.render;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,9 +12,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.awt.Color;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
 

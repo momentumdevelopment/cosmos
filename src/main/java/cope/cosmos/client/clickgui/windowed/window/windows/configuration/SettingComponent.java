@@ -87,7 +87,7 @@ public class SettingComponent extends Component implements Wrapper {
 
         boolean lower = false;
         for (String word : words) {
-            if ((FontUtil.getStringWidth(upperLine.toString() + word) * 0.6) > width) {
+            if ((FontUtil.getStringWidth(upperLine + word) * 0.6) > width) {
                 lowerLine.append(" ").append(word);
                 lower = true;
             }

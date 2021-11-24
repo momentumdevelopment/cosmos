@@ -2,11 +2,14 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.*;
-import cope.cosmos.client.manager.managers.TickManager.TPS;
+import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.RenderRotationsEvent;
+import cope.cosmos.client.events.RotationUpdateEvent;
+import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.TargetUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;

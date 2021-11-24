@@ -7,7 +7,7 @@ import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.*;
+import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;

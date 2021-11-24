@@ -1,19 +1,18 @@
 package cope.cosmos.util.client;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.mojang.realmsclient.gui.ChatFormatting;
-
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.HoverEvent;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ChatUtil implements Wrapper {
 

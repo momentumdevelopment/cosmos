@@ -2,8 +2,6 @@ package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.player.Rotation;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 

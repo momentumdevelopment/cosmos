@@ -32,7 +32,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Map;
 import java.util.Objects;
 
@@ -92,6 +92,7 @@ public class SpeedMine extends Module {
                     case PACKET:
                         mineTimer.reset();
                         switchTimer.reset();
+                        assert mineFacing != null;
                         mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, mineBlock, mineFacing));
                         mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, mineBlock, mineFacing));
 
@@ -123,6 +124,7 @@ public class SpeedMine extends Module {
                 if (doubleBreak.getValue() && Objects.equals(BlockUtil.getResistance(mineBlock.up()), Resistance.BREAKABLE) || Objects.equals(BlockUtil.getResistance(mineBlock.up()), Resistance.RESISTANT)) {
                     switch (mode.getValue()) {
                         case PACKET:
+                            assert mineFacing != null;
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, mineBlock.up(), mineFacing));
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, mineBlock.up(), mineFacing));
 

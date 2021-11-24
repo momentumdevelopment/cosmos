@@ -1,16 +1,15 @@
 package cope.cosmos.client.features.modules.client;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.SettingEnableEvent;
+import cope.cosmos.client.features.modules.Category;
+import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
-
-import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.setting.Setting;
 
 import java.awt.*;
 

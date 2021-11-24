@@ -2,11 +2,9 @@ package cope.cosmos.util.render;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.math.BlockPos;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
-import static net.minecraft.client.renderer.GlStateManager.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class RenderBuilder {

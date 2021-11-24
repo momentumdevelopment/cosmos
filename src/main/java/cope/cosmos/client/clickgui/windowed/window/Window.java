@@ -17,6 +17,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -158,10 +159,10 @@ public class Window implements GUIUtil, Wrapper {
     }
 
     private void configureShader(float intensity, float blurWidth, float blurHeight) {
-        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(intensity);
-        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(intensity);
-        ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(blurWidth, blurHeight);
-        ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(blurHeight, blurWidth);
+        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius")).set(intensity);
+        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius")).set(intensity);
+        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir")).set(blurWidth, blurHeight);
+        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir")).set(blurHeight, blurWidth);
     }
 
     private void drawBlurRect(int x, int y, int width, int height, float intensity, float blurWidth, float blurHeight) {

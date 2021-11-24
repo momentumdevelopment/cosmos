@@ -1,33 +1,12 @@
 package cope.cosmos.client.features.modules.combat;
 
-import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.combat.TargetUtil;
-import cope.cosmos.util.combat.TargetUtil.*;
-import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil.Switch;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.PlayerUtil.*;
-import cope.cosmos.util.player.Rotation;
-import cope.cosmos.util.player.Rotation.*;
-import cope.cosmos.util.world.AngleUtil;
-import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.*;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
+import cope.cosmos.util.player.PlayerUtil.Hand;
+import cope.cosmos.util.player.Rotation.Rotate;
 
 public class AutoTrap extends Module {
     public AutoTrap() {

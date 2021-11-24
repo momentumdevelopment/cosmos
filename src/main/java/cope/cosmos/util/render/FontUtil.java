@@ -47,6 +47,7 @@ public class FontUtil implements Wrapper {
 	private static java.awt.Font getFont(String fontName, float size) {
 		try {
 			InputStream inputStream = FontUtil.class.getResourceAsStream("/assets/cosmos/fonts/" + fontName + ".ttf");
+			assert inputStream != null;
 			java.awt.Font awtClientFont = java.awt.Font.createFont(0, inputStream);
 			awtClientFont = awtClientFont.deriveFont(java.awt.Font.PLAIN, size);
 			inputStream.close();
