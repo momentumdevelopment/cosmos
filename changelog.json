@@ -1,7 +1,5 @@
 Released November 13, 2021.
-
 New Features:
-
 NoSlow:
 - Strict; Bypasses strict NCP configs
 - AirStrict; Bypasses strict NCP configs while in the air
@@ -9,50 +7,37 @@ NoSlow:
 - PlaceStrict; Bypasses strict NCP configs when placing items
 - GroundStrict; Bypasses strict NCP configs while on the ground
 - InventoryMove; Allows you to move while in your inventory
-
 Notifier:
 - EnableNotify; Notifies you when a module is toggled
 - PopNotify; Notifies you when a nearby player has popped a totem
-
 AntiAim:
 - Yaw; How to modify the yaw
 - Pitch; How to modify the pitch
 - Rotate; Where to modify rotations
-
 FastProjectile:
 - Ticks; How many times to send packets
-
-**CameraClip:**
+CameraClip:
 - Distance; The distance to zoom out when camera is clipped
-
-**Blink:**
+Blink:
 - Packets; The amount of packets to hold
 - Distance; Distance before sending packets 
-
 PingSpoof:
 - Delay; Delay between sending packets
-
 NoFall:
 - Rubberband; Distance to rubber band
 - Distance; Fall distance before attempting to prevent fall damage
-
 AntiHunger:
 - StopSprint; Stops hunger attributed to sprinting
 - StopJump; Stops hunger attributed to jumping
-
 ESP:
 - Mode: Shader; Draws a shader on top of the screen
-
 Colors:
 - Color; The client’s color scheme
-
-**ClickGUI:**
+ClickGUI:
 - Remove CosmosGUI
 - Add WindowGUI; Windowed GUI with a taskbar to manage windows (Plan is to add more windows, like a console, social manager, changelog window, TPS graph, etc.)
 - PatchManager; Notifies you when a server potentially has a feature patched
-
 Changes:
-
 AutoCrystal:
 - Add Inhibit; Prevents attacks on crystals that would already be exploded
 - Add Limit; Limits rotations
@@ -66,7 +51,6 @@ AutoCrystal:
 - Fix crash in rendering
 - Fix HUD disappearing when toggled and no targets found
 - Fix Rotation: Packet
-
 Aura:
 - Add Bone; Where to attack the entity
 - Add WallsRange; Range to attack entities through walls
@@ -78,31 +62,23 @@ Aura:
 - Fix Timing: Sequential
 - Fix Aura & Criticals conflict
 - Fix Rotation: Packet
-
 Interact:
 - Add NoSwing; Doesn’t render your swings server side
 - Add WorldBorder; Allows you to interact with blocks at the world border
-
 HoleESP:
 - Fix flickering
 - Add support for mixed holes
-
 HUD:
 - Add Armor; Renders a visual of your equipped armor
-
 Criticals:
 - Add Modifier; Modify the damage done by critical
 - Remove Kickback
-
 ChatModifications:
 - Move EnableNotify to Notifier
-
 HoleFill:
 - Fix Threading issues
 - Add Safety; Doesn’t fill the hole if you are closer to it than the target
-
 Offhand:
 - Add ArmorSafety; Switches to a totem when you are missing armor
-
 AltManager:
 - Fix crash when session is not valid
