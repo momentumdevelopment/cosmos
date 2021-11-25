@@ -23,7 +23,7 @@ public class ChangelogWindow extends ScrollableWindow {
         super.drawWindow();
 
         glPushAttrib(GL_SCISSOR_BIT); {
-            RenderUtil.scissor((int) (getPosition().x + 3), (int) (getPosition().y + getBar() + 2), (int) (getPosition().x + getWidth() - 15), (int) (getPosition().y - getBar() + getHeight() + 11));
+            RenderUtil.scissor((int) (getPosition().x + 3), (int) (getPosition().y + getBar() + 2), (int) (getPosition().x + getWidth() - 15), (int) (getPosition().y - getBar() + getHeight() + 13));
             glEnable(GL_SCISSOR_TEST);
         }
 

@@ -80,6 +80,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
     public void handleLeftClick() {
         if (mouseOver(getPosition().x + 3, getPosition().y + getBoundHeight() - 17, getWidth() - 6, 13)) {
             open = !open;
+            getCosmos().getSoundManager().playSound("click");
         }
 
         if (open) {
@@ -111,7 +112,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         return open;
     }
 
-    public static class ModeComponent implements GUIUtil {
+    public static class ModeComponent implements GUIUtil, Wrapper {
 
         private final EnumComponent component;
         private final Setting<Enum<?>> setting;
@@ -178,6 +179,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
             if (mouseOver(position.x, position.y, width, 13)) {
                 setting.setValue(Enum.valueOf(setting.getValue().getClass(), mode));
                 component.setOpen(false);
+                getCosmos().getSoundManager().playSound("click");
             }
         }
 

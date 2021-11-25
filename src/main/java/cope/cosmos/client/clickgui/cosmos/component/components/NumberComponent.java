@@ -8,7 +8,6 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.MathUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.math.Vec2f;
 import org.lwjgl.input.Keyboard;
@@ -82,8 +81,9 @@ public class NumberComponent<T extends Number> extends SettingComponent<Number> 
 
     @Override
     public void handleLeftClick(int mouseX, int mouseY) {
-        if (mouseOver(getPosition().x, getPosition().y + SLIDER_HEIGHT, WIDTH, HEIGHT - SLIDER_HEIGHT))
-            SoundUtil.clickSound();
+        if (mouseOver(getPosition().x, getPosition().y + SLIDER_HEIGHT, WIDTH, HEIGHT - SLIDER_HEIGHT)) {
+            // SoundUtil.clickSound();
+        }
     }
 
     @Override

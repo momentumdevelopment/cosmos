@@ -6,7 +6,6 @@ import cope.cosmos.client.manager.managers.AnimationManager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
@@ -246,8 +245,9 @@ public class ColorComponent extends SettingComponent<Color> implements Wrapper {
 
     @Override
     public void handleLeftClick(int mouseX, int mouseY) {
-        if (mouseOver(getPosition().x, getPosition().y, WIDTH, PICKER_HEIGHT))
-            SoundUtil.clickSound();
+        if (mouseOver(getPosition().x, getPosition().y, WIDTH, PICKER_HEIGHT)) {
+            // SoundUtil.clickSound();
+        }
     }
 
     @Override
@@ -258,7 +258,7 @@ public class ColorComponent extends SettingComponent<Color> implements Wrapper {
     @Override
     public void handleRightClick(int mouseX, int mouseY) {
         if (mouseOver(getPosition().x, getPosition().y, WIDTH, HEIGHT)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             open = !open;
             animationManager.setState(open);

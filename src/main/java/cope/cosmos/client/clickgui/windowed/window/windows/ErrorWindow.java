@@ -43,10 +43,12 @@ public class ErrorWindow extends Window {
     public void handleLeftClick() {
         if (mouseOver(getPosition().x + getWidth() - 14, getPosition().y, 14, 14)) {
             getManager().removeWindow(this);
+            getCosmos().getSoundManager().playSound("click");
         }
 
         if (mouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14)) {
             getManager().removeWindow(this);
+            getCosmos().getSoundManager().playSound("click");
         }
     }
 }

@@ -60,7 +60,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         });
     }
 
-    public static class Icon implements GUIUtil {
+    public static class Icon implements GUIUtil, Wrapper {
 
         private final Window window;
 
@@ -112,6 +112,7 @@ public class Taskbar implements Wrapper, GUIUtil {
             if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
                 if (!getManager().getWindows().contains(window)) {
                     getManager().createWindow(window);
+                    getCosmos().getSoundManager().playSound("click");
                 }
             }
         }
@@ -119,6 +120,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         public void handleRightClick() {
             if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
                 open = !open;
+                getCosmos().getSoundManager().playSound("click");
             }
         }
 

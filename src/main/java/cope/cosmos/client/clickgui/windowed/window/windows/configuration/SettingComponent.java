@@ -161,6 +161,7 @@ public class SettingComponent extends Component implements Wrapper {
                 window.setSettingComponent(this);
                 window.setPage(Page.SUBSETTING);
                 window.updateColumns();
+                getCosmos().getSoundManager().playSound("click");
             }
 
             else if (!error) {

@@ -56,6 +56,7 @@ public class Cosmos {
     private PopManager popManager;
     private InteractionManager interactionManager;
     private ChangelogManager changelogManager;
+    private SoundManager soundManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -69,7 +70,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 15);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 16);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -129,6 +130,10 @@ public class Cosmos {
         changelogManager = new ChangelogManager();
         managers.add(changelogManager);
         progressManager.step("Setting up Changelog Manager");
+
+        soundManager = new SoundManager();
+        managers.add(soundManager);
+        progressManager.step("Setting up Sound System");
 
         ProgressManager.pop(progressManager);
     }
@@ -199,6 +204,10 @@ public class Cosmos {
 
     public ChangelogManager getChangelogManager() {
         return changelogManager;
+    }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
     }
 
     public NotificationManager getNotificationManager() {

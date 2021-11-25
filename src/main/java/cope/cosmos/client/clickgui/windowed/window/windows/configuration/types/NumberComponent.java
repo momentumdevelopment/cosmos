@@ -3,6 +3,7 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -12,7 +13,7 @@ import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
 
-public class NumberComponent extends TypeComponent<Number> {
+public class NumberComponent extends TypeComponent<Number> implements Wrapper {
 
     private float lastDraggingMouseX = 0;
 
@@ -30,7 +31,7 @@ public class NumberComponent extends TypeComponent<Number> {
         String value = getSetting().getValue().toString();
         FontUtil.drawStringWithShadow(value, position.x + width - FontUtil.getStringWidth(value) - 2, position.y + 3, -1);
 
-        // NOTE: Check if not expanding window
+        // TODO: Check if not expanding window
         if (mouseOver(getPosition().x, getPosition().y + 20, width, 4)) {
             // make sure user is holding the left mouse
             if (getGUI().getMouse().isLeftHeld()) {
@@ -86,7 +87,9 @@ public class NumberComponent extends TypeComponent<Number> {
 
     @Override
     public void handleLeftClick() {
-
+        if (mouseOver(getPosition().x, getPosition().y + 20, getWidth(), 4)) {
+            getCosmos().getSoundManager().playSound("click");
+        }
     }
 
     @Override

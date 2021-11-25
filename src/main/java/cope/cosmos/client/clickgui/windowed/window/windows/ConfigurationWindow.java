@@ -227,6 +227,7 @@ public class ConfigurationWindow extends TabbedWindow {
             }
 
             updateColumns();
+            getCosmos().getSoundManager().playSound("click");
         }
 
         leftColumn.forEach(component -> {
@@ -240,11 +241,13 @@ public class ConfigurationWindow extends TabbedWindow {
         if (page.equals(Page.SETTING) && moduleComponent != null) {
             if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
                 binding = !binding;
+                getCosmos().getSoundManager().playSound("click");
             }
 
             if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
                 boolean previousDrawn = moduleComponent.getModule().isDrawn();
                 moduleComponent.getModule().setDrawn(!previousDrawn);
+                getCosmos().getSoundManager().playSound("click");
             }
         }
     }

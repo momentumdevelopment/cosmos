@@ -4,6 +4,7 @@ import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -16,7 +17,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class ModuleComponent extends Component implements GUIUtil {
+public class ModuleComponent extends Component implements GUIUtil, Wrapper {
 
     private final ConfigurationWindow window;
     private final Module module;
@@ -100,6 +101,7 @@ public class ModuleComponent extends Component implements GUIUtil {
     public void handleLeftClick() {
         if (mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
             module.toggle();
+            getCosmos().getSoundManager().playSound("click");
         }
     }
 
@@ -109,6 +111,7 @@ public class ModuleComponent extends Component implements GUIUtil {
             window.setModuleComponent(this);
             window.setPage(Page.SETTING);
             window.updateColumns();
+            getCosmos().getSoundManager().playSound("click");
         }
     }
 

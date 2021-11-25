@@ -6,7 +6,6 @@ import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
@@ -118,7 +117,7 @@ public abstract class SettingComponent<T> implements GUIUtil {
 
     public void handleRightClick(int mouseX, int mouseY) {
         if (mouseOver(getPosition().x, getPosition().y, WIDTH, HEIGHT)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             open = !open;
             animationManager.setState(open);

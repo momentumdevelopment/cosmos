@@ -129,6 +129,15 @@ public class Window implements GUIUtil, Wrapper {
     public void handleLeftClick() {
         if (mouseOver(position.x + width - 14, position.y, 14, 14)) {
             getManager().removeWindow(this);
+            getCosmos().getSoundManager().playSound("click");
+        }
+
+        if (mouseOver(position.x, position.y, width, bar)) {
+            getCosmos().getSoundManager().playSound("click");
+        }
+
+        if (mouseOver(position.x + width - 10, position.y + height - 10, 10, 10)) {
+            getCosmos().getSoundManager().playSound("click");
         }
     }
 

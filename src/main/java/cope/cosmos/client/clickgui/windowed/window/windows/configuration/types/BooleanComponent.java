@@ -3,13 +3,14 @@ package cope.cosmos.client.clickgui.windowed.window.windows.configuration.types;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
 
-public class BooleanComponent extends TypeComponent<Boolean> {
+public class BooleanComponent extends TypeComponent<Boolean> implements Wrapper {
     public BooleanComponent(SettingComponent settingComponent, Setting<Boolean> setting) {
         super(settingComponent, setting);
     }
@@ -29,6 +30,7 @@ public class BooleanComponent extends TypeComponent<Boolean> {
         if (mouseOver(getPosition().x + getWidth() - 19, getPosition().y + 2, 17, 17)) {
             boolean previousValue = getSetting().getValue();
             getSetting().setValue(!previousValue);
+            getCosmos().getSoundManager().playSound("click");
         }
     }
 

@@ -57,6 +57,7 @@ public class TabbedWindow extends ScrollableWindow {
             if (mouseOver(tabComponent.getPosition().x, tabComponent.getPosition().y, tabComponent.getWidth(), tabComponent.getHeight())) {
                 setTab(tabComponent);
                 handleTabChange();
+                getCosmos().getSoundManager().playSound("click");
             }
         });
     }

@@ -9,7 +9,6 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
@@ -130,7 +129,7 @@ public class ModuleComponent extends Component implements Wrapper, GUIUtil {
     @Override
     public void handleLeftClick(int mouseX, int mouseY) {
         if (getModule() != null && mouseOver(position.x, position.y, WIDTH, HEIGHT)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             getModule().toggle();
         }
@@ -158,7 +157,7 @@ public class ModuleComponent extends Component implements Wrapper, GUIUtil {
     @Override
     public void handleRightClick(int mouseX, int mouseY) {
         if (mouseOver(position.x, position.y, WIDTH, HEIGHT)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             open = !open;
 

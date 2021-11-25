@@ -5,7 +5,6 @@ import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.math.Vec2f;
 import org.lwjgl.input.Keyboard;
 
@@ -58,7 +57,7 @@ public class BindComponent extends SettingComponent<String> {
     @Override
     public void handleLeftClick(int mouseX, int mouseY) {
         if (mouseOver(getPosition().x, getPosition().y, WIDTH, HEIGHT)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             binding = !binding;
         }

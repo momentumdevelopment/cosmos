@@ -41,21 +41,23 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
         Vec2f centerPosition = new Vec2f(getPosition().x + 35, getPosition().y + (boundHeight / 2) + 34);
 
-        if (mouseOver(getPosition().x + 6, getPosition().y + (boundHeight / 2) + 2, 64, 64) && getGUI().getMouse().isLeftHeld()) {
-            // set the selected color as the radius and angle
-            if (isWithinCircle(centerPosition.x, centerPosition.y, 32, getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y)) {
-                setSelectorPosition(new Vec2f(getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y));
+        if (mouseOver(getPosition().x + 6, getPosition().y + (boundHeight / 2) + 2, 64, 64)) {
+            if (getGUI().getMouse().isLeftHeld()) {
+                // set the selected color as the radius and angle
+                if (isWithinCircle(centerPosition.x, centerPosition.y, 32, getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y)) {
+                    setSelectorPosition(new Vec2f(getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y));
 
-                // rectangular coords
-                float xDistance = selectorPosition.x - centerPosition.x;
-                float yDistance = selectorPosition.y - centerPosition.y;
+                    // rectangular coords
+                    float xDistance = selectorPosition.x - centerPosition.x;
+                    float yDistance = selectorPosition.y - centerPosition.y;
 
-                // convert to polar coords
-                double radius = Math.hypot(xDistance, yDistance);
-                double angle = -Math.toDegrees(Math.atan2(yDistance, xDistance) + (Math.PI / 2)) % 360;
+                    // convert to polar coords
+                    double radius = Math.hypot(xDistance, yDistance);
+                    double angle = -Math.toDegrees(Math.atan2(yDistance, xDistance) + (Math.PI / 2)) % 360;
 
-                selectedColor.setHue((float) (angle / 360));
-                selectedColor.setSaturation((float) (radius / 32));
+                    selectedColor.setHue((float) (angle / 360));
+                    selectedColor.setSaturation((float) (radius / 32));
+                }
             }
         }
 
@@ -64,6 +66,8 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
                 setBrightnessPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setBrightness(1 - ((brightnessPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
             }
+
+            getCosmos().getSoundManager().playSound("click");
         }
 
         if (mouseOver(getPosition().x + 94, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
@@ -71,6 +75,8 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
                 setTransparencyPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setTransparency(1 - ((transparencyPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
             }
+
+            getCosmos().getSoundManager().playSound("click");
         }
 
         // convert final selected color;
@@ -99,7 +105,9 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
     @Override
     public void handleLeftClick() {
-
+        if (mouseOver(getPosition().x + 6, getPosition().y + getBoundHeight() + 2, 64, 64) || mouseOver(getPosition().x + 80, getPosition().y + getBoundHeight() + 4, 3, 62) || mouseOver(getPosition().x + 94, getPosition().y + getBoundHeight() + 4, 3, 62)) {
+            getCosmos().getSoundManager().playSound("click");
+        }
     }
 
     @Override

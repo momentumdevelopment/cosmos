@@ -13,7 +13,6 @@ import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
-import cope.cosmos.util.world.SoundUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.common.MinecraftForge;
@@ -170,7 +169,7 @@ public class CategoryWindow extends Window implements Wrapper, GUIUtil {
     @Override
     public void handleRightClick(int mouseX, int mouseY) {
         if (mouseOver(position.x, position.y, WIDTH, TITLE)) {
-            SoundUtil.clickSound();
+            // SoundUtil.clickSound();
 
             open = !open;
             animationManager.setState(open);
