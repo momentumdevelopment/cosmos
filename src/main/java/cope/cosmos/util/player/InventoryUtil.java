@@ -45,14 +45,14 @@ public class InventoryUtil implements Wrapper {
 
     public static int getItemSlot(Item item, Inventory inventory) {
         switch (inventory) {
-            case HOTBAR:
-                for (int i = 0; i < 9; i++) {
+            case INVENTORY:
+                for (int i = 9; i <= 44; i++) {
                     if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
                         return i;
                     }
                 }
-            case INVENTORY:
-                for (int i = 9; i <= 44; i++) {
+            case HOTBAR:
+                for (int i = 0; i < 9; i++) {
                     if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
                         return i;
                     }
@@ -62,10 +62,10 @@ public class InventoryUtil implements Wrapper {
         return -1;
     }
 
-    public static int getBlockSlot(Block block, Inventory inventory, boolean hotbar) {
+    public static int getBlockSlot(Block block, Inventory inventory) {
         switch (inventory) {
             case INVENTORY:
-                for (int i = 0; i < 9; i++) {
+                for (int i = 0; i <= 44; i++) {
                     Item item = mc.player.inventory.getStackInSlot(i).getItem();
 
                     if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {
@@ -73,7 +73,7 @@ public class InventoryUtil implements Wrapper {
                     }
                 }
             case HOTBAR:
-                for (int i = 0; i <= 44; i++) {
+                for (int i = 0; i <= 9; i++) {
                     Item item = mc.player.inventory.getStackInSlot(i).getItem();
 
                     if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {

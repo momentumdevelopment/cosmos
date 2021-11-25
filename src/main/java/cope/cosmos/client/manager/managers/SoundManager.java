@@ -13,6 +13,10 @@ public class SoundManager extends Manager {
         super("SoundManager", "Manages client sounds");
     }
 
+    /**
+     * Plays a specified sound
+     * @param in The sound to play
+     */
     public void playSound(String in) {
         mc.getSoundHandler().playSound(new ISound() {
 
