@@ -65,7 +65,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         glScaled(1.25, 1.25, 1.25);
 
         mc.getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/dropdown.png"));
-        Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 19), (int) (position.y + boundHeight - 17), 0, 0, 13, 13, 13, 13);
+        Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 19), (int) (position.y + boundHeight - 18), 0, 0, 13, 13, 13, 13);
 
         if (open) {
             buttonOffset = 1;

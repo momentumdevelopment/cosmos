@@ -4,6 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.util.GUIUtil;
 import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.clickgui.windowed.taskbar.Taskbar;
+import cope.cosmos.client.clickgui.windowed.window.ScrollableWindow;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import net.minecraft.client.gui.GuiScreen;
@@ -104,6 +105,10 @@ public class WindowGUI extends GuiScreen implements GUIUtil {
             windowManager.getWindows().forEach(window -> {
                 window.setDragging(false);
                 window.setExpanding(false);
+
+                if (window instanceof ScrollableWindow) {
+                    ((ScrollableWindow) window).setManualScroll(false);
+                }
             });
         }
     }

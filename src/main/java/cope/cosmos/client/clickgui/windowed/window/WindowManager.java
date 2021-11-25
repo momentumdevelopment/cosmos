@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
+import cope.cosmos.client.clickgui.windowed.window.windows.ChangelogWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.ConfigurationWindow;
 import net.minecraft.util.math.Vec2f;
 
@@ -13,6 +14,7 @@ public class WindowManager {
 
     public WindowManager() {
         createWindow(new ConfigurationWindow("Configuration", new Vec2f(40, 60)));
+        createWindow(new ChangelogWindow("Changelog", new Vec2f(480, 60)));
     }
 
     public void pushWindow(Window in) {

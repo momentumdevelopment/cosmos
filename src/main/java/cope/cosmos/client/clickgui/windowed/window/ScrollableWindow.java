@@ -17,6 +17,9 @@ public class ScrollableWindow extends Window {
     private float lowerBound;
     private float scroll;
 
+    // whether or not we are manually scrolling
+    private boolean manualScroll;
+
     public ScrollableWindow(String name, Vec2f position, float width, float height, boolean pinned) {
         super(name, position, width, height, pinned);
 
@@ -53,8 +56,13 @@ public class ScrollableWindow extends Window {
         // update the scroll bar's y position
         float barY = MathHelper.clamp(unboundScroll / boundDifference, 0, 1) * (upperBound - 3 - scaledHeight);
 
-        // manual scroll
+        // check if we are dragging bar
         if (mouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + barY, 9, scaledHeight) && getGUI().getMouse().isLeftHeld()) {
+            setManualScroll(true);
+        }
+
+        // manual scroll
+        if (getManualScroll()) {
             barY += (getGUI().getMouse().getMousePosition().y - previousY);
             scroll = (barY / (upperBound - 3 - scaledHeight)) * boundDifference;
         }
@@ -111,5 +119,13 @@ public class ScrollableWindow extends Window {
 
     public float getScroll() {
         return scroll;
+    }
+
+    public void setManualScroll(boolean in) {
+        manualScroll = in;
+    }
+
+    public boolean getManualScroll() {
+        return manualScroll;
     }
 }

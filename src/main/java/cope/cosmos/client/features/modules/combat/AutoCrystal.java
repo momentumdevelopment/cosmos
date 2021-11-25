@@ -240,9 +240,7 @@ public class AutoCrystal extends Module {
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
-                    synchronized (mc.world.loadedEntityList) {
-                        mc.world.removeEntityDangerously(explodeCrystal.getCrystal());
-                    }
+                    mc.world.removeEntityDangerously(explodeCrystal.getCrystal());
                 }
             }
         }
@@ -668,9 +666,7 @@ public class AutoCrystal extends Module {
 
                 // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                 if (sync.getValue().equals(Sync.SOUND)) {
-                    synchronized (mc.world.loadedEntityList) {
-                        mc.world.removeEntityDangerously(entity);
-                    }
+                    mc.world.removeEntityDangerously(entity);
                 }
             }));
         }

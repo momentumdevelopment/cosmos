@@ -55,6 +55,7 @@ public class Cosmos {
     private PatchManager patchManager;
     private PopManager popManager;
     private InteractionManager interactionManager;
+    private ChangelogManager changelogManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -68,7 +69,7 @@ public class Cosmos {
     
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 14);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 15);
 
         MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
@@ -124,6 +125,10 @@ public class Cosmos {
         interactionManager = new InteractionManager();
         managers.add(interactionManager);
         progressManager.step("Setting up Interaction Manager");
+
+        changelogManager = new ChangelogManager();
+        managers.add(changelogManager);
+        progressManager.step("Setting up Changelog Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -190,6 +195,10 @@ public class Cosmos {
 
     public InteractionManager getInteractionManager() {
         return interactionManager;
+    }
+
+    public ChangelogManager getChangelogManager() {
+        return changelogManager;
     }
 
     public NotificationManager getNotificationManager() {

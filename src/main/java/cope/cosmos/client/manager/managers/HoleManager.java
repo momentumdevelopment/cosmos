@@ -6,11 +6,13 @@ import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -135,6 +137,10 @@ public class HoleManager extends Manager implements Wrapper {
 
         for (Entity entity : mc.world.loadedEntityList) {
             if (entity.isDead || EnemyUtil.isDead(entity)) {
+                continue;
+            }
+
+            if (!(entity instanceof EntityLivingBase)) {
                 continue;
             }
 

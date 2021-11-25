@@ -53,8 +53,9 @@ public class ConfigurationWindow extends TabbedWindow {
 
         // add each of the categories as a tab
         for (Category category : Category.values()) {
-            if (category.equals(Category.HIDDEN))
+            if (category.equals(Category.HIDDEN)) {
                 continue;
+            }
 
             getTabs().add(new Tab<>(Setting.formatEnum(category), category));
         }
