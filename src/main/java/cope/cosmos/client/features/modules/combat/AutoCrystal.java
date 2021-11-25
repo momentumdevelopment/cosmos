@@ -240,7 +240,9 @@ public class AutoCrystal extends Module {
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
-                    mc.world.removeEntityDangerously(explodeCrystal.getCrystal());
+                    synchronized (mc.world.loadedEntityList) {
+                        mc.world.removeEntityDangerously(explodeCrystal.getCrystal());
+                    }
                 }
             }
         }
@@ -352,7 +354,7 @@ public class AutoCrystal extends Module {
             // map of viable crystals
             TreeMap<Float, Crystal> crystalMap = new TreeMap<>();
 
-            for (Entity calculatedCrystal : new ArrayList<>(mc.world.loadedEntityList)) {
+            for (Entity calculatedCrystal : mc.world.loadedEntityList) {
                 // make sure it's a viable crystal
                 if (!(calculatedCrystal instanceof EntityEnderCrystal) || calculatedCrystal.isDead) {
                     continue;
@@ -666,34 +668,32 @@ public class AutoCrystal extends Module {
 
                 // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                 if (sync.getValue().equals(Sync.SOUND)) {
-                    mc.world.removeEntityDangerously(entity);
+                    synchronized (mc.world.loadedEntityList) {
+                        mc.world.removeEntityDangerously(entity);
+                    }
                 }
             }));
         }
     }
 
     public void placeCrystal(BlockPos placePos, EnumFacing enumFacing, Vec3d vector, boolean packet) {
-        new Thread(() -> {
-            if (packet) {
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
-            }
+        if (packet) {
+            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(placePos, enumFacing, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
+        }
 
-            else {
-                mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, vector, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
-            }
-        }).start();
+        else {
+            mc.playerController.processRightClickBlock(mc.player, mc.world, placePos, enumFacing, vector, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
+        }
     }
 
     public void explodeCrystal(EntityEnderCrystal crystal, boolean packet) {
-        new Thread(() -> {
-            if (packet) {
-                mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
-            }
+        if (packet) {
+            mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
+        }
 
-            else {
-                mc.playerController.attackEntity(mc.player, crystal);
-            }
-        }).start();
+        else {
+            mc.playerController.attackEntity(mc.player, crystal);
+        }
     }
 
     @SuppressWarnings("all")

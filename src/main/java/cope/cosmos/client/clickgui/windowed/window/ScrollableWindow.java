@@ -12,6 +12,8 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class ScrollableWindow extends Window {
 
+    private float previousY;
+
     private float lowerBound;
     private float scroll;
 
@@ -36,15 +38,26 @@ public class ScrollableWindow extends Window {
         // our upperbound is the window height
         float upperBound = getHeight() - getBar();
 
+        // difference between the bounds
+        float boundDifference = lowerBound - (upperBound - 23);
+
         // make sure the scroll doesn't go farther than our bounds
-        scroll = MathHelper.clamp(scroll, 0, MathHelper.clamp(lowerBound - (upperBound - 23), 0, Float.MAX_VALUE));
+        scroll = MathHelper.clamp(scroll, 0, MathHelper.clamp(boundDifference, 0, Float.MAX_VALUE));
 
         // scroll, but bounds are ignored
-        float unboundScroll = MathHelper.clamp(scroll, 0, lowerBound);
+        float unboundScroll = MathHelper.clamp(scroll, 0, boundDifference);
 
         // scale our scroll bar's vertical position
-        float scaledHeight = MathHelper.clamp((upperBound / lowerBound), 0, 1) * (upperBound - 3);
-        float scaledY = MathHelper.clamp((unboundScroll / lowerBound), 0, 1) * (upperBound + 15 - scaledHeight);
+        float scaledHeight = MathHelper.clamp(upperBound / lowerBound, 0, 1) * (upperBound - 3);
+
+        // update the scroll bar's y position
+        float barY = MathHelper.clamp(unboundScroll / boundDifference, 0, 1) * (upperBound - 3 - scaledHeight);
+
+        // manual scroll
+        if (mouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + barY, 9, scaledHeight) && getGUI().getMouse().isLeftHeld()) {
+            barY += (getGUI().getMouse().getMousePosition().y - previousY);
+            scroll = (barY / (upperBound - 3 - scaledHeight)) * boundDifference;
+        }
 
         glPushAttrib(GL_SCISSOR_BIT); {
             RenderUtil.scissor((int) (getPosition().x + getWidth() - 13), (int) (getPosition().y + getBar() + 2), (int) (getPosition().x + getWidth() - 2), (int) (getPosition().y + getBar() + upperBound - 3));
@@ -55,10 +68,12 @@ public class ScrollableWindow extends Window {
         RenderUtil.drawBorderRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3, 9, upperBound - 7, new Color(0, 0, 0, 40), new Color(0, 0, 0, 70));
 
         // scroll bar
-        RenderUtil.drawRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight, new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 130));
+        RenderUtil.drawRect(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + barY, 9, scaledHeight, ColorUtil.getPrimaryAlphaColor(130));
 
         glDisable(GL_SCISSOR_TEST);
         glPopAttrib();
+
+        previousY = getGUI().getMouse().getMousePosition().y;
     }
 
     @Override
@@ -72,9 +87,9 @@ public class ScrollableWindow extends Window {
     }
 
     @Override
-    public void handleScroll(int scroll) {
-        super.handleScroll(scroll);
-        this.scroll += scroll * 0.05F;
+    public void handleScroll(int in) {
+        super.handleScroll(in);
+        scroll += in * 0.05F;
     }
 
     @Override

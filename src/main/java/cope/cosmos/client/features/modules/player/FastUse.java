@@ -69,8 +69,10 @@ public class FastUse extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (ghostFix.getValue() && InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
-            event.setCanceled(true);
+        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+            if (ghostFix.getValue() && InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE)) {
+                event.setCanceled(true);
+            }
         }
     }
 

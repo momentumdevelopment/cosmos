@@ -54,23 +54,23 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         else if (!mouseOver(position.x + 3, position.y + boundHeight - 17, width - 6, 13) && hoverAnimation > 0)
             hoverAnimation -= 5;
 
-        RenderUtil.drawBorderRect(position.x + 3, position.y + boundHeight - 17, width - 6, 13, new Color(hoverAnimation, hoverAnimation, hoverAnimation, 65), new Color(0, 0, 0, 100));
+        RenderUtil.drawBorderRect(position.x + 3, position.y + boundHeight - 19, width - 6, 13, new Color(hoverAnimation, hoverAnimation, hoverAnimation, 65), new Color(0, 0, 0, 100));
 
         glScaled(0.8, 0.8, 0.8); {
             float scaledX = (position.x + 6) * 1.25F;
-            float scaledY = (position.y + boundHeight - 14) * 1.25F;
+            float scaledY = (position.y + boundHeight - 16) * 1.25F;
             FontUtil.drawStringWithShadow(Setting.formatEnum(getSetting().getValue()), scaledX, scaledY, -1);
         }
 
         glScaled(1.25, 1.25, 1.25);
 
         mc.getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/dropdown.png"));
-        Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 19), (int) (position.y + boundHeight - 15), 0, 0, 13, 13, 13, 13);
+        Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 19), (int) (position.y + boundHeight - 17), 0, 0, 13, 13, 13, 13);
 
         if (open) {
             buttonOffset = 1;
             modeComponents.forEach(modeComponent -> {
-                modeComponent.drawComponent(new Vec2f(position.x + 3, position.y + boundHeight + buttonOffset - 4), width - 6);
+                modeComponent.drawComponent(new Vec2f(position.x + 3, position.y + boundHeight + buttonOffset - 6), width - 6);
                 buttonOffset += 13;
             });
         }
@@ -146,9 +146,26 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
                 float scaledX = (position.x + 3) * 1.25F;
                 float scaledY = (position.y + 3) * 1.25F;
 
-                char firstChar = mode.charAt(0);
-                String suffixChars = mode.split(String.valueOf(firstChar), 2)[1];
-                String modeFormatted = String.valueOf(firstChar).toUpperCase() + suffixChars.toLowerCase();
+                String modeFormatted;
+
+                if (!mode.contains("_")) {
+                    char firstChar = mode.charAt(0);
+                    String suffixChars = mode.split(String.valueOf(firstChar), 2)[1];
+                    modeFormatted = String.valueOf(firstChar).toUpperCase() + suffixChars.toLowerCase();
+                }
+
+                else {
+                    String[] names = mode.split("_");
+                    StringBuilder nameToReturn = new StringBuilder();
+
+                    for (String s : names) {
+                        char firstChar = s.charAt(0);
+                        String suffixChars = s.split(String.valueOf(firstChar), 2)[1];
+                        nameToReturn.append(String.valueOf(firstChar).toUpperCase()).append(suffixChars.toLowerCase());
+                    }
+
+                    modeFormatted = nameToReturn.toString();
+                }
 
                 FontUtil.drawStringWithShadow(modeFormatted, scaledX, scaledY, -1);
             }
