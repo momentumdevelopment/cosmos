@@ -14,16 +14,19 @@ import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.InputUpdateEvent;
+import net.minecraftforge.client.settings.IKeyConflictContext;
+import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "deprecation"})
 public class NoSlow extends Module {
     public static NoSlow INSTANCE;
 
@@ -42,9 +45,10 @@ public class NoSlow extends Module {
     public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
     public static Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
 
-    public static Setting<Boolean> items = new Setting<>("Items", "If to remove the slowdown effect while using items", true);
-    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", "If to remove the slowdown effect when walking on soulsand", false);
-    public static Setting<Boolean> slime = new Setting<>("Slime", "If to remove the slowdown effect when walking on slime", false);
+    public static Setting<Boolean> items = new Setting<>("Items", "Removes the slowdown effect while using items", true);
+    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", "Removes the slowdown effect when walking on soulsand", false);
+    public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slowdown effect when walking on slime", false);
+    public static Setting<Boolean> ice = new Setting<>("Ice", "Removes the slipperiness effect when walking on ice", true);
 
     private boolean isSneaking = false;
 
@@ -60,11 +64,34 @@ public class NoSlow extends Module {
     };
 
     @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // set the slipperiness of ice to the normal block value
+        if (ice.getValue()) {
+            Blocks.ICE.slipperiness = 0.4F;
+            Blocks.PACKED_ICE.slipperiness = 0.4F;
+            Blocks.FROSTED_ICE.slipperiness = 0.4F;
+        }
+    }
+
+    @Override
     public void onDisable() {
         super.onDisable();
 
         if (isSneaking && airStrict.getValue()) {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+        }
+
+        for (KeyBinding binding : KEYS) {
+            binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
+        }
+
+        // reset ice slipperiness to default value
+        if (ice.getValue()) {
+            Blocks.ICE.slipperiness = 0.98F;
+            Blocks.FROSTED_ICE.slipperiness = 0.98F;
+            Blocks.PACKED_ICE.slipperiness = 0.98F;
         }
 
         isSneaking = false;
@@ -90,6 +117,7 @@ public class NoSlow extends Module {
         if (inventoryMove.getValue() && isInScreen()) {
             for (KeyBinding binding : KEYS) {
                 KeyBinding.setKeyBindState(binding.getKeyCode(), Keyboard.isKeyDown(binding.getKeyCode()));
+                binding.setKeyConflictContext(ConflictContext.FAKE_CONTEXT);
             }
 
             if (arrowLook.getValue() != 0) {
@@ -110,6 +138,12 @@ public class NoSlow extends Module {
                 }
 
                 mc.player.rotationPitch = MathHelper.clamp(mc.player.rotationPitch, -90, 90);
+            }
+        }
+
+        else {
+            for (KeyBinding binding : KEYS) {
+                binding.setKeyConflictContext(KeyConflictContext.IN_GAME);
             }
         }
     }
@@ -160,7 +194,7 @@ public class NoSlow extends Module {
     }
 
     @SubscribeEvent
-    public void onIsKeyDown(KeyDownEvent event) {
+    public void onKeyDown(KeyDownEvent event) {
         if (inventoryMove.getValue()) {
             event.setCanceled(true);
         }
@@ -172,6 +206,22 @@ public class NoSlow extends Module {
 
     private boolean isSlowed() {
         return (mc.player.isHandActive() && items.getValue()) && !mc.player.isRiding() && !mc.player.isElytraFlying();
+    }
+
+    public enum ConflictContext implements IKeyConflictContext {
+
+        FAKE_CONTEXT {
+
+            @Override
+            public boolean isActive() {
+                return false;
+            }
+
+            @Override
+            public boolean conflicts(IKeyConflictContext other) {
+                return false;
+            }
+        }
     }
 }
 

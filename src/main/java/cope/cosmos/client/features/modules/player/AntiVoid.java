@@ -5,6 +5,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.world.TeleportUtil;
 
+@SuppressWarnings("unused")
 public class AntiVoid extends Module {
     public static AntiVoid INSTANCE;
 
