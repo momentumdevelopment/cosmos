@@ -61,6 +61,7 @@ public class ScrollableWindow extends Window {
         // check if we are dragging bar
         if (mouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight) && getGUI().getMouse().isLeftHeld()) {
             setManualScroll(true);
+            setExpandable(false);
         }
 
         // manual scroll

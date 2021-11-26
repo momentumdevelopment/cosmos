@@ -108,6 +108,9 @@ public class WindowGUI extends GuiScreen implements GUIUtil {
 
                 if (window instanceof ScrollableWindow) {
                     ((ScrollableWindow) window).setManualScroll(false);
+
+                    // we can now expand again
+                    window.setExpandable(true);
                 }
             });
         }
