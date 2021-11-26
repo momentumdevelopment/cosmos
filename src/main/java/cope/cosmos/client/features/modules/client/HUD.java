@@ -39,18 +39,29 @@ public class HUD extends Module {
     public static Setting<Boolean> tps = new Setting<>("TPS", "Displays the server TPS", true);
     public static Setting<Boolean> armor = new Setting<>("Armor", "Displays the player's armor", true);
 
+    private int globalOffset;
+
     private float listOffset;
     private int armorOffset;
 
-    // test for my two way animation manager, will put this into hud editor once it gets made
+    // bottom offsets
+    private float bottomRight = 10;
+    private float bottomLeft = 10;
+
+    // test for my two way animation manager, will put this into hud editor if it gets made
 
     @Override
     public void onRender2D() {
         int SCREEN_WIDTH = new ScaledResolution(mc).getScaledWidth();
         int SCREEN_HEIGHT = new ScaledResolution(mc).getScaledHeight();
 
+        // reset offsets
+        globalOffset = 0;
+        bottomLeft = 10;
+        bottomRight = 10;
+
         if (watermark.getValue()) {
-            FontUtil.drawStringWithShadow(Cosmos.NAME + TextFormatting.WHITE + " " + Cosmos.VERSION, 2, 2, ColorUtil.getPrimaryColor().getRGB());
+            FontUtil.drawStringWithShadow(Cosmos.NAME + TextFormatting.WHITE + " " + Cosmos.VERSION, 2, 2, ColorUtil.getPrimaryColor(globalOffset).getRGB());
         }
 
         if (mc.currentScreen == null) {
@@ -58,8 +69,9 @@ public class HUD extends Module {
                 listOffset = 0;
 
                 ModuleManager.getAllModules().stream().filter(Module::isDrawn).filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
-                    FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor().getRGB());
+                    FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1);
+                    globalOffset++;
                 });
             }
 
@@ -67,30 +79,43 @@ public class HUD extends Module {
                 double distanceX = mc.player.posX - mc.player.prevPosX;
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;
                 String speedDisplay = "Speed " + TextFormatting.WHITE + MathUtil.roundFloat((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600), 1) + " kmh";
-                FontUtil.drawStringWithShadow(speedDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(speedDisplay) - 2, SCREEN_HEIGHT - 10, ColorUtil.getPrimaryColor().getRGB());
+                FontUtil.drawStringWithShadow(speedDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(speedDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                bottomRight += FontUtil.getFontHeight() + 1;
+                globalOffset++;
             }
 
             if (ping.getValue()) {
                 String pingDisplay = "Ping " + TextFormatting.WHITE + (!mc.isSingleplayer() ? Objects.requireNonNull(mc.getConnection()).getPlayerInfo(mc.player.getUniqueID()).getResponseTime() : 0) + "ms";
-                FontUtil.drawStringWithShadow(pingDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(pingDisplay) - 2, SCREEN_HEIGHT - mc.fontRenderer.FONT_HEIGHT - 11, ColorUtil.getPrimaryColor().getRGB());
+                FontUtil.drawStringWithShadow(pingDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(pingDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                bottomRight += FontUtil.getFontHeight() + 1;
+                globalOffset++;
             }
 
             if (tps.getValue()) {
                 String tpsDisplay = "TPS " + TextFormatting.WHITE + Cosmos.INSTANCE.getTickManager().getTPS(TPS.AVERAGE);
-                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - (2 * mc.fontRenderer.FONT_HEIGHT) - 12, ColorUtil.getPrimaryColor().getRGB());
+                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                bottomRight += FontUtil.getFontHeight() + 1;
+                globalOffset++;
             }
 
             if (fps.getValue()) {
                 String tpsDisplay = "FPS " + TextFormatting.WHITE + Minecraft.getDebugFPS();
-                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - (3 * mc.fontRenderer.FONT_HEIGHT) - 13, ColorUtil.getPrimaryColor().getRGB());
+                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                bottomRight += FontUtil.getFontHeight() + 1;
+                globalOffset++;
             }
 
             if (coordinates.getValue()) {
                 String overWorldCoords = mc.player.dimension != -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY * 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);
                 String netherCoords = mc.player.dimension == -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : TextFormatting.RED + "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX / 8, 1) + " " + MathUtil.roundFloat(mc.player.posY / 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ / 8, 1);
 
-                FontUtil.drawStringWithShadow(overWorldCoords, 2, SCREEN_HEIGHT - 10, ColorUtil.getPrimaryColor().getRGB());
-                FontUtil.drawStringWithShadow(netherCoords, 2, SCREEN_HEIGHT - mc.fontRenderer.FONT_HEIGHT - 11, new Color(255, 0, 0).getRGB());
+                FontUtil.drawStringWithShadow(overWorldCoords, 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                bottomLeft += FontUtil.getFontHeight() + 1;
+                globalOffset++;
+
+                FontUtil.drawStringWithShadow(netherCoords, 2, SCREEN_HEIGHT - bottomLeft, new Color(255, 0, 0).getRGB());
+                bottomLeft += FontUtil.getFontHeight() + 1;
+                globalOffset++;
             }
 
             if (armor.getValue()) {

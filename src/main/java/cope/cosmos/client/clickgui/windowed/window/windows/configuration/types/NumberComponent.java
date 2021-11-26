@@ -64,7 +64,7 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
         }
 
         // if greater than max, setting is max
-        else if (mouseOver(getPosition().x + (width - 6), getPosition().y + 20, 5, 4)) {
+        if (mouseOver(getPosition().x + (width - 6), getPosition().y + 20, 5, 4)) {
             if (getGUI().getMouse().isLeftHeld()) {
                 getSetting().setValue(getSetting().getMax());
             }

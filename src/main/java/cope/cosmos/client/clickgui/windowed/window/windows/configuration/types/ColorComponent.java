@@ -66,8 +66,6 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
                 setBrightnessPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setBrightness(1 - ((brightnessPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
             }
-
-            getCosmos().getSoundManager().playSound("click");
         }
 
         if (mouseOver(getPosition().x + 94, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
@@ -75,8 +73,6 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
                 setTransparencyPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setTransparency(1 - ((transparencyPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
             }
-
-            getCosmos().getSoundManager().playSound("click");
         }
 
         // convert final selected color;
@@ -105,7 +101,15 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x + 6, getPosition().y + getBoundHeight() + 2, 64, 64) || mouseOver(getPosition().x + 80, getPosition().y + getBoundHeight() + 4, 3, 62) || mouseOver(getPosition().x + 94, getPosition().y + getBoundHeight() + 4, 3, 62)) {
+        if (mouseOver(getPosition().x + 6, getPosition().y + getBoundHeight() + 2, 64, 64)) {
+            getCosmos().getSoundManager().playSound("click");
+        }
+
+        if (mouseOver(getPosition().x + 80, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
+            getCosmos().getSoundManager().playSound("click");
+        }
+
+        if (mouseOver(getPosition().x + 94, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
             getCosmos().getSoundManager().playSound("click");
         }
     }
