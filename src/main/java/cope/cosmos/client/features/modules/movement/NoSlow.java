@@ -26,7 +26,7 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings("unused")
 public class NoSlow extends Module {
     public static NoSlow INSTANCE;
 
@@ -69,9 +69,9 @@ public class NoSlow extends Module {
 
         // set the slipperiness of ice to the normal block value
         if (ice.getValue()) {
-            Blocks.ICE.slipperiness = 0.4F;
-            Blocks.PACKED_ICE.slipperiness = 0.4F;
-            Blocks.FROSTED_ICE.slipperiness = 0.4F;
+            Blocks.ICE.setDefaultSlipperiness(0.4F);
+            Blocks.PACKED_ICE.setDefaultSlipperiness(0.4F);
+            Blocks.FROSTED_ICE.setDefaultSlipperiness(0.4F);
         }
     }
 
@@ -89,9 +89,9 @@ public class NoSlow extends Module {
 
         // reset ice slipperiness to default value
         if (ice.getValue()) {
-            Blocks.ICE.slipperiness = 0.98F;
-            Blocks.FROSTED_ICE.slipperiness = 0.98F;
-            Blocks.PACKED_ICE.slipperiness = 0.98F;
+            Blocks.ICE.setDefaultSlipperiness(0.98F);
+            Blocks.FROSTED_ICE.setDefaultSlipperiness(0.98F);
+            Blocks.PACKED_ICE.setDefaultSlipperiness(0.98F);
         }
 
         isSneaking = false;
