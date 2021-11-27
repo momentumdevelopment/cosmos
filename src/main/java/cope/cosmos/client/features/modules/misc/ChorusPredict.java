@@ -26,7 +26,7 @@ public class ChorusPredict extends Module {
         setExempt(true);
     }
 
-    public static Setting<Color> renderColor = new Setting<>("TP Color", "Color of the Position they will tp to", new Color(255, 0, 0, 45)).setParent(colors);
+    public static Setting<Color> renderColor = new Setting<>("TP Color", "Color of the Position they will tp to", new Color(255, 0, 0, 45));
 
 
     public void onUpdate() {
