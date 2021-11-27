@@ -7,6 +7,7 @@ import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.client.events.PacketEvent;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.init.SoundEvents;
@@ -45,7 +46,8 @@ public class ChorusPredict extends Module {
 
         }
     }
-  
+
+    @Listener
     public void onUpdate(PacketEvent.Receive event) {
         if (event.getPacket() instanceof SPacketSoundEffect) {
             if (((SPacketSoundEffect) event.getPacket()).getSound() == SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT) {
