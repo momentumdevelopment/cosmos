@@ -60,14 +60,15 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     @Shadow
     protected abstract boolean isCurrentViewEntity();
 
-    @Inject(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"), cancellable = true)
-    public void move(MoverType type, double x, double y, double z, CallbackInfo info) {
+    @Redirect(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"))
+    public void move(AbstractClientPlayer player, MoverType type, double x, double y, double z) {
         MotionEvent motionEvent = new MotionEvent(type, x, y, z);
         MinecraftForge.EVENT_BUS.post(motionEvent);
 
         if (motionEvent.isCanceled()) {
-            info.cancel();
             super.move(motionEvent.getType(), motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
+        } else {
+            super.move(type, x, y, z);
         }
     }
 

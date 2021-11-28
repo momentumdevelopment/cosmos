@@ -92,8 +92,8 @@ public class Speed extends Module {
             // set the timer if the player is moving
             else if (MotionUtil.isMoving()) {
                 getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
-                mc.player.motionX *= 1.02;
-                mc.player.motionZ *= 1.02;
+                event.setX(mc.player.motionX *= 1.02);
+                event.setZ(mc.player.motionZ *= 1.02);
             }
         }
 
@@ -141,12 +141,7 @@ public class Speed extends Module {
                 strafeStage = StrafeStage.JUMP;
 
                 // the jump height
-                double jumpSpeed = 0.41999998688697815;
-
-                // reduce jump height if we're on strict
-                if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
-                    jumpSpeed = 0.399399995803833;
-                }
+                double jumpSpeed = 0.399399995803833;
 
                 // scale jump speed if Jump Boost potion effect is active
                 if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
@@ -197,7 +192,7 @@ public class Speed extends Module {
         moveSpeed = Math.max(moveSpeed, baseSpeed);
 
         if (mode.getValue().equals(Mode.STRAFE)) {
-            moveSpeed = Math.min(moveSpeed, mc.player.isPotionActive(MobEffects.SPEED) ? 0.718 : 0.573);
+            moveSpeed = Math.min(moveSpeed, mc.player.isPotionActive(MobEffects.SPEED) ? 0.718 : 0.547);
         }
 
         if (boost.getValue() && boostTicks <= 5) {
@@ -227,8 +222,8 @@ public class Speed extends Module {
 
         // if we're not inputting any movements, then we shouldn't be adding any motion
         if (!MotionUtil.isMoving()) {
-            mc.player.motionX = 0;
-            mc.player.motionZ = 0;
+            event.setX(0.0);
+            event.setZ(0.0);
         }
 
         // find the rotations and inputs based on our current movements
@@ -257,13 +252,13 @@ public class Speed extends Module {
         double sin = Math.sin(Math.toRadians(yaw + 90));
 
         // update the movements
-        mc.player.motionX = (forward * moveSpeed * cos) + (strafe * moveSpeed * sin);
-        mc.player.motionZ = (forward * moveSpeed * sin) - (strafe * moveSpeed * cos);
+        event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * sin));
+        event.setZ((forward * moveSpeed * sin) - (strafe * moveSpeed * cos));
 
         // if we're not inputting any movements, then we shouldn't be adding any motion
         if (!MotionUtil.isMoving()) {
-            mc.player.motionX = 0;
-            mc.player.motionZ = 0;
+            event.setX(0.0);
+            event.setZ(0.0);
         }
     }
 
