@@ -37,11 +37,6 @@ public class Sprint extends Module {
     }
 
     @SubscribeEvent
-    public void onMotion(MotionEvent event) {
-        event.setCanceled(handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
-    }
-
-    @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
         event.setCanceled(handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL));
     }

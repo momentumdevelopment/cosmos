@@ -32,7 +32,6 @@ public class ReverseStep extends Module {
             return;
         }
 
-        event.setCanceled(true);
         if (mc.player.onGround) {
             switch (mode.getValue()) {
                 case MOTION:
