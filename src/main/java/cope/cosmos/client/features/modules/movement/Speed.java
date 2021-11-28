@@ -28,6 +28,7 @@ public class Speed extends Module {
     public static Setting<Boolean> timer = new Setting<>("Timer", "Uses timer to speed up strafe", true);
     public static Setting<Double> timerTick = new Setting<>("Ticks", "Timer speed", 1.0, 1.2, 2.0, 1).setParent(timer);
 
+    public static Setting<Boolean> accelerate = new Setting<>("Accelerate", "Accelerates speed after jumping", false);
     public static Setting<Boolean> boost = new Setting<>("Boost", "Boosts speed when taking knockback", false);
     public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows speed to function in liquids", false);
     public static Setting<Boolean> webs = new Setting<>("Web", "Allows speed to function in webs", false);
@@ -92,8 +93,8 @@ public class Speed extends Module {
             // set the timer if the player is moving
             else if (MotionUtil.isMoving()) {
                 getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
-                event.setX(mc.player.motionX *= 1.02);
-                event.setZ(mc.player.motionZ *= 1.02);
+                event.setX(event.getX() * 1.02);
+                event.setZ(event.getZ() * 1.02);
             }
         }
 
@@ -143,6 +144,10 @@ public class Speed extends Module {
                 // the jump height
                 double jumpSpeed = 0.399399995803833;
 
+                if (mode.getValue().equals(Mode.STRAFE_LOW)) {
+                    jumpSpeed = 0.27;
+                }
+
                 // scale jump speed if Jump Boost potion effect is active
                 if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
                     jumpSpeed += (mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier() + 1) * 0.1;
@@ -152,8 +157,24 @@ public class Speed extends Module {
                 mc.player.motionY = jumpSpeed;
                 event.setY(jumpSpeed);
 
+                // acceleration jump factor
+                double acceleration = 2.149;
+
+                // acceleration due to jump
+                if (accelerate.getValue()) {
+                    switch (mode.getValue()) {
+                        case STRAFE:
+                        case STRAFE_LOW:
+                            acceleration = Math.min(2.14 * baseSpeed, 2.547);
+                            break;
+                        case STRAFE_STRICT:
+                            acceleration = Math.min(2.14 * baseSpeed, Math.min(baseSpeed * 1.78, latestMoveSpeed * 1.78));
+                            break;
+                    }
+                }
+
                 // since we just jumped, we can now move faster
-                moveSpeed *= 2.149;
+                moveSpeed *= acceleration;
             }
 
             // final stage, we can now start speeding
@@ -299,6 +320,11 @@ public class Speed extends Module {
          * Strafe but with a slower initial and max speed, along with {@link NoSlow} NoSlow built into the Speed
          */
         STRAFE_STRICT,
+
+        /**
+         * Strafe with a lower jump height
+         */
+        STRAFE_LOW
     }
 
     public enum StrafeStage {
