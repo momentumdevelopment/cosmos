@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.client;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -13,10 +14,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -38,6 +41,7 @@ public class HUD extends Module {
     public static Setting<Boolean> fps = new Setting<>("FPS", "Displays the current FPS", true);
     public static Setting<Boolean> tps = new Setting<>("TPS", "Displays the server TPS", true);
     public static Setting<Boolean> armor = new Setting<>("Armor", "Displays the player's armor", true);
+    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", "Displays the player's active potion effects", false);
 
     private int globalOffset;
 
@@ -70,7 +74,34 @@ public class HUD extends Module {
 
                 ModuleManager.getAllModules().stream().filter(Module::isDrawn).filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
                     FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                    // offset
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1);
+                    globalOffset++;
+                });
+            }
+
+            if (potionEffects.getValue()) {
+                mc.player.getActivePotionEffects().forEach(potionEffect -> {
+                    // potion formatted
+                    StringBuilder potionFormatted = new StringBuilder(I18n.format(potionEffect.getEffectName()));
+
+                    // duration
+                    float duration = potionEffect.getDuration() / getCosmos().getTickManager().getTPS(TPS.AVERAGE);
+                    float durationSeconds = duration % 60;
+                    float durationMinutes = (duration / 60) % 60;
+
+                    // time formatter
+                    DecimalFormat minuteFormatter = new DecimalFormat("0");
+                    DecimalFormat secondsFormatter = new DecimalFormat("00");
+
+                    // potion formatted
+                    potionFormatted.append(" ").append(potionEffect.getAmplifier() + 1).append(ChatFormatting.WHITE).append(" ").append(minuteFormatter.format(durationMinutes)).append(":").append(secondsFormatter.format(durationSeconds));
+
+                    FontUtil.drawStringWithShadow(potionFormatted.toString(), SCREEN_WIDTH - FontUtil.getStringWidth(potionFormatted.toString()) - 2, SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+
+                    // offset
+                    bottomRight += FontUtil.getFontHeight() + 1;
                     globalOffset++;
                 });
             }
@@ -80,6 +111,8 @@ public class HUD extends Module {
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;
                 String speedDisplay = "Speed " + TextFormatting.WHITE + MathUtil.roundFloat((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600), 1) + " kmh";
                 FontUtil.drawStringWithShadow(speedDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(speedDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }
@@ -87,6 +120,8 @@ public class HUD extends Module {
             if (ping.getValue()) {
                 String pingDisplay = "Ping " + TextFormatting.WHITE + (!mc.isSingleplayer() ? Objects.requireNonNull(mc.getConnection()).getPlayerInfo(mc.player.getUniqueID()).getResponseTime() : 0) + "ms";
                 FontUtil.drawStringWithShadow(pingDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(pingDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }
@@ -94,6 +129,8 @@ public class HUD extends Module {
             if (tps.getValue()) {
                 String tpsDisplay = "TPS " + TextFormatting.WHITE + Cosmos.INSTANCE.getTickManager().getTPS(TPS.AVERAGE);
                 FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }
@@ -101,6 +138,8 @@ public class HUD extends Module {
             if (fps.getValue()) {
                 String tpsDisplay = "FPS " + TextFormatting.WHITE + Minecraft.getDebugFPS();
                 FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }

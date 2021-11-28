@@ -427,7 +427,7 @@ public class AutoCrystal extends Module {
 
             for (BlockPos calculatedPosition : BlockUtil.getSurroundingBlocks(mc.player, placeRange.getValue(), false)) {
                 // make sure it's actually a viable position
-                if (!canPlaceCrystal(calculatedPosition, placements.getValue())) {
+                if (!canPlaceCrystal(calculatedPosition)) {
                     continue;
                 }
 
@@ -658,6 +658,9 @@ public class AutoCrystal extends Module {
 
         // packet for crystal explosions
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
+            // clear our old inhibit entities
+            blackListExplosions.clear();
+
             mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> entity.getDistance(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ()) < 6).forEach(entity -> {
                 // going to be exploded anyway, so don't attempt explosion
                 if (explodeInhibit.getValue()) {
@@ -726,29 +729,50 @@ public class AutoCrystal extends Module {
         }
     }
 
-    public boolean canPlaceCrystal(BlockPos blockPos, Placements placements) {
-        try {
-            if (!mc.world.getBlockState(blockPos).getBlock().equals(Blocks.BEDROCK) && !mc.world.getBlockState(blockPos).getBlock().equals(Blocks.OBSIDIAN))
-                return false;
-
-            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(blockPos.add(0, 1, 0)))) {
-                if (entity.isDead || (entity instanceof EntityEnderCrystal && entity.getPosition().equals(blockPos.add(0, 1, 0)))) {
-                    continue;
-                }
-
-                return false;
-            }
-
-            switch (placements) {
-                case NATIVE:
-                default:
-                    return mc.world.getBlockState(blockPos.add(0, 2, 0)).getBlock().equals(Blocks.AIR) && (mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.FIRE));
-                case UPDATED:
-                    return mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.AIR) || mc.world.getBlockState(blockPos.add(0, 1, 0)).getBlock().equals(Blocks.FIRE);
-            }
-        } catch (Exception ignored) {
+    /**
+     * Finds whether or not a crystal can be placed on a specified block
+     * @param position The specified block to check if a crystal can be placed
+     * @return Whether or not a crystal can be placed at the location
+     */
+    public boolean canPlaceCrystal(BlockPos position) {
+        // crystals can only be placed on Obsidian and Bedrock
+        if (!mc.world.getBlockState(position).getBlock().equals(Blocks.BEDROCK) && !mc.world.getBlockState(position).getBlock().equals(Blocks.OBSIDIAN)) {
             return false;
         }
+
+        // the relative positions to check for air or fire, crystals can be placed on fire
+        BlockPos nativePosition = position.add(0, 1, 0);
+        BlockPos updatedPosition = position.add(0, 2, 0);
+
+        // check if the native position is air or fire
+        if (!mc.world.isAirBlock(nativePosition) && !mc.world.getBlockState(nativePosition).getBlock().equals(Blocks.FIRE)) {
+            return false;
+        }
+
+        // check if the updated position is air or fire
+        if (placements.getValue().equals(Placements.NATIVE)) {
+            if (!mc.world.isAirBlock(updatedPosition) && !mc.world.getBlockState(updatedPosition).getBlock().equals(Blocks.FIRE)) {
+                return false;
+            }
+        }
+
+        // check for any unsafe entities in the position
+        int unsafeEntities = 0;
+        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(nativePosition))) {
+            // if the entity is crystal, check it's on the same position
+            if (entity instanceof EntityEnderCrystal && entity.getPosition().equals(nativePosition)) {
+                continue;
+            }
+
+            // if the entity will be removed the next tick, we can still place here
+            if (entity.isDead) {
+                continue;
+            }
+
+            unsafeEntities++;
+        }
+
+        return unsafeEntities <= 0;
     }
 
     public float calculateLogic(float targetDamage, float selfDamage, double distance) {
