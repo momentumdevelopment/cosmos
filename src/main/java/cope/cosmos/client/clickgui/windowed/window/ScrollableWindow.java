@@ -65,7 +65,7 @@ public class ScrollableWindow extends Window {
         }
 
         // manual scroll
-        if (getManualScroll()) {
+        if (getManualScroll() && MathHelper.clamp(upperBound / lowerBound, 0, 1) < 1) {
             scaledY += (getGUI().getMouse().getMousePosition().y - previousY);
             scroll = (scaledY / (upperBound - 3 - scaledHeight)) * boundDifference;
         }

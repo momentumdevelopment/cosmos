@@ -21,7 +21,7 @@ public class Step extends Module {
         stepHeights.put(2.5, new double[] { 0.425, 0.821, 0.699, 0.599, 1.022, 1.372, 1.652, 1.869, 2.019, 1.907 });
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "How to step up blocks", Mode.NCP);
+    public static Setting<Mode> mode = new Setting<>("Mode", "How to step up blocks", Mode.NORMAL);
     public static Setting<Double> height = new Setting<>("Height", "The height to step up blocks", 1.0, 1.0, 2.5, 1);
 
     private final Map<Double, double[]> stepHeights = new HashMap<>();
@@ -45,7 +45,7 @@ public class Step extends Module {
         mc.player.stepHeight = 0.5F;
 
         switch (mode.getValue()) {
-            case NCP: {
+            case NORMAL: {
                 if (mc.player.onGround) {
                     double stepHeight = 0.0; // the amount of blocks we have to step up
 
@@ -55,7 +55,7 @@ public class Step extends Module {
                         }
                     }
 
-                    // @todo: maybe use NCP lag compensation against itself? or find a way to do 1.5-2.5 step
+                    // TODO: maybe use NCP lag compensation against itself? or find a way to do 1.5-2.5 step
                     if (stepHeight != 0 && height.getValue() >= stepHeight) { // if we have blocks to step up and we're within our step height range
                         double[] packetHeights = stepHeights.getOrDefault(stepHeight, null); // get our step heights from the map assigned to the block height
 
@@ -92,6 +92,6 @@ public class Step extends Module {
     }
 
     public enum Mode {
-        NCP, VANILLA, SPIDER
+        NORMAL, VANILLA, SPIDER
     }
 }

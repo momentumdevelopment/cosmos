@@ -54,6 +54,7 @@ public class ModuleManager extends Manager {
 			new NoSlow(),
 			new PacketFlight(),
 			new ReverseStep(),
+			new Speed(),
 			new Sprint(),
 			new Step(),
 			new Velocity(),
