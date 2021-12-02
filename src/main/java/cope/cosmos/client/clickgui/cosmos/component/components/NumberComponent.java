@@ -133,7 +133,7 @@ public class NumberComponent<T extends Number> extends SettingComponent<Number> 
     public void handleRightClick(int mouseX, int mouseY) {
         if (mouseOver(getPosition().x + (WIDTH - 6), getPosition().y, 5, SLIDER_HEIGHT)) {
             typing = !typing;
-            insertionTimer.reset();
+            insertionTimer.resetTime();
         }
     }
 
@@ -208,8 +208,8 @@ public class NumberComponent<T extends Number> extends SettingComponent<Number> 
     }
 
     public String getInsertionPoint() {
-        if (insertionTimer.passed(500, Format.SYSTEM)) {
-            insertionTimer.reset();
+        if (insertionTimer.passedTime(500, Format.SYSTEM)) {
+            insertionTimer.resetTime();
             insertion = !insertion;
         }
 

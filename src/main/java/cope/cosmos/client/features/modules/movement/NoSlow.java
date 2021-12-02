@@ -69,9 +69,9 @@ public class NoSlow extends Module {
 
         // set the slipperiness of ice to the normal block value
         if (ice.getValue()) {
-            Blocks.ICE.setDefaultSlipperiness(0.4F);
-            Blocks.PACKED_ICE.setDefaultSlipperiness(0.4F);
-            Blocks.FROSTED_ICE.setDefaultSlipperiness(0.4F);
+            Blocks.ICE.setDefaultSlipperiness(0.6F);
+            Blocks.PACKED_ICE.setDefaultSlipperiness(0.6F);
+            Blocks.FROSTED_ICE.setDefaultSlipperiness(0.6F);
         }
     }
 
@@ -157,8 +157,9 @@ public class NoSlow extends Module {
                 }
 
                 if (groundStrict.getValue() && ((CPacketPlayer) event.getPacket()).isOnGround()) {
-                    if (groundTimer.passed(2, Format.TICKS)) {
+                    if (groundTimer.passedTime(2, Format.TICKS)) {
                         ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) + 0.05);
+                        groundTimer.resetTime();
                     }
 
                     ((ICPacketPlayer) event.getPacket()).setOnGround(false);

@@ -220,12 +220,12 @@ public class Aura extends Module {
 
             if (handleDelay()) {
                 // if we passed our critical time, then we can attempt a critical attack
-                if (criticalTimer.passed(300, Format.SYSTEM) && timing.getValue().equals(Timing.SEQUENTIAL)) {
+                if (criticalTimer.passedTime(300, Format.SYSTEM) && timing.getValue().equals(Timing.SEQUENTIAL)) {
                     mc.player.fallDistance = 0.1F;
                     mc.player.onGround = false;
 
                     // make sure we only try to land criticals every 300 milliseconds
-                    criticalTimer.reset();
+                    criticalTimer.resetTime();
                 }
 
                 // attack the target
@@ -330,7 +330,7 @@ public class Aura extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
-            switchTimer.reset();
+            switchTimer.resetTime();
         }
     }
 
@@ -342,26 +342,29 @@ public class Aura extends Module {
                 double tpsScaled = delayFactor.getValue() + (attackRandom.nextBoolean() ? attackRandom.nextFloat() * (delayRandom.getValue().longValue() / delayRandom.getMax()) : -attackRandom.nextFloat() * (delayRandom.getValue().longValue() / delayRandom.getMax()));
 
                 // delay by server ticks
-                return mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - getCosmos().getTickManager().getTPS(delayTPS.getValue())) >= tpsScaled && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                return mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - getCosmos().getTickManager().getTPS(delayTPS.getValue())) >= tpsScaled && switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.SYSTEM);
             case SWING:
                 double swingScaled = delayFactor.getValue() + (attackRandom.nextBoolean() ? attackRandom.nextFloat() * (delayRandom.getValue().longValue() / delayRandom.getMax()) : -attackRandom.nextFloat() * (delayRandom.getValue().longValue() / delayRandom.getMax()));
 
                 // vanilla swing delays
-                return mc.player.getCooledAttackStrength(0) >= swingScaled && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                return mc.player.getCooledAttackStrength(0) >= swingScaled && switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.SYSTEM);
             case CUSTOM:
                 long delayScaled = (long) (delay.getValue().longValue() + (attackRandom.nextBoolean() ? (attackRandom.nextFloat() * delayRandom.getValue().longValue()) : -(attackRandom.nextFloat() * delayRandom.getValue().longValue())));
 
                 // delay in milliseconds
-                if (auraTimer.passed(delayScaled, Format.SYSTEM)) {
-                    auraTimer.reset();
-                    return switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                if (auraTimer.passedTime(delayScaled, Format.SYSTEM)) {
+                    auraTimer.resetTime();
+                    return switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.SYSTEM);
                 }
 
             case TICK:
                 long tickScaled = (long) (delayTicks.getValue().longValue() + (attackRandom.nextBoolean() ? (attackRandom.nextFloat() * (delayRandom.getValue().longValue() / 50)) : -(attackRandom.nextFloat() * (delayRandom.getValue().longValue() / 50))));
 
                 // delay in ticks
-                return auraTimer.passed(tickScaled, Format.TICKS) && switchTimer.passed(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                if (auraTimer.passedTime(tickScaled, Format.TICKS)) {
+                    auraTimer.resetTime();
+                    return switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.SYSTEM);
+                }
         }
 
         return true;

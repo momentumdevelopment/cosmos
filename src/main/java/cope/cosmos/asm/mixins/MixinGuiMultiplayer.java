@@ -14,13 +14,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinGuiMultiplayer extends GuiScreen {
 
 	@Inject(method = "initGui", at = @At("RETURN"))
-	public void initGui(CallbackInfo ci) {
-		this.buttonList.add(new GuiButton(417, 7, 7, 60, 20, "Alts"));
+	public void initGui(CallbackInfo info) {
+		buttonList.add(new GuiButton(417, 7, 7, 60, 20, "Alts"));
 	}
 	
 	@Inject(method = "actionPerformed", at = @At("RETURN"))
-	public void actionPerformed(GuiButton button, CallbackInfo ci) {
-		if (button.id == 417)
+	public void actionPerformed(GuiButton button, CallbackInfo info) {
+		if (button.id == 417) {
 			mc.displayGuiScreen(new AltManagerGUI(this));
+		}
 	}
 }

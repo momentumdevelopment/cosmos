@@ -1,58 +1,91 @@
 package cope.cosmos.util.system;
 
 import cope.cosmos.util.Wrapper;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+@SuppressWarnings("unused")
 public class Timer implements Wrapper {
 
-    public long time;
+    // time
+    private long milliseconds;
+    private long ticks;
 
     public Timer() {
-        time = -1;
+        // initialize the values
+        milliseconds = -1;
+        ticks = -1;
+
+        // register to event bus
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
-    public long getMS(long time) {
-        return time / 1000000L;
+    @SubscribeEvent
+    public void onUpdate(LivingEvent.LivingUpdateEvent event) {
+        // update ticks
+        if (nullCheck()) {
+            ticks++;
+        }
+
+        else {
+            // reset time
+            milliseconds = -1;
+            ticks = -1;
+        }
     }
 
-    public boolean passed(long time, Format format) {
+    /**
+     * Checks if the timer has passed a specified time
+     * @param time The specified time
+     * @param format The timing format to use
+     * @return Whether the timer has passed the specified time
+     */
+    public boolean passedTime(long time, Format format) {
         switch (format) {
             case SYSTEM:
             default:
-                return getMS(System.nanoTime() - this.time) >= time;
+                return (System.currentTimeMillis() - milliseconds) >= time;
             case TICKS:
-                return mc.player.ticksExisted % time == 0;
+                return ticks >= time;
         }
     }
 
-    public boolean reach(long time, Format format) {
+    /**
+     * Sets the timer time
+     * @param in The new time
+     * @param format The timing format to use
+     */
+    public void setTime(long in, Format format) {
         switch (format) {
             case SYSTEM:
             default:
-                return getMS(System.nanoTime() - this.time) <= time;
+                milliseconds = System.currentTimeMillis() - in;
+                break;
             case TICKS:
-                return mc.player.ticksExisted % time != 0;
+                ticks = in;
+                break;
         }
     }
 
-    public boolean sleep(long time) {
-        if ((System.nanoTime() / 1000000L - time) >= time) {
-            reset();
-            return true;
-        }
-
-        return false;
-    }
-
-    public void setTime(long in) {
-        time = System.nanoTime() - (in * 1000000L);
-    }
-
-    public void reset() {
-        time = System.nanoTime();
+    /**
+     * Resets the timer
+     */
+    public void resetTime() {
+        // reset our values
+        milliseconds = System.currentTimeMillis();
+        ticks = 0;
     }
 
     public enum Format {
+        /**
+         * Time in milliseconds
+         */
         SYSTEM,
+
+        /**
+         * Time in ticks
+         */
         TICKS
     }
 }

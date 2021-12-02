@@ -20,16 +20,16 @@ public class AntiVoid extends Module {
 
     @Override
     public void onUpdate() {
-        if (mc.player.posY <= 0.0) {
+        if (mc.player.posY <= 0) {
             switch (mode.getValue()) {
                 case SUSPEND:
-                    mc.player.motionY = 0.0;
+                    mc.player.motionY = 0;
                     break;
                 case GLIDE:
                     mc.player.motionY /= glide.getValue();
                     break;
                 case RUBBERBAND:
-                    TeleportUtil.teleportPlayerKeepMotion(mc.player.posX, mc.player.posY + 4.0, mc.player.posZ);
+                    TeleportUtil.teleportPlayerKeepMotion(mc.player.posX, mc.player.posY + 4, mc.player.posZ);
                     break;
                 case FLOAT:
                     mc.player.motionY = floatUp.getValue();

@@ -69,10 +69,11 @@ public class Blink extends Module {
     public void onUpdate() {
         switch (mode.getValue()) {
             case DELAY: {
-                if (timer.passed(delay.getValue().longValue() * 1000L, Timer.Format.SYSTEM)) {
-                    timer.reset();
+                if (timer.passedTime(delay.getValue().longValue() * 1000, Timer.Format.SYSTEM)) {
+                    timer.resetTime();
                     process(true);
                 }
+
                 break;
             }
 
@@ -80,6 +81,7 @@ public class Blink extends Module {
                 if (packets.size() >= packetCount.getValue()) {
                     process(true);
                 }
+
                 break;
             }
 
@@ -92,6 +94,7 @@ public class Blink extends Module {
                 if (mc.player.getDistance(lastPos.getX(), lastPos.getY(), lastPos.getZ()) >= distance.getValue()) {
                     process(true);
                 }
+
                 break;
             }
         }

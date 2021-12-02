@@ -38,7 +38,9 @@ public class PresetManager extends Manager {
         save();
 
         // save the config when the game is closed
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> getCosmos().getPresetManager().save()));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            getCosmos().getPresetManager().save();
+        }));
     }
 
     /**
@@ -51,6 +53,7 @@ public class PresetManager extends Manager {
                 currentPreset = in;
             }
 
+            // load the new preset
             load();
         }
     }

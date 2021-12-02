@@ -31,11 +31,11 @@ public class Velocity extends Module {
 	public static Setting<Boolean> blocks = new Setting<>("Blocks", "Prevents being pushed out of blocks", true).setParent(noPush);
 	public static Setting<Boolean> liquid = new Setting<>("Liquid", "Prevents being pushed by liquids", true).setParent(noPush);
 
-	float collisionReduction;
+	private float collisionReduction;
 
 	@Override
 	public void onUpdate() {
-		if (noPush.getValue()) {
+		if (noPush.getValue() && entities.getValue()) {
 			mc.player.entityCollisionReduction = 1;
 		}
 	}
@@ -76,9 +76,9 @@ public class Velocity extends Module {
 				}
 
 				SPacketExplosion packet = (SPacketExplosion) event.getPacket();
-				((ISPacketExplosion) packet).setMotionX((float) (((((ISPacketExplosion) packet).getMotionX() / 100) * horizontal.getValue())));
-				((ISPacketExplosion) packet).setMotionY((float) (((((ISPacketExplosion) packet).getMotionY() / 100) * vertical.getValue())));
-				((ISPacketExplosion) packet).setMotionZ((float) (((((ISPacketExplosion) packet).getMotionZ() / 100) * horizontal.getValue())));
+				((ISPacketExplosion) packet).setMotionX((((((ISPacketExplosion) packet).getMotionX() / 100) * horizontal.getValue().floatValue())));
+				((ISPacketExplosion) packet).setMotionY((((((ISPacketExplosion) packet).getMotionY() / 100) * vertical.getValue().floatValue())));
+				((ISPacketExplosion) packet).setMotionZ((((((ISPacketExplosion) packet).getMotionZ() / 100) * horizontal.getValue().floatValue())));
 			}
 		}
 	}

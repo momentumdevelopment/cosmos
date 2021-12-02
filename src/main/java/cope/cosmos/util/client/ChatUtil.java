@@ -19,7 +19,7 @@ public class ChatUtil implements Wrapper {
 	private static final Map<Module, Integer> messageMap = new HashMap<>();
 	
 	public static String getPrefix() {
-		return ChatFormatting.BLUE + "<" + ChatFormatting.DARK_PURPLE + "Cosmos" + ChatFormatting.BLUE + "> " + ChatFormatting.GRAY;
+		return "<Cosmos> ";
 	}
 	
 	public static void sendMessage(String message) {

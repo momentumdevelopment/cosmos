@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.events.RenderNametagEvent;
 import cope.cosmos.client.events.RenderRotationsEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -52,6 +53,16 @@ public class MixinRenderPlayer implements Wrapper {
             entity.prevRotationPitch = prevRenderPitch;
             entity.renderYawOffset = prevRenderYawOffset;
             entity.prevRenderYawOffset = prevPrevRenderYawOffset;
+        }
+    }
+
+    @Inject(method = "renderEntityName", at = @At("HEAD"), cancellable = true)
+    public void renderNametag(AbstractClientPlayer entityIn, double x, double y, double z, String name, double distanceSq, CallbackInfo info) {
+        RenderNametagEvent renderNametagEvent = new RenderNametagEvent();
+        MinecraftForge.EVENT_BUS.post(renderNametagEvent);
+
+        if (renderNametagEvent.isCanceled()) {
+            info.cancel();
         }
     }
 }

@@ -202,7 +202,7 @@ public class CategoryWindow extends Window implements Wrapper, GUIUtil {
         moduleScroll += scrollSpeed;
         scrollSpeed *= 0.5;
 
-        if (scrollTimer.passed(100, Format.SYSTEM)) {
+        if (scrollTimer.passedTime(100, Format.SYSTEM)) {
             if (moduleScroll < 0)
                 scrollSpeed = moduleScroll * -0.25F;
             else if (moduleScroll > upperBound)
@@ -214,7 +214,7 @@ public class CategoryWindow extends Window implements Wrapper, GUIUtil {
     public void handleScroll(int scroll) {
         if (open) {
             if (Mouse.getEventDWheel() != 0) {
-                scrollTimer.reset();
+                scrollTimer.resetTime();
                 scrollSpeed -= scroll * 0.05F;
             }
 

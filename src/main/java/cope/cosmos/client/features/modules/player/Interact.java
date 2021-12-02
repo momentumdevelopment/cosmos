@@ -80,8 +80,9 @@ public class Interact extends Module {
         }
 
         if (hitBox.getValue() && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.ENTITY)) {
-            if (hitBoxPlayers.getValue() && !(mc.objectMouseOver.entityHit instanceof EntityPlayer))
+            if (hitBoxPlayers.getValue() && !(mc.objectMouseOver.entityHit instanceof EntityPlayer)) {
                 return;
+            }
 
             RayTraceResult hitboxResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 

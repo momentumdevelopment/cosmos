@@ -19,7 +19,7 @@ public class FastProjectile extends Module {
     public static FastProjectile INSTANCE;
 
     public FastProjectile() {
-        super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> (projectileTimer.passed(5000, Format.SYSTEM) ? "Charged" : "Charging"));
+        super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> (projectileTimer.passedTime(5000, Format.SYSTEM) ? "Charged" : "Charging"));
         INSTANCE = this;
     }
     
@@ -34,7 +34,7 @@ public class FastProjectile extends Module {
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerDigging && ((CPacketPlayerDigging) event.getPacket()).getAction().equals(CPacketPlayerDigging.Action.RELEASE_USE_ITEM)) {
             if (InventoryUtil.isHolding(Items.BOW) && bows.getValue() || InventoryUtil.isHolding(Items.EGG) && eggs.getValue() || InventoryUtil.isHolding(Items.SNOWBALL) && snowballs.getValue()) {
-                if (projectileTimer.passed(5000, Format.SYSTEM)) {
+                if (projectileTimer.passedTime(2000, Format.SYSTEM)) {
                     mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
 
                     Random projectileRandom = new Random();
@@ -53,7 +53,7 @@ public class FastProjectile extends Module {
                         }
                     }
 
-                    projectileTimer.reset();
+                    projectileTimer.resetTime();
                 }
             }
         }

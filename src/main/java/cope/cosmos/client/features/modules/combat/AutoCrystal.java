@@ -151,18 +151,12 @@ public class AutoCrystal extends Module {
     private EnumHand previousHand;
     private int previousSlot = -1;
 
+    // response time
+    private long startTime = 0;
+    private static double responseTime = 0;
+
     @Override
     public void onUpdate() {
-        if (pause.getValue()) {
-            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
-                return;
-            }
-
-            if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode) {
-                return;
-            }
-        }
-
         if (strictTicks > 0) {
             strictTicks--;
         }
@@ -175,6 +169,18 @@ public class AutoCrystal extends Module {
 
     @Override
     public void onThread() {
+        if (pause.getValue()) {
+            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
+                resetProcess();
+                return;
+            }
+
+            if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode) {
+                resetProcess();
+                return;
+            }
+        }
+
         explodeCrystal = searchCrystal();
         placePosition = searchPosition();
     }
@@ -229,14 +235,14 @@ public class AutoCrystal extends Module {
                 }
             }
 
-            if (explodeTimer.passed(explodeDelay.getValue().longValue() + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passed(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
+            if (explodeTimer.passedTime(explodeDelay.getValue().longValue() + (long) ThreadLocalRandom.current().nextDouble(explodeRandom.getValue() + 1), Format.SYSTEM) && switchTimer.passedTime(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
                 // explode the crystal
                 explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
                 swingArm(explodeHand.getValue());
 
-                explodeTimer.reset();
+                explodeTimer.resetTime();
 
-                // add crystal to our list of attempted explosions and reset the clearance
+                // add crystal to our list of attempted explosions and resetTime the clearance
                 attemptedExplosions.put(explodeCrystal.getCrystal().getEntityId(), attemptedExplosions.containsKey(explodeCrystal.getCrystal().getEntityId()) ? attemptedExplosions.get(explodeCrystal.getCrystal().getEntityId()) + 1 : 1);
 
                 if (sync.getValue().equals(Sync.INSTANT)) {
@@ -274,7 +280,7 @@ public class AutoCrystal extends Module {
             // switch to crystals if needed
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
-            if (placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
+            if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
                 double facingX = 0;
                 double facingY = 0;
@@ -339,9 +345,9 @@ public class AutoCrystal extends Module {
                     }
                 }
 
-                placeTimer.reset();
+                placeTimer.resetTime();
 
-                // add placement to our list of attempted placement and reset clearance
+                // add placement to our list of attempted placement and resetTime clearance
                 attemptedPlacements.put(placePosition.getPosition(), attemptedPlacements.containsKey(placePosition.getPosition()) ? attemptedPlacements.get(placePosition.getPosition()) + 1 : 1);
             }
         }
@@ -570,7 +576,7 @@ public class AutoCrystal extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
-            switchTimer.reset();
+            switchTimer.resetTime();
         }
     }
 
@@ -580,11 +586,15 @@ public class AutoCrystal extends Module {
             // position of the placed crystal
             BlockPos linearPosition = new BlockPos(((SPacketSpawnObject) event.getPacket()).getX(), ((SPacketSpawnObject) event.getPacket()).getY(), ((SPacketSpawnObject) event.getPacket()).getZ());
 
-            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+            // our place position
+            if (attemptedPlacements.containsKey(linearPosition.down())) {
+                // mark the place time
+                startTime = System.currentTimeMillis();
+
                 // since it's been confirmed that the crystal spawned, we can move on to our next process
-                if (attemptedPlacements.containsKey(linearPosition.down())) {
-                    if (!explodeTimer.passed(explodeDelay.getValue().longValue(), Format.SYSTEM)) {
-                        explodeTimer.setTime(explodeDelay.getValue().longValue());
+                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                    if (!explodeTimer.passedTime(explodeDelay.getValue().longValue(), Format.SYSTEM)) {
+                        explodeTimer.setTime(explodeDelay.getValue().longValue(), Format.SYSTEM);
                     }
 
                     attemptedPlacements.clear();
@@ -642,15 +652,21 @@ public class AutoCrystal extends Module {
             }
         }
 
-        if (event.getPacket() instanceof SPacketDestroyEntities && (timing.getValue().equals(Timing.SEQUENTIAL) || timing.getValue().equals(Timing.UNIFORM))) {
+        if (event.getPacket() instanceof SPacketDestroyEntities) {
             // since it's been confirmed that the crystal exploded, we can move on to our next process
             for (int entityId : ((SPacketDestroyEntities) event.getPacket()).getEntityIDs()) {
                 if (attemptedExplosions.containsKey(entityId)) {
-                    if (!placeTimer.passed(placeDelay.getValue().longValue(), Format.SYSTEM)) {
-                        placeTimer.setTime(placeDelay.getValue().longValue());
+                    // time since place
+                    responseTime = System.currentTimeMillis() - startTime;
+
+                    if (timing.getValue().equals(Timing.SEQUENTIAL) || timing.getValue().equals(Timing.UNIFORM)) {
+                        if (!placeTimer.passedTime(placeDelay.getValue().longValue(), Format.SYSTEM)) {
+                            placeTimer.setTime(placeDelay.getValue().longValue(), Format.SYSTEM);
+                        }
+
+                        attemptedExplosions.clear();
                     }
 
-                    attemptedExplosions.clear();
                     break;
                 }
             }
@@ -809,8 +825,10 @@ public class AutoCrystal extends Module {
         previousHand = null;
         previousSlot = -1;
         strictTicks = 0;
-        placeTimer.reset();
-        explodeTimer.reset();
+        startTime = 0;
+        responseTime = 0;
+        placeTimer.resetTime();
+        explodeTimer.resetTime();
         attemptedExplosions.clear();
         attemptedPlacements.clear();
         blackListExplosions.clear();

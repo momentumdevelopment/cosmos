@@ -11,6 +11,9 @@ public interface IPlayerControllerMP {
     @Accessor("curBlockDamageMP")
     void setCurrentBlockDamage(float currentBlockDamage);
 
+    @Accessor("curBlockDamageMP")
+    float getCurrentBlockDamage();
+
     @Accessor("blockHitDelay")
     void setBlockHitDelay(int blockHitDelay);
 

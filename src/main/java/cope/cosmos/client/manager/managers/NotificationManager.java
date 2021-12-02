@@ -27,7 +27,7 @@ public class NotificationManager extends Manager {
         if (unique) {
             notifications.add(notification);
             notification.getAnimation().setState(true);
-            notification.getTimer().reset();
+            notification.getTimer().resetTime();
         }
     }
 

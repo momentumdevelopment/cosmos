@@ -34,9 +34,9 @@ public class PingSpoof extends Module {
 
     @Override
     public void onUpdate() {
-        if (timer.passed(delay.getValue().longValue() * 1000L, Format.SYSTEM)) {
+        if (timer.passedTime(delay.getValue().longValue() * 1000L, Format.SYSTEM)) {
             process();
-            timer.reset();
+            timer.resetTime();
         }
     }
 

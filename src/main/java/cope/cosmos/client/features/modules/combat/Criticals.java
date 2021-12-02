@@ -75,7 +75,7 @@ public class Criticals extends Module {
         if (Aura.INSTANCE.isActive() && Aura.timing.getValue().equals(Timing.SEQUENTIAL))
             return;
 
-        if (criticalTimer.passed(InventoryUtil.isHolding32k() ? delayThirtyTwoK.getValue().longValue() : delay.getValue().longValue(), Format.SYSTEM)) {
+        if (criticalTimer.passedTime(InventoryUtil.isHolding32k() ? delayThirtyTwoK.getValue().longValue() : delay.getValue().longValue(), Format.SYSTEM)) {
             if (mode.getValue().equals(Mode.MOTION)) {
                 mc.player.jump();
             }
@@ -95,7 +95,7 @@ public class Criticals extends Module {
                 mc.player.onCriticalHit(entity);
             }
 
-            criticalTimer.reset();
+            criticalTimer.resetTime();
         }
     }
 

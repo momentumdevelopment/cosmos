@@ -23,7 +23,7 @@ public class ElytraFlight extends Module {
     public static ElytraFlight INSTANCE;
 
     public ElytraFlight() {
-        super("ElytraFlight", Category.MOVEMENT, "Allows you to fly faster on an elytra");
+        super("ElytraFlight", Category.MOVEMENT, "Allows you to fly faster on an elytra", () -> Setting.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
@@ -46,22 +46,30 @@ public class ElytraFlight extends Module {
 
     @SubscribeEvent
     public void onTravel(TravelEvent event) {
-        if (nullCheck() && mc.player.isElytraFlying()) {
-            if (pause.getValue()) {
-                if (PlayerUtil.isInLiquid() && pauseLiquid.getValue())
-                    return;
+        if (nullCheck()) {
+            if (mc.player.isElytraFlying()) {
+                if (pause.getValue()) {
+                    if (PlayerUtil.isInLiquid() && pauseLiquid.getValue()) {
+                        return;
+                    }
 
-                else if (PlayerUtil.isCollided() && pauseCollision.getValue())
-                    return;
+                    else if (PlayerUtil.isCollided() && pauseCollision.getValue()) {
+                        return;
+                    }
+                }
+
+                // cancel vanilla movements
+                event.setCanceled(true);
+
+                elytraFlight();
             }
-
-            elytraFlight(event);
         }
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
+
         if (!mc.player.isElytraFlying() && takeOff.getValue()) {
             getCosmos().getTickManager().setClientTicks(takeOffTimer.getValue().floatValue());
 
@@ -75,8 +83,7 @@ public class ElytraFlight extends Module {
         }
     }
 
-    public void elytraFlight(TravelEvent event) {
-        event.setCanceled(true);
+    public void elytraFlight() {
         Cosmos.INSTANCE.getTickManager().setClientTicks(1);
 
        if (lockRotation.getValue()) {

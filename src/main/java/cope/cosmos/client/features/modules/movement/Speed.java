@@ -71,7 +71,7 @@ public class Speed extends Module {
         }
 
         // make sure the player can have speed applied
-        if (mc.player.isOnLadder() || mc.player.capabilities.isFlying || mc.player.isElytraFlying()) {
+        if (mc.player.isOnLadder() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.fallDistance > 2) {
             resetProcess();
             return;
         }
@@ -165,10 +165,10 @@ public class Speed extends Module {
                     switch (mode.getValue()) {
                         case STRAFE:
                         case STRAFE_LOW:
-                            acceleration = Math.min(2.14 * baseSpeed, 2.547);
+                            acceleration = Math.max(2.149 * baseSpeed, 2.547);
                             break;
                         case STRAFE_STRICT:
-                            acceleration = Math.min(2.14 * baseSpeed, Math.min(baseSpeed * 1.78, latestMoveSpeed * 1.78));
+                            acceleration = Math.max(2.149 * baseSpeed, Math.min(baseSpeed * 1.78, latestMoveSpeed * 1.78));
                             break;
                     }
                 }
