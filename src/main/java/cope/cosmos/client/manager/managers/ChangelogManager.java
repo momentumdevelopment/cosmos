@@ -19,7 +19,7 @@ public class ChangelogManager extends Manager {
 
         try {
             // the changelog from the git
-            URL url = new URL("https://raw.githubusercontent.com/momentumdevelopment/cosmos/main/changelog.json");
+            URL url = new URL("https://raw.githubusercontent.com/momentumdevelopment/cosmos/main/resources/changelog.json");
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(url.openStream()));
 
             // add all changelog lines
