@@ -647,26 +647,36 @@ public class AutoCrystal extends Module {
                     .texture()
             );
 
-            // placement info
-            String placementInfo;
-            switch (renderText.getValue()) {
-                case TARGET:
-                    placementInfo = String.valueOf(MathUtil.roundDouble(placePosition.getTargetDamage(), 1));
-                    break;
-                case SELF:
-                    placementInfo = String.valueOf(MathUtil.roundDouble(placePosition.getSelfDamage(), 1));
-                    break;
-                case BOTH:
-                    placementInfo = "Target: " + MathUtil.roundDouble(placePosition.getTargetDamage(), 1) + ", Self: " + MathUtil.roundDouble(placePosition.getSelfDamage(), 1);
-                    break;
-                case NONE:
-                default:
-                    placementInfo = "";
-                    break;
-            }
+            // placement nametags
+            if (!renderText.getValue().equals(Text.NONE)) {
 
-            // draw the placement info
-            RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, placementInfo);
+                // placement info
+                String placementInfo;
+
+                // damage info rounded
+                double targetDamageRounded = MathUtil.roundDouble(placePosition.getTargetDamage(), 1);
+                double localDamageRounded = MathUtil.roundDouble(placePosition.getLocalDamage(), 1);
+
+                // get placement text
+                switch (renderText.getValue()) {
+                    case TARGET:
+                        placementInfo = String.valueOf(targetDamageRounded);
+                        break;
+                    case SELF:
+                        placementInfo = String.valueOf(localDamageRounded);
+                        break;
+                    case BOTH:
+                        placementInfo = "Target: " + targetDamageRounded + ", Self: " + localDamageRounded;
+                        break;
+                    case NONE:
+                    default:
+                        placementInfo = "";
+                        break;
+                }
+
+                // draw the placement info
+                RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, placementInfo);
+            }
         }
     }
 
@@ -681,7 +691,7 @@ public class AutoCrystal extends Module {
 
         // calculate the heuristic
         if (placePosition != null) {
-            double heuristic = MathUtil.roundDouble(placePosition.getTargetDamage() - placePosition.getSelfDamage(), 2);
+            double heuristic = MathUtil.roundDouble(placePosition.getTargetDamage() - placePosition.getLocalDamage(), 2);
             info.append(heuristic).append(", ");
         }
 
@@ -758,10 +768,6 @@ public class AutoCrystal extends Module {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // reset our switch time, we just switched
             switchTimer.resetTime();
-        }
-
-        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
-            ChatUtil.sendMessage(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getDirection().toString());
         }
     }
 
@@ -1311,13 +1317,13 @@ public class AutoCrystal extends Module {
 
         // damage info
         private final double targetDamage;
-        private final double selfDamage;
+        private final double localDamage;
 
-        public CrystalPosition(BlockPos blockPos, EntityPlayer placeTarget, double targetDamage, double selfDamage) {
+        public CrystalPosition(BlockPos blockPos, EntityPlayer placeTarget, double targetDamage, double localDamage) {
             this.blockPos = blockPos;
             this.placeTarget = placeTarget;
             this.targetDamage = targetDamage;
-            this.selfDamage = selfDamage;
+            this.localDamage = localDamage;
         }
 
         /**
@@ -1348,8 +1354,8 @@ public class AutoCrystal extends Module {
          * Gets the damage to the player
          * @return The damage to the player
          */
-        public double getSelfDamage() {
-            return selfDamage;
+        public double getLocalDamage() {
+            return localDamage;
         }
     }
 
@@ -1360,12 +1366,12 @@ public class AutoCrystal extends Module {
 
         // damage info
         private final double targetDamage;
-        private final double selfDamage;
+        private final double localDamage;
 
-        public Crystal(EntityEnderCrystal crystal, double targetDamage, double selfDamage) {
+        public Crystal(EntityEnderCrystal crystal, double targetDamage, double localDamage) {
             this.crystal = crystal;
             this.targetDamage = targetDamage;
-            this.selfDamage = selfDamage;
+            this.localDamage = localDamage;
         }
 
         /**
@@ -1388,8 +1394,8 @@ public class AutoCrystal extends Module {
          * Gets the damage to the player
          * @return The damage to the player
          */
-        public double getSelfDamage() {
-            return selfDamage;
+        public double getLocalDamage() {
+            return localDamage;
         }
     }
 }
