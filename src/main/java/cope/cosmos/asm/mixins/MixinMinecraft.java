@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins;
 
-import cope.cosmos.client.manager.managers.ProgressManager;
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.client.managment.managers.ProgressManager;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("unused")
 @Mixin(Minecraft.class)
-public class MixinMinecraft implements Wrapper {
+public class MixinMinecraft implements IUtility {
 
     @Inject(method = "drawSplashScreen", at = @At("HEAD"), cancellable = true)
     public void drawSplashScreen(TextureManager textureManagerInstance, CallbackInfo info) {

@@ -25,8 +25,8 @@ apply plugin: 'org.spongepowered.mixin' // Gradle plugin providing integration f
 // Only edit below this line, The above code adds & enables the necessary things for Forge to be setup.
 
 version = '1.1.0' // The jar version number that will be output when building.
-group = 'cope.cosmos' // https://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'cosmos' // The jar name that will be output when building.
+group = 'cope.panels' // https://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'panels' // The jar name that will be output when building.
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
@@ -43,7 +43,7 @@ minecraft {
     // Use non-default mappings at ur own risk. They may not always work.
     // Simply re-run ur setup task after changing the mappings to update ur workspace.
     mappings 'snapshot_20171003' // MCP Mapping version.
-    coreMod 'cope.cosmos.asm.MixinLoader' // The directory of the main class needed for when ur doing runClient.
+    coreMod 'cope.panels.asm.MixinLoader' // The directory of the main class needed for when ur doing runClient.
     makeObfSourceJar false // An Srg named sources jar is made by default. Pretty useless so disabled.
 }
 
@@ -103,7 +103,7 @@ shadowJar {
 
 mixin {
     defaultObfuscationEnv searge
-    add sourceSets.main, 'mixins.cosmos.refmap.json' // Name for the refmap of the clients mixins.json.
+    add sourceSets.main, 'mixins.panels.refmap.json' // Name for the refmap of the clients mixins.json.
 }
 
 reobf {
@@ -116,10 +116,10 @@ reobf {
 jar {
     manifest {
         attributes(
-                'MixinConfigs': 'mixins.cosmos.json', // Name for the clients mixins.json.
+                'MixinConfigs': 'mixins.panels.json', // Name for the clients mixins.json.
                 'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker', // Directory for the org library mixin loader.
                 'TweakOrder': 0, // Actually not too sure what this is for.
-                'FMLCorePlugin': 'cope.cosmos.asm.Mixinloader', // Directory for the mixin loader for the built jar.
+                'FMLCorePlugin': 'cope.panels.asm.Mixinloader', // Directory for the mixin loader for the built jar.
                 'ForceLoadAsMod': 'true', // Whether or not to make it load as a actual mod or not.
         )
     }

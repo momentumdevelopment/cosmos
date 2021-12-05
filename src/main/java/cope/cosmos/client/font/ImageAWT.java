@@ -1,6 +1,6 @@
 package cope.cosmos.client.font;
 
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraftforge.fml.relauncher.Side;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 @SuppressWarnings("unused")
 @SideOnly(value = Side.CLIENT)
-public class ImageAWT implements Wrapper {
+public class ImageAWT implements IUtility {
     
     private static final ArrayList<ImageAWT> activeFontRenderers = new ArrayList<>();
     private static int gcTicks = 0;

@@ -5,7 +5,7 @@ import cope.cosmos.client.events.LivingUpdateEvent;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.RotationUpdateEvent;
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.MoverType;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("unused")
 @Mixin(EntityPlayerSP.class)
-public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implements Wrapper {
+public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implements IUtility {
     public MixinEntityPlayerSP(World worldIn, GameProfile playerProfile) {
         super(mc.world, mc.getSession().getProfile());
     }

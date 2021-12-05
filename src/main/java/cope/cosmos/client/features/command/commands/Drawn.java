@@ -6,8 +6,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.manager.managers.ModuleManager;
-import cope.cosmos.util.client.ChatUtil;
+import cope.cosmos.client.managment.managers.ModuleManager;
+import cope.cosmos.utility.client.ChatUtil;
 
 public class Drawn extends Command {
     public Drawn() {

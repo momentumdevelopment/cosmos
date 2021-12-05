@@ -3,7 +3,7 @@ package cope.cosmos.client.features.setting;
 import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
-public class Setting<T> extends Feature implements Wrapper {
+public class Setting<T> extends Feature implements IUtility {
 	
 	private T min;
 	private T value;

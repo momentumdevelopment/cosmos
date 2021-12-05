@@ -5,7 +5,7 @@ import cope.cosmos.client.events.TabOverlayEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.client.managment.managers.SocialManager.Relationship;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 

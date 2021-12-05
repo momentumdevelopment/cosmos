@@ -13,25 +13,45 @@ public class FullBright extends Module {
         INSTANCE = this;
     }
 
-    float previousBright;
+    // old brightness configuration
+    private float previousBright;
+    private int previousNightVision;
 
     @Override
     public void onEnable() {
         super.onEnable();
 
-        previousBright = mc.gameSettings.gammaSetting;
+        // save old night vision effect
+        if (mc.player.isPotionActive(MobEffects.NIGHT_VISION)) {
+            previousNightVision = mc.player.getActivePotionEffect(MobEffects.NIGHT_VISION).getDuration();
+        }
 
-        // apply brightness
-        mc.player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION.setPotionName("FullBright"), 80950, 1, false, false));
+        // save old brightness & apply brightness
+        previousBright = mc.gameSettings.gammaSetting;
         mc.gameSettings.gammaSetting = 100;
+    }
+
+    @Override
+    public void onUpdate() {
+        // apply night vision effect
+        mc.player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION.setPotionName("FullBright"), 80950, 1, false, false));
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        // remove brightness
-        mc.player.removePotionEffect(MobEffects.NIGHT_VISION);
+        // remove night vision effect
+        if (mc.player.isPotionActive(MobEffects.NIGHT_VISION)) {
+            mc.player.removePotionEffect(MobEffects.NIGHT_VISION);
+        }
+
+        if (previousNightVision > 0) {
+            // reapply old night vision
+            mc.player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, previousNightVision));
+        }
+
+        // restore old brightness
         mc.gameSettings.gammaSetting = previousBright;
     }
 }

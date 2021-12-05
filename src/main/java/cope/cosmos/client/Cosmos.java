@@ -1,16 +1,16 @@
 package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
-import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
-import cope.cosmos.client.clickgui.windowed.WindowGUI;
+import cope.cosmos.client.ui.panels.CosmosGUI;
+import cope.cosmos.client.ui.windows.WindowGUI;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.modules.client.DiscordPresence;
 import cope.cosmos.client.features.modules.client.Font;
 import cope.cosmos.client.features.modules.client.Social;
-import cope.cosmos.client.manager.Manager;
-import cope.cosmos.client.manager.managers.*;
-import cope.cosmos.util.render.FontUtil;
+import cope.cosmos.client.managment.Manager;
+import cope.cosmos.client.managment.managers.*;
+import cope.cosmos.utility.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -28,7 +28,7 @@ import java.util.List;
 @Mod(modid = Cosmos.MOD_ID, name = Cosmos.NAME, version = Cosmos.VERSION, acceptedMinecraftVersions = "[1.12.2]")
 public class Cosmos {
 
-    public static final String MOD_ID = "cosmos";
+    public static final String MOD_ID = "panels";
     public static final String NAME = "Cosmos";
     public static final String VERSION = "1.1.0";
 

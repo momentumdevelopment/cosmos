@@ -1,6 +1,6 @@
 package cope.cosmos.client.font;
 
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ChatAllowedCharacters;
@@ -11,7 +11,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.awt.*;
 import java.util.Random;
 
-public class FontRenderer extends net.minecraft.client.gui.FontRenderer implements Wrapper {
+public class FontRenderer extends net.minecraft.client.gui.FontRenderer implements IUtility {
     private final ImageAWT defaultFont;
 
     public FontRenderer(Font font) {

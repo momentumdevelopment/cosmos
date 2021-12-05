@@ -3,7 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.world.TeleportUtil;
+import cope.cosmos.utility.world.TeleportUtil;
 
 @SuppressWarnings("unused")
 public class AntiVoid extends Module {

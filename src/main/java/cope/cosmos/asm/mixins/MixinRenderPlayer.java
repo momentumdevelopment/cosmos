@@ -2,7 +2,7 @@ package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.events.RenderNametagEvent;
 import cope.cosmos.client.events.RenderRotationsEvent;
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraftforge.common.MinecraftForge;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("unused")
 @Mixin(RenderPlayer.class)
-public class MixinRenderPlayer implements Wrapper {
+public class MixinRenderPlayer implements IUtility {
 
     private float renderPitch, renderYaw, renderHeadYaw, prevRenderHeadYaw, prevRenderPitch, prevRenderYawOffset, prevPrevRenderYawOffset;
 

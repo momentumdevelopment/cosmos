@@ -5,8 +5,7 @@ import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.PlayerUtil;
-import net.minecraft.network.play.client.CPacketPlayer;
+import cope.cosmos.utility.player.PlayerUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")

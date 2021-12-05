@@ -3,7 +3,7 @@ package cope.cosmos.asm.mixins;
 import cope.cosmos.client.events.BlockBreakEvent;
 import cope.cosmos.client.events.BlockResetEvent;
 import cope.cosmos.client.events.ReachEvent;
-import cope.cosmos.util.Wrapper;
+import cope.cosmos.utility.IUtility;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.MinecraftForge;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("unused")
 @Mixin(PlayerControllerMP.class)
-public class MixinPlayerControllerMP implements Wrapper {
+public class MixinPlayerControllerMP implements IUtility {
 
     @Inject(method = "onPlayerDestroyBlock", at = @At("RETURN"))
     private void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> info) {

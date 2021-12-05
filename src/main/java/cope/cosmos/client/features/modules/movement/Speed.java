@@ -6,9 +6,9 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.MotionUtil;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.utility.player.MotionUtil;
+import cope.cosmos.utility.player.PlayerUtil;
+import cope.cosmos.utility.system.MathUtil;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
@@ -25,10 +25,11 @@ public class Speed extends Module {
 
     public static Setting<Mode> mode = new Setting<>("Mode", "Mode for Speed", Mode.STRAFE);
 
+    public static Setting<Double> test = new Setting<>("Test", "Test speed", 1.0, 2.149, 3.0, 4);
+
     public static Setting<Boolean> timer = new Setting<>("Timer", "Uses timer to speed up strafe", true);
     public static Setting<Double> timerTick = new Setting<>("Ticks", "Timer speed", 1.0, 1.2, 2.0, 1).setParent(timer);
 
-    public static Setting<Boolean> accelerate = new Setting<>("Accelerate", "Accelerates speed after jumping", false);
     public static Setting<Boolean> boost = new Setting<>("Boost", "Boosts speed when taking knockback", false);
     public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows speed to function in liquids", false);
     public static Setting<Boolean> webs = new Setting<>("Web", "Allows speed to function in webs", false);
@@ -163,20 +164,7 @@ public class Speed extends Module {
                 event.setY(jumpSpeed);
 
                 // acceleration jump factor
-                double acceleration = 2.149;
-
-                // acceleration due to jump
-                if (accelerate.getValue()) {
-                    switch (mode.getValue()) {
-                        case STRAFE:
-                        case STRAFE_LOW:
-                            acceleration = Math.max(2.149 * baseSpeed, 2.547);
-                            break;
-                        case STRAFE_STRICT:
-                            acceleration = Math.max(2.149 * baseSpeed, Math.max(baseSpeed * 1.78, latestMoveSpeed * 1.78));
-                            break;
-                    }
-                }
+                double acceleration = test.getValue();
 
                 // since we just jumped, we can now move faster
                 moveSpeed *= acceleration;

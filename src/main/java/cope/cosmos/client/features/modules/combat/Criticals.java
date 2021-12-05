@@ -6,11 +6,11 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.Format;
-import cope.cosmos.util.world.EntityUtil;
+import cope.cosmos.utility.player.InventoryUtil;
+import cope.cosmos.utility.player.PlayerUtil;
+import cope.cosmos.utility.system.Timer;
+import cope.cosmos.utility.system.Timer.Format;
+import cope.cosmos.utility.world.EntityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.network.play.client.CPacketAnimation;
@@ -38,7 +38,18 @@ public class Criticals extends Module {
 
             // time info
             if (!mode.getValue().equals(Mode.MOTION)) {
-                info.append(", ").append(delay.getValue() - criticalTimer.getMilliseconds());
+                // scale delay time
+                double timeScaled = (delay.getValue() - criticalTimer.getMilliseconds()) / 100;
+
+                if (timeScaled < 0) {
+                    timeScaled = 0;
+                }
+
+                else if (timeScaled > 2000) {
+                    timeScaled = 2000;
+                }
+
+                info.append(", ").append(timeScaled);
             }
 
             return info.toString();

@@ -3,11 +3,11 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.HoleManager.Hole;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderBuilder.Box;
-import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.client.managment.managers.HoleManager.Hole;
+import cope.cosmos.utility.client.ColorUtil;
+import cope.cosmos.utility.render.RenderBuilder;
+import cope.cosmos.utility.render.RenderBuilder.Box;
+import cope.cosmos.utility.render.RenderUtil;
 
 import java.awt.*;
 
