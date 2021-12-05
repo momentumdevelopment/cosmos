@@ -1,0 +1,223 @@
+package cope.cosmos.client.manager.managers;
+
+import cope.cosmos.asm.mixins.accessor.IMinecraft;
+import cope.cosmos.client.manager.Manager;
+import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.player.Rotation.Rotate;
+import cope.cosmos.util.world.AngleUtil;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class InteractionManager extends Manager implements Wrapper {
+    public InteractionManager() {
+        super("InteractionManager", "Manages all player interactions");
+    }
+
+    // list of blocks which need to be shift clicked to be placed on
+    public static final List<Block> sneakBlocks = Arrays.asList(
+            Blocks.ENDER_CHEST,
+            Blocks.CHEST,
+            Blocks.TRAPPED_CHEST,
+            Blocks.CRAFTING_TABLE,
+            Blocks.ANVIL,
+            Blocks.BREWING_STAND,
+            Blocks.HOPPER,
+            Blocks.DROPPER,
+            Blocks.DISPENSER,
+            Blocks.TRAPDOOR,
+            Blocks.ENCHANTING_TABLE,
+            Blocks.WHITE_SHULKER_BOX,
+            Blocks.ORANGE_SHULKER_BOX,
+            Blocks.MAGENTA_SHULKER_BOX,
+            Blocks.LIGHT_BLUE_SHULKER_BOX,
+            Blocks.YELLOW_SHULKER_BOX,
+            Blocks.LIME_SHULKER_BOX,
+            Blocks.PINK_SHULKER_BOX,
+            Blocks.GRAY_SHULKER_BOX,
+            Blocks.SILVER_SHULKER_BOX,
+            Blocks.CYAN_SHULKER_BOX,
+            Blocks.PURPLE_SHULKER_BOX,
+            Blocks.BLUE_SHULKER_BOX,
+            Blocks.BROWN_SHULKER_BOX,
+            Blocks.GREEN_SHULKER_BOX,
+            Blocks.RED_SHULKER_BOX,
+            Blocks.BLACK_SHULKER_BOX
+    );
+
+    /**
+     * Places a block at a specified position
+     * @param position Position of the block to place on
+     * @param rotate Mode for rotating {@link Rotate}
+     * @param strict Only place on visible offsets
+     */
+    public void placeBlock(BlockPos position, Rotate rotate, boolean strict) {
+        for (EnumFacing direction : EnumFacing.values()) {
+            // find a block to place against
+            BlockPos directionOffset = position.offset(direction);
+
+            // make sure there is no entity on the block
+            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
+                if (entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                    continue;
+                }
+
+                return;
+            }
+
+            // make sure the side is visible, strict NCP flags for non-visible interactions
+            if (strict && !getVisibleSides(directionOffset).contains(direction.getOpposite())) {
+                continue;
+            }
+
+            // make sure the offset is empty
+            if (!mc.world.getBlockState(position).getMaterial().isReplaceable()) {
+                continue;
+            }
+
+            // stop sprinting before preforming actions
+            boolean sprint = mc.player.isSprinting();
+            if (sprint) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+            }
+
+            // sneak if the block is not right-clickable
+            boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            if (sneak) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+            }
+
+            // rotate to block
+            if (!rotate.equals(Rotate.NONE)) {
+                float[] blockAngles = AngleUtil.calculateAngles(new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5)));
+
+                // rotate via packet, server should confirm instantly?
+                switch (rotate) {
+                    case CLIENT:
+                        mc.player.rotationYaw = blockAngles[0];
+                        mc.player.rotationYawHead = blockAngles[0];
+                        mc.player.rotationPitch = blockAngles[1];
+                        break;
+                    case PACKET:
+                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles[0], blockAngles[1], mc.player.onGround));
+                        // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
+                        // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
+                        break;
+                }
+            }
+
+            // right click direction offset block
+            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5), EnumHand.MAIN_HAND);
+
+            // reset sneak
+            if (sneak) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+            }
+
+            // reset sprint
+            if (sprint) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            }
+
+            // swing hand
+            if (placeResult != EnumActionResult.FAIL) {
+                mc.player.swingArm(EnumHand.MAIN_HAND);
+                ((IMinecraft) mc).setRightClickDelayTimer(4);
+                return;
+            }
+        }
+    }
+
+    public void placeItem() {
+
+    }
+
+    /**
+     * Finds all the visible sides of a certain position
+     * @param position The position to find all the visible sides of
+     * @return List of visible sides
+     */
+    public List<EnumFacing> getVisibleSides(BlockPos position) {
+        List<EnumFacing> visibleSides = new ArrayList<>();
+
+        // pos vector
+        Vec3d positionVector = new Vec3d(position).addVector(0.5, 0.5, 0.5);
+
+        // facing
+        double facingX = mc.player.getPositionEyes(1).x - positionVector.x;
+        double facingY = mc.player.getPositionEyes(1).y - positionVector.y;
+        double facingZ = mc.player.getPositionEyes(1).z - positionVector.z;
+
+        // x
+        {
+            if (facingX < -0.5) {
+                visibleSides.add(EnumFacing.WEST);
+            }
+
+            else if (facingX > 0.5) {
+                visibleSides.add(EnumFacing.EAST);
+            }
+
+            else if (!mc.world.getBlockState(position).isFullBlock() || !mc.world.isAirBlock(position)) {
+                visibleSides.add(EnumFacing.WEST);
+                visibleSides.add(EnumFacing.EAST);
+            }
+        }
+
+        // y
+        {
+            if (facingY < -0.5) {
+                visibleSides.add(EnumFacing.DOWN);
+            }
+
+            else if (facingY > 0.5) {
+                visibleSides.add(EnumFacing.UP);
+            }
+
+            else {
+                visibleSides.add(EnumFacing.DOWN);
+                visibleSides.add(EnumFacing.UP);
+            }
+        }
+
+        // z
+        {
+            if (facingZ < -0.5) {
+                visibleSides.add(EnumFacing.NORTH);
+            }
+
+            else if (facingZ > 0.5) {
+                visibleSides.add(EnumFacing.SOUTH);
+            }
+
+            else if (!mc.world.getBlockState(position).isFullBlock() || !mc.world.isAirBlock(position)) {
+                visibleSides.add(EnumFacing.NORTH);
+                visibleSides.add(EnumFacing.SOUTH);
+            }
+        }
+
+        return visibleSides;
+    }
+
+    /**
+     * Gets all the blocks that need to be shift clicked
+     * @return All the blocks that need to be shift clicked
+     */
+    public List<Block> getSneakBlocks() {
+        return sneakBlocks;
+    }
+}

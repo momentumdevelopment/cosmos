@@ -2,8 +2,8 @@ package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.managment.managers.PresenceManager;
-import cope.cosmos.utility.client.ChatUtil;
+import cope.cosmos.client.manager.managers.PresenceManager;
+import cope.cosmos.util.client.ChatUtil;
 
 public class DiscordPresence extends Module {
     public static DiscordPresence INSTANCE;

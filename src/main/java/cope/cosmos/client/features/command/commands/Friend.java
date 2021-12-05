@@ -8,8 +8,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.client.managment.managers.SocialManager.Relationship;
-import cope.cosmos.utility.client.ChatUtil;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.client.CPacketChatMessage;
 

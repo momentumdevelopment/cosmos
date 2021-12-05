@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(AbstractClientPlayer.class)
 public class MixinAbstractClientPlayer {
 
-    @Inject(method = "getLocationSkin()Lnet/minecraft/utility/ResourceLocation;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getLocationSkin()Lnet/minecraft/util/ResourceLocation;", at = @At("HEAD"), cancellable = true)
     public void getLocationSkin(CallbackInfoReturnable<ResourceLocation> info) {
         SkinLocationEvent skinLocationEvent = new SkinLocationEvent();
         MinecraftForge.EVENT_BUS.post(skinLocationEvent);

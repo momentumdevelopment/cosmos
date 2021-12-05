@@ -4,7 +4,7 @@ import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.utility.player.PlayerUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.MobEffects;

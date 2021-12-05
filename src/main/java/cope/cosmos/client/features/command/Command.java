@@ -5,11 +5,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import cope.cosmos.client.features.Feature;
-import cope.cosmos.utility.IUtility;
+import cope.cosmos.util.Wrapper;
 
 import java.util.function.Predicate;
 
-public class Command extends Feature implements IUtility {
+public class Command extends Feature implements Wrapper {
 
 	private final LiteralArgumentBuilder<Object> command;
 	

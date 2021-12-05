@@ -6,7 +6,7 @@ import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.utility.client.ChatUtil;
+import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 

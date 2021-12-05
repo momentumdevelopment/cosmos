@@ -5,8 +5,8 @@ import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.managment.managers.AnimationManager;
-import cope.cosmos.utility.IUtility;
+import cope.cosmos.client.manager.managers.AnimationManager;
+import cope.cosmos.util.Wrapper;
 import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Module extends Feature implements IUtility {
+public class Module extends Feature implements Wrapper {
 
 	private boolean enabled;
 	private boolean drawn;

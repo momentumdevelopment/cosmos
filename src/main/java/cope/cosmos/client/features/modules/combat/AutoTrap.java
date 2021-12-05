@@ -3,10 +3,10 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.utility.combat.TargetUtil.Target;
-import cope.cosmos.utility.player.InventoryUtil.Switch;
-import cope.cosmos.utility.player.PlayerUtil.Hand;
-import cope.cosmos.utility.player.Rotation.Rotate;
+import cope.cosmos.util.combat.TargetUtil.Target;
+import cope.cosmos.util.player.InventoryUtil.Switch;
+import cope.cosmos.util.player.PlayerUtil.Hand;
+import cope.cosmos.util.player.Rotation.Rotate;
 
 public class AutoTrap extends Module {
     public AutoTrap() {

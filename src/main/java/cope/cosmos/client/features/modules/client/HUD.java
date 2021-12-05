@@ -5,11 +5,11 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.managment.managers.ModuleManager;
-import cope.cosmos.client.managment.managers.TickManager.TPS;
-import cope.cosmos.utility.client.ColorUtil;
-import cope.cosmos.utility.render.FontUtil;
-import cope.cosmos.utility.system.MathUtil;
+import cope.cosmos.client.manager.managers.ModuleManager;
+import cope.cosmos.client.manager.managers.TickManager.TPS;
+import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.render.FontUtil;
+import cope.cosmos.util.system.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -52,7 +52,7 @@ public class HUD extends Module {
     private float bottomRight = 10;
     private float bottomLeft = 10;
 
-    // test for my two way animation managment, will put this into hud editor if it gets made
+    // test for my two way animation manager, will put this into hud editor if it gets made
 
     @Override
     public void onRender2D() {

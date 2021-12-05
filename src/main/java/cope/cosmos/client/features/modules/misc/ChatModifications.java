@@ -7,7 +7,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.utility.client.ChatUtil;
+import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.client.CPacketChatMessage;
 import net.minecraft.network.play.server.SPacketChat;
 import net.minecraft.util.text.ChatType;
@@ -28,8 +28,8 @@ public class ChatModifications extends Module {
     }
 
     public static Setting<Time> time = new Setting<>("Time", "Time format", Time.NA);
-    public static Setting<Boolean> prefix = new Setting<>("Prefix", "Add a panels prefix before chat messages", false);
-    public static Setting<Boolean> suffix = new Setting<>("Suffix", "Add a panels suffix after chat messages", true);
+    public static Setting<Boolean> prefix = new Setting<>("Prefix", "Add a cosmos prefix before chat messages", false);
+    public static Setting<Boolean> suffix = new Setting<>("Suffix", "Add a cosmos suffix after chat messages", true);
     public static Setting<Boolean> colored = new Setting<>("Colored", "Add a > before public messages", true);
 
     /*
