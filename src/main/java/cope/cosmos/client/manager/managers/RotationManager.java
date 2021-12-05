@@ -47,6 +47,12 @@ public class RotationManager extends Manager implements Wrapper {
             // cancel, we'll send our own rotations
             event.setCanceled(true);
 
+            // assign vanilla values
+            event.setOnGround(mc.player.onGround);
+            event.setX(mc.player.posX);
+            event.setY(mc.player.getEntityBoundingBox().minY);
+            event.setZ(mc.player.posZ);
+
             // set the rotation to be our custom value
             event.setYaw(rotation.getYaw());
             event.setPitch(rotation.getPitch());

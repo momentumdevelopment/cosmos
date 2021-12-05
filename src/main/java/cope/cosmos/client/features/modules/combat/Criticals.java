@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.combat;
 
-import cope.cosmos.client.events.MotionUpdateEvent;
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
+import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -78,64 +79,14 @@ public class Criticals extends Module {
     }
 
     @SubscribeEvent
-    public void onMotionUpdate(MotionUpdateEvent event) {
-        if (criticalEntity != null) {
-            // make sure entity is hurt
-            if (criticalEntity.hurtResistantTime <= 16) {
-                criticalEntity = null;
-                return;
-            }
-
-            // modify packets
-            if (mode.getValue().equals(Mode.VANILLA)) {
-                // all vanilla packets are off ground
-                event.setOnGround(false);
-
-                // modify packets based on entity hurt time
-                switch (criticalEntity.hurtResistantTime) {
-                    case 20:
-                        event.setY(mc.player.getEntityBoundingBox().minY + 0.5F);
-                        break;
-                    case 19:
-                    case 17:
-                        event.setY(mc.player.getEntityBoundingBox().minY);
-                        break;
-                    case 18:
-                        event.setY(mc.player.getEntityBoundingBox().minY + 0.3F);
-                        break;
-                }
-            }
-
-            // strict has dynamic onGround packets
-            else if (mode.getValue().equals(Mode.VANILLA_STRICT)) {
-                // modify packets based on entity hurt time
-                switch (criticalEntity.hurtResistantTime) {
-                    case 19:
-                        event.setOnGround(false);
-                        event.setY(mc.player.getEntityBoundingBox().minY + 0.062602401692772F);
-                        break;
-                    case 18:
-                        event.setOnGround(false);
-                        event.setY(mc.player.getEntityBoundingBox().minY + 0.0726023996066094F);
-                        break;
-                    case 17:
-                        event.setOnGround(true);
-                        event.setY(mc.player.getEntityBoundingBox().minY);
-                        break;
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         // packet for attacks
         if (event.getPacket() instanceof CPacketUseEntity && ((CPacketUseEntity) event.getPacket()).getAction().equals(CPacketUseEntity.Action.ATTACK)) {
             // entity we attacked, if there was one
             Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
 
-            // pause in liquid and air, since strict anticheats will flag as irregular movement
-            if (PlayerUtil.isInLiquid() || mc.player.fallDistance >= 3) {
+            // pause in liquid, webs, and air, since strict anticheats will flag as irregular movement
+            if (PlayerUtil.isInLiquid() || mc.player.fallDistance >= 3 || ((IEntity) mc.player).getInWeb()) {
                 return;
             }
 
@@ -177,25 +128,46 @@ public class Criticals extends Module {
 
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
                         if (criticalTimer.passedTime(delay.getValue().longValue(), Format.SYSTEM)) {
-                            if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
+
+                            if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT) && !criticalTimer.passedTime(2000, Format.SYSTEM)) {
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
-                                    // last packet on strict should confirm player position
-                                    if (mode.getValue().equals(Mode.PACKET_STRICT)) {
-                                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, offset >= mode.getValue().getOffsets().length - 1));
+                                    // first offset
+                                    if (mode.getValue().equals(Mode.PACKET_STRICT) && offset >= 3) {
+                                        return;
                                     }
 
-                                    else {
-                                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
-                                    }
+                                    // last packet on strict should confirm player position
+                                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
                                 }
+
+                                // reset our timer
+                                criticalTimer.resetTime();
+
+                                // set our attacked entity
+                                criticalEntity = attackEntity;
                             }
 
-                            // set our attacked entity
-                            criticalEntity = attackEntity;
+                            // dynamically change packets
+                            else if (mode.getValue().equals(Mode.PACKET_STRICT) && criticalTimer.passedTime(2000, Format.SYSTEM)) {
 
-                            // reset our timer
-                            criticalTimer.resetTime();
+                                // send packets for each of the dynamic offsets
+                                for (float offset : mode.getValue().getOffsets()) {
+                                    // dynamic offset start
+                                    if (offset < 3) {
+                                        return;
+                                    }
+
+                                    // last packet on strict should confirm player position
+                                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
+                                }
+
+                                // reset our timer
+                                criticalTimer.resetTime();
+
+                                // set our attacked entity
+                                criticalEntity = attackEntity;
+                            }
                         }
 
                         // add critical effects to the hit
@@ -211,6 +183,59 @@ public class Criticals extends Module {
                 // cancel our swing animation, we'll resend it next tick
                 event.setCanceled(true);
                 resendAnimationPacket = (CPacketAnimation) event.getPacket();
+            }
+        }
+
+        if (event.getPacket() instanceof CPacketPlayer) {
+            if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+                if (criticalEntity != null) {
+                    // make sure entity is hurt
+                    if (criticalEntity.hurtResistantTime <= 16) {
+                        criticalEntity = null;
+                        return;
+                    }
+
+                    event.setCanceled(true);
+
+                    // modify packets
+                    if (mode.getValue().equals(Mode.VANILLA)) {
+                        // all vanilla packets are off ground
+                        ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+
+                        // modify packets based on entity hurt time
+                        switch (criticalEntity.hurtResistantTime) {
+                            case 20:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.5F);
+                                break;
+                            case 19:
+                            case 17:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY);
+                                break;
+                            case 18:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.3F);
+                                break;
+                        }
+                    }
+
+                    // strict has dynamic onGround packets
+                    else if (mode.getValue().equals(Mode.VANILLA_STRICT)) {
+                        // all vanilla packets are off ground
+                        ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+
+                        // modify packets based on entity hurt time
+                        switch (criticalEntity.hurtResistantTime) {
+                            case 19:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.062602401692772F);
+                                break;
+                            case 18:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.0726023996066094F);
+                                break;
+                            case 17:
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY);
+                                break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -240,7 +265,7 @@ public class Criticals extends Module {
         /**
          * Attempts changing hit to a critical via packets for Updated NCP
          */
-        PACKET_STRICT(0.062602401692772F, 0.0726023996066094F, 0),
+        PACKET_STRICT(0.062602401692772F, 0.0726023996066094F, 0, 0.11F, 0.1100013579F, 0.0000013579F),
 
         /**
          * Attempts critical via a jump

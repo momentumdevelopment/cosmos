@@ -21,6 +21,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
@@ -43,7 +44,7 @@ public class SpeedMine extends Module {
     public static Setting<Switch> mineSwitch = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "Switch", "Mode when switching to a pickaxe", Switch.NORMAL);
     public static Setting<Double> damage = new Setting<>(() -> mode.getValue().equals(Mode.DAMAGE), "Damage", "Instant block damage", 0.0, 0.8, 1.0, 1);
     public static Setting<Boolean> strict = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "Strict", "Mines on the opposite face", false);
-    public static Setting<Boolean> animation = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "Animation", "Cancels swinging packets", false);
+    public static Setting<Boolean> swing = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "NoSwing", "Cancels swinging packets", false);
     public static Setting<Boolean> reset = new Setting<>("Reset", "Doesn't allow block break progress to be reset", false);
 
     public static Setting<Boolean> render = new Setting<>("Render", "Renders a visual over current mining block", true);
@@ -64,24 +65,43 @@ public class SpeedMine extends Module {
 
     @Override
     public void onUpdate() {
-        if (minePosition != null) {
-            // if the block is broken
-            if (mineDamage >= 1) {
-                // save our current slot
-                if (previousSlot != -1) {
-                    // switch to our previous slot
-                    InventoryUtil.switchToSlot(previousSlot, mineSwitch.getValue());
+        if (mode.getValue().equals(Mode.DAMAGE)) {
+            // if the damage is greater than our specified damage, set the block to full damage
+            if (((IPlayerControllerMP) mc.playerController).getCurrentBlockDamage() > damage.getValue().floatValue()) {
+                ((IPlayerControllerMP) mc.playerController).setCurrentBlockDamage(1);
 
-                    // reset previous slot
-                    previousSlot = -1;
-
-                    // reset block damage
-                    mineDamage = 0;
-                }
+                // destroy the block
+                mc.playerController.onPlayerDestroyBlock(minePosition);
             }
+        }
 
-            // update block damage
-            mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
+        else if (mode.getValue().equals(Mode.PACKET)) {
+            if (minePosition != null) {
+                // if the block is broken
+                if (mineDamage >= 1) {
+
+                    // break block
+                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+
+                    // save our current slot
+                    if (previousSlot != -1) {
+                        // switch to our previous slot
+                        mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
+
+                        // reset previous slot
+                        previousSlot = -1;
+                    }
+                }
+
+                // update block damage
+                mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
+            }
+        }
+
+        else if (mode.getValue().equals(Mode.VANILLA)) {
+            // add haste and set the block hit delay to 0
+            ((IPlayerControllerMP) mc.playerController).setBlockHitDelay(0);
+            mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE.setPotionName("SpeedMine"), 80950, 1, false, false));
         }
     }
 
@@ -120,7 +140,7 @@ public class SpeedMine extends Module {
         if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
             RenderUtil.drawBox(new RenderBuilder()
                     .position(minePosition)
-                    .color(mineDamage >= 0.9 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
+                    .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
                     .box(renderMode.getValue())
                     .setup()
                     .line(1.5F)
@@ -136,92 +156,74 @@ public class SpeedMine extends Module {
 
     @SubscribeEvent
     public void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
+
         // make sure the block is breakable
         if (BlockUtil.isBreakable(event.getPos())) {
+            if (mode.getValue().equals(Mode.CREATIVE)) {
+                // instantly break the block and set the block to air
+                mc.playerController.onPlayerDestroyBlock(event.getPos());
+                mc.world.setBlockToAir(event.getPos());
+            }
 
-            // re-click
-            if (minePosition != null && event.getPos().equals(minePosition)) {
-                if (mode.getValue().equals(Mode.PACKET)) {
-                    // if our damage is enough to destroy the block then we switch to the best item
-                    if (mineDamage >= 1) {
-                        if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
-                            // save our current slot
-                            previousSlot = mc.player.inventory.currentItem;
+            if (mode.getValue().equals(Mode.PACKET)) {
+                // save our current slot
+                previousSlot = mc.player.inventory.currentItem;
 
-                            // switch to the most efficient item
-                            InventoryUtil.switchToSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+                // re-click
+                if (minePosition != null && event.getPos().equals(minePosition)) {
+                    if (mode.getValue().equals(Mode.PACKET)) {
+                        // if our damage is enough to destroy the block then we switch to the best item
+                        if (mineDamage >= 1) {
+                            if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+                                // switch to the most efficient item
+                                int switchSlot = InventoryUtil.getItemSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Inventory.HOTBAR);
 
-                            // break the block
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                                mc.player.connection.sendPacket(new CPacketHeldItemChange(switchSlot));
 
-                            // save our current slot
-                            if (previousSlot != -1) {
-                                // switch to our previous slot
-                                InventoryUtil.switchToSlot(previousSlot, mineSwitch.getValue());
+                                // break the block
+                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
 
-                                // reset previous slot
-                                previousSlot = -1;
+                                // save our current slot
+                                if (previousSlot != -1) {
+                                    // switch to our previous slot
+                                    mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
 
-                                // reset block damage
-                                mineDamage = 0;
+                                    // reset previous slot
+                                    previousSlot = -1;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // left click block info
-            else if (!event.getPos().equals(minePosition)) {
-                // new mine info
-                minePosition = event.getPos();
-                mineFacing = event.getFace();
+                // left click block info
+                else if (!event.getPos().equals(minePosition)) {
+                    // new mine info
+                    minePosition = event.getPos();
+                    mineFacing = event.getFace();
+                    mineDamage = 0;
 
-                if (minePosition != null && mineFacing != null) {
-                    switch (mode.getValue()) {
-                        case PACKET:
-                            // send the packets to mine the position
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing));
+                    if (minePosition != null && mineFacing != null) {
 
-                            // mine on the opposite facing
-                            if (strict.getValue()) {
-                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
-                            }
+                        // send the packets to mine the position
+                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing));
 
-                            // cancel the swinging animation
-                            if (animation.getValue()) {
-                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
-                            }
+                        // mine on the opposite facing
+                        if (strict.getValue()) {
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
+                        }
 
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                        // cancel the swinging animation
+                        if (swing.getValue()) {
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
+                        }
 
-                            if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
-                                previousSlot = mc.player.inventory.currentItem;
+                        if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+                            // switch to the most efficient item
+                            int switchSlot = InventoryUtil.getItemSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Inventory.HOTBAR);
 
-                                // switch to the most efficient item
-                                InventoryUtil.switchToSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
-                            }
-
-                            break;
-                        case DAMAGE:
-                            // if the damage is greater than our specified damage, set the block to full damage
-                            if (((IPlayerControllerMP) mc.playerController).getCurrentBlockDamage() > damage.getValue().floatValue()) {
-                                ((IPlayerControllerMP) mc.playerController).setCurrentBlockDamage(1);
-
-                                // destroy the block
-                                mc.playerController.onPlayerDestroyBlock(minePosition);
-                            }
-
-                            break;
-                        case VANILLA:
-                            // add haste and set the block hit delay to 0
-                            ((IPlayerControllerMP) mc.playerController).setBlockHitDelay(0);
-                            mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE.setPotionName("SpeedMine"), 80950, 1, false, false));
-                            break;
-                        case CREATIVE:
-                            // instantly break the block and set the block to air
-                            mc.playerController.onPlayerDestroyBlock(minePosition);
-                            mc.world.setBlockToAir(minePosition);
-                            break;
+                            mc.player.connection.sendPacket(new CPacketHeldItemChange(switchSlot));
+                        }
                     }
                 }
             }
