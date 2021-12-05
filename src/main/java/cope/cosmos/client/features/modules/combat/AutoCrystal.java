@@ -10,7 +10,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
@@ -58,12 +57,33 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * @author linustouchtips
+ * @since 12/04/2021
+ */
 @SuppressWarnings("unused")
 public class AutoCrystal extends Module {
     public static AutoCrystal INSTANCE;
 
     public AutoCrystal() {
-        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> AutoCrystal.INSTANCE.toString());
+        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> {
+
+            // placement info
+            StringBuilder info = new StringBuilder();
+
+            // calculate the heuristic
+            if (placePosition != null) {
+                double heuristic = MathUtil.roundDouble(placePosition.getTargetDamage() - placePosition.getLocalDamage(), 2);
+                info.append(heuristic).append(", ");
+            }
+
+            // response time
+            double ping = MathUtil.roundDouble(responseTime / 100, 3);
+            info.append(ping);
+
+            return info.toString();
+        });
+
         INSTANCE = this;
     }
 
@@ -147,7 +167,7 @@ public class AutoCrystal extends Module {
     private final List<EntityEnderCrystal> inhibitExplosions = new CopyOnWriteArrayList<>();
 
     // placement info
-    private CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
+    private static CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
     private final Timer placeTimer = new Timer();
     private final Map<BlockPos, Integer> attemptedPlacements = new ConcurrentHashMap<>();
 
@@ -191,6 +211,11 @@ public class AutoCrystal extends Module {
 
             // if we are below our pause health, reset the process
             if (PlayerUtil.getHealth() < pauseHealth.getValue() && !mc.player.capabilities.isCreativeMode) {
+                resetProcess();
+                return;
+            }
+
+            if (HoleFill.INSTANCE.isActive() || Surround.INSTANCE.isActive() || Burrow.INSTANCE.isActive()) {
                 resetProcess();
                 return;
             }
@@ -678,28 +703,6 @@ public class AutoCrystal extends Module {
                 RenderUtil.drawNametag(placePosition.getPosition(), 0.5F, placementInfo);
             }
         }
-    }
-
-    /**
-     * Gets the info on the placement
-     * @return The info on the placement
-     */
-    @Override
-    public String toString() {
-        // placement info
-        StringBuilder info = new StringBuilder();
-
-        // calculate the heuristic
-        if (placePosition != null) {
-            double heuristic = MathUtil.roundDouble(placePosition.getTargetDamage() - placePosition.getLocalDamage(), 2);
-            info.append(heuristic).append(", ");
-        }
-
-        // response time
-        double ping = MathUtil.roundDouble(responseTime / 100, 3);
-        info.append(ping);
-
-        return info.toString();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

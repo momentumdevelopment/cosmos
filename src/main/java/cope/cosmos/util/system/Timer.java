@@ -52,6 +52,18 @@ public class Timer implements Wrapper {
     }
 
     /**
+     * Gets the elapsed time in milliseconds
+     * @return The elapsed time in milliseconds
+     */
+    public long getMilliseconds() {
+        if (milliseconds <= 0) {
+            return 0;
+        }
+
+        return System.currentTimeMillis() - milliseconds;
+    }
+
+    /**
      * Sets the timer time
      * @param in The new time
      * @param format The timing format to use

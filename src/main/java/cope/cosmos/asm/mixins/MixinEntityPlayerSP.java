@@ -129,34 +129,34 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
                 }
 
                 if (isCurrentViewEntity()) {
-                    boolean movementUpdate = Math.pow(mc.player.posX - lastReportedPosX, 2) + Math.pow(mc.player.getEntityBoundingBox().minY - lastReportedPosY, 2) + Math.pow(mc.player.posZ - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
+                    boolean movementUpdate = Math.pow(motionUpdateEvent.getX() - lastReportedPosX, 2) + Math.pow(motionUpdateEvent.getY() - lastReportedPosY, 2) + Math.pow(motionUpdateEvent.getZ() - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
                     boolean rotationUpdate = motionUpdateEvent.getYaw() - lastReportedYaw != 0.0D || motionUpdateEvent.getPitch() - lastReportedPitch != 0.0D;
 
                     if (isRiding()) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), motionUpdateEvent.getOnGround()));
                         movementUpdate = false;
                     }
 
                     else if (movementUpdate && rotationUpdate) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.getEntityBoundingBox().minY, mc.player.posZ, motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionUpdateEvent.getX(), motionUpdateEvent.getY(), motionUpdateEvent.getZ(), motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), motionUpdateEvent.getOnGround()));
                     }
 
                     else if (movementUpdate) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY, mc.player.posZ, onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(motionUpdateEvent.getX(), motionUpdateEvent.getY(), motionUpdateEvent.getZ(), motionUpdateEvent.getOnGround()));
                     }
 
                     else if (rotationUpdate) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(motionUpdateEvent.getYaw(), motionUpdateEvent.getPitch(), motionUpdateEvent.getOnGround()));
                     }
 
-                    else if (prevOnGround != onGround) {
-                        mc.player.connection.sendPacket(new CPacketPlayer(onGround));
+                    else if (prevOnGround != motionUpdateEvent.getOnGround()) {
+                        mc.player.connection.sendPacket(new CPacketPlayer(motionUpdateEvent.getOnGround()));
                     }
 
                     if (movementUpdate) {
-                        lastReportedPosX = mc.player.posX;
-                        lastReportedPosY = mc.player.getEntityBoundingBox().minY;
-                        lastReportedPosZ = mc.player.posZ;
+                        lastReportedPosX = motionUpdateEvent.getX();
+                        lastReportedPosY = motionUpdateEvent.getY();
+                        lastReportedPosZ = motionUpdateEvent.getZ();
                         positionUpdateTicks = 0;
                     }
 
@@ -165,7 +165,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
                         lastReportedPitch = motionUpdateEvent.getPitch();
                     }
 
-                    prevOnGround = onGround;
+                    prevOnGround = motionUpdateEvent.getOnGround();
                     autoJumpEnabled = mc.gameSettings.autoJump;
                 }
             }

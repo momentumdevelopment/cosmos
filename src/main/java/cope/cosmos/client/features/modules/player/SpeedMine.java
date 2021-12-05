@@ -2,7 +2,6 @@ package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.BlockResetEvent;
-import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -19,12 +18,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
-import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -59,31 +56,42 @@ public class SpeedMine extends Module {
     // mine damage
     private float mineDamage;
 
+    // switch info
     private int previousSlot = -1;
+
+    // potion info
+    private int previousHaste;
 
     @Override
     public void onUpdate() {
-        if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
+        if (minePosition != null) {
             // if the block is broken
-            if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
-                // damage in next tick
-                float nextDamage = mineDamage + getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
+            if (mineDamage >= 1) {
+                // save our current slot
+                if (previousSlot != -1) {
+                    // switch to our previous slot
+                    InventoryUtil.switchToSlot(previousSlot, mineSwitch.getValue());
 
-                if (nextDamage >= 1 && mineDamage <= 1) {
-                    // save our current slot
-                    previousSlot = mc.player.inventory.currentItem;
+                    // reset previous slot
+                    previousSlot = -1;
 
-                    // switch to the most efficient item
-                    InventoryUtil.switchToSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+                    // reset block damage
+                    mineDamage = 0;
                 }
             }
 
             // update block damage
             mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
+        }
+    }
 
-            if (mineDamage > 1) {
-               mineDamage = 1;
-            }
+    @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // save old haste
+        if (mc.player.isPotionActive(MobEffects.HASTE)) {
+            previousHaste = mc.player.getActivePotionEffect(MobEffects.HASTE).getDuration();
         }
     }
 
@@ -92,8 +100,13 @@ public class SpeedMine extends Module {
         super.onDisable();
 
         // remove haste effect
-        if (mode.getValue().equals(Mode.VANILLA)) {
+        if (mc.player.isPotionActive(MobEffects.HASTE)) {
             mc.player.removePotionEffect(MobEffects.HASTE);
+        }
+
+        if (previousHaste > 0) {
+            // reapply old haste
+            mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE, previousHaste));
         }
 
         // reset our block info
@@ -125,20 +138,33 @@ public class SpeedMine extends Module {
     public void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
         // make sure the block is breakable
         if (BlockUtil.isBreakable(event.getPos())) {
+
             // re-click
             if (minePosition != null && event.getPos().equals(minePosition)) {
                 if (mode.getValue().equals(Mode.PACKET)) {
                     // if our damage is enough to destroy the block then we switch to the best item
-                    if (mineDamage >= 0.9) {
+                    if (mineDamage >= 1) {
                         if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
-                            // break the block
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
-
                             // save our current slot
                             previousSlot = mc.player.inventory.currentItem;
 
                             // switch to the most efficient item
                             InventoryUtil.switchToSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+
+                            // break the block
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+
+                            // save our current slot
+                            if (previousSlot != -1) {
+                                // switch to our previous slot
+                                InventoryUtil.switchToSlot(previousSlot, mineSwitch.getValue());
+
+                                // reset previous slot
+                                previousSlot = -1;
+
+                                // reset block damage
+                                mineDamage = 0;
+                            }
                         }
                     }
                 }
@@ -149,9 +175,6 @@ public class SpeedMine extends Module {
                 // new mine info
                 minePosition = event.getPos();
                 mineFacing = event.getFace();
-
-                // reset block damage
-                mineDamage = 0;
 
                 if (minePosition != null && mineFacing != null) {
                     switch (mode.getValue()) {
@@ -170,6 +193,14 @@ public class SpeedMine extends Module {
                             }
 
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+
+                            if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+                                previousSlot = mc.player.inventory.currentItem;
+
+                                // switch to the most efficient item
+                                InventoryUtil.switchToSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+                            }
+
                             break;
                         case DAMAGE:
                             // if the damage is greater than our specified damage, set the block to full damage
@@ -198,21 +229,6 @@ public class SpeedMine extends Module {
     }
 
     @SubscribeEvent
-    public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
-        // block change event
-        if (event.getPacket() instanceof SPacketBlockChange) {
-            // if block changes to air
-            if (((SPacketBlockChange) event.getPacket()).getBlockPosition().equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getBlock().equals(Blocks.AIR)) {
-               if (previousSlot != -1) {
-                   // switch to our previous slot
-                   InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
-                   previousSlot = -1;
-               }
-            }
-        }
-    }
-
-    @SubscribeEvent
     public void onBlockReset(BlockResetEvent event) {
         // don't allow block break progress to be reset
         if (reset.getValue()) {
@@ -224,7 +240,14 @@ public class SpeedMine extends Module {
     public void onSettingChange(SettingEnableEvent event) {
         // clear haste effect on mode change
         if (event.getSetting().equals(mode) && !event.getSetting().getValue().equals(Mode.VANILLA)) {
-            mc.player.removePotionEffect(MobEffects.HASTE);
+            if (mc.player.isPotionActive(MobEffects.HASTE)) {
+                mc.player.removePotionEffect(MobEffects.HASTE);
+            }
+
+            if (previousHaste > 0) {
+                // reapply old haste
+                mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE, previousHaste));
+            }
         }
     }
 

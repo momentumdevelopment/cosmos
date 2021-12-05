@@ -98,6 +98,11 @@ public class Speed extends Module {
             }
         }
 
+        else {
+            // compatibility with Timer module
+            getCosmos().getTickManager().setClientTicks(1);
+        }
+
         // base move speed
         double baseSpeed = 0.2873;
 
@@ -168,7 +173,7 @@ public class Speed extends Module {
                             acceleration = Math.max(2.149 * baseSpeed, 2.547);
                             break;
                         case STRAFE_STRICT:
-                            acceleration = Math.max(2.149 * baseSpeed, Math.min(baseSpeed * 1.78, latestMoveSpeed * 1.78));
+                            acceleration = Math.max(2.149 * baseSpeed, Math.max(baseSpeed * 1.78, latestMoveSpeed * 1.78));
                             break;
                     }
                 }

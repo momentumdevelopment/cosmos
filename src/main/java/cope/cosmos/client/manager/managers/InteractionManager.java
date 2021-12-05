@@ -114,8 +114,8 @@ public class InteractionManager extends Manager implements Wrapper {
                         break;
                     case PACKET:
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles[0], blockAngles[1], mc.player.onGround));
-                        // ((IEntityPlayerSP) mc).setLastReportedYaw(blockAngles[0]);
-                        // ((IEntityPlayerSP) mc).setLastReportedPitch(blockAngles[1]);
+                        // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
+                        // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
                         break;
                 }
             }

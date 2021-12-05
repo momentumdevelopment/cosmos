@@ -35,8 +35,8 @@ public class ReverseStep extends Module {
         if (mc.player.onGround) {
             switch (mode.getValue()) {
                 case MOTION:
-                    mc.player.connection.sendPacket(new CPacketPlayer(false));
-                    mc.player.motionY = -speed.getValue();
+                    // mc.player.connection.sendPacket(new CPacketPlayer(false));
+                    mc.player.motionY = -55;
                     break;
                 case TICKSHIFT:
                     // shift ticks

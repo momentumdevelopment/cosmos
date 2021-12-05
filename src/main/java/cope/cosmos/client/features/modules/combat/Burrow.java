@@ -88,7 +88,7 @@ public class Burrow extends Module {
 
 	@Override
 	public boolean isActive() {
-		return isEnabled() && mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable();
+		return isEnabled();
 	}
 
 	private enum Mode {

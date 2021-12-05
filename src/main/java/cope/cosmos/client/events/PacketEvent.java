@@ -6,7 +6,7 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class PacketEvent extends Event {
 
-    Packet<?> packet;
+    private final Packet<?> packet;
 
     public PacketEvent(Packet<?> packet) {
         this.packet = packet;
