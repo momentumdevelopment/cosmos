@@ -5,11 +5,11 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
-public class SettingEnableEvent extends Event {
+public class SettingUpdateEvent extends Event {
 
     private final Setting<?> setting;
 
-    public SettingEnableEvent(Setting<?> setting) {
+    public SettingUpdateEvent(Setting<?> setting) {
         this.setting = setting;
     }
 

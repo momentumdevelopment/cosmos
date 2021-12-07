@@ -6,6 +6,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.MathUtil;
@@ -23,19 +24,19 @@ public class Speed extends Module {
     public static Speed INSTANCE;
 
     public Speed() {
-        super("Speed", Category.MOVEMENT, "Allows you to move faster", () -> Setting.formatEnum(mode.getValue()));
+        super("Speed", Category.MOVEMENT, "Allows you to move faster", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "Mode for Speed", Mode.STRAFE);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE).setDescription("Mode for Speed");
 
-    public static Setting<Boolean> timer = new Setting<>("Timer", "Uses timer to speed up strafe", true);
-    public static Setting<Double> timerTick = new Setting<>("Ticks", "Timer speed", 1.0, 1.2, 2.0, 1).setParent(timer);
+    public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
+    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setParent(timer).setDescription("Timer speed");
 
-    public static Setting<Boolean> accelerate = new Setting<>("Accelerate", "Accelerates speed after jumping", false);
-    public static Setting<Boolean> boost = new Setting<>("Boost", "Boosts speed when taking knockback", false);
-    public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows speed to function in liquids", false);
-    public static Setting<Boolean> webs = new Setting<>("Web", "Allows speed to function in webs", false);
+    public static Setting<Boolean> accelerate = new Setting<>("Accelerate", false).setDescription("Accelerates speed after jumping");
+    public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
+    public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
+    public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
     private StrafeStage strafeStage = StrafeStage.SPEED;
 

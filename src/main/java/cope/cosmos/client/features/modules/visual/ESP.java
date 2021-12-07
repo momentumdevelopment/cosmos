@@ -31,29 +31,29 @@ public class ESP extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "The mode for the render style", Mode.SHADER);
-    public static Setting<Double> width = new Setting<>(() -> mode.getValue().equals(Mode.SHADER), "Width", "Line width for the visual", 0.0, 1.25, 5.0, 1);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SHADER).setDescription("The mode for the render style");
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.25, 5.0, 1).setDescription( "Line width for the visual").setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
-    public static Setting<Boolean> players = new Setting<>("Players", "Highlight players", true);
-    public static Setting<Color> playersColor = new Setting<>("Color", "Color to highlight players", ColorUtil.getPrimaryColor()).setParent(players);
+    public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Highlight players");
+    public static Setting<Color> playersColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(players).setDescription("Color to highlight players");
 
-    public static Setting<Boolean> passives = new Setting<>("Passives", "Highlight passives", true);
-    public static Setting<Color> passivesColor = new Setting<>("Color", "Color to highlight passives", ColorUtil.getPrimaryColor()).setParent(passives);
+    public static Setting<Boolean> passives = new Setting<>("Passives", true).setDescription("Highlight passives");
+    public static Setting<Color> passivesColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(passives).setDescription("Color to highlight passives");
 
-    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", "Highlight neutrals", true);
-    public static Setting<Color> neutralsColor = new Setting<>("Color", "Color to highlight neutrals", ColorUtil.getPrimaryColor()).setParent(neutrals);
+    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", true).setDescription("Highlight neutrals");
+    public static Setting<Color> neutralsColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(neutrals).setDescription("Color to highlight neutrals");
 
-    public static Setting<Boolean> hostiles = new Setting<>("Hostiles", "Highlight hostiles", true);
-    public static Setting<Color> hostilesColor = new Setting<>("Color", "Color to highlight hostiles", ColorUtil.getPrimaryColor()).setParent(hostiles);
+    public static Setting<Boolean> hostiles = new Setting<>("Hostiles", true).setDescription("Highlight hostiles");
+    public static Setting<Color> hostilesColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(hostiles).setDescription("Color to highlight hostiles");
 
-    public static Setting<Boolean> items = new Setting<>("Items", "Highlight items", true);
-    public static Setting<Color> itemsColor = new Setting<>("Color", "Color to highlight items", ColorUtil.getPrimaryColor()).setParent(items);
+    public static Setting<Boolean> items = new Setting<>("Items", true).setDescription("Highlight items");
+    public static Setting<Color> itemsColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(items).setDescription("Color to highlight items");
 
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", "Highlight crystals", true);
-    public static Setting<Color> crystalsColor = new Setting<>("Color", "Color to highlight crystals", ColorUtil.getPrimaryColor()).setParent(crystals);
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", true).setDescription("Highlight crystals");
+    public static Setting<Color> crystalsColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(crystals).setDescription("Color to highlight crystals");
 
-    public static Setting<Boolean> vehicles = new Setting<>("Vehicles", "Highlight vehicles", true);
-    public static Setting<Color> vehiclesColor = new Setting<>("Color", "Color to highlight vehicles", ColorUtil.getPrimaryColor()).setParent(vehicles);
+    public static Setting<Boolean> vehicles = new Setting<>("Vehicles", true).setDescription("Highlight vehicles");
+    public static Setting<Color> vehiclesColor = new Setting<>("Color", ColorUtil.getPrimaryColor()).setParent(vehicles).setDescription("Color to highlight vehicles");
 
     @Override
     public void onUpdate() {

@@ -6,6 +6,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.Timer;
@@ -34,11 +35,24 @@ public class Criticals extends Module {
             StringBuilder info = new StringBuilder();
 
             // mode info
-            info.append(Setting.formatEnum(mode.getValue()));
+            info.append(StringFormatter.formatEnum(mode.getValue()));
 
             // time info
             if (!mode.getValue().equals(Mode.MOTION)) {
-                info.append(", ").append(delay.getValue() - criticalTimer.getMilliseconds());
+
+                // time till next critical attempt
+                double timeTillCritical = (delay.getValue() - criticalTimer.getMilliseconds()) / 1000;
+
+                // clamp time till next critical
+                if (timeTillCritical < 0) {
+                    timeTillCritical = 0;
+                }
+
+                if (timeTillCritical > delay.getValue()) {
+                    timeTillCritical = delay.getValue();
+                }
+
+                info.append(", ").append(timeTillCritical);
             }
 
             return info.toString();
@@ -47,11 +61,11 @@ public class Criticals extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "Mode for attempting criticals", Mode.PACKET);
-    public static Setting<Double> motion = new Setting<>(() -> mode.getValue().equals(Mode.MOTION), "Motion", "Vertical motion", 0.0D, 0.4D, 1.0D, 2);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for attempting criticals");
+    public static Setting<Double> motion = new Setting<>("Motion", 0.0D, 0.4D, 1.0D, 2).setDescription("Vertical motion").setVisible(() -> mode.getValue().equals(Mode.MOTION));
 
-    public static Setting<Double> modifier = new Setting<>("Modifier", "Modifies the damage done by a critical attack", 0.0D, 1.5D, 10.0D, 2);
-    public static Setting<Double> delay = new Setting<>("Delay", "Delay between attacks to attempt criticals", 0.0D, 200.0D, 2000.0D, 0);
+    public static Setting<Double> modifier = new Setting<>("Modifier", 0.0D, 1.5D, 10.0D, 2).setDescription("Modifies the damage done by a critical attack");
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 200.0D, 2000.0D, 0).setDescription("Delay between attacks to attempt criticals");
 
     // criticals timer
     private static final Timer criticalTimer = new Timer();
@@ -141,9 +155,6 @@ public class Criticals extends Module {
                                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
                                 }
 
-                                // reset our timer
-                                criticalTimer.resetTime();
-
                                 // set our attacked entity
                                 criticalEntity = attackEntity;
                             }
@@ -162,13 +173,12 @@ public class Criticals extends Module {
                                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
                                 }
 
-                                // reset our timer
-                                criticalTimer.resetTime();
-
                                 // set our attacked entity
                                 criticalEntity = attackEntity;
                             }
                         }
+
+                        criticalTimer.resetTime();
 
                         // add critical effects to the hit
                         mc.player.onCriticalHit(attackEntity);

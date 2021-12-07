@@ -31,24 +31,24 @@ public class HoleFill extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Filler> mode = new Setting<>("Mode", "Mode for the filler", Filler.TARGETED);
-    public static Setting<Block> block = new Setting<>("Block", "Block to use for filling", Block.OBSIDIAN);
-    public static Setting<Completion> completion = new Setting<>("Completion", "When to consider the filling complete", Completion.COMPLETION);
-    public static Setting<Double> range = new Setting<>("Range", "Range to scan for holes", 0.0, 5.0, 15.0, 1);
-    public static Setting<Double> threshold = new Setting<>(() -> mode.getValue().equals(Filler.TARGETED), "Threshold", "Target's distance from hole for it to be considered fill-able", 0.0, 3.0, 15.0, 1);
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode for switching to block", Switch.NORMAL);
+    public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED).setDescription("Mode for the filler");
+    public static Setting<Block> block = new Setting<>("Block", Block.OBSIDIAN).setDescription("Block to use for filling");
+    public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION).setDescription("When to consider the filling complete");
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 15.0, 1).setDescription("Range to scan for holes");
+    public static Setting<Double> threshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1).setDescription("Target's distance from hole for it to be considered fill-able").setVisible(() -> mode.getValue().equals(Filler.TARGETED));
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to block");
 
-    public static Setting<Boolean> strict = new Setting<>("Strict", "Only places on visible sides", false);
-    public static Setting<Boolean> safety = new Setting<>("Safety", "Makes sure you are not the closest player for the current hole fill", false);
-    public static Setting<Boolean> doubles = new Setting<>("Doubles", "Fills in double holes", true);
+    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
+    public static Setting<Boolean> safety = new Setting<>("Safety", false).setDescription("Makes sure you are not the closest player for the current hole fill");
+    public static Setting<Boolean> doubles = new Setting<>("Doubles", true).setDescription("Fills in double holes");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for placement rotations", Rotate.NONE);
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
-    public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
-    public static Setting<Double> targetRange = new Setting<>("Range", "Range to consider a player a target", 0.0, 10.0, 15.0, 0).setParent(target);
+    public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
+    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 0).setParent(target).setDescription("Range to consider a player a target");
 
-    public static Setting<Boolean> render = new Setting<>("Render", "Render a visual of the filling process", true);
-    public static Setting<Box> renderMode = new Setting<>("Mode", "Style of the visual", Box.FILL).setParent(render);
+    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the filling process");
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setParent(render).setDescription("Style of the visual");
 
     private EntityPlayer fillTarget;
     private BlockPos fillPosition = null;

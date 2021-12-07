@@ -4,7 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.windowed.window.windows.ErrorWindow;
 import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.ModuleToggleEvent;
-import cope.cosmos.client.events.SettingEnableEvent;
+import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.Burrow;
 import cope.cosmos.client.features.modules.combat.Surround;
@@ -74,7 +74,7 @@ public class PatchManager extends Manager implements Wrapper {
     }
 
     @SubscribeEvent
-    public void onSettingChange(SettingEnableEvent event) {
+    public void onSettingChange(SettingUpdateEvent event) {
         if (!mc.isIntegratedServerRunning() && mc.getCurrentServerData() != null && mc.player.ticksExisted >= 40) {
             patchMap.forEach((patch, patchState) -> {
                 if (patch.getSetting() != null && patch.getSetting().equals(event.getSetting()) && patch.getState() && patch.getServers().contains(mc.getCurrentServerData().serverIP.toLowerCase())) {

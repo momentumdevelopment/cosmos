@@ -26,7 +26,7 @@ public class PingSpoof extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> delay = new Setting<>("Delay", "The delay in seconds to hold off sending keep alive packets", 0.1, 0.5, 5.0, 1);
+    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1).setDescription("The delay in seconds to hold off sending keep alive packets");
 
     // list of queued packets
     private final List<CPacketKeepAlive> packets = new CopyOnWriteArrayList<>();

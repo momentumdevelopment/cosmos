@@ -40,21 +40,21 @@ public class NoSlow extends Module {
     }
 
     // anti-cheat
-    public static Setting<Boolean> strict = new Setting<>("Strict", "Allows you to bypass normal NCP server", false);
-    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", "Allows you to bypass strict NCP servers while in the air", false);
-    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", "Allows you to bypass strict NCP servers", false);
-    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", "Allows you to bypass strict servers", false);
-    public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", "Allows you to bypass strict NCP servers while on the ground", false);
+    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Allows you to bypass normal NCP server");
+    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", false).setDescription("Allows you to bypass strict NCP servers while in the air");
+    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", false).setDescription("Allows you to bypass strict NCP servers");
+    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", false).setDescription("Allows you to bypass strict servers");
+    public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", false).setDescription("Allows you to bypass strict NCP servers while on the ground");
 
     // inventory move
-    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
-    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0F, 5.0F, 10.0F, 1).setParent(inventoryMove);
+    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", true).setDescription("Allows you to move around while in GUIs");
+    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", 0.0F, 5.0F, 10.0F, 1).setParent(inventoryMove).setDescription("The speed that the arrow keys should rotate you with");
 
     // no slow instances
-    public static Setting<Boolean> items = new Setting<>("Items", "Removes the slowdown effect while using items", true);
-    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", "Removes the slowdown effect when walking on soulsand", false);
-    public static Setting<Boolean> slime = new Setting<>("Slime", "Removes the slowdown effect when walking on slime", false);
-    public static Setting<Boolean> ice = new Setting<>("Ice", "Removes the slipperiness effect when walking on ice", true);
+    public static Setting<Boolean> items = new Setting<>("Items", true).setDescription("Removes the slowdown effect while using items");
+    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", false).setDescription("Removes the slowdown effect when walking on soulsand");
+    public static Setting<Boolean> slime = new Setting<>("Slime", false).setDescription("Removes the slowdown effect when walking on slime");
+    public static Setting<Boolean> ice = new Setting<>("Ice", true).setDescription("Removes the slipperiness effect when walking on ice");
 
     // serverside sneaking
     private boolean isSneaking = false;

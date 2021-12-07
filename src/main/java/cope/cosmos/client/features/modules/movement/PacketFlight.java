@@ -8,6 +8,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.world.TeleportUtil;
 import io.netty.util.internal.ConcurrentSet;
@@ -28,18 +29,18 @@ public class PacketFlight extends Module {
 	public static PacketFlight INSTANCE;
 
 	public PacketFlight() {
-		super("PacketFlight", Category.MOVEMENT, "Fly with packet exploit.", () -> Setting.formatEnum(mode.getValue()));
+		super("PacketFlight", Category.MOVEMENT, "Fly with packet exploit.", () -> StringFormatter.formatEnum(mode.getValue()));
 		INSTANCE = this;
 	}
 
-	public static Setting<Mode> mode = new Setting<>("Mode", "Mode for PacketFlight", Mode.FAST);
-	public static Setting<Direction> direction = new Setting<>("Direction", "Direction of the bounds packets", Direction.DOWN);
-	public static Setting<Double> factor = new Setting<>(() -> mode.getValue().equals(Mode.FACTOR), "Factor", "Speed factor", 0.0, 1.0, 5.0, 1);
-	public static Setting<Double> subdivisions = new Setting<>(() -> mode.getValue().equals(Mode.STRICT), "Subdivisions", "How many rotations packets to send", 0.0, 4.0, 10.0, 0);
-	public static Setting<Boolean> antiKick = new Setting<>("AntiKick", "Prevents getting kicked by vanilla anti-cheat", true);
-	public static Setting<Boolean> limitJitter = new Setting<>("LimitJitter", "Proactively confirms packets", true);
-	public static Setting<Boolean> overshoot = new Setting<>("Overshoot", "Slightly overshoots the packet positions", false);
-	public static Setting<Boolean> stabilize = new Setting<>("Stabilize", "Ignores server position and rotation requests", true);
+	public static Setting<Mode> mode = new Setting<>("Mode", Mode.FAST).setDescription("Mode for PacketFlight");
+	public static Setting<Direction> direction = new Setting<>("Direction", Direction.DOWN).setDescription("Direction of the bounds packets");
+	public static Setting<Double> factor = new Setting<>("Factor", 0.0, 1.0, 5.0, 1).setDescription("Speed factor").setVisible(() -> mode.getValue().equals(Mode.FACTOR));
+	public static Setting<Double> subdivisions = new Setting<>("Subdivisions", 0.0, 4.0, 10.0, 0).setDescription("How many rotations packets to send").setVisible(() -> mode.getValue().equals(Mode.STRICT));
+	public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true).setDescription("Prevents getting kicked by vanilla anti-cheat");
+	public static Setting<Boolean> limitJitter = new Setting<>("LimitJitter", true).setDescription("Proactively confirms packets");
+	public static Setting<Boolean> overshoot = new Setting<>("Overshoot", false).setDescription("Slightly overshoots the packet positions");
+	public static Setting<Boolean> stabilize = new Setting<>("Stabilize", true).setDescription("Ignores server position and rotation requests");
 
 	private final ConcurrentSet<CPacketPlayer> safePackets = new ConcurrentSet<>();
 	private final ConcurrentHashMap<Integer, Vec3d> vectorMap = new ConcurrentHashMap<>();

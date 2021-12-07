@@ -1,17 +1,13 @@
 package cope.cosmos.client.features.modules.client;
 
-import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.SettingEnableEvent;
+import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
-
-import java.awt.*;
 
 public class ClickGUI extends Module {
 	public static ClickGUI INSTANCE;
@@ -23,9 +19,9 @@ public class ClickGUI extends Module {
 		INSTANCE = this;
 	}
 
-	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", "Pause the game when in GUI", false);
-	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", "Blur shader for GUI Panels", false);
-	public static Setting<Boolean> blur = new Setting<>("Blur", "Blur shader for GUI background", false);
+	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false).setDescription("Pause the game when in GUI");
+	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", false).setDescription("Blur shader for GUI Panels");
+	public static Setting<Boolean> blur = new Setting<>("Blur", false).setDescription("Blur shader for GUI background");
 
 	@Override
 	public void onEnable() {
@@ -41,7 +37,7 @@ public class ClickGUI extends Module {
 	}
 
 	@SubscribeEvent
-	public void onSettingEnable(SettingEnableEvent event) {
+	public void onSettingEnable(SettingUpdateEvent event) {
 		if (event.getSetting().equals(blur)) {
 			if (blur.getValue()) {
 				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));

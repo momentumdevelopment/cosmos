@@ -63,7 +63,13 @@ public class Module extends Feature implements Wrapper {
 				.forEach(field -> {
 					field.setAccessible(true);
 					try {
-						settings.add(((Setting<?>) field.get(this)).setModule(this));
+						Setting<?> setting = ((Setting<?>) field.get(this));
+
+						// set the setting's current module as this module
+						setting.setModule(this);
+
+						// add it this module's settings
+						settings.add(setting);
 					} catch (IllegalArgumentException | IllegalAccessException exception) {
 						exception.printStackTrace();
 					}

@@ -36,20 +36,20 @@ public class Interact extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> reach = new Setting<>("Reach", "Player reach extension", 0.0, 0.0, 3.0, 2);
-    public static Setting<Hand> hand = new Setting<>("Hand", "Swinging hand", Hand.NONE);
-    public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", "Allows you to interact with blocks through walls", false);
-    public static Setting<Boolean> noSwing = new Setting<>("NoSwing", "Cancels the server side animation for swinging", false);
+    public static Setting<Double> reach = new Setting<>("Reach", 0.0, 0.0, 3.0, 2).setDescription("Player reach extension");
+    public static Setting<Hand> hand = new Setting<>("Hand", Hand.NONE).setDescription("Swinging hand");
+    public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", false).setDescription("Allows you to interact with blocks through walls");
+    public static Setting<Boolean> noSwing = new Setting<>("NoSwing", false).setDescription("Cancels the server side animation for swinging");
 
-    public static Setting<Boolean> ignoreContainer = new Setting<>("IgnoreContainers", "Ignores containers", false);
+    public static Setting<Boolean> ignoreContainer = new Setting<>("IgnoreContainers", false).setDescription("Ignores containers");
 
-    public static Setting<Boolean> hitBox = new Setting<>("HitBox", "Ignores entity hitboxes", true);
-    public static Setting<Double> hitBoxExtend = new Setting<>(() -> !hitBox.getValue(),"Extend", "Entity hitbox extension", 0.0, 0.0, 2.0, 2).setParent(hitBox);
-    public static Setting<Boolean> hitBoxPlayers = new Setting<>(() -> hitBox.getValue(), "PlayersOnly", "Only ignores player hitboxes", true).setParent(hitBox);
+    public static Setting<Boolean> hitBox = new Setting<>("HitBox", true).setDescription("Ignores entity hitboxes");
+    public static Setting<Double> hitBoxExtend = new Setting<>("Extend", 0.0, 0.0, 2.0, 2).setParent(hitBox).setDescription("Entity hitbox extension").setVisible(() -> !hitBox.getValue());
+    public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", true).setParent(hitBox).setDescription("Only ignores player hitboxes").setVisible(() -> hitBox.getValue());
 
-    public static Setting<Boolean> liquid = new Setting<>("Liquid", "Allows you to place blocks on liquid", false);
-    public static Setting<Boolean> heightLimit = new Setting<>("HeightLimit", "Allows you to interact with blocks at height limit", true);
-    public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", "Allows you to interact with blocks at the world border", false);
+    public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows you to place blocks on liquid");
+    public static Setting<Boolean> heightLimit = new Setting<>("HeightLimit", true).setDescription("Allows you to interact with blocks at height limit");
+    public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", false).setDescription("Allows you to interact with blocks at the world border");
 
     @Override
     public void onUpdate() {

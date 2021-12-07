@@ -35,24 +35,20 @@ public class Surround extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<SurroundVectors> surround = new Setting<>("Surround", "Block positions for surround", SurroundVectors.BASE);
-    public static Setting<Completion> completion = new Setting<>("Completion", "When to toggle surround", Completion.AIR);
-    public static Setting<Center> center = new Setting<>("Center", "Mode to center the player position", Center.TELEPORT);
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode to switch to blocks", Switch.NORMAL);
+    public static Setting<SurroundVectors> surround = new Setting<>("Surround", SurroundVectors.BASE).setDescription("Block positions for surround");
+    public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR).setDescription("When to toggle surround");
+    public static Setting<Center> center = new Setting<>("Center", Center.TELEPORT).setDescription("Mode to center the player position");
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
 
-    public static Setting<Double> blocks = new Setting<>("Blocks", "Allowed block placements per tick", 0.0, 4.0, 10.0, 0);
+    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
 
-    public static Setting<Boolean> strict = new Setting<>("Strict", "Only places on visible sides", false);
-    public static Setting<Boolean> reactive = new Setting<>("Reactive", "Replaces surround blocks when they break", true);
+    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
+    public static Setting<Boolean> reactive = new Setting<>("Reactive", true).setDescription("Replaces surround blocks when they break");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack rotations", Rotate.NONE);
-    public static Setting<Boolean> rotateCenter = new Setting<>("Center", "Center rotations on target", false).setParent(rotate);
-    public static Setting<Boolean> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", false).setParent(rotate);
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
 
-    public static Setting<Boolean> render = new Setting<>("Render", "Render a visual of the surround", true);
-    public static Setting<Box> renderMode = new Setting<>("Mode", "Style of the visual", Box.FILL).setParent(render);
-    public static Setting<Color> renderSafe = new Setting<>("SafeColor", "Color for surrounded blocks", new Color(0, 255, 0, 40)).setParent(render);
-    public static Setting<Color> renderUnsafe = new Setting<>("UnsafeColor", "Color for unsafe blocks", new Color(255, 0, 0, 40)).setParent(render);
+    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the surround");
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setParent(render).setDescription("Style of the visual");
 
     int previousSlot = -1;
     int surroundPlaced = 0;
@@ -124,7 +120,7 @@ public class Surround extends Module {
     public void onRender3D() {
         if (render.getValue()) {
             for (Vec3d surroundVectors : surround.getValue().getVectors()) {
-                RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.RESISTANT) || Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.UNBREAKABLE)) ? renderSafe.getValue() : renderUnsafe.getValue()).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+                RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.RESISTANT) || Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.UNBREAKABLE)) ? new Color(0, 255, 0, 40) : new Color(255, 0, 0, 40)).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
             }
         }
     }

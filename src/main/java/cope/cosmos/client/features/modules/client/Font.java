@@ -17,7 +17,7 @@ public class Font extends Module {
 		INSTANCE = this;
 	}
 
-	public static Setting<Boolean> vanilla = new Setting<>("Vanilla", "Overrides the minecraft vanilla font", false);
+	public static Setting<Boolean> vanilla = new Setting<>("Vanilla", false).setDescription("Overrides the minecraft vanilla font");
 
 	@SubscribeEvent
 	public void onFontRender(RenderFontEvent event) {

@@ -4,7 +4,7 @@ import cope.cosmos.client.clickgui.windowed.window.TabbedWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Component;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.ModuleComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
-import cope.cosmos.client.events.SettingEnableEvent;
+import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.util.client.ColorUtil;
@@ -361,7 +361,7 @@ public class ConfigurationWindow extends TabbedWindow {
     }
 
     @SubscribeEvent
-    public void onSettingChange(SettingEnableEvent event) {
+    public void onSettingChange(SettingUpdateEvent event) {
         // update columns when settings update, in case of visibilty changes
         updateColumns();
     }

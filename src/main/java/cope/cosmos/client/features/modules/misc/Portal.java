@@ -23,10 +23,10 @@ public class Portal extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> godMode = new Setting<>("GodMode", "Cancels teleport packets", false);
-    public static Setting<Boolean> screens = new Setting<>("Screens", "Allow the use of screens in portals", true);
-    public static Setting<Boolean> effect = new Setting<>("Effect", "Cancels the portal overlay effect", false);
-    public static Setting<Boolean> sounds = new Setting<>("Sounds", "Cancels portal sounds", false);
+    public static Setting<Boolean> godMode = new Setting<>("GodMode", false).setDescription("Cancels teleport packets");
+    public static Setting<Boolean> screens = new Setting<>("Screens", true).setDescription("Allow the use of screens in portals");
+    public static Setting<Boolean> effect = new Setting<>("Effect", false).setDescription("Cancels the portal overlay effect");
+    public static Setting<Boolean> sounds = new Setting<>("Sounds", false).setDescription("Cancels portal sounds");
 
     @Override
     public void onUpdate() {

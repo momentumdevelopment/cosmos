@@ -19,8 +19,8 @@ public class FakePlayer extends Module {
         setExempt(true);
     }
 
-    public static Setting<Boolean> inventory = new Setting<>("Inventory", "Sync the fake player inventory", true);
-    public static Setting<Boolean> health = new Setting<>("Health", "Sync the fakeplayer health", true);
+    public static Setting<Boolean> inventory = new Setting<>("Inventory", true).setDescription("Sync the fake player inventory");
+    public static Setting<Boolean> health = new Setting<>("Health", true).setDescription("Sync the fakeplayer health");
 	
 	public int id = -1;
 

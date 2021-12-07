@@ -27,13 +27,13 @@ public class Velocity extends Module {
 		INSTANCE = this;
 	}
 	
-	public static Setting<Double> horizontal = new Setting<>("Horizontal", "Horizontal velocity modifier", 0.0, 0.0, 100.0, 2);
-	public static Setting<Double> vertical = new Setting<>("Vertical", "Vertical velocity modifier", 0.0, 0.0, 100.0, 2);
+	public static Setting<Double> horizontal = new Setting<>("Horizontal", 0.0, 0.0, 100.0, 2).setDescription("Horizontal velocity modifier");
+	public static Setting<Double> vertical = new Setting<>("Vertical", 0.0, 0.0, 100.0, 2).setDescription("Vertical velocity modifier");
 
-	public static Setting<Boolean> noPush = new Setting<>("NoPush", "Prevents being pushed", true);
-	public static Setting<Boolean> entities = new Setting<>("Entities", "Prevents being pushed by entities", true).setParent(noPush);
-	public static Setting<Boolean> blocks = new Setting<>("Blocks", "Prevents being pushed out of blocks", true).setParent(noPush);
-	public static Setting<Boolean> liquid = new Setting<>("Liquid", "Prevents being pushed by liquids", true).setParent(noPush);
+	public static Setting<Boolean> noPush = new Setting<>("NoPush", true).setDescription("Prevents being pushed");
+	public static Setting<Boolean> entities = new Setting<>("Entities", true).setParent(noPush).setDescription("Prevents being pushed by entities");
+	public static Setting<Boolean> blocks = new Setting<>("Blocks", true).setParent(noPush).setDescription("Prevents being pushed out of blocks");
+	public static Setting<Boolean> liquid = new Setting<>("Liquid", true).setParent(noPush).setDescription("Prevents being pushed by liquids");
 
 	// previous collision reduction
 	private float collisionReduction;

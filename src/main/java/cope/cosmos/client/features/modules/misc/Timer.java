@@ -16,7 +16,7 @@ public class Timer extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> multiplier = new Setting<>("Multiplier", "Multiplier for the client side tick speed", 0.0, 4.0, 50.0, 1);
+    public static Setting<Double> multiplier = new Setting<>("Multiplier", 0.0, 4.0, 50.0, 1).setDescription("Multiplier for the client side tick speed");
 
     @Override
     public void onUpdate() {

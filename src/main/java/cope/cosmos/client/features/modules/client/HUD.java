@@ -37,17 +37,17 @@ public class HUD extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> watermark = new Setting<>("Watermark", "Displays a client watermark", true);
-    public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", "Displays all enabled modules", true);
-    public static Setting<Boolean> coordinates = new Setting<>("Coordinates", "Displays the user's coordinates", true);
-    public static Setting<Boolean> speed = new Setting<>("Speed", "Displays the user's speed", true);
-    public static Setting<Boolean> ping = new Setting<>("Ping", "Displays the user's server connection speed", true);
-    public static Setting<Boolean> fps = new Setting<>("FPS", "Displays the current FPS", true);
-    public static Setting<Boolean> tps = new Setting<>("TPS", "Displays the server TPS", true);
-    public static Setting<Boolean> armor = new Setting<>("Armor", "Displays the player's armor", true);
-    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", "Displays the player's active potion effects", false);
-    public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", "Displays the vanilla potion effect hud", false);
-    public static Setting<Boolean> advancements = new Setting<>("Advancements", "Displays the vanilla advancement notification", false);
+    public static Setting<Boolean> watermark = new Setting<>("Watermark", true).setDescription("Displays a client watermark");
+    public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", true).setDescription("Displays all enabled modules");
+    public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true).setDescription("Displays the user's coordinates");
+    public static Setting<Boolean> speed = new Setting<>("Speed", true).setDescription("Displays the user's speed");
+    public static Setting<Boolean> ping = new Setting<>("Ping", true).setDescription("Displays the user's server connection speed");
+    public static Setting<Boolean> fps = new Setting<>("FPS", true).setDescription("Displays the current FPS");
+    public static Setting<Boolean> tps = new Setting<>("TPS", true).setDescription("Displays the server TPS");
+    public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Displays the player's armor");
+    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", false).setDescription("Displays the player's active potion effects");
+    public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", false).setDescription("Displays the vanilla potion effect hud");
+    public static Setting<Boolean> advancements = new Setting<>("Advancements", false).setDescription("Displays the vanilla advancement notification");
 
     private int globalOffset;
 

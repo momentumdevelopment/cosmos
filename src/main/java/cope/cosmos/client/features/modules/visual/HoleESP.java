@@ -19,25 +19,25 @@ public class HoleESP extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> range = new Setting<>("Range", "Range to scan for holes", 0.0, 5.0, 20.0, 0);
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 20.0, 0).setDescription("Range to scan for holes");
 
-    public static Setting<Box> main = new Setting<>("Main", "Visual style for the main render", Box.FILL);
-    public static Setting<Double> mainHeight = new Setting<>("Height", "Height of the main render", -1.0, 0.1, 3.0, 1).setParent(main);
-    public static Setting<Double> mainWidth = new Setting<>(() -> main.getValue().equals(Box.BOTH) || main.getValue().equals(Box.CLAW) || main.getValue().equals(Box.OUTLINE), "Width", "Line width of the main render", 0.0, 1.5, 3.0, 1).setParent(main);
+    public static Setting<Box> main = new Setting<>("Main", Box.FILL).setDescription("Visual style for the main render");
+    public static Setting<Double> mainHeight = new Setting<>("Height", -1.0, 0.1, 3.0, 1).setParent(main).setDescription("Height of the main render");
+    public static Setting<Double> mainWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setParent(main).setDescription("Line width of the main render").setVisible(() -> main.getValue().equals(Box.BOTH) || main.getValue().equals(Box.CLAW) || main.getValue().equals(Box.OUTLINE));
 
-    public static Setting<Box> outline = new Setting<>("Outline", "Visual style for the outline render", Box.OUTLINE);
-    public static Setting<Double> outlineHeight = new Setting<>("Height", "Height of the outline render", -1.0, 0.1, 3.0, 1).setParent(outline);
-    public static Setting<Double> outlineWidth = new Setting<>(() -> outline.getValue().equals(Box.BOTH) || outline.getValue().equals(Box.CLAW) || outline.getValue().equals(Box.OUTLINE), "Width", "Line width of the outline render", 0.0, 1.5, 3.0, 1).setParent(outline);
+    public static Setting<Box> outline = new Setting<>("Outline", Box.OUTLINE).setDescription("Visual style for the outline render");
+    public static Setting<Double> outlineHeight = new Setting<>("Height", -1.0, 0.1, 3.0, 1).setParent(outline).setDescription("Height of the outline render");
+    public static Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setParent(outline).setDescription("Line width of the outline render").setVisible(() -> outline.getValue().equals(Box.BOTH) || outline.getValue().equals(Box.CLAW) || outline.getValue().equals(Box.OUTLINE));
 
-    public static Setting<Boolean> depth = new Setting<>("Depth", "Enables vanilla depth", true);
-    public static Setting<Boolean> doubles = new Setting<>("Doubles", "Considers double holes as safe holes", true);
-    public static Setting<Boolean> voids = new Setting<>("Void", "Highlights void and roof holes", false);
+    public static Setting<Boolean> depth = new Setting<>("Depth", true).setDescription("Enables vanilla depth");
+    public static Setting<Boolean> doubles = new Setting<>("Doubles", true).setDescription("Considers double holes as safe holes");
+    public static Setting<Boolean> voids = new Setting<>("Void", false).setDescription("Highlights void and roof holes");
 
-    public static Setting<Boolean> colors = new Setting<>("Colors", "Colors for the rendering", true);
-    public static Setting<Color> obsidianColor = new Setting<>("Obsidian", "Color of the obsidian holes", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors);
-    public static Setting<Color> mixedColor = new Setting<>("Mixed", "Color of the mixed holes", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors);
-    public static Setting<Color> bedrockColor = new Setting<>("Bedrock", "Color of the bedrock holes", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors);
-    public static Setting<Color> voidColor = new Setting<>(() -> voids.getValue(), "Void", "Color of the void holes", new Color(255, 0, 0, 45)).setParent(colors);
+    public static Setting<Boolean> colors = new Setting<>("Colors", true).setDescription("Colors for the rendering");
+    public static Setting<Color> obsidianColor = new Setting<>("Obsidian", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors).setDescription("Color of the obsidian holes");
+    public static Setting<Color> mixedColor = new Setting<>("Mixed", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors).setDescription("Color of the mixed holes");
+    public static Setting<Color> bedrockColor = new Setting<>("Bedrock", ColorUtil.getPrimaryAlphaColor(45)).setParent(colors).setDescription("Color of the bedrock holes");
+    public static Setting<Color> voidColor = new Setting<>("Void", new Color(255, 0, 0, 45)).setParent(colors).setDescription("Color of the void holes").setVisible(() -> voids.getValue());
 
     @Override
     public void onRender3D() {

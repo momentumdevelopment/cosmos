@@ -3,6 +3,7 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
@@ -10,8 +11,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -93,12 +97,14 @@ public class InteractionManager extends Manager implements Wrapper {
             boolean sprint = mc.player.isSprinting();
             if (sprint) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                mc.player.setSprinting(false);
             }
 
             // sneak if the block is not right-clickable
             boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+                mc.player.setSneaking(true);
             }
 
             // rotate to block
@@ -126,11 +132,13 @@ public class InteractionManager extends Manager implements Wrapper {
             // reset sneak
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+                mc.player.setSneaking(false);
             }
 
             // reset sprint
             if (sprint) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                mc.player.setSprinting(true);
             }
 
             // swing hand
@@ -144,6 +152,34 @@ public class InteractionManager extends Manager implements Wrapper {
 
     public void placeItem() {
 
+    }
+
+    public void attackEntity(Entity entity, boolean packet, PlayerUtil.Hand hand, double variation) {
+        if (Math.random() <= (variation / 100)) {
+            if (packet) {
+                mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+            }
+
+            else {
+                mc.playerController.attackEntity(mc.player, entity);
+            }
+        }
+
+        switch (hand) {
+            case MAINHAND:
+                mc.player.swingArm(EnumHand.MAIN_HAND);
+                break;
+            case OFFHAND:
+                mc.player.swingArm(EnumHand.OFF_HAND);
+                break;
+            case PACKET:
+                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
+                break;
+            case NONE:
+                break;
+        }
+
+        mc.player.resetCooldown();
     }
 
     /**

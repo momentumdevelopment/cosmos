@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.movement;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import net.minecraft.network.play.client.CPacketPlayer;
 
 import java.util.HashMap;
@@ -12,7 +13,7 @@ public class Step extends Module {
     public static Step INSTANCE;
 
     public Step() {
-        super("Step", Category.MOVEMENT, "Allows you to step up blocks", () -> Setting.formatEnum(mode.getValue()));
+        super("Step", Category.MOVEMENT, "Allows you to step up blocks", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
         
         stepHeights.put(1.0, new double[] { 0.42, 0.753 });
@@ -21,8 +22,8 @@ public class Step extends Module {
         stepHeights.put(2.5, new double[] { 0.425, 0.821, 0.699, 0.599, 1.022, 1.372, 1.652, 1.869, 2.019, 1.907 });
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "How to step up blocks", Mode.NORMAL);
-    public static Setting<Double> height = new Setting<>("Height", "The height to step up blocks", 1.0, 1.0, 2.5, 1);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("How to step up blocks");
+    public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The height to step up blocks");
 
     private final Map<Double, double[]> stepHeights = new HashMap<>();
 

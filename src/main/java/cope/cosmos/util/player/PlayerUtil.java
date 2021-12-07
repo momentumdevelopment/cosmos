@@ -14,21 +14,6 @@ public class PlayerUtil implements Wrapper {
         return mc.player.getHealth() + mc.player.getAbsorptionAmount();
     }
 
-    public static void attackEntity(Entity entity, boolean packet, Hand hand, double variation) {
-        if (Math.random() <= (variation / 100)) {
-            if (packet) {
-                mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-            }
-
-            else {
-                mc.playerController.attackEntity(mc.player, entity);
-            }
-        }
-
-        swingArm(hand);
-        mc.player.resetCooldown();
-    }
-
     public static void swingArm(Hand hand) {
         switch (hand) {
             case MAINHAND:
@@ -41,7 +26,7 @@ public class PlayerUtil implements Wrapper {
                 mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
                 break;
             case NONE:
-            	break;
+                break;
         }
     }
 

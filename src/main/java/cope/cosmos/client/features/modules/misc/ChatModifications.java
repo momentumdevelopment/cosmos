@@ -27,10 +27,10 @@ public class ChatModifications extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Time> time = new Setting<>("Time", "Time format", Time.NA);
-    public static Setting<Boolean> prefix = new Setting<>("Prefix", "Add a cosmos prefix before chat messages", false);
-    public static Setting<Boolean> suffix = new Setting<>("Suffix", "Add a cosmos suffix after chat messages", true);
-    public static Setting<Boolean> colored = new Setting<>("Colored", "Add a > before public messages", true);
+    public static Setting<Time> time = new Setting<>("Time", Time.NA).setDescription("Time format");
+    public static Setting<Boolean> prefix = new Setting<>("Prefix", false).setDescription("Add a cosmos prefix before chat messages");
+    public static Setting<Boolean> suffix = new Setting<>("Suffix", true).setDescription("Add a cosmos suffix after chat messages");
+    public static Setting<Boolean> colored = new Setting<>("Colored", true).setDescription("Add a > before public messages");
 
     /*
     public static Setting<Boolean> highlight = new Setting<>("Highlight", true);

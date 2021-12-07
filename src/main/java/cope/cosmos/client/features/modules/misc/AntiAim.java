@@ -19,9 +19,9 @@ public class AntiAim extends Module {
         super("AntiAim", Category.MISC, "Makes you harder to hit");
     }
 
-    public static Setting<Yaw> yaw = new Setting<>("Yaw", "Changes how your yaw is rotated", Yaw.LINEAR);
-    public static Setting<Pitch> pitch = new Setting<>("Pitch", "Changes how your pitch is rotated", Pitch.NONE);
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", "How to rotate", Rotate.PACKET);
+    public static Setting<Yaw> yaw = new Setting<>("Yaw", Yaw.LINEAR).setDescription("Changes how your yaw is rotated");
+    public static Setting<Pitch> pitch = new Setting<>("Pitch", Pitch.NONE).setDescription("Changes how your pitch is rotated");
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET).setDescription("How to rotate");
 
     int aimTicks = 0;
     float aimYaw = 0;

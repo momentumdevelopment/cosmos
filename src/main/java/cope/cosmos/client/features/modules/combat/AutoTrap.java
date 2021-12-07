@@ -13,19 +13,6 @@ public class AutoTrap extends Module {
         super("AutoTrap", Category.COMBAT, "Traps enemies in obsidian");
     }
 
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", "Mode to switch to blocks", Switch.NORMAL);
-    public static Setting<Double> blocks = new Setting<>("Blocks", "Allowed block placements per tick", 0.0, 4.0, 10.0, 0);
-    public static Setting<Hand> swing = new Setting<>("Swing", "Hand to swing when placing blocks", Hand.MAINHAND);
-    public static Setting<Boolean> packet = new Setting<>("Packet", "Place with packets", false);
-    public static Setting<Boolean> confirm = new Setting<>("Confirm", "Confirm the placement", false);
-
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", "Mode for attack rotations", Rotate.NONE);
-    public static Setting<Boolean> rotateCenter = new Setting<>("Center", "Center rotations on target", false).setParent(rotate);
-    public static Setting<Boolean> rotateRandom = new Setting<>("Random", "Randomize rotations to simulate real rotations", false).setParent(rotate);
-
-    public static Setting<Target> target = new Setting<>("Target", "Priority for searching target", Target.CLOSEST);
-    public static Setting<Double> targetRange = new Setting<>("Range", "Range to trap players", 0.0, 5.0, 10.0, 0).setParent(target);
-
     /*
 
     int previousSlot = -1;

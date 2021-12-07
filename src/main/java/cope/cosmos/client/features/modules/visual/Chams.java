@@ -26,30 +26,30 @@ public class Chams extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "Mode for Chams", Mode.MODEL);
-    public static Setting<Double> width = new Setting<>(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIREMODEL),"Width", "Line width for the model", 0.0, 3.0, 5.0, 2).setParent(mode);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setParent(mode).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIREMODEL));
 
-    public static Setting<Boolean> players = new Setting<>("Players", "Renders chams on players", true);
-    public static Setting<Boolean> local = new Setting<>("Local", "Renders chams on the local player", false).setParent(players);
+    public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
+    public static Setting<Boolean> local = new Setting<>("Local", false).setParent(players).setDescription("Renders chams on the local player");
 
-    public static Setting<Boolean> mobs = new Setting<>("Mobs", "Renders chams on mobs", true);
-    public static Setting<Boolean> monsters = new Setting<>("Monsters", "Renders chams on monsters", true);
+    public static Setting<Boolean> mobs = new Setting<>("Mobs", true).setDescription("Renders chams on mobs");
+    public static Setting<Boolean> monsters = new Setting<>("Monsters", true).setDescription("Renders chams on monsters");
 
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", "Renders chams on crystals", true);
-    public static Setting<Double> scale = new Setting<>("Scale", "Scale for crystal model", 0.0, 1.0, 2.0, 2).setParent(crystals);
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", true).setDescription("Renders chams on crystals");
+    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2).setParent(crystals).setDescription("Scale for crystal model");
 
-    public static Setting<Boolean> texture = new Setting<>("Texture", "Enables entity texture", false);
-    public static Setting<Boolean> lighting = new Setting<>("Lighting", "Disables vanilla lighting", true);
-    public static Setting<Boolean> blend = new Setting<>("Blend", "Enables blended texture", false);
-    public static Setting<Boolean> transparent = new Setting<>("Transparent", "Makes entity models transparent", true);
-    public static Setting<Boolean> depth = new Setting<>("Depth", "Enables entity depth", true);
-    public static Setting<Boolean> walls = new Setting<>("Walls", "Renders chams models through walls", true);
+    public static Setting<Boolean> texture = new Setting<>("Texture", false).setDescription("Enables entity texture");
+    public static Setting<Boolean> lighting = new Setting<>("Lighting", true).setDescription("Disables vanilla lighting");
+    public static Setting<Boolean> blend = new Setting<>("Blend", false).setDescription("Enables blended texture");
+    public static Setting<Boolean> transparent = new Setting<>("Transparent", true).setDescription("Makes entity models transparent");
+    public static Setting<Boolean> depth = new Setting<>("Depth", true).setDescription("Enables entity depth");
+    public static Setting<Boolean> walls = new Setting<>("Walls", true).setDescription("Renders chams models through walls");
 
-    public static Setting<Boolean> xqz = new Setting<>("XQZ", "Colors chams models through walls", true);
-    public static Setting<Color> xqzColor = new Setting<>("XQZColor", "Color of models through walls", new Color(0, 70, 250, 50)).setParent(xqz);
+    public static Setting<Boolean> xqz = new Setting<>("XQZ", true).setDescription("Colors chams models through walls");
+    public static Setting<Color> xqzColor = new Setting<>("XQZColor", new Color(0, 70, 250, 50)).setParent(xqz).setDescription("Color of models through walls");
 
-    public static Setting<Boolean> highlight = new Setting<>("Highlight", "Colors chams models when visible", true);
-    public static Setting<Color> highlightColor = new Setting<>("HighlightColor", "Color of models when visible", new Color(250, 0, 250, 50)).setParent(highlight);
+    public static Setting<Boolean> highlight = new Setting<>("Highlight", true).setDescription("Colors chams models when visible");
+    public static Setting<Color> highlightColor = new Setting<>("HighlightColor", new Color(250, 0, 250, 50)).setParent(highlight).setDescription("Color of models when visible");
 
     @SubscribeEvent
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {

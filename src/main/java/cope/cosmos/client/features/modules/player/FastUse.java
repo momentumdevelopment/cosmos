@@ -34,24 +34,24 @@ public class FastUse extends Module {
     }
 
     // delay for using items
-    public static Setting<Double> speed = new Setting<>("Speed", "Place speed", 0.0, 4.0, 4.0, 0);
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 4.0, 4.0, 0).setDescription("Place speed");
 
     // anti-cheat
-    public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", "Fixes the item ghost issue on some servers", false);
-    public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", "Drops items faster", false);
+    public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", false).setDescription("Fixes the item ghost issue on some servers");
+    public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", false).setDescription("Drops items faster");
 
     // packet use
-    public static Setting<Boolean> packetUse = new Setting<>("PacketUse", "Uses packets when using items", false);
-    public static Setting<Boolean> packetFood = new Setting<>("Food", "Uses packets when eating food", false).setParent(packetUse);
-    public static Setting<Boolean> packetPotion = new Setting<>("Potions", "Uses packets when drinking potions", true).setParent(packetUse);
+    public static Setting<Boolean> packetUse = new Setting<>("PacketUse", false).setDescription("Uses packets when using items");
+    public static Setting<Boolean> packetFood = new Setting<>("Food", false).setParent(packetUse).setDescription("Uses packets when eating food");
+    public static Setting<Boolean> packetPotion = new Setting<>("Potions", true).setParent(packetUse).setDescription("Uses packets when drinking potions");
 
     // valid items
-    public static Setting<Boolean> exp = new Setting<>("EXP", "Applies fast placements to experience", true);
-    public static Setting<Boolean> bow = new Setting<>("Bow", "Applies fast placements to bows", false);
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", "Applies fast placements to crystals", false);
-    public static Setting<Boolean> blocks = new Setting<>("Blocks", "Applies fast placements to blocks", false);
-    public static Setting<Boolean> spawnEggs = new Setting<>("SpawnEggs", "Applies fast placements to spawn eggs", false);
-    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", "Applies fast placements to fireworks", false);
+    public static Setting<Boolean> exp = new Setting<>("EXP", true).setDescription("Applies fast placements to experience");
+    public static Setting<Boolean> bow = new Setting<>("Bow", false).setDescription("Applies fast placements to bows");
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", false).setDescription("Applies fast placements to crystals");
+    public static Setting<Boolean> blocks = new Setting<>("Blocks", false).setDescription("Applies fast placements to blocks");
+    public static Setting<Boolean> spawnEggs = new Setting<>("SpawnEggs", false).setDescription("Applies fast placements to spawn eggs");
+    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false).setDescription("Applies fast placements to fireworks");
 
     @Override
     public void onUpdate() {

@@ -48,10 +48,10 @@ public class FastProjectile extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> ticks = new Setting<>("Ticks", "How many times to send packets", 1.0D, 10.0D, 100.0D, 0);
-    public static Setting<Boolean> bows = new Setting<>("Bows", "Allow bows to do more damage", false);
-    public static Setting<Boolean> eggs = new Setting<>("Eggs", "Allow eggs to do more damage", false);
-    public static Setting<Boolean> snowballs = new Setting<>("Snowballs", "Allow snowballs to do more damage", false);
+    public static Setting<Double> ticks = new Setting<>("Ticks", 1.0D, 10.0D, 100.0D, 0).setDescription("How many times to send packets");
+    public static Setting<Boolean> bows = new Setting<>("Bows", false).setDescription("Allow bows to do more damage");
+    public static Setting<Boolean> eggs = new Setting<>("Eggs", false).setDescription("Allow eggs to do more damage");
+    public static Setting<Boolean> snowballs = new Setting<>("Snowballs", false).setDescription("Allow snowballs to do more damage");
 
     // projectile timer, keeps track of last bow shot
     private static final Timer projectileTimer = new Timer();

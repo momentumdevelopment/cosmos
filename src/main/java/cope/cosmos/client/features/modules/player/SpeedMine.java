@@ -2,11 +2,12 @@ package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.BlockResetEvent;
-import cope.cosmos.client.events.SettingEnableEvent;
+import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.*;
 import cope.cosmos.util.render.RenderBuilder;
@@ -40,19 +41,19 @@ public class SpeedMine extends Module {
     public static SpeedMine INSTANCE;
 
     public SpeedMine() {
-        super("SpeedMine", Category.PLAYER, "Mines faster", () -> Setting.formatEnum(mode.getValue()));
+        super("SpeedMine", Category.PLAYER, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "Mode for SpeedMine", Mode.PACKET);
-    public static Setting<Switch> mineSwitch = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "Switch", "Mode when switching to a pickaxe", Switch.NORMAL);
-    public static Setting<Double> damage = new Setting<>(() -> mode.getValue().equals(Mode.DAMAGE), "Damage", "Instant block damage", 0.0, 0.8, 1.0, 1);
-    public static Setting<Boolean> strict = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "Strict", "Mines on the opposite face", false);
-    public static Setting<Boolean> swing = new Setting<>(() -> mode.getValue().equals(Mode.PACKET), "NoSwing", "Cancels swinging packets", false);
-    public static Setting<Boolean> reset = new Setting<>("Reset", "Doesn't allow block break progress to be reset", false);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for SpeedMine");
+    public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription( "Mode when switching to a pickaxe").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1).setDescription("Instant block damage").setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
+    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Mines on the opposite face").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Boolean> swing = new Setting<>("NoSwing", false).setDescription("Cancels swinging packets").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Boolean> reset = new Setting<>("Reset", false).setDescription("Doesn't allow block break progress to be reset");
 
-    public static Setting<Boolean> render = new Setting<>("Render", "Renders a visual over current mining block", true);
-    public static Setting<Box> renderMode = new Setting<>("Mode", "Style for the visual", Box.BOTH).setParent(render);
+    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Renders a visual over current mining block");
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setParent(render).setDescription("Style for the visual");
 
     // mine info
     private BlockPos minePosition;
@@ -250,7 +251,7 @@ public class SpeedMine extends Module {
     }
 
     @SubscribeEvent
-    public void onSettingChange(SettingEnableEvent event) {
+    public void onSettingChange(SettingUpdateEvent event) {
         // clear haste effect on mode change
         if (event.getSetting().equals(mode) && !event.getSetting().getValue().equals(Mode.VANILLA)) {
             if (mc.player.isPotionActive(MobEffects.HASTE)) {

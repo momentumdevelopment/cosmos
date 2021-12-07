@@ -6,6 +6,7 @@ import cope.cosmos.client.events.TravelEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.MotionUtil;
@@ -23,26 +24,27 @@ public class ElytraFlight extends Module {
     public static ElytraFlight INSTANCE;
 
     public ElytraFlight() {
-        super("ElytraFlight", Category.MOVEMENT, "Allows you to fly faster on an elytra", () -> Setting.formatEnum(mode.getValue()));
+        super("ElytraFlight", Category.MOVEMENT, "Allows you to fly faster on an elytra", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
-    public static Setting<Elytra> mode = new Setting<>("Mode", "Mode for ElytraFlight", Elytra.CONTROL);
-    public static Setting<Double> yaw = new Setting<>(() -> mode.getValue().equals(Elytra.STRICT),"Yaw", "Maximum allowed yaw", 0.0, 30.0, 90.0, 1);
-    public static Setting<Double> pitch = new Setting<>(() -> mode.getValue().equals(Elytra.STRICT),"Pitch", "Maximum allowed pitch", 0.0, 30.0, 90.0, 1);
-    public static Setting<Double> glide = new Setting<>("Glide", "Speed when gliding", 0.0, 2.5, 5.0, 2);
-    public static Setting<Double> ascend = new Setting<>("Ascend", "Speed when ascending", 0.0, 1.0, 5.0, 2);
-    public static Setting<Double> descend = new Setting<>("Descend", "Speed when descending", 0.0, 1.0, 5.0, 2);
-    public static Setting<Double> fall = new Setting<>("Fall", "Speed when stationary", 0.0, 0.0, 0.1, 3);
-    public static Setting<Switch> firework = new Setting<>("Firework", "Mode to switch to fireworks if necessary", Switch.NONE);
-    public static Setting<Boolean> lockRotation = new Setting<>("LockRotation", "Locks rotation and flies in a straight path", false);
+    public static Setting<Elytra> mode = new Setting<>("Mode", Elytra.CONTROL).setDescription("Mode for ElytraFlight");
+    public static Setting<Double> yaw = new Setting<>("Yaw", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed yaw").setVisible(() -> mode.getValue().equals(Elytra.STRICT));
+    public static Setting<Double> pitch = new Setting<>("Pitch", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed pitch").setVisible(() -> mode.getValue().equals(Elytra.STRICT));
 
-    public static Setting<Boolean> takeOff = new Setting<>("TakeOff", "Easier takeoff", false);
-    public static Setting<Double> takeOffTimer = new Setting<>("Timer", "Timer ticks when taking off", 0.0, 0.2, 1.0, 2).setParent(takeOff);
+    public static Setting<Double> glide = new Setting<>("Glide", 0.0, 2.5, 5.0, 2).setDescription("Speed when gliding");
+    public static Setting<Double> ascend = new Setting<>("Ascend", 0.0, 1.0, 5.0, 2).setDescription("Speed when ascending");
+    public static Setting<Double> descend = new Setting<>("Descend", 0.0, 1.0, 5.0, 2).setDescription("Speed when descending");
+    public static Setting<Double> fall = new Setting<>("Fall", 0.0, 0.0, 0.1, 3).setDescription("Speed when stationary");
+    public static Setting<Switch> firework = new Setting<>("Firework", Switch.NONE).setDescription("Mode to switch to fireworks if necessary");
+    public static Setting<Boolean> lockRotation = new Setting<>("LockRotation", false).setDescription("Locks rotation and flies in a straight path");
 
-    public static Setting<Boolean> pause = new Setting<>("Pause", "Pause elytra flight when", true);
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", "When in liquid", true).setParent(pause);
-    public static Setting<Boolean> pauseCollision = new Setting<>("Collision", "When colliding", false).setParent(pause);
+    public static Setting<Boolean> takeOff = new Setting<>("TakeOff", false).setDescription("Easier takeoff");
+    public static Setting<Double> takeOffTimer = new Setting<>("Timer", 0.0, 0.2, 1.0, 2).setParent(takeOff).setDescription("Timer ticks when taking off");
+
+    public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("Pause elytra flight when");
+    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", true).setParent(pause).setDescription("When in liquid");
+    public static Setting<Boolean> pauseCollision = new Setting<>("Collision", false).setParent(pause).setDescription("When colliding");
 
     @SubscribeEvent
     public void onTravel(TravelEvent event) {

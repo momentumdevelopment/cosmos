@@ -19,8 +19,8 @@ public class Notifier extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> enableNotify = new Setting<>("EnableNotify", "Send a chat message when a modules is toggled", false);
-    public static Setting<Boolean> popNotify = new Setting<>("PopNotify", "Send a chat message when a nearby player is popped", false);
+    public static Setting<Boolean> enableNotify = new Setting<>("EnableNotify", false).setDescription("Send a chat message when a modules is toggled");
+    public static Setting<Boolean> popNotify = new Setting<>("PopNotify", false).setDescription("Send a chat message when a nearby player is popped");
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {

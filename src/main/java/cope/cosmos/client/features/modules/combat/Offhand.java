@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
@@ -19,26 +20,26 @@ public class Offhand extends Module {
     public static Offhand INSTANCE;
 
     public Offhand() {
-        super("Offhand", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> Setting.formatEnum(item.getValue()) + ", " + InventoryUtil.getItemCount(item.getValue().getItem()));
+        super("Offhand", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(item.getValue()) + ", " + InventoryUtil.getItemCount(item.getValue().getItem()));
         INSTANCE = this;
     }
 
-    public static Setting<OffhandItem> item = new Setting<>("Item", "Item to use when not at critical health", OffhandItem.CRYSTAL);
-    public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", "Item to use if you don't have the chosen item", OffhandItem.GAPPLE);
-    public static Setting<Interact> interact = new Setting<>("Interact", "How to interact when switching", Interact.NORMAL);
-    public static Setting<Gapple> gapple = new Setting<>("Gapple", "When to dynamically switch to a golden apple", Gapple.SWORD);
+    public static Setting<OffhandItem> item = new Setting<>("Item", OffhandItem.CRYSTAL).setDescription("Item to use when not at critical health");
+    public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", OffhandItem.GAPPLE).setDescription("Item to use if you don't have the chosen item");
+    public static Setting<Interact> interact = new Setting<>("Interact", Interact.NORMAL).setDescription("How to interact when switching");
+    public static Setting<Gapple> gapple = new Setting<>("Gapple", Gapple.SWORD).setDescription("When to dynamically switch to a golden apple");
 
-    public static Setting<Double> health = new Setting<>("Health", "Health considered as critical health", 0.0D, 16.0D, 36.0D, 1);
-    public static Setting<Double> delay = new Setting<>("Delay", "Delay when switching items", 0.0D, 0.0D, 20.0D, 0);
+    public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 36.0D, 1).setDescription("Health considered as critical health");
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 0).setDescription("Delay when switching items");
 
-    public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", "Swaps to a totem when you have armor slots empty, prevents totem fails", false);
-    public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", "Stops motion before switching", false);
-    public static Setting<Boolean> recursive = new Setting<>("Recursive", "Allow the use of hotbar items", false);
+    public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", false).setDescription("Swaps to a totem when you have armor slots empty, prevents totem fails");
+    public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false).setDescription("Stops motion before switching");
+    public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
 
-    public static Setting<Boolean> pause = new Setting<>("Pause", "When to pause and use a totem", true);
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", "When in liquid", false).setParent(pause);
-    public static Setting<Boolean> pauseAir = new Setting<>("Air", "When falling or flying", true).setParent(pause);
-    public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", "When elytra flying", true).setParent(pause);
+    public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause and use a totem");
+    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", false).setParent(pause).setDescription("When in liquid");
+    public static Setting<Boolean> pauseAir = new Setting<>("Air", true).setParent(pause).setDescription("When falling or flying");
+    public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", true).setParent(pause).setDescription("When elytra flying");
 
     private Stage stage = Stage.IDLE;
 

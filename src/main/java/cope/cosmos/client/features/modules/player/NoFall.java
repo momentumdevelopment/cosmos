@@ -13,15 +13,15 @@ public class NoFall extends Module {
     public static NoFall INSTANCE;
 
     public NoFall() {
-        super("NoFall", Category.PLAYER, "Attempts to negate fall damage", () -> Setting.formatEnum(mode.getValue()));
+        super("NoFall", Category.PLAYER, "Attempts to negate fall damage");
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "How to negate fall damage", Mode.PACKET);
-    public static Setting<Double> distance = new Setting<>("Distance", "The minimum fall distance before doing anything", 1.0, 2.0, 5.0, 1);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("How to negate fall damage");
+    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 2.0, 5.0, 1).setDescription("The minimum fall distance before doing anything");
 
-    public static Setting<Swap> swap = new Setting<>("Swap", "How to swap to a water bucket", Swap.LEGIT);
-    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", "The speed to glide at", 0.1, 1.5, 5.0, 1);
+    public static Setting<Swap> swap = new Setting<>("Swap", Swap.LEGIT).setDescription("How to swap to a water bucket");
+    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", 0.1, 1.5, 5.0, 1).setDescription("The speed to glide at");
 
     private EnumHand hand = EnumHand.MAIN_HAND;
     private int oldSlot = -1;

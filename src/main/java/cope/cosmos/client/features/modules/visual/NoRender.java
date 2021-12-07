@@ -24,27 +24,27 @@ public class NoRender extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> overlays = new Setting<>("Overlays", "Prevents overlays from rendering", true);
-    public static Setting<Boolean> overlayFire = new Setting<>("Fire", "Prevents fire overlay from rendering", true).setParent(overlays);
-    public static Setting<Boolean> overlayLiquid = new Setting<>("Liquid", "Prevents liquid overlay from rendering", true).setParent(overlays);
-    public static Setting<Boolean> overlayBlock = new Setting<>("Block", "Prevents block overlay from rendering", true).setParent(overlays);
-    public static Setting<Boolean> overlayBoss = new Setting<>("Boss", "Prevents boss bar overlay from rendering", true).setParent(overlays);
+    public static Setting<Boolean> overlays = new Setting<>("Overlays", true).setDescription("Prevents overlays from rendering");
+    public static Setting<Boolean> overlayFire = new Setting<>("Fire", true).setParent(overlays).setDescription("Prevents fire overlay from rendering");
+    public static Setting<Boolean> overlayLiquid = new Setting<>("Liquid", true).setParent(overlays).setDescription("Prevents liquid overlay from rendering");
+    public static Setting<Boolean> overlayBlock = new Setting<>("Block", true).setParent(overlays).setDescription("Prevents block overlay from rendering");
+    public static Setting<Boolean> overlayBoss = new Setting<>("Boss", true).setParent(overlays).setDescription("Prevents boss bar overlay from rendering");
 
-    public static Setting<Boolean> fog = new Setting<>("Fog", "Prevents fog from rendering", true);
-    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", "Clears fog in liquid", true).setParent(fog);
-    public static Setting<Double> fogDensity = new Setting<>("Density", "Density of the fog", 0.0, 0.0, 20.0, 0).setParent(fog);
+    public static Setting<Boolean> fog = new Setting<>("Fog", true).setDescription("Prevents fog from rendering");
+    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true).setParent(fog).setDescription("Clears fog in liquid");
+    public static Setting<Double> fogDensity = new Setting<>("Density", 0.0, 0.0, 20.0, 0).setParent(fog).setDescription("Density of the fog");
 
-    public static Setting<Boolean> armor = new Setting<>("Armor", "Prevents armor from rendering", true);
-    public static Setting<Boolean> items = new Setting<>("Items", "Prevents dropped items from rendering", false);
-    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", "Prevents fireworks entities from rendering", false);
-    public static Setting<Boolean> particles = new Setting<>("Particles", "Prevents laggy particles from rendering", false);
-    public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", "Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering", false);
-    public static Setting<Boolean> maps = new Setting<>("Maps", "Prevents maps from rendering", false);
-    public static Setting<Boolean> skylight = new Setting<>("Skylight", "Prevents skylight updates from rendering", false);
-    public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", "Removes the hurt camera effect", true);
-    public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", "Prevents flying wither skulls from rendering", true);
-    public static Setting<Boolean> potion = new Setting<>("Potion", "Removes certain potion effects", false);
-    public static Setting<Boolean> fov = new Setting<>("FOV", "Removes the FOV modifier effect", true);
+    public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Prevents armor from rendering");
+    public static Setting<Boolean> items = new Setting<>("Items", false).setDescription("Prevents dropped items from rendering");
+    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false).setDescription("Prevents fireworks entities from rendering");
+    public static Setting<Boolean> particles = new Setting<>("Particles", false).setDescription("Prevents laggy particles from rendering");
+    public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false).setDescription("Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering");
+    public static Setting<Boolean> maps = new Setting<>("Maps", false).setDescription("Prevents maps from rendering");
+    public static Setting<Boolean> skylight = new Setting<>("Skylight", false).setDescription("Prevents skylight updates from rendering");
+    public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true).setDescription("Removes the hurt camera effect");
+    public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true).setDescription("Prevents flying wither skulls from rendering");
+    public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
+    public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
 
     @Override
     public void onUpdate() {

@@ -22,8 +22,8 @@ public class AntiHunger extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", "If to cancel sprint packets", true);
-    public static Setting<Boolean> stopJump = new Setting<>("StopJump", "Spoof your on ground state", true);
+    public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", true).setDescription("If to cancel sprint packets");
+    public static Setting<Boolean> stopJump = new Setting<>("StopJump", true).setDescription("Spoof your on ground state");
 
     // previous sprint state
     private boolean previousSprint;

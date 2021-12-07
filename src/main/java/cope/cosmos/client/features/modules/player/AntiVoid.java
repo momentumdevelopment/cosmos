@@ -19,11 +19,11 @@ public class AntiVoid extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", "How to stop you from falling into the void", Mode.SUSPEND);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SUSPEND).setDescription("How to stop you from falling into the void");
 
     // speed settings
-    public static Setting<Double> glide = new Setting<>(() -> mode.getValue().equals(Mode.GLIDE), "GlideSpeed", "The value to divide your vertical motion by", 1.0, 5.0, 10.0, 1);
-    public static Setting<Double> rise = new Setting<>(() -> mode.getValue().equals(Mode.RISE), "RiseSpeed", "What to set your vertical motion to", 0.1, 0.5, 5.0, 0);
+    public static Setting<Double> glide = new Setting<>("GlideSpeed", 1.0, 5.0, 10.0, 1).setDescription("The value to divide your vertical motion by").setVisible(() -> mode.getValue().equals(Mode.GLIDE));
+    public static Setting<Double> rise = new Setting<>("RiseSpeed",  0.1, 0.5, 5.0, 0).setDescription("What to set your vertical motion to").setVisible(() -> mode.getValue().equals(Mode.RISE));
 
     @Override
     public void onUpdate() {

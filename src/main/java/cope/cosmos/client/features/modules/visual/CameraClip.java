@@ -19,7 +19,7 @@ public class CameraClip extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> distance = new Setting<>("Distance", "How many blocks the camera should clip through", 1.0, 5.0, 20.0, 0);
+    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 5.0, 20.0, 0).setDescription("How many blocks the camera should clip through");
 
     @SubscribeEvent
     public void onCameraClip(CameraClipEvent event) {

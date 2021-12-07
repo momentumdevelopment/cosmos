@@ -17,10 +17,9 @@ public class Social extends Module {
         INSTANCE = this;
         setExempt(true);
         setDrawn(false);
-
     }
 
-    public static Setting<Boolean> friends = new Setting<>("Friends", "Allow friends system to function", true);
+    public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");
 
     @SuppressWarnings("unused")
     @SubscribeEvent
