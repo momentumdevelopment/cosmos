@@ -31,6 +31,8 @@
       "MixinTileEntityBeaconRenderer",
       "MixinTileEntityEnchantmentTableRenderer",
       "MixinWorld",
+      "MixinGuiInGame",
+      "MixinGuiToast",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",

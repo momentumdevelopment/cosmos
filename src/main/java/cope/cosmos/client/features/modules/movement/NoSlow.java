@@ -43,8 +43,7 @@ public class NoSlow extends Module {
     public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", "Allows you to bypass strict NCP servers while on the ground", false);
 
     public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", "Allows you to move around while in GUIs", true);
-    public static Setting<Boolean> moveStrict = new Setting<>("MoveStrict", "If to bypass the Inventory Move patch when moving items around in GUIs", false).setParent(inventoryMove);
-    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0f, 5.0f, 10.0f, 1).setParent(inventoryMove);
+    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", "The speed that the arrow keys should rotate you with", 0.0F, 5.0F, 10.0F, 1).setParent(inventoryMove);
 
     public static Setting<Boolean> items = new Setting<>("Items", "Removes the slowdown effect while using items", true);
     public static Setting<Boolean> soulsand = new Setting<>("SoulSand", "Removes the slowdown effect when walking on soulsand", false);
@@ -166,8 +165,10 @@ public class NoSlow extends Module {
                     ((ICPacketPlayer) event.getPacket()).setOnGround(false);
                 }
             }
-        } else if (event.getPacket() instanceof CPacketClickWindow) {
-            if (moveStrict.getValue()) {
+        }
+
+        if (event.getPacket() instanceof CPacketClickWindow) {
+            if (strict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING)); // rofl nice patch ncp devs
             }
         }

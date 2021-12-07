@@ -30,6 +30,10 @@ public class ChatUtil implements Wrapper {
 		mc.ingameGUI.getChatGUI().printChatMessage(new TextComponentString(message));
 	}
 
+	public static void sendMessageWithOptionalDeletion(String message, int id) {
+		mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(message), id);
+	}
+
 	public static void sendHoverableMessage(String message, String hoverable) {
 		new ChatBuilder().append(ChatUtil.getPrefix() + message, new Style().setColor(TextFormatting.DARK_PURPLE).setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatBuilder().append(Cosmos.NAME, new Style().setColor(TextFormatting.DARK_PURPLE)).append("\n" + hoverable, new Style().setColor(TextFormatting.BLUE)).component()))).append(" ", new Style().setColor(TextFormatting.DARK_PURPLE)).push();
 	}

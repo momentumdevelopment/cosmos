@@ -9,60 +9,88 @@ import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.network.play.client.CPacketKeepAlive;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * @author Sxmurai
+ * @since 10/26/2021
+ */
 public class PingSpoof extends Module {
+    public static PingSpoof INSTANCE;
+
     public PingSpoof() {
-        super("PingSpoof", Category.PLAYER, "Spoofs your latency to the server", () -> delay.getValue() + "s");
+        super("PingSpoof", Category.PLAYER, "Spoofs your latency to the server");
+        INSTANCE = this;
     }
 
     public static Setting<Double> delay = new Setting<>("Delay", "The delay in seconds to hold off sending keep alive packets", 0.1, 0.5, 5.0, 1);
 
-    private final Queue<CPacketKeepAlive> packets = new ConcurrentLinkedQueue<>();
-    private final Timer timer = new Timer();
-    private boolean processing = false;
+    // list of queued packets
+    private final List<CPacketKeepAlive> packets = new CopyOnWriteArrayList<>();
+
+    // timer for packet delay
+    private final Timer packetTimer = new Timer();
+    private boolean processing;
+
+    @Override
+    public void onUpdate() {
+        // if we've cleared our time to send
+        if (packetTimer.passedTime(delay.getValue().longValue() * 1000L, Format.SYSTEM)) {
+            // in case this function is called too many times
+            if (!processing) { 
+                
+                // we can now begin processing packets
+                processing = true;
+                
+                // send all queued packets
+                packets.forEach(packet -> {
+                    if (packet != null) {
+                        mc.player.connection.sendPacket(packet);
+                    }
+                });
+
+                // we are done, processing packets
+                processing = false;
+            }
+            
+            // reset our packetTimer
+            packetTimer.resetTime();
+        }
+    }
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        if (!packets.isEmpty()) {
-            process();
-        }
-    }
+        // send our packets before disabling
+        if (!processing) {
 
-    @Override
-    public void onUpdate() {
-        if (timer.passedTime(delay.getValue().longValue() * 1000L, Format.SYSTEM)) {
-            process();
-            timer.resetTime();
+            // we can now begin processing packets
+            processing = true;
+
+            // send all queued packets
+            packets.forEach(packet -> {
+                if (packet != null) {
+                    mc.player.connection.sendPacket(packet);
+                }
+            });
+
+            // we are done, processing packets
+            processing = false;
         }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketKeepAlive && !processing) {
-            event.setCanceled(true);
-            packets.add((CPacketKeepAlive) event.getPacket());
-        }
-    }
-
-    private void process() {
-        if (processing) { // in case this function is called too many times
-            return;
-        }
-
-        processing = true;
-        while (!packets.isEmpty()) {
-            CPacketKeepAlive packet = packets.poll();
-            if (packet == null) {
-                break;
+        if (event.getPacket() instanceof CPacketKeepAlive) {
+            if (!processing) {
+                // cancel the packet, queue the packet to be sent later
+                event.setCanceled(true);
+                packets.add((CPacketKeepAlive) event.getPacket());
             }
-
-            mc.player.connection.sendPacket(packet);
         }
-
-        processing = false;
     }
 }

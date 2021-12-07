@@ -2,6 +2,8 @@ package cope.cosmos.client.features.modules.client;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.RenderAdvancementEvent;
+import cope.cosmos.client.events.RenderPotionHUDEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -17,12 +19,14 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public class HUD extends Module {
     public static HUD INSTANCE;
 
@@ -42,6 +46,8 @@ public class HUD extends Module {
     public static Setting<Boolean> tps = new Setting<>("TPS", "Displays the server TPS", true);
     public static Setting<Boolean> armor = new Setting<>("Armor", "Displays the player's armor", true);
     public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", "Displays the player's active potion effects", false);
+    public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", "Displays the vanilla potion effect hud", false);
+    public static Setting<Boolean> advancements = new Setting<>("Advancements", "Displays the vanilla advancement notification", false);
 
     private int globalOffset;
 
@@ -72,7 +78,7 @@ public class HUD extends Module {
             if (activeModules.getValue()) {
                 listOffset = 0;
 
-                ModuleManager.getAllModules().stream().filter(Module::isDrawn).filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
+                ModuleManager.getModules(Module::isDrawn).stream().filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
                     FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
@@ -176,6 +182,22 @@ public class HUD extends Module {
                     armorOffset++;
                 });
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderPotionHUD(RenderPotionHUDEvent event) {
+        if (!potionHUD.getValue()) {
+            // cancel vanilla potion hud from rendering
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderAdvancement(RenderAdvancementEvent event) {
+        if (!advancements.getValue()) {
+            // cancel vanilla advancement notification from rendering
+            event.setCanceled(true);
         }
     }
 }
