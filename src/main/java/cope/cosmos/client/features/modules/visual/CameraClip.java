@@ -6,6 +6,10 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author Sxmurai
+ * @since 10/17/2021
+ */
 @SuppressWarnings("unused")
 public class CameraClip extends Module {
     public static CameraClip INSTANCE;
@@ -19,6 +23,7 @@ public class CameraClip extends Module {
 
     @SubscribeEvent
     public void onCameraClip(CameraClipEvent event) {
+        // override the vanilla camera clip distance
         event.setDistance(distance.getValue());
     }
 }

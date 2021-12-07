@@ -15,33 +15,70 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Random;
 
+/**
+ * @author linustouchtips
+ * @since 10/03/2021
+ */
 public class FastProjectile extends Module {
     public static FastProjectile INSTANCE;
 
     public FastProjectile() {
-        super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> (projectileTimer.passedTime(5000, Format.SYSTEM) ? "Charged" : "Charging"));
+        super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> {
+            // if we are charged
+            if (projectileTimer.passedTime(2000, Format.SYSTEM)) {
+                return "Charged";
+            }
+
+            // find time till next charged shot
+            long timeTillCharge = 2000 - projectileTimer.getMilliseconds();
+
+            // clamp values
+            if (timeTillCharge < 0) {
+                timeTillCharge = 0;
+            }
+
+            else if (timeTillCharge > 2000) {
+                timeTillCharge = 2000;
+            }
+
+            // display time
+            return String.valueOf(timeTillCharge);
+        });
+
         INSTANCE = this;
     }
-    
+
+    public static Setting<Double> ticks = new Setting<>("Ticks", "How many times to send packets", 1.0D, 10.0D, 100.0D, 0);
     public static Setting<Boolean> bows = new Setting<>("Bows", "Allow bows to do more damage", false);
     public static Setting<Boolean> eggs = new Setting<>("Eggs", "Allow eggs to do more damage", false);
     public static Setting<Boolean> snowballs = new Setting<>("Snowballs", "Allow snowballs to do more damage", false);
-    public static Setting<Double> ticks = new Setting<>("Ticks", "How many times to send packets", 1.0D, 10.0D, 50.0D, 0);
 
+    // projectile timer, keeps track of last bow shot
     private static final Timer projectileTimer = new Timer();
     
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        // packet when using projectiles
         if (event.getPacket() instanceof CPacketPlayerDigging && ((CPacketPlayerDigging) event.getPacket()).getAction().equals(CPacketPlayerDigging.Action.RELEASE_USE_ITEM)) {
+
+            // make sure we are holding a projectile
             if (InventoryUtil.isHolding(Items.BOW) && bows.getValue() || InventoryUtil.isHolding(Items.EGG) && eggs.getValue() || InventoryUtil.isHolding(Items.SNOWBALL) && snowballs.getValue()) {
+
+                // make sure there has been enough time since last shot
                 if (projectileTimer.passedTime(2000, Format.SYSTEM)) {
+                    // bypass
                     mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
 
+                    // direction -> randomized
                     Random projectileRandom = new Random();
+
+                    // set the position at crazy bounds, makes server think we have crazy velocity -> more velocity = more projectile damage
                     for (int tick = 0; tick < ticks.getValue(); tick++) {
+                        // player directions from rotation
                         double sin = -Math.sin(Math.toRadians(mc.player.rotationYaw));
                         double cos = Math.cos(Math.toRadians(mc.player.rotationYaw));
 
+                        // send packets
                         if (projectileRandom.nextBoolean()) {
                             mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
                             mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX - (sin * 100), mc.player.posY, mc.player.posZ - (cos * 100), true));
@@ -53,6 +90,7 @@ public class FastProjectile extends Module {
                         }
                     }
 
+                    // reset timer
                     projectileTimer.resetTime();
                 }
             }

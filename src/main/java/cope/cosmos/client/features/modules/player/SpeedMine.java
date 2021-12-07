@@ -31,6 +31,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.Color;
 
+/**
+ * @author linustouchtips
+ * @since 12/02/2021
+ */
 @SuppressWarnings({"unused", "deprecation"})
 public class SpeedMine extends Module {
     public static SpeedMine INSTANCE;
@@ -65,43 +69,47 @@ public class SpeedMine extends Module {
 
     @Override
     public void onUpdate() {
-        if (mode.getValue().equals(Mode.DAMAGE)) {
-            // if the damage is greater than our specified damage, set the block to full damage
-            if (((IPlayerControllerMP) mc.playerController).getCurrentBlockDamage() > damage.getValue().floatValue()) {
-                ((IPlayerControllerMP) mc.playerController).setCurrentBlockDamage(1);
+        // no reason to speedmine in creative mode, blocks break instantly
+        if (!mc.player.capabilities.isCreativeMode) {
 
-                // destroy the block
-                mc.playerController.onPlayerDestroyBlock(minePosition);
-            }
-        }
+            if (mode.getValue().equals(Mode.DAMAGE)) {
+                // if the damage is greater than our specified damage, set the block to full damage
+                if (((IPlayerControllerMP) mc.playerController).getCurrentBlockDamage() > damage.getValue().floatValue()) {
+                    ((IPlayerControllerMP) mc.playerController).setCurrentBlockDamage(1);
 
-        else if (mode.getValue().equals(Mode.PACKET)) {
-            if (minePosition != null) {
-                // if the block is broken
-                if (mineDamage >= 1) {
-
-                    // break block
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
-
-                    // save our current slot
-                    if (previousSlot != -1) {
-                        // switch to our previous slot
-                        mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
-
-                        // reset previous slot
-                        previousSlot = -1;
-                    }
+                    // destroy the block
+                    mc.playerController.onPlayerDestroyBlock(minePosition);
                 }
-
-                // update block damage
-                mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
             }
-        }
 
-        else if (mode.getValue().equals(Mode.VANILLA)) {
-            // add haste and set the block hit delay to 0
-            ((IPlayerControllerMP) mc.playerController).setBlockHitDelay(0);
-            mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE.setPotionName("SpeedMine"), 80950, 1, false, false));
+            else if (mode.getValue().equals(Mode.PACKET)) {
+                if (minePosition != null) {
+                    // if the block is broken
+                    if (mineDamage >= 1) {
+
+                        // break block
+                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+
+                        // save our current slot
+                        if (previousSlot != -1) {
+                            // switch to our previous slot
+                            mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
+
+                            // reset previous slot
+                            previousSlot = -1;
+                        }
+                    }
+
+                    // update block damage
+                    mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
+                }
+            }
+
+            else if (mode.getValue().equals(Mode.VANILLA)) {
+                // add haste and set the block hit delay to 0
+                ((IPlayerControllerMP) mc.playerController).setBlockHitDelay(0);
+                mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE.setPotionName("SpeedMine"), 80950, 1, false, false));
+            }
         }
     }
 
@@ -137,20 +145,23 @@ public class SpeedMine extends Module {
 
     @Override
     public void onRender3D() {
-        if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
-            RenderUtil.drawBox(new RenderBuilder()
-                    .position(minePosition)
-                    .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
-                    .box(renderMode.getValue())
-                    .setup()
-                    .line(1.5F)
-                    .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                    .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                    .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                    .depth(true)
-                    .blend()
-                    .texture()
-            );
+        // render the current mining block
+        if (mode.getValue().equals(Mode.PACKET) && !mc.player.capabilities.isCreativeMode) {
+            if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
+                RenderUtil.drawBox(new RenderBuilder()
+                        .position(minePosition)
+                        .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
+                        .box(renderMode.getValue())
+                        .setup()
+                        .line(1.5F)
+                        .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .depth(true)
+                        .blend()
+                        .texture()
+                );
+            }
         }
     }
 
@@ -158,7 +169,7 @@ public class SpeedMine extends Module {
     public void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
 
         // make sure the block is breakable
-        if (BlockUtil.isBreakable(event.getPos())) {
+        if (BlockUtil.isBreakable(event.getPos()) && !mc.player.capabilities.isCreativeMode) {
             if (mode.getValue().equals(Mode.CREATIVE)) {
                 // instantly break the block and set the block to air
                 mc.playerController.onPlayerDestroyBlock(event.getPos());
