@@ -11,7 +11,7 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author Sxmurai
+ * @author Sxmurai, linustouchtips
  * @since 10/27/2021
  */
 public class AntiHunger extends Module {

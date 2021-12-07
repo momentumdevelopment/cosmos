@@ -10,6 +10,10 @@ import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 @SuppressWarnings("unused")
 public class Portal extends Module {
     public static Portal INSTANCE;
@@ -26,18 +30,24 @@ public class Portal extends Module {
 
     @Override
     public void onUpdate() {
+        // allows you to send messages while in portals
         ((IEntity) mc.player).setInPortal(!screens.getValue() && ((IEntity) mc.player).getInPortal());
+
+        // cancels the portal overlay from rendering
         GuiIngameForge.renderPortal = !effect.getValue();
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
+
+        // reset overlay state
         GuiIngameForge.renderPortal = true;
     }
 
     @SubscribeEvent
     public void onSound(PlaySoundEvent event) {
+        // prevents portal ambience sounds from playing
         if (sounds.getValue() && (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger"))) {
             event.setResultSound(null);
         }
@@ -45,6 +55,13 @@ public class Portal extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        event.setCanceled(event.getPacket() instanceof CPacketConfirmTeleport && mc.player.timeInPortal > 0 && godMode.getValue());
+        // allows you to become invincible while in portals on some servers
+        if (event.getPacket() instanceof CPacketConfirmTeleport) {
+
+            // make sure you are in a portal
+            if (mc.player.timeInPortal > 0 && godMode.getValue()) {
+                event.setCanceled(true);
+            }
+        }
     }
 }

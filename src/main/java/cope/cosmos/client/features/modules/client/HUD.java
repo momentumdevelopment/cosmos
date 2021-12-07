@@ -89,26 +89,34 @@ public class HUD extends Module {
 
             if (potionEffects.getValue()) {
                 mc.player.getActivePotionEffects().forEach(potionEffect -> {
-                    // potion formatted
-                    StringBuilder potionFormatted = new StringBuilder(I18n.format(potionEffect.getEffectName()));
 
-                    // duration
-                    float duration = potionEffect.getDuration() / getCosmos().getTickManager().getTPS(TPS.AVERAGE);
-                    float durationSeconds = duration % 60;
-                    float durationMinutes = (duration / 60) % 60;
+                    // potion name
+                    String potionName = I18n.format(potionEffect.getEffectName());
 
-                    // time formatter
-                    DecimalFormat minuteFormatter = new DecimalFormat("0");
-                    DecimalFormat secondsFormatter = new DecimalFormat("00");
+                    // potion effects associated with modules
+                    if (!potionName.equals("FullBright") && !potionName.equals("SpeedMine")) {
 
-                    // potion formatted
-                    potionFormatted.append(" ").append(potionEffect.getAmplifier() + 1).append(ChatFormatting.WHITE).append(" ").append(minuteFormatter.format(durationMinutes)).append(":").append(secondsFormatter.format(durationSeconds));
+                        // potion formatted
+                        StringBuilder potionFormatted = new StringBuilder(potionName);
 
-                    FontUtil.drawStringWithShadow(potionFormatted.toString(), SCREEN_WIDTH - FontUtil.getStringWidth(potionFormatted.toString()) - 2, SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+                        // duration
+                        float duration = potionEffect.getDuration() / getCosmos().getTickManager().getTPS(TPS.AVERAGE);
+                        float durationSeconds = duration % 60;
+                        float durationMinutes = (duration / 60) % 60;
 
-                    // offset
-                    bottomRight += FontUtil.getFontHeight() + 1;
-                    globalOffset++;
+                        // time formatter
+                        DecimalFormat minuteFormatter = new DecimalFormat("0");
+                        DecimalFormat secondsFormatter = new DecimalFormat("00");
+
+                        // potion formatted
+                        potionFormatted.append(" ").append(potionEffect.getAmplifier() + 1).append(ChatFormatting.WHITE).append(" ").append(minuteFormatter.format(durationMinutes)).append(":").append(secondsFormatter.format(durationSeconds));
+
+                        FontUtil.drawStringWithShadow(potionFormatted.toString(), SCREEN_WIDTH - FontUtil.getStringWidth(potionFormatted.toString()) - 2, SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+
+                        // offset
+                        bottomRight += FontUtil.getFontHeight() + 1;
+                        globalOffset++;
+                    }
                 });
             }
 

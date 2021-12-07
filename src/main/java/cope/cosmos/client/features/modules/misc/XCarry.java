@@ -7,6 +7,10 @@ import cope.cosmos.client.features.modules.Module;
 import net.minecraft.network.play.client.CPacketCloseWindow;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 07/21/2021
+ */
 @SuppressWarnings("unused")
 public class XCarry extends Module {
     public static XCarry INSTANCE;
@@ -19,6 +23,7 @@ public class XCarry extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketCloseWindow) {
+            // prevent the client from sending the packet that lets the server know when you've closed your inventory
             event.setCanceled(((ICPacketCloseWindow) event.getPacket()).getWindowID() == mc.player.inventoryContainer.windowId);
         }
     }

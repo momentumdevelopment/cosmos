@@ -39,12 +39,22 @@ public class Blink extends Module {
     public void onEnable() {
         super.onEnable();
 
-        if (!nullCheck()) {
-            toggle();
-            return;
+        if (spawnFake.getValue()) {
+            if (fakePlayer != null) {
+                mc.world.removeEntity(fakePlayer);
+                mc.world.removeEntityDangerously(fakePlayer);
+            }
+
+            fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+            fakePlayer.copyLocationAndAnglesFrom(mc.player);
+            fakePlayer.inventory.copyInventory(mc.player.inventory);
+            fakePlayer.setSneaking(mc.player.isSneaking());
+            fakePlayer.setPrimaryHand(mc.player.getPrimaryHand());
+
+            mc.world.spawnEntity(fakePlayer);
         }
 
-        setup(true);
+        lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
     }
 
     @Override
@@ -124,27 +134,25 @@ public class Blink extends Module {
         }
 
         if (setup) {
-            setup(true);
+            if (spawnFake.getValue()) {
+                if (fakePlayer != null) {
+                    mc.world.removeEntity(fakePlayer);
+                    mc.world.removeEntityDangerously(fakePlayer);
+                }
+
+                fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+                fakePlayer.copyLocationAndAnglesFrom(mc.player);
+                fakePlayer.inventory.copyInventory(mc.player.inventory);
+                fakePlayer.setSneaking(mc.player.isSneaking());
+                fakePlayer.setPrimaryHand(mc.player.getPrimaryHand());
+
+                mc.world.spawnEntity(fakePlayer);
+            }
+
+            lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
         }
 
         processing = false;
-    }
-
-    private void setup(boolean spawn) {
-        if (spawnFake.getValue() && spawn) {
-            if (fakePlayer != null) {
-                mc.world.removeEntity(fakePlayer);
-                mc.world.removeEntityDangerously(fakePlayer);
-            }
-
-            fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
-            fakePlayer.copyLocationAndAnglesFrom(mc.player);
-            fakePlayer.inventory.copyInventory(mc.player.inventory);
-
-            mc.world.spawnEntity(fakePlayer);
-        }
-
-        lastPos = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
     }
 
     public enum Mode {

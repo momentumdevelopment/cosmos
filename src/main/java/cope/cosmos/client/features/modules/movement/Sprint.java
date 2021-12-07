@@ -8,6 +8,10 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 @SuppressWarnings("unused")
 public class Sprint extends Module {
     public static Sprint INSTANCE;
@@ -26,34 +30,54 @@ public class Sprint extends Module {
         // reset sprint state
         mc.player.setSprinting(false);
 
+        // verify if the player's food level allows sprinting
+        if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
+            return;
+        }
+
+        // verify whether or not the player can actually sprint
+        if ((mc.player.isHandActive() || mc.player.isSneaking()) && strict.getValue()) {
+            return;
+        }
+
+        // update player sprint state
         switch (mode.getValue()) {
             case DIRECTIONAL:
-                mc.player.setSprinting(handleSprint() && MotionUtil.isMoving());
+                mc.player.setSprinting(MotionUtil.isMoving());
                 break;
             case NORMAL:
-                mc.player.setSprinting(handleSprint() && MotionUtil.isMoving() && !mc.player.collidedHorizontally && mc.gameSettings.keyBindForward.isKeyDown());
+                mc.player.setSprinting(MotionUtil.isMoving() && !mc.player.collidedHorizontally && mc.gameSettings.keyBindForward.isKeyDown());
                 break;
         }
     }
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
-        if (handleSprint() && MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL)) {
+        if (MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL)) {
+            // verify if the player's food level allows sprinting
+            if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
+                return;
+            }
+
+            // verify whether or not the player can actually sprint
+            if ((mc.player.isHandActive() || mc.player.isSneaking()) && strict.getValue()) {
+                return;
+            }
+
+            // cancel vanilla sprint direction
             event.setCanceled(true);
         }
     }
 
-    public boolean handleSprint() {
-        if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
-            return false;
-        }
-
-        else {
-            return (!mc.player.isHandActive() && !mc.player.isSneaking()) || !strict.getValue();
-        }
-    }
-
     public enum Mode {
-        DIRECTIONAL, NORMAL
+        /**
+         * Allows you to sprint in all directions
+         */
+        DIRECTIONAL,
+
+        /**
+         * Allows sprinting when moving forward
+         */
+        NORMAL
     }
 }

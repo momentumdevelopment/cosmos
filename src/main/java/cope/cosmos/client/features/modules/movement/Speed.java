@@ -14,6 +14,10 @@ import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 11/27/2021
+ */
 @SuppressWarnings("unused")
 public class Speed extends Module {
     public static Speed INSTANCE;

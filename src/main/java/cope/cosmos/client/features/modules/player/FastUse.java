@@ -9,6 +9,7 @@ import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
@@ -19,6 +20,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 @SuppressWarnings("unused")
 public class FastUse extends Module {
     public static FastUse INSTANCE;
@@ -28,15 +33,19 @@ public class FastUse extends Module {
         INSTANCE = this;
     }
 
+    // delay for using items
     public static Setting<Double> speed = new Setting<>("Speed", "Place speed", 0.0, 4.0, 4.0, 0);
 
+    // anti-cheat
     public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", "Fixes the item ghost issue on some servers", false);
     public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", "Drops items faster", false);
 
+    // packet use
     public static Setting<Boolean> packetUse = new Setting<>("PacketUse", "Uses packets when using items", false);
-    public static Setting<Boolean> packetGapple = new Setting<>("Gapple", "Uses packets when eating gapples", false).setParent(packetUse);
+    public static Setting<Boolean> packetFood = new Setting<>("Food", "Uses packets when eating food", false).setParent(packetUse);
     public static Setting<Boolean> packetPotion = new Setting<>("Potions", "Uses packets when drinking potions", true).setParent(packetUse);
 
+    // valid items
     public static Setting<Boolean> exp = new Setting<>("EXP", "Applies fast placements to experience", true);
     public static Setting<Boolean> bow = new Setting<>("Bow", "Applies fast placements to bows", false);
     public static Setting<Boolean> crystals = new Setting<>("Crystals", "Applies fast placements to crystals", false);
@@ -46,30 +55,43 @@ public class FastUse extends Module {
 
     @Override
     public void onUpdate() {
+        // make sure we're holding a valid item
         if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
             if (ghostFix.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown()) {
+                // spam the use packet
                 mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
             }
 
             else {
+                // set our vanilla right click delay timer to 0
                 ((IMinecraft) mc).setRightClickDelayTimer(4 - speed.getValue().intValue());
             }
         }
 
+        // spam the drop item packet
         if (fastDrop.getValue() && mc.gameSettings.keyBindDrop.isKeyDown()) {
             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
         }
 
-        if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive() && mc.player.getItemInUseMaxCount() >= speed.getValue() - 1) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
-            mc.player.stopActiveHand();
+        // fast bow, make sure we are holding a bow and shooting it
+        if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive()) {
+
+            // make sure we've held it for at least a minimum of 1 tick
+            if (mc.player.getItemInUseMaxCount() >= speed.getValue() - 1) {
+
+                // spam release bow packets
+                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
+                mc.player.stopActiveHand();
+            }
         }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+
+            // cancel place on block packets
             if (ghostFix.getValue() && InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE)) {
                 event.setCanceled(true);
             }
@@ -79,7 +101,11 @@ public class FastUse extends Module {
     @SubscribeEvent
     public void onPlayerRightClick(PlayerInteractEvent.RightClickItem event) {
         if (packetUse.getValue() && event.getEntityPlayer().equals(mc.player)) {
-            if ((packetGapple.getValue() && event.getItemStack().getItem().equals(Items.GOLDEN_APPLE)) || (packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM))) {
+
+            // make sure we are holding eatable/drinkable items
+            if (packetFood.getValue() && event.getItemStack().getItem() instanceof ItemFood || packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM)) {
+
+                // cancel eating animation and skip to the item finish state
                 event.setCanceled(true);
                 event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
 

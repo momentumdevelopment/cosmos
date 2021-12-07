@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * @author Sxmurai
+ * @author Sxmurai, linustouchtips
  * @since 10/26/2021
  */
 public class PingSpoof extends Module {

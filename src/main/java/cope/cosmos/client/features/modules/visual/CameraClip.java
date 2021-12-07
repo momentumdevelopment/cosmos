@@ -7,7 +7,7 @@ import cope.cosmos.client.features.setting.Setting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author Sxmurai
+ * @author Sxmurai, linustouchtips
  * @since 10/17/2021
  */
 @SuppressWarnings("unused")

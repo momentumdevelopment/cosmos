@@ -4,6 +4,7 @@ import cope.cosmos.client.clickgui.windowed.window.TabbedWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Component;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.ModuleComponent;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
+import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
@@ -13,6 +14,8 @@ import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -65,6 +68,8 @@ public class ConfigurationWindow extends TabbedWindow {
 
         // update our columns
         updateColumns();
+
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @Override
@@ -353,6 +358,12 @@ public class ConfigurationWindow extends TabbedWindow {
                 left.set(!left.get());
             });
         }
+    }
+
+    @SubscribeEvent
+    public void onSettingChange(SettingEnableEvent event) {
+        // update columns when settings update, in case of visibilty changes
+        updateColumns();
     }
 
     public Page getPage() {
