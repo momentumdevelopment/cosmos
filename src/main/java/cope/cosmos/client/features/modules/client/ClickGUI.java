@@ -23,12 +23,6 @@ public class ClickGUI extends Module {
 		INSTANCE = this;
 	}
 
-	public static Setting<GUI> mode = new Setting<>("Mode", "The mode for the GUI screen", GUI.WINDOW);
-	public static Setting<Color> primaryColor = new Setting<>("PrimaryColor", "The primary color for the GUI", new Color(154, 81, 200, 255));
-	public static Setting<Color> backgroundColor = new Setting<>("BackgroundColor", "The background color for the GUI", new Color(23, 23, 29, 255));
-	public static Setting<Color> accentColor = new Setting<>("AccentColor", "The accent color for the GUI", new Color(35, 35, 45, 255));
-	public static Setting<Color> secondaryColor = new Setting<>("SecondaryColor", "The secondary color for the GUI", new Color(12, 12, 17, 255));
-	public static Setting<Color> complexionColor = new Setting<>("ComplexionColor", "The complexion color for the GUI", new Color(18, 18, 24, 255));
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", "Pause the game when in GUI", false);
 	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", "Blur shader for GUI Panels", false);
 	public static Setting<Boolean> blur = new Setting<>("Blur", "Blur shader for GUI background", false);
@@ -37,8 +31,8 @@ public class ClickGUI extends Module {
 	public void onEnable() {
 		super.onEnable();
 
-		mc.displayGuiScreen(Cosmos.INSTANCE.getWindowGUI());
-		MinecraftForge.EVENT_BUS.register(Cosmos.INSTANCE.getWindowGUI());
+		mc.displayGuiScreen(getCosmos().getWindowGUI());
+		MinecraftForge.EVENT_BUS.register(getCosmos().getWindowGUI());
 
 		// blur shader for background
 		if (blur.getValue()) {
@@ -56,40 +50,6 @@ public class ClickGUI extends Module {
 			else if (mc.entityRenderer.isShaderActive()) {
 				mc.entityRenderer.getShaderGroup().deleteShaderGroup();
 			}
-		}
-	}
-
-	public Color getPrimaryColor() {
-		return primaryColor.getValue();
-	}
-
-	public Color getBackgroundColor() {
-		return backgroundColor.getValue();
-	}
-
-	public Color getAccentColor() {
-		return accentColor.getValue();
-	}
-
-	public Color getSecondaryColor() {
-		return secondaryColor.getValue();
-	}
-
-	public Color getComplexionColor() {
-		return complexionColor.getValue();
-	}
-
-	public enum GUI {
-		WINDOW(Cosmos.INSTANCE.getWindowGUI()), COSMOS(Cosmos.INSTANCE.getCosmosGUI());
-
-		private final GuiScreen screen;
-
-		GUI(GuiScreen screen) {
-			this.screen = screen;
-		}
-
-		public GuiScreen getScreen() {
-			return screen;
 		}
 	}
 }

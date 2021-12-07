@@ -6,6 +6,7 @@ import cope.cosmos.client.clickgui.windowed.window.windows.configuration.TypeCom
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
@@ -59,7 +60,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         glScaled(0.8, 0.8, 0.8); {
             float scaledX = (position.x + 6) * 1.25F;
             float scaledY = (position.y + boundHeight - 16) * 1.25F;
-            FontUtil.drawStringWithShadow(Setting.formatEnum(getSetting().getValue()), scaledX, scaledY, -1);
+            FontUtil.drawStringWithShadow(StringFormatter.formatEnum(getSetting().getValue()), scaledX, scaledY, -1);
         }
 
         glScaled(1.25, 1.25, 1.25);

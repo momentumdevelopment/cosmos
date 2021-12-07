@@ -6,9 +6,9 @@ import cope.cosmos.client.clickgui.windowed.window.windows.configuration.ModuleC
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.events.SettingEnableEvent;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -60,7 +60,7 @@ public class ConfigurationWindow extends TabbedWindow {
                 continue;
             }
 
-            getTabs().add(new Tab<>(Setting.formatEnum(category), category));
+            getTabs().add(new Tab<>(StringFormatter.formatEnum(category), category));
         }
 
         // set our current tab as the first category

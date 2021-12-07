@@ -1,7 +1,6 @@
 package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
-import cope.cosmos.client.clickgui.cosmos.CosmosGUI;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.Colors;
@@ -38,7 +37,6 @@ public class Cosmos {
     @Mod.Instance
     public static Cosmos INSTANCE;
 
-    private CosmosGUI cosmosGUI;
     private WindowGUI windowGUI;
 
     private final List<Manager> managers = new ArrayList<>();
@@ -95,7 +93,6 @@ public class Cosmos {
         managers.add(presetManager);
         progressManager.step("Setting up Config Manager");
 
-        cosmosGUI = new CosmosGUI();
         windowGUI = new WindowGUI();
         progressManager.step("Setting up GUI's");
 
@@ -148,10 +145,6 @@ public class Cosmos {
 
     public List<Manager> getManagers() {
         return managers;
-    }
-    
-    public CosmosGUI getCosmosGUI() {
-    	return cosmosGUI;
     }
     
     public WindowGUI getWindowGUI() {
