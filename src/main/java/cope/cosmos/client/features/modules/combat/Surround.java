@@ -10,22 +10,24 @@ import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.system.MathUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.Resistance;
-import cope.cosmos.util.world.TeleportUtil;
+import cope.cosmos.util.world.BlockUtil.*;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
+import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketBlockChange;
+import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
+/**
+ * @author linustouchtips
+ * @since 12/08/2021
+ */
 @SuppressWarnings("unused")
 public class Surround extends Module {
     public static Surround INSTANCE;
@@ -35,9 +37,11 @@ public class Surround extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<SurroundVectors> surround = new Setting<>("Surround", SurroundVectors.BASE).setDescription("Block positions for surround");
+    public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE).setDescription("Block positions for surround");
+    public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN).setDescription("Block item to use for surround");
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR).setDescription("When to toggle surround");
-    public static Setting<Center> center = new Setting<>("Center", Center.TELEPORT).setDescription("Mode to center the player position");
+    public static Setting<Center> center = new Setting<>("Center", Center.NONE).setDescription("Mode to center the player position");
+
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
 
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
@@ -45,185 +49,359 @@ public class Surround extends Module {
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
     public static Setting<Boolean> reactive = new Setting<>("Reactive", true).setDescription("Replaces surround blocks when they break");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the surround");
     public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setParent(render).setDescription("Style of the visual");
 
-    int previousSlot = -1;
-    int surroundPlaced = 0;
+    // switch info
+    private int previousSlot = -1;
 
-    BlockPos previousPosition = BlockPos.ORIGIN;
-    BlockPos surroundPosition = BlockPos.ORIGIN;
+    // blocks info
+    private int blocksPlaced = 0;
+
+    // start info
+    private double startY;
 
     @Override
     public void onEnable() {
         super.onEnable();
 
-        previousPosition = new BlockPos(new Vec3d(MathUtil.roundFloat(mc.player.getPositionVector().x, 0), MathUtil.roundFloat(mc.player.getPositionVector().y, 0), MathUtil.roundFloat(mc.player.getPositionVector().z, 0)));
+        // mark our starting height
+        startY = mc.player.posY;
 
-        switch (center.getValue()) {
-            case TELEPORT:
-                double xPosition = mc.player.getPositionVector().x;
-                double zPosition = mc.player.getPositionVector().z;
+        // if we need to be centered
+        if (!center.getValue().equals(Center.NONE)) {
 
-                if (Math.abs((previousPosition.getX() + 0.5) - mc.player.getPositionVector().x) >= 0.2) {
-                    int xDirection = (previousPosition.getX() + 0.5) - mc.player.getPositionVector().x > 0 ? 1 : -1;
-                    xPosition += 0.3 * xDirection;
-                }
+            // center positions
+            double centerX = Math.floor(mc.player.posX) + 0.5;
+            double centerZ = Math.floor(mc.player.posZ) + 0.5;
 
-                if (Math.abs((previousPosition.getZ() + 0.5) - mc.player.getPositionVector().z) >= 0.2) {
-                    int zDirection = (previousPosition.getZ() + 0.5) - mc.player.getPositionVector().z > 0 ? 1 : -1;
-                    zPosition += 0.3 * zDirection;
-                }
-                
-                TeleportUtil.teleportPlayer(xPosition, mc.player.posY, zPosition);
-                break;
-            case MOTION:
-                mc.player.motionX = ((Math.floor(mc.player.posX) + 0.5) - mc.player.posX) / 2;
-                mc.player.motionZ = ((Math.floor(mc.player.posZ) + 0.5) - mc.player.posZ) / 2;
-                break;
-            case NONE:
-            	break;
+            // center player on their current block to allow surround to fully place
+            switch (center.getValue()) {
+                case NONE:
+                default:
+                    break;
+                case MOTION:
+                    // move player to center of block
+                    mc.player.motionX = (centerX - mc.player.posX) / 2;
+                    mc.player.motionZ = (centerZ - mc.player.posZ) / 2;
+                    break;
+                case TELEPORT:
+                    // teleport player to center of block, send position packet
+                    mc.player.setPosition(centerX, mc.player.posY, centerZ);
+                    mc.player.connection.sendPacket(new CPacketPlayer.Position(centerX, mc.player.posY, centerZ, mc.player.onGround));
+                    break;
+            }
         }
     }
 
     @Override
     public void onUpdate() {
-        surroundPlaced = 0;
+        // we haven't placed on blocks on this tick
+        blocksPlaced = 0;
 
-        switch (completion.getValue()) {
-            case AIR:
-                if (!previousPosition.equals(new BlockPos(MathUtil.roundFloat(mc.player.getPositionVector().x, 0), MathUtil.roundFloat(mc.player.getPositionVector().y, 0), MathUtil.roundFloat(mc.player.getPositionVector().z, 0))) || mc.player.posY > previousPosition.getY()) {
-                    disable();
-                    getAnimation().setState(false);
-                    return;
-                }
+        // pause if we have completed the process
+        if (!completion.getValue().equals(Completion.PERSISTENT)) {
 
-                break;
-            case SURROUNDED:
-                if (getCosmos().getHoleManager().isHoleEntity(mc.player)) {
-                    disable();
-                    getAnimation().setState(false);
-                    return;
-                }
+            // pause if we are not in the same starting position
+            if (completion.getValue().equals(Completion.AIR) && Math.abs(mc.player.posY - startY) > 0.25) {
+                disable();
+                return;
+            }
 
-                break;
-            case PERSISTENT:
-                break;
+            // pause if we are already in a hole
+            if (completion.getValue().equals(Completion.SURROUNDED) && !getCosmos().getHoleManager().isInHole(mc.player)) {
+                disable();
+                return;
+            }
         }
 
-        handleSurround();
+        // save the previous slot
+        previousSlot = mc.player.inventory.currentItem;
+
+        // switch to obsidian
+        InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+
+        // place on each of the offsets
+        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+            // round the player's y position to allow placements if the player is standing on a block that is
+            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+            // the position to place the block
+            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+            // check that the block can be replaced by obsidian
+            if (BlockUtil.getResistance(surroundPosition).equals(Resistance.REPLACEABLE)) {
+
+                // make sure we haven't placed too many blocks this tick
+                if (blocksPlaced <= blocks.getValue()) {
+                    blocksPlaced++;
+
+                    // place a block
+                    getCosmos().getInteractionManager().placeBlock(surroundPosition, rotate.getValue(), strict.getValue());
+                }
+            }
+        }
+
+        // switch back to our previous item
+        if (previousSlot != -1) {
+            InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+
+            // reset previous slot info
+            previousSlot = -1;
+        }
     }
 
     @Override
     public void onRender3D() {
         if (render.getValue()) {
-            for (Vec3d surroundVectors : surround.getValue().getVectors()) {
-                RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))).color((Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.RESISTANT) || Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.UNBREAKABLE)) ? new Color(0, 255, 0, 40) : new Color(255, 0, 0, 40)).box(renderMode.getValue()).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+
+            // render all of the surround blocks
+            for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+                // round the player's y position to allow placements if the player is standing on a block that is
+                BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+                // the position to place the block
+                BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+                // find if the block is safe or not
+                boolean safeBlock = BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) || BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE);
+
+                RenderUtil.drawBox(new RenderBuilder()
+                        .position(surroundPosition)
+                        .color(safeBlock ? new Color(0, 255, 0, 40) : new Color(255, 0, 0, 40))
+                        .box(renderMode.getValue())
+                        .setup()
+                        .line(1.5F)
+                        .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                        .depth(true)
+                        .blend()
+                        .texture()
+                );
             }
         }
-    }
-
-    public void handleSurround() {
-        previousSlot = mc.player.inventory.currentItem;
-
-        if (!getCosmos().getHoleManager().isHoleEntity(mc.player)) {
-            InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
-
-            placeSurround();
-
-            InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
-        }
-    }
-
-    public void placeSurround() {
-        for (Vec3d surroundVectors : surround.getValue().getVectors()) {
-            if (Objects.equals(BlockUtil.getResistance(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)))), Resistance.REPLACEABLE) && surroundPlaced <= blocks.getValue()) {
-                surroundPosition = new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ)));
-
-                getCosmos().getInteractionManager().placeBlock(new BlockPos(surroundVectors.add(new Vec3d(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ))), rotate.getValue(), strict.getValue());
-
-                surroundPlaced++;
-            }
-        }
-    }
-
-    @Override
-    public boolean isActive() {
-        return isEnabled() && !getCosmos().getHoleManager().isHoleEntity(mc.player);
     }
 
     @SubscribeEvent
-    public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        // packet for block changes
         if (event.getPacket() instanceof SPacketBlockChange) {
-            if (surround.getValue().getVectors().contains(new Vec3d(((SPacketBlockChange) event.getPacket()).getBlockPosition()))) {
-                // switch to obsidian
-                previousSlot = mc.player.inventory.currentItem;
-                InventoryUtil.switchToSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), autoSwitch.getValue());
 
-                // place block
-                getCosmos().getInteractionManager().placeBlock(((SPacketBlockChange) event.getPacket()).getBlockPosition(), rotate.getValue(), false);
+            if (reactive.getValue()) {
+                // check if the block is now replaceable
+                if (((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
 
-                // switchback
-                InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+                    // the position of the block change
+                    BlockPos changePosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
+
+                    // check each of the offsets
+                    for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+                        // round the player's y position to allow placements if the player is standing on a block that is
+                        BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+                        // the position to place the block
+                        BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+                        if (changePosition.equals(surroundPosition)) {
+                            // save the previous slot
+                            previousSlot = mc.player.inventory.currentItem;
+
+                            // switch to obsidian
+                            InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+
+                            // update blocks placed
+                            blocksPlaced++;
+
+                            // place a block
+                            getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+
+                            // switch back to our previous item
+                            if (previousSlot != -1) {
+                                InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+
+                                // reset previous slot info
+                                previousSlot = -1;
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // packet for multiple block changes
+        if (event.getPacket() instanceof SPacketMultiBlockChange) {
+
+            if (reactive.getValue()) {
+
+                for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
+
+                    if (blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
+
+                        BlockPos changePosition = blockUpdateData.getPos();
+
+                        // check each of the offsets
+                        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+                            // round the player's y position to allow placements if the player is standing on a block that is
+                            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+                            // the position to place the block
+                            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+                            if (changePosition.equals(surroundPosition)) {
+                                // save the previous slot
+                                previousSlot = mc.player.inventory.currentItem;
+
+                                // switch to obsidian
+                                InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+
+                                // update blocks placed
+                                blocksPlaced++;
+
+                                // place a block
+                                getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+
+                                // switch back to our previous item
+                                if (previousSlot != -1) {
+                                    InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+
+                                    // reset previous slot info
+                                    previousSlot = -1;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     public enum SurroundVectors {
-        BASE(Arrays.asList(
-                new Vec3d(0, -1, 0),
-                new Vec3d(1, -1, 0),
-                new Vec3d(0, -1, 1),
-                new Vec3d(-1, -1, 0),
-                new Vec3d(0, -1, -1),
-                new Vec3d(1, 0, 0),
-                new Vec3d(0, 0, 1),
-                new Vec3d(-1, 0, 0),
-                new Vec3d(0, 0, -1)
-        )),
+        /**
+         * Surrounds the lower offsets of the hole, Works better on ledges -> Rarely works on Updated NCP
+         */
+        BASE(
+                new Vec3i(0, -1, 0),
+                new Vec3i(1, -1, 0),
+                new Vec3i(0, -1, 1),
+                new Vec3i(-1, -1, 0),
+                new Vec3i(0, -1, -1),
+                new Vec3i(1, 0, 0),
+                new Vec3i(0, 0, 1),
+                new Vec3i(-1, 0, 0),
+                new Vec3i(0, 0, -1)
+        ),
 
-        STANDARD(Arrays.asList(
-                new Vec3d(0, -1, 0),
-                new Vec3d(1, 0, 0),
-                new Vec3d(-1, 0, 0),
-                new Vec3d(0, 0, 1),
-                new Vec3d(0, 0, -1)
-        )),
+        /**
+         * Covers all sides of the player
+         */
+        STANDARD(
+                new Vec3i(0, -1, 0),
+                new Vec3i(1, 0, 0),
+                new Vec3i(-1, 0, 0),
+                new Vec3i(0, 0, 1),
+                new Vec3i(0, 0, -1)
+        ),
 
-        PROTECT(Arrays.asList(
-                new Vec3d(0, -1, 0),
-                new Vec3d(1, 0, 0),
-                new Vec3d(-1, 0, 0),
-                new Vec3d(0, 0, 1),
-                new Vec3d(0, 0, -1),
-                new Vec3d(2, 0, 0),
-                new Vec3d(-2, 0, 0),
-                new Vec3d(0, 0, 2),
-                new Vec3d(0, 0, -2),
-                new Vec3d(3, 0, 0),
-                new Vec3d(-3, 0, 0),
-                new Vec3d(0, 0, 3),
-                new Vec3d(0, 0, -3)
-        ));
+        /**
+         * Doubles up on each offset of the surround for extra protection
+         */
+        PROTECT(
+                new Vec3i(0, -1, 0),
+                new Vec3i(1, 0, 0),
+                new Vec3i(-1, 0, 0),
+                new Vec3i(0, 0, 1),
+                new Vec3i(0, 0, -1),
+                new Vec3i(2, 0, 0),
+                new Vec3i(-2, 0, 0),
+                new Vec3i(0, 0, 2),
+                new Vec3i(0, 0, -2),
+                new Vec3i(3, 0, 0),
+                new Vec3i(-3, 0, 0),
+                new Vec3i(0, 0, 3),
+                new Vec3i(0, 0, -3)
+        );
 
-        private final List<Vec3d> vectors;
+        private final Vec3i[] vectors;
 
-        SurroundVectors(List<Vec3d> vectors) {
+        SurroundVectors(Vec3i... vectors) {
             this.vectors = vectors;
         }
 
-        public List<Vec3d> getVectors() {
+        /**
+         * Gets the vector offsets for the surround mode
+         * @return The vector offsets for the surround mode
+         */
+        public Vec3i[] getVectors() {
             return vectors;
         }
     }
 
     public enum Center {
-        TELEPORT, MOTION, NONE
+        /**
+         * Teleports the player the center of the block
+         */
+        TELEPORT,
+
+        /**
+         * Moves the player to the center of the block
+         */
+        MOTION,
+
+        /**
+         * Does not attempt to center the player
+         */
+        NONE
     }
 
     public enum Completion {
-        AIR, SURROUNDED, PERSISTENT
+        /**
+         * Toggles the module when you have moved out of the block
+         */
+        AIR,
+
+        /**
+         * Toggles the module if the player is in a hole
+         */
+        SURROUNDED,
+
+        /**
+         * Does not dynamically toggle the module
+         */
+        PERSISTENT
+    }
+
+    private enum BlockItem {
+        /**
+         * Obsidian
+         */
+        OBSIDIAN(Blocks.OBSIDIAN),
+
+        /**
+         * Chests, Blocks with 0.8 height
+         */
+        ENDER_CHEST(Blocks.ENDER_CHEST);
+
+        private final Block block;
+
+        BlockItem(Block block) {
+            this.block = block;
+        }
+
+        /**
+         * Get the blocks associated with the mode
+         * @return The blocks associated with the mode
+         */
+        public Block getBlock() {
+            return block;
+        }
     }
 }

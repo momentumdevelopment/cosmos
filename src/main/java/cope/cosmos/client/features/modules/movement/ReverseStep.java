@@ -27,7 +27,7 @@ public class ReverseStep extends Module {
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
-        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder() || mc.gameSettings.keyBindJump.isKeyDown() || mc.player.fallDistance > height.getValue() || hole.getValue() && !getCosmos().getHoleManager().isHoleEntity(mc.player) || ((IEntity) mc.player).getInWeb() && !webs.getValue()) {
+        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder() || mc.gameSettings.keyBindJump.isKeyDown() || mc.player.fallDistance > height.getValue() || hole.getValue() && !getCosmos().getHoleManager().isInHole(mc.player) || ((IEntity) mc.player).getInWeb() && !webs.getValue()) {
             getCosmos().getTickManager().setClientTicks(1);
             return;
         }

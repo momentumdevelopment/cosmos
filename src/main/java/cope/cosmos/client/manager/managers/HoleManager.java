@@ -2,24 +2,20 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class HoleManager extends Manager implements Wrapper {
 
     private List<Hole> holes = new CopyOnWriteArrayList<>();
-    private List<Entity> holeEntities = new CopyOnWriteArrayList<>();
 
     public HoleManager() {
         super("HoleManager", "Manages all nearby holes");
@@ -35,7 +31,6 @@ public class HoleManager extends Manager implements Wrapper {
     @Override
     public void onThread() {
         holes = searchHoles();
-        holeEntities = searchHoleEntities();
     }
 
     public List<Hole> searchHoles() {
@@ -132,28 +127,6 @@ public class HoleManager extends Manager implements Wrapper {
         return searchedHoles;
     }
 
-    public List<Entity> searchHoleEntities() {
-        List<Entity> searchedHoleEntities = new CopyOnWriteArrayList<>();
-
-        for (Entity entity : mc.world.loadedEntityList) {
-            if (entity.isDead || EnemyUtil.isDead(entity)) {
-                continue;
-            }
-
-            if (!(entity instanceof EntityLivingBase)) {
-                continue;
-            }
-
-            for (Hole hole : holes) {
-                if (entity.getPosition().equals(hole.getHole())) {
-                    searchedHoleEntities.add(entity);
-                }
-            }
-        }
-
-        return searchedHoleEntities;
-    }
-
     public EnumFacing getFacingFromVector(Vec3i in) {
         if (in.equals(new Vec3i(1, 0, 0))) {
             return EnumFacing.EAST;
@@ -178,12 +151,20 @@ public class HoleManager extends Manager implements Wrapper {
         return holes;
     }
 
-    public List<Entity> getHoleEntities() {
-        return holeEntities;
-    }
+    public boolean isInHole(Entity in) {
+        // check each of the hole offsets
+        for (Vec3i holeOffset : HOLE) {
 
-    public boolean isHoleEntity(Entity in) {
-        return getHoleEntities().contains(in);
+            // the side we are checking
+            BlockPos holeSide = in.getPosition().add(holeOffset);
+
+            // check the side's resistance
+            if (!BlockUtil.getResistance(holeSide).equals(Resistance.RESISTANT) || !BlockUtil.getResistance(holeSide).equals(Resistance.UNBREAKABLE)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public enum Type {

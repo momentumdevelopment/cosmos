@@ -102,7 +102,7 @@ public class PatchManager extends Manager implements Wrapper {
     public void updatePatches() {
         patchMap.put(new Patch(Burrow.INSTANCE, "crystalpvp.cc", "us.crystalpvp.cc", "constantiam.org", "2b2tpvp.net", "strict.2b2tpvp.net", "eliteanarchy.net"), PatchState.PATCHED);
         patchMap.put(new Patch(ElytraFlight.INSTANCE, "2b2t.org", "constantiam.org"), PatchState.PATCHED);
-        patchMap.put(new Patch(Surround.surround, Surround.surround.getValue().equals(SurroundVectors.BASE), "2b2t.org", "strict.2b2tpvp.net"), PatchState.PATCHED);
+        patchMap.put(new Patch(Surround.mode, Surround.mode.getValue().equals(SurroundVectors.BASE), "2b2t.org", "strict.2b2tpvp.net"), PatchState.PATCHED);
     }
 
     public void pushPatchSafety(String message) {

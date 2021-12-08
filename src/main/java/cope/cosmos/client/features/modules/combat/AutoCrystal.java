@@ -627,7 +627,7 @@ public class AutoCrystal extends Module {
                         requiredDamage = 0.5;
                     }
 
-                    if (getCosmos().getHoleManager().isHoleEntity(idealPosition.getPlaceTarget())) {
+                    if (getCosmos().getHoleManager().isInHole(idealPosition.getPlaceTarget())) {
                         if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
                             requiredDamage = 0.5;
                         }
