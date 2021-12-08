@@ -142,33 +142,9 @@ public class Criticals extends Module {
 
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
                         if (criticalTimer.passedTime(delay.getValue().longValue(), Format.SYSTEM)) {
-
-                            if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT) && !criticalTimer.passedTime(2000, Format.SYSTEM)) {
+                            if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
-                                    // first offset
-                                    if (mode.getValue().equals(Mode.PACKET_STRICT) && offset >= 3) {
-                                        return;
-                                    }
-
-                                    // last packet on strict should confirm player position
-                                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
-                                }
-
-                                // set our attacked entity
-                                criticalEntity = attackEntity;
-                            }
-
-                            // dynamically change packets
-                            else if (mode.getValue().equals(Mode.PACKET_STRICT) && criticalTimer.passedTime(2000, Format.SYSTEM)) {
-
-                                // send packets for each of the dynamic offsets
-                                for (float offset : mode.getValue().getOffsets()) {
-                                    // dynamic offset start
-                                    if (offset < 3) {
-                                        return;
-                                    }
-
                                     // last packet on strict should confirm player position
                                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
                                 }
@@ -275,7 +251,7 @@ public class Criticals extends Module {
         /**
          * Attempts changing hit to a critical via packets for Updated NCP
          */
-        PACKET_STRICT(0.062602401692772F, 0.0726023996066094F, 0, 0.11F, 0.1100013579F, 0.0000013579F),
+        PACKET_STRICT(0.062602401692772F, 0.0726023996066094F, 0, 0),
 
         /**
          * Attempts critical via a jump

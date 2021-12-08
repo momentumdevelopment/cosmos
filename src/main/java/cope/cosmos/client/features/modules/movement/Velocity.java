@@ -69,15 +69,16 @@ public class Velocity extends Module {
 			// if our settings are 0, then we can cancel this packet
 			if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
 				event.setCanceled(true);
-				return;
 			}
 
-			// if we want to modify the velocity, then we update the packet's values
-			SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
-			if (packet.getEntityID() == mc.player.getEntityId()) {
-				((ISPacketEntityVelocity) packet).setMotionX((((((ISPacketEntityVelocity) packet).getMotionX() / 100) * horizontal.getValue().intValue())));
-				((ISPacketEntityVelocity) packet).setMotionY((((((ISPacketEntityVelocity) packet).getMotionY() / 100) * vertical.getValue().intValue())));
-				((ISPacketEntityVelocity) packet).setMotionZ((((((ISPacketEntityVelocity) packet).getMotionZ() / 100) * horizontal.getValue().intValue())));
+			else {
+				// if we want to modify the velocity, then we update the packet's values
+				SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
+				if (packet.getEntityID() == mc.player.getEntityId()) {
+					((ISPacketEntityVelocity) packet).setMotionX((((((ISPacketEntityVelocity) packet).getMotionX() / 100) * horizontal.getValue().intValue())));
+					((ISPacketEntityVelocity) packet).setMotionY((((((ISPacketEntityVelocity) packet).getMotionY() / 100) * vertical.getValue().intValue())));
+					((ISPacketEntityVelocity) packet).setMotionZ((((((ISPacketEntityVelocity) packet).getMotionZ() / 100) * horizontal.getValue().intValue())));
+				}
 			}
 		}
 
@@ -86,14 +87,15 @@ public class Velocity extends Module {
 			// if our settings are 0, then we can cancel this packet
 			if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
 				event.setCanceled(true);
-				return;
 			}
 
-			// if we want to modify the velocity, then we update the packet's values
-			SPacketExplosion packet = (SPacketExplosion) event.getPacket();
-			((ISPacketExplosion) packet).setMotionX((((((ISPacketExplosion) packet).getMotionX() / 100) * horizontal.getValue().floatValue())));
-			((ISPacketExplosion) packet).setMotionY((((((ISPacketExplosion) packet).getMotionY() / 100) * vertical.getValue().floatValue())));
-			((ISPacketExplosion) packet).setMotionZ((((((ISPacketExplosion) packet).getMotionZ() / 100) * horizontal.getValue().floatValue())));
+			else {
+				// if we want to modify the velocity, then we update the packet's values
+				SPacketExplosion packet = (SPacketExplosion) event.getPacket();
+				((ISPacketExplosion) packet).setMotionX((((((ISPacketExplosion) packet).getMotionX() / 100) * horizontal.getValue().floatValue())));
+				((ISPacketExplosion) packet).setMotionY((((((ISPacketExplosion) packet).getMotionY() / 100) * vertical.getValue().floatValue())));
+				((ISPacketExplosion) packet).setMotionZ((((((ISPacketExplosion) packet).getMotionZ() / 100) * horizontal.getValue().floatValue())));
+			}
 		}
 	}
 
