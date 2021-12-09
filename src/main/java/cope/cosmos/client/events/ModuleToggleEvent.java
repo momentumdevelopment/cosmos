@@ -1,7 +1,7 @@
 package cope.cosmos.client.events;
 
 import cope.cosmos.client.features.modules.Module;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import cope.cosmos.event.listener.Event;
 
 public class ModuleToggleEvent extends Event {
 

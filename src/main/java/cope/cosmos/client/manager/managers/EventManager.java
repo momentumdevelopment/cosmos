@@ -5,6 +5,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.manager.Manager;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
@@ -26,7 +27,7 @@ public class EventManager extends Manager implements Wrapper {
 		super("EventManager", "Manages Forge events");
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player) && (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
@@ -54,7 +55,7 @@ public class EventManager extends Manager implements Wrapper {
 		 */
 	}
 	
-	@SubscribeEvent
+	@Subscription
 	public void onRender2d(RenderGameOverlayEvent.Text event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (nullCheck() && mod.isEnabled()) {
@@ -77,7 +78,7 @@ public class EventManager extends Manager implements Wrapper {
 		});
 	}
 	
-	@SubscribeEvent
+	@Subscription
 	public void onRender3D(RenderWorldLastEvent event) {
 		mc.mcProfiler.startSection("cosmos-render");
 
@@ -104,7 +105,7 @@ public class EventManager extends Manager implements Wrapper {
 		mc.mcProfiler.endSection();
 	}
 	
-	@SubscribeEvent
+	@Subscription
 	public void onKeyInput(KeyInputEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (Keyboard.isKeyDown(mod.getKey()) && !Keyboard.isKeyDown(Keyboard.KEY_NONE)) {
@@ -113,7 +114,7 @@ public class EventManager extends Manager implements Wrapper {
 		});
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onChatInput(ClientChatEvent event) {
 		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
 			event.setCanceled(true);
@@ -127,14 +128,15 @@ public class EventManager extends Manager implements Wrapper {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onTotemPop(PacketEvent.PacketReceiveEvent event) {
 		if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 35) {
 			TotemPopEvent totemPopEvent = new TotemPopEvent(((SPacketEntityStatus) event.getPacket()).getEntity(mc.world));
-			MinecraftForge.EVENT_BUS.post(totemPopEvent);
+			Cosmos.EVENT_BUS.dispatch(totemPopEvent);
 
-			if (totemPopEvent.isCanceled())
+			if (totemPopEvent.isCanceled()) {
 				event.setCanceled(true);
+			}
 		}
 	}
 }

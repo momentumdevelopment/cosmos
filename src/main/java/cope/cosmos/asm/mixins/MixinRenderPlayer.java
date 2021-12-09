@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderNametagEvent;
 import cope.cosmos.client.events.RenderRotationsEvent;
 import cope.cosmos.util.Wrapper;
@@ -29,7 +30,7 @@ public class MixinRenderPlayer implements Wrapper {
             prevRenderYawOffset = entity.renderYawOffset;
 
             RenderRotationsEvent renderRotationsEvent = new RenderRotationsEvent();
-            MinecraftForge.EVENT_BUS.post(renderRotationsEvent);
+            Cosmos.EVENT_BUS.dispatch(renderRotationsEvent);
 
             if (renderRotationsEvent.isCanceled()) {
                 entity.rotationYaw = renderRotationsEvent.getYaw();
@@ -59,7 +60,7 @@ public class MixinRenderPlayer implements Wrapper {
     @Inject(method = "renderEntityName", at = @At("HEAD"), cancellable = true)
     public void renderNametag(AbstractClientPlayer entityIn, double x, double y, double z, String name, double distanceSq, CallbackInfo info) {
         RenderNametagEvent renderNametagEvent = new RenderNametagEvent();
-        MinecraftForge.EVENT_BUS.post(renderNametagEvent);
+        Cosmos.EVENT_BUS.dispatch(renderNametagEvent);
 
         if (renderNametagEvent.isCanceled()) {
             info.cancel();

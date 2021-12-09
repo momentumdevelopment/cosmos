@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ShaderColorEvent;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
@@ -16,7 +17,7 @@ public class MixinRender<T extends Entity> {
     @Inject(method = "getTeamColor", at = @At("HEAD"), cancellable = true)
     public void getTeamColor(T entity, CallbackInfoReturnable<Integer> info) {
         ShaderColorEvent shaderColorEvent = new ShaderColorEvent(entity);
-        MinecraftForge.EVENT_BUS.post(shaderColorEvent);
+        Cosmos.EVENT_BUS.dispatch(shaderColorEvent);
 
         if (shaderColorEvent.isCanceled()) {
             info.cancel();

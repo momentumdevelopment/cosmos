@@ -1,8 +1,10 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.misc.Notifier;
 import cope.cosmos.client.manager.Manager;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.util.combat.EnemyUtil;
@@ -22,7 +24,7 @@ public class PopManager extends Manager implements Wrapper {
 
     public PopManager() {
         super("PopManager", "Keeps track of all the totem pops");
-        MinecraftForge.EVENT_BUS.register(this);
+        Cosmos.EVENT_BUS.subscribe(this);
     }
 
     @Override
@@ -38,7 +40,7 @@ public class PopManager extends Manager implements Wrapper {
         });
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onTotemPop(TotemPopEvent event) {
         totemPops.put(event.getPopEntity(), totemPops.containsKey(event.getPopEntity()) ? totemPops.get(event.getPopEntity()) + 1 : 1);
     }

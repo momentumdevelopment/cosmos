@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.RenderSkylightEvent;
 import net.minecraft.entity.Entity;
@@ -20,7 +21,7 @@ public class MixinWorld {
     @Inject(method = "checkLightFor", at = @At("HEAD"), cancellable = true)
     public void checkLightFor(EnumSkyBlock lightType, BlockPos pos, CallbackInfoReturnable<Boolean> info) {
         RenderSkylightEvent renderSkylightEvent = new RenderSkylightEvent();
-        MinecraftForge.EVENT_BUS.post(renderSkylightEvent);
+        Cosmos.EVENT_BUS.dispatch(renderSkylightEvent);
 
         if (renderSkylightEvent.isCanceled()) {
             info.cancel();
@@ -31,12 +32,12 @@ public class MixinWorld {
     @Inject(method = "spawnEntity", at = @At("RETURN"))
     public void spawnEntity(Entity entityIn, CallbackInfoReturnable<Boolean> info) {
         EntityWorldEvent.EntitySpawnEvent entitySpawnEvent = new EntityWorldEvent.EntitySpawnEvent(entityIn);
-        MinecraftForge.EVENT_BUS.post(entitySpawnEvent);
+        Cosmos.EVENT_BUS.dispatch(entitySpawnEvent);
     }
 
     @Inject(method = "removeEntity", at = @At("HEAD"))
     public void removeEntity(Entity entityIn, CallbackInfo info) {
         EntityWorldEvent.EntityRemoveEvent entityRemoveEvent = new EntityWorldEvent.EntityRemoveEvent(entityIn);
-        MinecraftForge.EVENT_BUS.post(entityRemoveEvent);
+        Cosmos.EVENT_BUS.dispatch(entityRemoveEvent);
     }
 }

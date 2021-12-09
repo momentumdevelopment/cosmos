@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModifyFOVEvent;
 import cope.cosmos.client.events.SkinLocationEvent;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -17,13 +18,13 @@ public class MixinAbstractClientPlayer {
     @Inject(method = "getLocationSkin()Lnet/minecraft/util/ResourceLocation;", at = @At("HEAD"), cancellable = true)
     public void getLocationSkin(CallbackInfoReturnable<ResourceLocation> info) {
         SkinLocationEvent skinLocationEvent = new SkinLocationEvent();
-        MinecraftForge.EVENT_BUS.post(skinLocationEvent);
+        Cosmos.EVENT_BUS.dispatch(skinLocationEvent);
     }
 
     @Inject(method = "getFovModifier", at = @At("HEAD"), cancellable = true)
     public void getFOVModifier(CallbackInfoReturnable<Float> info) {
         ModifyFOVEvent modifyFOVEvent = new ModifyFOVEvent();
-        MinecraftForge.EVENT_BUS.post(modifyFOVEvent);
+        Cosmos.EVENT_BUS.dispatch(modifyFOVEvent);
 
         if (modifyFOVEvent.isCanceled()) {
             info.cancel();

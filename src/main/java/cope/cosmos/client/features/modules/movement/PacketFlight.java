@@ -8,6 +8,8 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
+import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.world.TeleportUtil;
@@ -61,7 +63,7 @@ public class PacketFlight extends Module {
 	double serverY;
 	double serverZ;
 
-	@SubscribeEvent
+	@Subscription
 	public void onTick(TickEvent.ClientTickEvent event) {
 		if (mc.player == null) {
 			getAnimation().setState(false);
@@ -74,7 +76,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	@Subscription(priority = Priority.HIGHEST)
 	public void onMotionUpdate(MotionUpdateEvent event) {
 		if (nullCheck()) {
 			mc.player.setVelocity(0, 0, 0);
@@ -92,7 +94,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onMove(MotionEvent event) {
 		if (nullCheck()) {
 			event.setCanceled(true);
@@ -106,7 +108,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	@Subscription(priority = Priority.HIGHEST)
 	public void onPacketSend(PacketEvent.PacketSendEvent event) {
 		if (event.getPacket() instanceof CPacketPlayer) {
 			CPacketPlayer packet = (CPacketPlayer) event.getPacket();
@@ -117,7 +119,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	@Subscription(priority = Priority.HIGHEST)
 	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 		if (nullCheck()) {
 			clientYaw = mc.player.rotationYaw;
@@ -203,7 +205,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
 		event.setCanceled(nullCheck() && event.getEntityPlayer().equals(mc.player));
 	}

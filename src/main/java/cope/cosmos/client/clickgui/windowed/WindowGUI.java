@@ -7,12 +7,12 @@ import cope.cosmos.client.clickgui.windowed.taskbar.Taskbar;
 import cope.cosmos.client.clickgui.windowed.window.ScrollableWindow;
 import cope.cosmos.client.clickgui.windowed.window.WindowManager;
 import cope.cosmos.client.features.modules.client.ClickGUI;
+import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -146,7 +146,7 @@ public class WindowGUI extends GuiScreen implements GUIUtil {
             mc.entityRenderer.getShaderGroup().deleteShaderGroup();
         }
 
-        MinecraftForge.EVENT_BUS.unregister(this);
+        Cosmos.EVENT_BUS.unsubscribe(this);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class WindowGUI extends GuiScreen implements GUIUtil {
         return ClickGUI.pauseGame.getValue();
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderHUD(RenderGameOverlayEvent.Pre event) {
         if (!event.getType().equals(ElementType.TEXT) && !event.getType().equals(ElementType.CHAT)) {
             event.setCanceled(true);

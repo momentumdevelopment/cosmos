@@ -2,8 +2,10 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.asm.mixins.accessor.ITimer;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.player.RotationUtil;
 import cope.cosmos.util.system.MathUtil;
@@ -27,7 +29,7 @@ public class TickManager extends Manager implements Wrapper {
             TPS[i] = 0;
         }
 
-        MinecraftForge.EVENT_BUS.register(this);
+        Cosmos.EVENT_BUS.subscribe(this);
     }
 
     public float getTPS(TPS tps) {
@@ -51,7 +53,7 @@ public class TickManager extends Manager implements Wrapper {
         return 0;
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketTimeUpdate) {
             if (prevTime != -1) {

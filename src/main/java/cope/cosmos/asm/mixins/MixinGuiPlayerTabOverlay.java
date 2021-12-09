@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.TabOverlayEvent;
 import net.minecraft.client.gui.GuiPlayerTabOverlay;
 import net.minecraft.client.network.NetworkPlayerInfo;
@@ -17,7 +18,7 @@ public class MixinGuiPlayerTabOverlay {
     @Inject(method = "getPlayerName", at = @At("HEAD"), cancellable = true)
     public void getPlayerName(NetworkPlayerInfo networkPlayerInfoIn, CallbackInfoReturnable<String> info) {
         TabOverlayEvent tabOverlayEvent = new TabOverlayEvent(networkPlayerInfoIn.getDisplayName() != null ? networkPlayerInfoIn.getDisplayName().getFormattedText() : ScorePlayerTeam.formatPlayerName(networkPlayerInfoIn.getPlayerTeam(), networkPlayerInfoIn.getGameProfile().getName()));
-        MinecraftForge.EVENT_BUS.post(tabOverlayEvent);
+        Cosmos.EVENT_BUS.dispatch(tabOverlayEvent);
 
         if (tabOverlayEvent.isCanceled()) {
             info.cancel();

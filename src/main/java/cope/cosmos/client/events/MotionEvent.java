@@ -1,8 +1,8 @@
 package cope.cosmos.client.events;
 
 import net.minecraft.entity.MoverType;
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import cope.cosmos.event.annotation.Cancelable;
+import cope.cosmos.event.listener.Event;
 
 @Cancelable
 public class MotionEvent extends Event {

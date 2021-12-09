@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.SoulSandEvent;
 import net.minecraft.block.BlockSoulSand;
 import net.minecraft.block.state.IBlockState;
@@ -19,7 +20,7 @@ public class MixinBlockSoulSand {
     @Inject(method = "onEntityCollidedWithBlock", at = @At("HEAD"), cancellable = true)
     public void onEntityCollidedWithBlock(World world, BlockPos blockPos, IBlockState iBlockState, Entity entity, CallbackInfo info) {
         SoulSandEvent soulSandEvent = new SoulSandEvent();
-        MinecraftForge.EVENT_BUS.post(soulSandEvent);
+        Cosmos.EVENT_BUS.dispatch(soulSandEvent);
 
         if (soulSandEvent.isCanceled())
             info.cancel();

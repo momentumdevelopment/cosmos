@@ -4,6 +4,7 @@ import cope.cosmos.client.events.RenderFontEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")
@@ -19,7 +20,7 @@ public class Font extends Module {
 
 	public static Setting<Boolean> vanilla = new Setting<>("Vanilla", false).setDescription("Overrides the minecraft vanilla font");
 
-	@SubscribeEvent
+	@Subscription
 	public void onFontRender(RenderFontEvent event) {
 		if (vanilla.getValue()) {
 			event.setCanceled(true);

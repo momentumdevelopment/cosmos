@@ -10,6 +10,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
+import cope.cosmos.event.annotation.Subscription;
+import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.combat.TargetUtil.Target;
@@ -32,8 +34,6 @@ import net.minecraft.network.play.client.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Random;
 import java.util.TreeMap;
@@ -407,7 +407,7 @@ public class Aura extends Module {
         return INSTANCE.isEnabled() && auraTarget != null;
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onTotemPop(TotemPopEvent event) {
         if (event.getPopEntity().equals(auraTarget) && reactive.getValue()) {
             new Thread(() -> {
@@ -419,7 +419,7 @@ public class Aura extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @Subscription(priority = Priority.HIGHEST)
     public void onRotationUpdate(RotationUpdateEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the existing rotations, we'll send our own
@@ -461,7 +461,7 @@ public class Aura extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderRotations(RenderRotationsEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the model rendering for rotations, we'll set it to our values
@@ -480,7 +480,7 @@ public class Aura extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // we just switched, so reset our time

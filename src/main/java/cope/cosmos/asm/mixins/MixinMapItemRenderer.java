@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderMapEvent;
 import net.minecraft.client.gui.MapItemRenderer;
 import net.minecraft.world.storage.MapData;
@@ -16,7 +17,7 @@ public class MixinMapItemRenderer {
     @Inject(method = "renderMap", at = @At("HEAD"), cancellable = true)
     public void renderMap(MapData mapdataIn, boolean noOverlayRendering, CallbackInfo info) {
         RenderMapEvent renderMapEvent = new RenderMapEvent();
-        MinecraftForge.EVENT_BUS.post(renderMapEvent);
+        Cosmos.EVENT_BUS.dispatch(renderMapEvent);
 
         if (renderMapEvent.isCanceled())
             info.cancel();

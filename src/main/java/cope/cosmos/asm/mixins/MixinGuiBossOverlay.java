@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.BossOverlayEvent;
 import net.minecraft.client.gui.GuiBossOverlay;
 import net.minecraftforge.common.MinecraftForge;
@@ -15,9 +16,10 @@ public class MixinGuiBossOverlay {
     @Inject(method = "renderBossHealth", at = @At("HEAD"), cancellable = true)
     private void renderBossHealth(CallbackInfo info) {
         BossOverlayEvent bossOverlayEvent = new BossOverlayEvent();
-        MinecraftForge.EVENT_BUS.post(bossOverlayEvent);
+        Cosmos.EVENT_BUS.dispatch(bossOverlayEvent);
 
-        if (bossOverlayEvent.isCanceled())
+        if (bossOverlayEvent.isCanceled()) {
             info.cancel();
+        }
     }
 }

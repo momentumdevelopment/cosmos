@@ -1,6 +1,7 @@
 package cope.cosmos.asm.mixins;
 
 import com.google.common.base.Predicate;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CameraClipEvent;
 import cope.cosmos.client.events.HitboxInteractEvent;
 import cope.cosmos.client.events.HurtCameraEvent;
@@ -26,7 +27,7 @@ public class MixinEntityRenderer {
     @Inject(method = "hurtCameraEffect", at = @At("HEAD"), cancellable = true)
     public void hurtCameraEffect(float ticks, CallbackInfo info) {
         HurtCameraEvent hurtCameraEvent = new HurtCameraEvent();
-        MinecraftForge.EVENT_BUS.post(hurtCameraEvent);
+        Cosmos.EVENT_BUS.dispatch(hurtCameraEvent);
 
         if (hurtCameraEvent.isCanceled())
             info.cancel();
@@ -35,7 +36,7 @@ public class MixinEntityRenderer {
     @Redirect(method = "getMouseOver", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;getEntitiesInAABBexcluding(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;Lcom/google/common/base/Predicate;)Ljava/util/List;"))
     public List<Entity> getEntitiesInAABBexcluding(WorldClient worldClient, Entity entityIn, AxisAlignedBB axisAlignedBB, Predicate<? super Entity> predicate) {
         HitboxInteractEvent hitboxInteractEvent = new HitboxInteractEvent();
-        MinecraftForge.EVENT_BUS.post(hitboxInteractEvent);
+        Cosmos.EVENT_BUS.dispatch(hitboxInteractEvent);
 
         if (hitboxInteractEvent.isCanceled()) {
             return new ArrayList<>();
@@ -49,7 +50,7 @@ public class MixinEntityRenderer {
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 3)
     private double orientCameraX(double range) {
         CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
-        MinecraftForge.EVENT_BUS.post(cameraClipEvent);
+        Cosmos.EVENT_BUS.dispatch(cameraClipEvent);
 
         return cameraClipEvent.getDistance();
     }
@@ -57,7 +58,7 @@ public class MixinEntityRenderer {
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 7)
     private double orientCameraZ(double range) {
         CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
-        MinecraftForge.EVENT_BUS.post(cameraClipEvent);
+        Cosmos.EVENT_BUS.dispatch(cameraClipEvent);
 
         return cameraClipEvent.getDistance();
     }
