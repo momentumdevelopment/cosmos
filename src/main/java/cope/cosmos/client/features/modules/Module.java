@@ -4,11 +4,9 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
-import cope.cosmos.client.features.setting.RunnableSetting;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
 import cope.cosmos.util.Wrapper;
-import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
