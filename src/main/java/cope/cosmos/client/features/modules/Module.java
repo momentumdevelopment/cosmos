@@ -4,6 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
+import cope.cosmos.client.features.setting.RunnableSetting;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
 import cope.cosmos.util.Wrapper;
@@ -89,11 +90,11 @@ public class Module extends Feature implements Wrapper {
 	public void enable() {
 		if (!enabled) {
 			enabled = true;
-			MinecraftForge.EVENT_BUS.register(this);
+			Cosmos.EVENT_BUS.subscribe(this);
 			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
 				// runs onEnable callbacks
 				ModuleEnableEvent event = new ModuleEnableEvent(this);
-				MinecraftForge.EVENT_BUS.post(event);
+				Cosmos.EVENT_BUS.dispatch(event);
 
 				try {
 					onEnable();
@@ -110,7 +111,7 @@ public class Module extends Feature implements Wrapper {
 			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
 				// runs onDisable callbacks
 				ModuleDisableEvent event = new ModuleDisableEvent(this);
-				MinecraftForge.EVENT_BUS.post(event);
+				Cosmos.EVENT_BUS.dispatch(event);
 
 				try {
 					onDisable();
@@ -119,7 +120,7 @@ public class Module extends Feature implements Wrapper {
 				}
 			}
 
-			MinecraftForge.EVENT_BUS.unregister(this);
+			Cosmos.EVENT_BUS.unsubscribe(this);
 		}
 	}
 
