@@ -121,8 +121,10 @@ public class Criticals extends Module {
                 if (EntityUtil.isVehicleMob(attackEntity)) {
                     // attack 5 times
                     for (int i = 0; i < 5; i++) {
-                        mc.player.connection.sendPacket(new CPacketUseEntity(attackEntity));
-                        mc.player.connection.sendPacket(new CPacketAnimation());
+                        if (mc.getConnection() != null) {
+                            mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
+                            mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation());
+                        }
                     }
                 }
 

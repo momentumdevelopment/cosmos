@@ -126,7 +126,7 @@ public class Surround extends Module {
         // place on each of the offsets
         for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
-            // round the player's y position to allow placements if the player is standing on a block that is
+            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
             BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
             // the position to place the block
@@ -161,7 +161,7 @@ public class Surround extends Module {
             // render all of the surround blocks
             for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
-                // round the player's y position to allow placements if the player is standing on a block that is
+                // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                 BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
                 // the position to place the block
@@ -202,7 +202,7 @@ public class Surround extends Module {
                     // check each of the offsets
                     for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
-                        // round the player's y position to allow placements if the player is standing on a block that is
+                        // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                         BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
                         // the position to place the block
@@ -238,19 +238,21 @@ public class Surround extends Module {
 
         // packet for multiple block changes
         if (event.getPacket() instanceof SPacketMultiBlockChange) {
-
             if (reactive.getValue()) {
 
+                // check each of the updated blocks
                 for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
 
+                    // check if the block is now replaceable
                     if (blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
 
+                        // the position of the changed block
                         BlockPos changePosition = blockUpdateData.getPos();
 
                         // check each of the offsets
                         for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
-                            // round the player's y position to allow placements if the player is standing on a block that is
+                            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                             BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
                             // the position to place the block
