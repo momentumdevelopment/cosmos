@@ -5,6 +5,7 @@ import cope.cosmos.client.events.RenderLivingEntityEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.world.EntityUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
@@ -51,7 +52,7 @@ public class Chams extends Module {
     public static Setting<Boolean> highlight = new Setting<>("Highlight", true).setDescription("Colors chams models when visible");
     public static Setting<Color> highlightColor = new Setting<>("HighlightColor", new Color(250, 0, 250, 50)).setParent(highlight).setDescription("Color of models when visible");
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {
         if (nullCheck() && (event.getEntityLivingBase() instanceof EntityOtherPlayerMP && players.getValue() || (event.getEntityLivingBase() instanceof EntityPlayerSP && local.getValue()) || (EntityUtil.isPassiveMob(event.getEntityLivingBase()) || EntityUtil.isNeutralMob(event.getEntityLivingBase())) && mobs.getValue() || EntityUtil.isHostileMob(event.getEntityLivingBase()) && monsters.getValue())) {
             event.setCanceled(!texture.getValue());
@@ -127,12 +128,12 @@ public class Chams extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderCrystalPre(RenderCrystalEvent.RenderCrystalPreEvent event) {
-        event.setCanceled(nullCheck() && INSTANCE.isEnabled() && crystals.getValue());
+        event.setCanceled(crystals.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderCrystalPost(RenderCrystalEvent.RenderCrystalPostEvent event) {
         if (nullCheck() && crystals.getValue()) {
             if (transparent.getValue())

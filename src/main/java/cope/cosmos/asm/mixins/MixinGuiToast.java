@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderAdvancementEvent;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.toasts.GuiToast;
@@ -16,7 +17,7 @@ public class MixinGuiToast {
     @Inject(method = "drawToast", at = @At("HEAD"), cancellable = true)
     public void drawAdvancement(ScaledResolution resolution, CallbackInfo info) {
         RenderAdvancementEvent renderAdvancementEvent = new RenderAdvancementEvent();
-        MinecraftForge.EVENT_BUS.post(renderAdvancementEvent);
+        Cosmos.EVENT_BUS.dispatch(renderAdvancementEvent);
 
         if (renderAdvancementEvent.isCanceled()) {
             info.cancel();

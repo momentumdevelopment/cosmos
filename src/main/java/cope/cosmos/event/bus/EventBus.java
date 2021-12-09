@@ -32,6 +32,7 @@ public class EventBus {
      */
     @SuppressWarnings("unchecked")
     public void subscribe(Object object) {
+
         // if the object is null, we obviously cannot pull methods from it
         // if its already in our map, we already registered the subscriber
         if (object != null && !listeners.containsKey(object)) {

@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.LayerArmorEvent;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
@@ -17,7 +18,7 @@ public class MixinLayerBipedArmor {
     @Inject(method = "setModelSlotVisible", at = @At(value = "HEAD"), cancellable = true)
     protected void setModelSlotVisible(ModelBiped model, EntityEquipmentSlot slotIn, CallbackInfo info) {
         LayerArmorEvent layerArmorEvent = new LayerArmorEvent(model, slotIn);
-        MinecraftForge.EVENT_BUS.post(layerArmorEvent);
+        Cosmos.EVENT_BUS.dispatch(layerArmorEvent);
 
         if (layerArmorEvent.isCanceled())
             info.cancel();

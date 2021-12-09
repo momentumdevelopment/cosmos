@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalTextureEvent;
 import cope.cosmos.client.events.RenderCrystalEvent;
 import net.minecraft.client.model.ModelBase;
@@ -35,21 +36,23 @@ public class MixinRenderEnderCrystal {
     @Redirect(method = "doRender(Lnet/minecraft/entity/item/EntityEnderCrystal;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
     private void doRender(ModelBase modelBase, Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
         RenderCrystalEvent.RenderCrystalPreEvent renderCrystalEvent = new RenderCrystalEvent.RenderCrystalPreEvent(modelBase, entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
-        MinecraftForge.EVENT_BUS.post(renderCrystalEvent);
+        Cosmos.EVENT_BUS.dispatch(renderCrystalEvent);
 
-        if (!renderCrystalEvent.isCanceled())
+        if (!renderCrystalEvent.isCanceled()) {
             modelBase.render(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
+        }
 
         CrystalTextureEvent crystalTextureEvent = new CrystalTextureEvent();
-        MinecraftForge.EVENT_BUS.post(crystalTextureEvent);
+        Cosmos.EVENT_BUS.dispatch(crystalTextureEvent);
     }
 
     @Inject(method = "doRender(Lnet/minecraft/entity/item/EntityEnderCrystal;DDDFF)V", at = @At("RETURN"), cancellable = true)
     public void doRender(EntityEnderCrystal entityEnderCrystal, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo info) {
         RenderCrystalEvent.RenderCrystalPostEvent renderCrystalEvent = new RenderCrystalEvent.RenderCrystalPostEvent(modelEnderCrystal, modelEnderCrystalNoBase, entityEnderCrystal, x, y, z, entityYaw, partialTicks);
-        MinecraftForge.EVENT_BUS.post(renderCrystalEvent);
+        Cosmos.EVENT_BUS.dispatch(renderCrystalEvent);
 
-        if (renderCrystalEvent.isCanceled())
+        if (renderCrystalEvent.isCanceled()) {
             info.cancel();
+        }
     }
 }

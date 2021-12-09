@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.KeyDownEvent;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
@@ -22,7 +23,7 @@ public class MixinKeyBinding {
     @Inject(method = "isKeyDown", at = @At("HEAD"), cancellable = true)
     public void hookIsKeyDown(CallbackInfoReturnable<Boolean> info) {
         KeyDownEvent keyDownEvent = new KeyDownEvent(keyCode, pressed);
-        MinecraftForge.EVENT_BUS.post(keyDownEvent);
+        Cosmos.EVENT_BUS.dispatch(keyDownEvent);
 
         if (keyDownEvent.isCanceled()) {
             info.setReturnValue(keyDownEvent.isPressed());

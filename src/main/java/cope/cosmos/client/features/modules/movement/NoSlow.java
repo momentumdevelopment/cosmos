@@ -8,6 +8,7 @@ import cope.cosmos.client.events.SoulSandEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.client.gui.GuiChat;
@@ -169,7 +170,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             if (isSlowed()) {
@@ -216,7 +217,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onSoulSand(SoulSandEvent event) {
         // remove soul sand slowdown effect
         if (soulsand.getValue()) {
@@ -224,7 +225,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onSlime(SlimeEvent event) {
         // remove soul slime effect
         if (slime.getValue()) {
@@ -232,7 +233,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onKeyDown(KeyDownEvent event) {
         // remove conflict context when pressing keys
         if (inventoryMove.getValue()) {

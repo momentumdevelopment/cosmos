@@ -4,6 +4,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
@@ -187,7 +188,7 @@ public class Surround extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // packet for block changes
         if (event.getPacket() instanceof SPacketBlockChange) {

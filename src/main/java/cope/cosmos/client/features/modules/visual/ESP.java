@@ -6,6 +6,7 @@ import cope.cosmos.client.events.ShaderColorEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.world.EntityUtil;
 import net.minecraft.client.shader.Shader;
@@ -89,7 +90,7 @@ public class ESP extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onShaderColor(ShaderColorEvent event) {
         if (mode.getValue().equals(Mode.SHADER)) {
             event.setColor(getColorByEntity(event.getEntity()));

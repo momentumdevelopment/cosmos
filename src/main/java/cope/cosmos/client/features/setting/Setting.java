@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.setting;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.Module;
@@ -43,6 +44,8 @@ public class Setting<T> extends Feature implements Wrapper {
 	public Setting(String name, T value) {
 		super(name);
 		this.value = value;
+
+		Cosmos.EVENT_BUS.subscribe(this);
 	}
 	
 	public Setting(String name, T min, T value, T max, int scale) {
@@ -51,6 +54,8 @@ public class Setting<T> extends Feature implements Wrapper {
 		this.value = value;
 		this.max = max;
 		this.scale = scale;
+
+		Cosmos.EVENT_BUS.subscribe(this);
 	}
 
 	/**
@@ -71,7 +76,7 @@ public class Setting<T> extends Feature implements Wrapper {
 		// post the setting update event
 		if (nullCheck()) {
 			SettingUpdateEvent settingUpdateEvent = new SettingUpdateEvent(this);
-			MinecraftForge.EVENT_BUS.post(settingUpdateEvent);
+			Cosmos.EVENT_BUS.dispatch(settingUpdateEvent);
 		}
 	}
 

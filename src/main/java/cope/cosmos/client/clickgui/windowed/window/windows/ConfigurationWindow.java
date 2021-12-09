@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window.windows;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.windowed.window.TabbedWindow;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Component;
 import cope.cosmos.client.clickgui.windowed.window.windows.configuration.ModuleComponent;
@@ -7,6 +8,7 @@ import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Setting
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.manager.managers.ModuleManager;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
@@ -15,7 +17,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -69,7 +70,7 @@ public class ConfigurationWindow extends TabbedWindow {
         // update our columns
         updateColumns();
 
-        MinecraftForge.EVENT_BUS.register(this);
+        Cosmos.EVENT_BUS.subscribe(this);
     }
 
     @Override
@@ -360,7 +361,7 @@ public class ConfigurationWindow extends TabbedWindow {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onSettingChange(SettingUpdateEvent event) {
         // update columns when settings update, in case of visibilty changes
         updateColumns();

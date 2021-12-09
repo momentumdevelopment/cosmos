@@ -1,6 +1,7 @@
 package cope.cosmos.asm.mixins;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderFontEvent;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
@@ -18,7 +19,7 @@ public class MixinFontRenderer {
     @Inject(method = "drawString(Ljava/lang/String;FFIZ)I", at = @At("HEAD"), cancellable = true)
     public void renderString(String text, float x, float y, int color, boolean dropShadow, CallbackInfoReturnable<Integer> info) {
         RenderFontEvent renderFontEvent = new RenderFontEvent();
-        MinecraftForge.EVENT_BUS.post(renderFontEvent);
+        Cosmos.EVENT_BUS.dispatch(renderFontEvent);
 
         // formatted values
         String textFormatted = text;
@@ -38,7 +39,7 @@ public class MixinFontRenderer {
     @Inject(method = "getStringWidth", at = @At("HEAD"), cancellable = true)
     public void getWidth(String text, CallbackInfoReturnable<Integer> info) {
         RenderFontEvent renderFontEvent = new RenderFontEvent();
-        MinecraftForge.EVENT_BUS.post(renderFontEvent);
+        Cosmos.EVENT_BUS.dispatch(renderFontEvent);
 
         if (renderFontEvent.isCanceled()) {
             info.setReturnValue(FontUtil.getStringWidth(text));

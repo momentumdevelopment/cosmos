@@ -7,6 +7,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.client.CPacketChatMessage;
 import net.minecraft.network.play.server.SPacketChat;
@@ -38,7 +39,7 @@ public class ChatModifications extends Module {
     public static Setting<TextFormatting> friends = new Setting<>("Friends", TextFormatting.AQUA).setParent(highlight);
      */
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketChatMessage) {
             if (((CPacketChatMessage) event.getPacket()).getMessage().startsWith("/") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("!") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("$") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("?") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(".") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(","))
@@ -48,8 +49,8 @@ public class ChatModifications extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
+    @Subscription
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (nullCheck() && event.getPacket() instanceof SPacketChat) {
             if (((SPacketChat) event.getPacket()).getChatComponent() instanceof TextComponentString && !((SPacketChat) event.getPacket()).getType().equals(ChatType.GAME_INFO)) {
                 TextComponentString component = (TextComponentString) ((SPacketChat) event.getPacket()).getChatComponent();

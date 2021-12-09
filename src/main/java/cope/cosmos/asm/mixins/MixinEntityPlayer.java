@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityCollisionEvent;
 import cope.cosmos.client.events.TravelEvent;
 import cope.cosmos.client.events.WaterCollisionEvent;
@@ -25,7 +26,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     public void travel(float strafe, float vertical, float forward, CallbackInfo info) {
         TravelEvent travelEvent = new TravelEvent(strafe, vertical, forward);
-        MinecraftForge.EVENT_BUS.post(travelEvent);
+        Cosmos.EVENT_BUS.dispatch(travelEvent);
 
         if (travelEvent.isCanceled()) {
             move(MoverType.SELF, motionX, motionY, motionZ);
@@ -36,16 +37,17 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
     @Inject(method = "applyEntityCollision", at = @At("HEAD"), cancellable = true)
     public void applyEntityCollision(Entity entity, CallbackInfo info) {
         EntityCollisionEvent entityCollisionEvent = new EntityCollisionEvent();
-        MinecraftForge.EVENT_BUS.post(entityCollisionEvent);
+        Cosmos.EVENT_BUS.dispatch(entityCollisionEvent);
 
-        if (entityCollisionEvent.isCanceled())
+        if (entityCollisionEvent.isCanceled()) {
             info.cancel();
+        }
     }
 
     @Inject(method = "isPushedByWater()Z", at = @At("HEAD"), cancellable = true)
     public void isPushedByWater(CallbackInfoReturnable<Boolean> info) {
         WaterCollisionEvent waterCollisionEvent = new WaterCollisionEvent();
-        MinecraftForge.EVENT_BUS.post(waterCollisionEvent);
+        Cosmos.EVENT_BUS.dispatch(waterCollisionEvent);
 
         if (waterCollisionEvent.isCanceled()) {
             info.cancel();

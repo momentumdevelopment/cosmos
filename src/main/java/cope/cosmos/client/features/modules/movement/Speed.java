@@ -6,6 +6,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
@@ -61,7 +62,7 @@ public class Speed extends Module {
         latestMoveSpeed = Math.sqrt(Math.pow(mc.player.posX - mc.player.prevPosX, 2) + Math.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onMotion(MotionEvent event) {
         // make sure the player is not in a liquid
         if (PlayerUtil.isInLiquid() && !liquid.getValue()) {
@@ -293,8 +294,8 @@ public class Speed extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onPacketRecieve(PacketEvent.PacketReceiveEvent event) {
+    @Subscription
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // reset our process on a rubberband
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             resetProcess();

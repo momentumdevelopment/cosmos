@@ -10,6 +10,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.event.annotation.Subscription;
+import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
@@ -705,7 +707,7 @@ public class AutoCrystal extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @Subscription(priority = Priority.HIGHEST)
     public void onRotationUpdate(RotationUpdateEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the existing rotations, we'll send our own
@@ -747,7 +749,7 @@ public class AutoCrystal extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderRotations(RenderRotationsEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the model rendering for rotations, we'll set it to our values
@@ -766,7 +768,7 @@ public class AutoCrystal extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @Subscription(priority = Priority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // reset our switch time, we just switched
@@ -774,7 +776,7 @@ public class AutoCrystal extends Module {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @Subscription(priority = Priority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // packet for crystal spawns
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {

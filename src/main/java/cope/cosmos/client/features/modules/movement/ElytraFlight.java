@@ -6,6 +6,7 @@ import cope.cosmos.client.events.TravelEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Switch;
@@ -46,7 +47,7 @@ public class ElytraFlight extends Module {
     public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", true).setParent(pause).setDescription("When in liquid");
     public static Setting<Boolean> pauseCollision = new Setting<>("Collision", false).setParent(pause).setDescription("When colliding");
 
-    @SubscribeEvent
+    @Subscription
     public void onTravel(TravelEvent event) {
         if (nullCheck()) {
             if (mc.player.isElytraFlying()) {
@@ -132,7 +133,7 @@ public class ElytraFlight extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (nullCheck() && event.getPacket() instanceof SPacketPlayerPosLook && !firework.getValue().equals(Switch.NONE)) {
             if (mc.player.isElytraFlying()) {

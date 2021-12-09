@@ -6,6 +6,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
@@ -92,7 +93,7 @@ public class Criticals extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         // packet for attacks
         if (event.getPacket() instanceof CPacketUseEntity && ((CPacketUseEntity) event.getPacket()).getAction().equals(CPacketUseEntity.Action.ATTACK)) {

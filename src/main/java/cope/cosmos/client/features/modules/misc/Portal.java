@@ -5,6 +5,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -53,7 +54,7 @@ public class Portal extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         // allows you to become invincible while in portals on some servers
         if (event.getPacket() instanceof CPacketConfirmTeleport) {

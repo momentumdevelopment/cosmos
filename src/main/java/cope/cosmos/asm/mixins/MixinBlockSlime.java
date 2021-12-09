@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.SlimeEvent;
 import net.minecraft.block.BlockSlime;
 import net.minecraft.entity.Entity;
@@ -18,7 +19,7 @@ public class MixinBlockSlime {
     @Inject(method = "onEntityWalk", at = @At("HEAD"), cancellable = true)
     private void onEntityCollidedWithBlock(World world, BlockPos blockPos, Entity entity, CallbackInfo info) {
         SlimeEvent slimeEvent = new SlimeEvent();
-        MinecraftForge.EVENT_BUS.post(slimeEvent);
+        Cosmos.EVENT_BUS.dispatch(slimeEvent);
 
         if (slimeEvent.isCanceled())
             info.cancel();

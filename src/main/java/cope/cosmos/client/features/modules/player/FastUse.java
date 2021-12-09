@@ -5,6 +5,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -87,7 +88,7 @@ public class FastUse extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
 

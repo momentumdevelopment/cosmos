@@ -5,6 +5,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -81,7 +82,7 @@ public class AntiAim extends Module {
         aimTicks++;
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             ((ICPacketPlayer) event.getPacket()).setYaw(aimYaw);

@@ -8,6 +8,7 @@ import cope.cosmos.client.events.WaterCollisionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
@@ -62,7 +63,7 @@ public class Velocity extends Module {
 		mc.player.entityCollisionReduction = collisionReduction;
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 		// packet for velocity caused by factors that are not explosions
 		if (event.getPacket() instanceof SPacketEntityVelocity) {
@@ -99,7 +100,7 @@ public class Velocity extends Module {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
 		// cancel velocity from blocks
 		if (noPush.getValue() && blocks.getValue()) {
@@ -115,7 +116,7 @@ public class Velocity extends Module {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onEntityCollision(EntityCollisionEvent event) {
 		// cancel velocity from entities
 		if (noPush.getValue() && entities.getValue()) {
@@ -123,7 +124,7 @@ public class Velocity extends Module {
 		}
 	}
 
-	@SubscribeEvent
+	@Subscription
 	public void onWaterCollision(WaterCollisionEvent event) {
 		// cancel velocity from liquids
 		if (noPush.getValue() && liquid.getValue()) {

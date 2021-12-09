@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NetworkManager;
@@ -17,18 +18,20 @@ public class MixinNetworkManager {
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     public void onPacketSend(Packet<?> packet, CallbackInfo info) {
         PacketEvent.PacketSendEvent packetSendEvent = new PacketEvent.PacketSendEvent(packet);
-        MinecraftForge.EVENT_BUS.post(packetSendEvent);
+        Cosmos.EVENT_BUS.dispatch(packetSendEvent);
 
-        if (packetSendEvent.isCanceled())
+        if (packetSendEvent.isCanceled()) {
             info.cancel();
+        }
     }
 
     @Inject(method = "channelRead0", at = @At("HEAD"), cancellable = true)
     public void onPacketReceive(ChannelHandlerContext chc, Packet<?> packet, CallbackInfo info) {
         PacketEvent.PacketReceiveEvent packetReceiveEvent = new PacketEvent.PacketReceiveEvent(packet);
-        MinecraftForge.EVENT_BUS.post(packetReceiveEvent);
+        Cosmos.EVENT_BUS.dispatch(packetReceiveEvent);
 
-        if (packetReceiveEvent.isCanceled())
+        if (packetReceiveEvent.isCanceled()) {
             info.cancel();
+        }
     }
 }

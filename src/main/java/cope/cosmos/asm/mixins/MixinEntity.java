@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityHitboxSizeEvent;
 import net.minecraft.entity.Entity;
 import net.minecraftforge.common.MinecraftForge;
@@ -15,7 +16,7 @@ public class MixinEntity {
     @Inject(method = "getCollisionBorderSize", at = @At("HEAD"), cancellable = true)
     public void getCollisionBorderSize(CallbackInfoReturnable<Float> info) {
         EntityHitboxSizeEvent entityHitboxSizeEvent = new EntityHitboxSizeEvent();
-        MinecraftForge.EVENT_BUS.post(entityHitboxSizeEvent);
+        Cosmos.EVENT_BUS.dispatch(entityHitboxSizeEvent);
 
         if (entityHitboxSizeEvent.isCanceled()) {
             info.cancel();

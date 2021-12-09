@@ -9,6 +9,7 @@ import cope.cosmos.client.features.modules.client.Font;
 import cope.cosmos.client.features.modules.client.Social;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
+import cope.cosmos.event.bus.EventBus;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -30,6 +31,9 @@ public class Cosmos {
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
     public static final String VERSION = "1.1.0";
+
+    // client event bus
+    public static final EventBus EVENT_BUS = new EventBus();
 
     public static String PREFIX = "*";
     public static boolean SETUP = false;

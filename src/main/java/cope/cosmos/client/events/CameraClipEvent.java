@@ -1,6 +1,6 @@
 package cope.cosmos.client.events;
 
-import net.minecraftforge.fml.common.eventhandler.Event;
+import cope.cosmos.event.listener.Event;
 
 public class CameraClipEvent extends Event {
 

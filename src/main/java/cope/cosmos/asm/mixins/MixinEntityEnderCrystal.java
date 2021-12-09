@@ -1,5 +1,6 @@
 package cope.cosmos.asm.mixins;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CrystalAttackEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
@@ -21,9 +22,10 @@ public abstract class MixinEntityEnderCrystal extends Entity {
     @Inject(method = "attackEntityFrom", at = @At("RETURN"), cancellable = true)
     public void attackEntityFrom(DamageSource source, float amount, CallbackInfoReturnable<Boolean> info) {
         CrystalAttackEvent crystalAttackEvent = new CrystalAttackEvent(source);
-        MinecraftForge.EVENT_BUS.post(crystalAttackEvent);
+        Cosmos.EVENT_BUS.dispatch(crystalAttackEvent);
 
-        if (crystalAttackEvent.isCanceled())
+        if (crystalAttackEvent.isCanceled()) {
             info.cancel();
+        }
     }
 }

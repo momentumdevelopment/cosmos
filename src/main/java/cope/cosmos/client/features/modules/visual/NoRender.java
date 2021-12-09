@@ -4,6 +4,7 @@ import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
@@ -11,7 +12,6 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketParticles;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderBlockOverlayEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 
@@ -64,7 +64,7 @@ public class NoRender extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderBlockOverlay(RenderBlockOverlayEvent event) {
         if (nullCheck() && overlays.getValue()) {
             if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.FIRE) && overlayFire.getValue())
@@ -78,32 +78,32 @@ public class NoRender extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderBossOverlay(BossOverlayEvent event) {
         event.setCanceled(nullCheck() && overlayBoss.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderEnchantmentTableBook(RenderEnchantmentTableBookEvent event) {
         event.setCanceled(nullCheck() && tileEntities.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderBeaconBeam(RenderBeaconBeamEvent event) {
         event.setCanceled(nullCheck() && tileEntities.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderSkylight(RenderSkylightEvent event) {
         event.setCanceled(nullCheck() && skylight.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderMap(RenderMapEvent event) {
         event.setCanceled(nullCheck() && maps.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onLayerArmor(LayerArmorEvent event) {
         if (nullCheck() && armor.getValue()) {
             event.setCanceled(true);
@@ -133,23 +133,23 @@ public class NoRender extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketParticles && ((SPacketParticles) event.getPacket()).getParticleCount() > 200)
             event.setCanceled(true);
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onHurtCamera(HurtCameraEvent event) {
         event.setCanceled(nullCheck() && hurtCamera.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderWitherSkull(RenderWitherSkullEvent event) {
         event.setCanceled(nullCheck() && witherSkull.getValue());
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onRenderFog(EntityViewRenderEvent.FogDensity event) {
         if (nullCheck() && fog.getValue()) {
             if (!PlayerUtil.isInLiquid() && fogLiquid.getValue())
@@ -160,7 +160,7 @@ public class NoRender extends Module {
         }
     }
 
-    @SubscribeEvent
+    @Subscription
     public void onFOVModifier(ModifyFOVEvent event) {
         event.setCanceled(nullCheck() && fov.getValue());
     }
