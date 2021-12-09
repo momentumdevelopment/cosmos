@@ -16,7 +16,7 @@ import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, aesthetical
  * @since 11/27/2021
  */
 @SuppressWarnings("unused")

@@ -27,7 +27,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 /**
- * @author linustouchtips, Sxmurai
+ * @author linustouchtips, aesthetical
  * @since 07/21/2021
  */
 @SuppressWarnings("unused")

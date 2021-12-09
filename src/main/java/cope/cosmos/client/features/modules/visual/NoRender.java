@@ -63,7 +63,7 @@ public class NoRender extends Module {
                 mc.player.removePotionEffect(MobEffects.NAUSEA);
         }
     }
-    
+
     @SubscribeEvent
     public void onRenderBlockOverlay(RenderBlockOverlayEvent event) {
         if (nullCheck() && overlays.getValue()) {
@@ -128,7 +128,7 @@ public class NoRender extends Module {
                     break;
                 case MAINHAND:
                 case OFFHAND:
-                	break;
+                    break;
             }
         }
     }
@@ -148,7 +148,7 @@ public class NoRender extends Module {
     public void onRenderWitherSkull(RenderWitherSkullEvent event) {
         event.setCanceled(nullCheck() && witherSkull.getValue());
     }
-    
+
     @SubscribeEvent
     public void onRenderFog(EntityViewRenderEvent.FogDensity event) {
         if (nullCheck() && fog.getValue()) {

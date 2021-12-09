@@ -7,7 +7,7 @@ import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.util.world.TeleportUtil;
 
 /**
- * @author Sxmurai, linustouchtips
+ * @author aesthetical, linustouchtips
  * @since 11/21/2021
  */
 @SuppressWarnings("unused")
