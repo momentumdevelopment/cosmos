@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.movement;
 import cope.cosmos.asm.mixins.accessor.ISPacketEntityVelocity;
 import cope.cosmos.asm.mixins.accessor.ISPacketExplosion;
 import cope.cosmos.client.events.EntityCollisionEvent;
+import cope.cosmos.client.events.KnockBackEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.WaterCollisionEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -12,8 +13,6 @@ import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
-import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author bon55, linustouchtips
@@ -108,8 +107,8 @@ public class Velocity extends Module {
 		}
 	}
 
-	@SubscribeEvent
-	public void onKnockback(LivingKnockBackEvent event) {
+	@Subscription
+	public void onKnockback(KnockBackEvent event) {
 		// cancel velocity from knockback
 		if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
 			event.setCanceled(true);

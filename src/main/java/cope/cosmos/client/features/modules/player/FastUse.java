@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.RightClickItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -18,8 +19,6 @@ import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -99,16 +98,16 @@ public class FastUse extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onPlayerRightClick(PlayerInteractEvent.RightClickItem event) {
-        if (packetUse.getValue() && event.getEntityPlayer().equals(mc.player)) {
+    @Subscription
+    public void onPlayerRightClick(RightClickItemEvent event) {
+        if (packetUse.getValue()) {
 
             // make sure we are holding eatable/drinkable items
             if (packetFood.getValue() && event.getItemStack().getItem() instanceof ItemFood || packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM)) {
 
                 // cancel eating animation and skip to the item finish state
                 event.setCanceled(true);
-                event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), event.getWorld(), event.getEntityPlayer());
+                event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), mc.world, mc.player);
 
                 // skip ticks lolololol
                 for (int i = 0; i < ((4 - speed.getValue()) * 8); i++) {

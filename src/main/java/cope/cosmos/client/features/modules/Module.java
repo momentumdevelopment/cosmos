@@ -137,8 +137,13 @@ public class Module extends Feature implements Wrapper {
 		Cosmos.INSTANCE.getTickManager().setClientTicks(1);
 	}
 
-	// runs every ticks (i.e. 20 times a second)
+	// runs every update ticks (i.e. 20 times a second)
 	public void onUpdate() {
+
+	}
+
+	// runs every tick (i.e. 40 times a second)
+	public void onTick() {
 
 	}
 

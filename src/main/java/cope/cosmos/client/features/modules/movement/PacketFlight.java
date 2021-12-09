@@ -19,9 +19,6 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -62,19 +59,6 @@ public class PacketFlight extends Module {
 	double serverX;
 	double serverY;
 	double serverZ;
-
-	@SubscribeEvent
-	public void onTick(TickEvent.ClientTickEvent event) {
-		if (mc.player == null) {
-			getAnimation().setState(false);
-			disable();
-		}
-
-		if (mc.player != null && mc.player.getHealth() <= 0) {
-			getAnimation().setState(false);
-			disable();
-		}
-	}
 
 	@Subscription(priority = Priority.HIGHEST)
 	public void onMotionUpdate(MotionUpdateEvent event) {

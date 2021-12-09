@@ -12,8 +12,13 @@ public class Manager implements Wrapper {
         this.description = description;
     }
 
-    // runs every ticks (i.e. 20 times a second)
+    // runs every update tick (i.e. 20 times a second)
     public void onUpdate() {
+
+    }
+
+    // runs every tick (i.e. 40 times a second)
+    public void onTick() {
 
     }
 

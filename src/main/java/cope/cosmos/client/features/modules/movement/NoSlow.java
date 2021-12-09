@@ -1,10 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.KeyDownEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.SlimeEvent;
-import cope.cosmos.client.events.SoulSandEvent;
+import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -20,11 +17,8 @@ import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 /**
@@ -199,8 +193,8 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onInputUpdate(InputUpdateEvent event) {
+    @Subscription
+    public void onItemInputUpdate(ItemInputUpdateEvent event) {
         // remove vanilla slowdown effect
         if (isSlowed()) {
             event.getMovementInput().moveForward *= 5;
@@ -208,8 +202,8 @@ public class NoSlow extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onUseItem(LivingEntityUseItemEvent event) {
+    @Subscription
+    public void onUseItem(EntityUseItemEvent event) {
         // send sneaking packet when we use an item
         if (isSlowed() && airStrict.getValue() && !isSneaking) {
             isSneaking = true;
@@ -276,4 +270,3 @@ public class NoSlow extends Module {
         }
     }
 }
-

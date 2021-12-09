@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.BlockResetEvent;
+import cope.cosmos.client.events.LeftClickBlockEvent;
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -10,12 +11,13 @@ import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.*;
+import cope.cosmos.util.player.InventoryUtil.Inventory;
+import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderBuilder.*;
+import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.*;
+import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -28,10 +30,9 @@ import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.Color;
+import java.awt.*;
 
 /**
  * @author linustouchtips
@@ -168,7 +169,7 @@ public class SpeedMine extends Module {
     }
 
     @SubscribeEvent
-    public void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
+    public void onLeftClickBlock(LeftClickBlockEvent event) {
 
         // make sure the block is breakable
         if (BlockUtil.isBreakable(event.getPos()) && !mc.player.capabilities.isCreativeMode) {

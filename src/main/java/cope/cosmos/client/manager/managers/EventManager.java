@@ -2,20 +2,24 @@ package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.TotemPopEvent;
+import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 @SuppressWarnings("unused")
@@ -29,30 +33,53 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
-		ModuleManager.getAllModules().forEach(mod -> {
-			if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player) && (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
-				try {
-					mod.onUpdate();
-				} catch (Exception exception) {
-					exception.printStackTrace();
+		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
+			ModuleManager.getAllModules().forEach(mod -> {
+				if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
+					try {
+						mod.onUpdate();
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
 				}
-			}
-		});
+			});
 
-		getCosmos().getManagers().forEach(manager -> {
-			if (nullCheck()) {
-				try {
-					manager.onUpdate();
-				} catch (Exception exception) {
-					exception.printStackTrace();
+			getCosmos().getManagers().forEach(manager -> {
+				if (nullCheck()) {
+					try {
+						manager.onUpdate();
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
 				}
-			}
-		});
+			});
+		}
 
 		/*
 		if (mc.currentScreen instanceof GuiMainMenu && !Cosmos.SETUP)
 			mc.displayGuiScreen(new SetUpGUI());
 		 */
+	}
+
+	@SubscribeEvent
+	public void onTick(TickEvent.ClientTickEvent event) {
+		if (nullCheck()) {
+			ModuleManager.getAllModules().forEach(mod -> {
+				try {
+					mod.onTick();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
+			});
+
+			getCosmos().getManagers().forEach(manager -> {
+				try {
+					manager.onTick();
+				} catch (Exception exception) {
+					exception.printStackTrace();
+				}
+			});
+		}
 	}
 	
 	@SubscribeEvent
@@ -138,5 +165,56 @@ public class EventManager extends Manager implements Wrapper {
 				event.setCanceled(true);
 			}
 		}
+	}
+
+	// converter
+
+	@SubscribeEvent
+	public void onCriticalHit(CriticalHitEvent event) {
+		CriticalModifierEvent criticalModifierEvent = new CriticalModifierEvent();
+		Cosmos.EVENT_BUS.dispatch(criticalModifierEvent);
+
+		// update damage modifier
+		event.setDamageModifier(criticalModifierEvent.getDamageModifier());
+	}
+
+	@SubscribeEvent
+	public void onInputUpdate(InputUpdateEvent event) {
+		ItemInputUpdateEvent itemInputUpdateEvent = new ItemInputUpdateEvent(event.getMovementInput());
+		Cosmos.EVENT_BUS.dispatch(itemInputUpdateEvent);
+	}
+
+	@SubscribeEvent
+	public void onLivingEntityUseItem(LivingEntityUseItemEvent event) {
+		EntityUseItemEvent entityUseItemEvent = new EntityUseItemEvent();
+		Cosmos.EVENT_BUS.dispatch(entityUseItemEvent);
+	}
+
+	@SubscribeEvent
+	public void onKnockback(LivingKnockBackEvent event) {
+		KnockBackEvent knockBackEvent = new KnockBackEvent();
+		Cosmos.EVENT_BUS.dispatch(knockBackEvent);
+
+		if (knockBackEvent.isCanceled()) {
+			event.setCanceled(true);
+		}
+	}
+
+	@SubscribeEvent
+	public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+		if (event.getEntityPlayer().equals(mc.player)) {
+			RightClickItemEvent rightClickItemEvent = new RightClickItemEvent(event.getItemStack());
+			Cosmos.EVENT_BUS.dispatch(rightClickItemEvent);
+
+			if (rightClickItemEvent.isCanceled()) {
+				event.setCanceled(true);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+		LeftClickBlockEvent leftClickBlockEvent = new LeftClickBlockEvent(event.getPos(), event.getFace());
+		Cosmos.EVENT_BUS.dispatch(leftClickBlockEvent);
 	}
 }

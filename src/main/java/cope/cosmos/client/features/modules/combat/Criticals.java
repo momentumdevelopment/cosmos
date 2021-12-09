@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
+import cope.cosmos.client.events.CriticalModifierEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -18,8 +19,6 @@ import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraftforge.event.entity.player.CriticalHitEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -229,8 +228,8 @@ public class Criticals extends Module {
         }
     }
 
-    @SubscribeEvent
-    public void onCriticalHit(CriticalHitEvent event) {
+    @Subscription
+    public void onCriticalHit(CriticalModifierEvent event) {
         // set the damage modifier for critical hits
         event.setDamageModifier(modifier.getValue().floatValue());
     }
