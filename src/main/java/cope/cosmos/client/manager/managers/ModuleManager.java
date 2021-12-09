@@ -75,7 +75,8 @@ public class ModuleManager extends Manager {
 			new ESP(),
 			new FullBright(),
 			new HoleESP(),
-			new NoRender()
+			new NoRender(),
+		        new Nametags()
 	);
 
 	public static List<Module> getAllModules() {
