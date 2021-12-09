@@ -52,7 +52,7 @@ public class Sprint extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL)) {
             // verify if the player's food level allows sprinting

@@ -167,7 +167,7 @@ public class SpeedMine extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
 
         // make sure the block is breakable

@@ -11,6 +11,7 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.event.bus.EventBus;
 import cope.cosmos.util.render.FontUtil;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.ProgressManager;
@@ -73,7 +74,7 @@ public class Cosmos {
     public void init(FMLInitializationEvent event) {
         ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 16);
 
-        Cosmos.EVENT_BUS.subscribe(EventManager.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
         progressManager.step("Registering Events");
 
         commandDispatcher = new CommandDispatcher<>();

@@ -63,7 +63,7 @@ public class PacketFlight extends Module {
 	double serverY;
 	double serverZ;
 
-	@Subscription
+	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
 		if (mc.player == null) {
 			getAnimation().setState(false);

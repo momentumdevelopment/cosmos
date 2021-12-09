@@ -199,7 +199,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onInputUpdate(InputUpdateEvent event) {
         // remove vanilla slowdown effect
         if (isSlowed()) {
@@ -208,7 +208,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onUseItem(LivingEntityUseItemEvent event) {
         // send sneaking packet when we use an item
         if (isSlowed() && airStrict.getValue() && !isSneaking) {

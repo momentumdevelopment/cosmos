@@ -229,7 +229,7 @@ public class Criticals extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onCriticalHit(CriticalHitEvent event) {
         // set the damage modifier for critical hits
         event.setDamageModifier(modifier.getValue().floatValue());

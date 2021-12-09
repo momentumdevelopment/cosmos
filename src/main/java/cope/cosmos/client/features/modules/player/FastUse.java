@@ -99,7 +99,7 @@ public class FastUse extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPlayerRightClick(PlayerInteractEvent.RightClickItem event) {
         if (packetUse.getValue() && event.getEntityPlayer().equals(mc.player)) {
 

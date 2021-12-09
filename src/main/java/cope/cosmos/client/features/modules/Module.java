@@ -7,6 +7,7 @@ import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.AnimationManager;
 import cope.cosmos.util.Wrapper;
+import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
@@ -89,6 +90,7 @@ public class Module extends Feature implements Wrapper {
 		if (!enabled) {
 			enabled = true;
 			Cosmos.EVENT_BUS.subscribe(this);
+			MinecraftForge.EVENT_BUS.register(this);
 			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
 				// runs onEnable callbacks
 				ModuleEnableEvent event = new ModuleEnableEvent(this);
@@ -118,6 +120,7 @@ public class Module extends Feature implements Wrapper {
 				}
 			}
 
+			MinecraftForge.EVENT_BUS.unregister(this);
 			Cosmos.EVENT_BUS.unsubscribe(this);
 		}
 	}

@@ -27,7 +27,7 @@ public class EventManager extends Manager implements Wrapper {
 		super("EventManager", "Manages Forge events");
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player) && (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
@@ -55,7 +55,7 @@ public class EventManager extends Manager implements Wrapper {
 		 */
 	}
 	
-	@Subscription
+	@SubscribeEvent
 	public void onRender2d(RenderGameOverlayEvent.Text event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (nullCheck() && mod.isEnabled()) {
@@ -78,7 +78,7 @@ public class EventManager extends Manager implements Wrapper {
 		});
 	}
 	
-	@Subscription
+	@SubscribeEvent
 	public void onRender3D(RenderWorldLastEvent event) {
 		mc.mcProfiler.startSection("cosmos-render");
 
@@ -105,7 +105,7 @@ public class EventManager extends Manager implements Wrapper {
 		mc.mcProfiler.endSection();
 	}
 	
-	@Subscription
+	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (Keyboard.isKeyDown(mod.getKey()) && !Keyboard.isKeyDown(Keyboard.KEY_NONE)) {
@@ -114,7 +114,7 @@ public class EventManager extends Manager implements Wrapper {
 		});
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onChatInput(ClientChatEvent event) {
 		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
 			event.setCanceled(true);

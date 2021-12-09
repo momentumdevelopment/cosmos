@@ -108,7 +108,7 @@ public class Velocity extends Module {
 		}
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onKnockback(LivingKnockBackEvent event) {
 		// cancel velocity from knockback
 		if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
