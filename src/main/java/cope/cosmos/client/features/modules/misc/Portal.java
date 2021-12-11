@@ -4,13 +4,11 @@ import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.setting.RunnableSetting;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -28,19 +26,15 @@ public class Portal extends Module {
     public static Setting<Boolean> godMode = new Setting<>("GodMode", false).setDescription("Cancels teleport packets");
     public static Setting<Boolean> screens = new Setting<>("Screens", true).setDescription("Allow the use of screens in portals");
 
-    public static Setting<Boolean> effect = new RunnableSetting<>("Effect", true, value -> {
-
-        // cancels the portal overlay from rendering
-        GuiIngameForge.renderPortal = !value;
-
-    }).setDescription("Cancels the portal overlay effect");
-
+    public static Setting<Boolean> effect = new Setting<>("Effect", true).setDescription("Cancels the portal overlay effect");
     public static Setting<Boolean> sounds = new Setting<>("Sounds", false).setDescription("Cancels portal sounds");
 
     @Override
     public void onUpdate() {
         // allows you to send messages while in portals
         ((IEntity) mc.player).setInPortal(!screens.getValue() && ((IEntity) mc.player).getInPortal());
+
+        GuiIngameForge.renderPortal = !effect.getValue();
     }
 
     @Override
