@@ -26,7 +26,8 @@ public class RenderUtil implements Wrapper {
 	// 3d
 
 	public static void drawBox(RenderBuilder renderBuilder) {
-		AxisAlignedBB axisAlignedBB = new AxisAlignedBB(renderBuilder.getBlockPos().getX() - mc.getRenderManager().viewerPosX, renderBuilder.getBlockPos().getY() - mc.getRenderManager().viewerPosY, renderBuilder.getBlockPos().getZ() - mc.getRenderManager().viewerPosZ, renderBuilder.getBlockPos().getX() + 1 - mc.getRenderManager().viewerPosX, renderBuilder.getBlockPos().getY() + 1 - mc.getRenderManager().viewerPosY, renderBuilder.getBlockPos().getZ() + 1 - mc.getRenderManager().viewerPosZ);
+		//AxisAlignedBB axisAlignedBB = new AxisAlignedBB(renderBuilder.getBlockPos().getX() - mc.getRenderManager().viewerPosX, renderBuilder.getBlockPos().getY() - mc.getRenderManager().viewerPosY, renderBuilder.getBlockPos().getZ() - mc.getRenderManager().viewerPosZ, renderBuilder.getBlockPos().getX() + 1 - mc.getRenderManager().viewerPosX, renderBuilder.getBlockPos().getY() + 1 - mc.getRenderManager().viewerPosY, renderBuilder.getBlockPos().getZ() + 1 - mc.getRenderManager().viewerPosZ);
+		AxisAlignedBB axisAlignedBB = renderBuilder.getAxisAlignedBB().offset(-mc.getRenderManager().viewerPosX, -mc.getRenderManager().viewerPosY, -mc.getRenderManager().viewerPosZ);
 
 		switch (renderBuilder.getBox()) {
 			case FILL:
