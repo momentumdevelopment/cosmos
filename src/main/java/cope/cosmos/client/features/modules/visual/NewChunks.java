@@ -3,28 +3,39 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderUtil;
 import io.netty.util.internal.ConcurrentSet;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.network.play.server.SPacketChunkData;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
 import java.util.Set;
 
+import static cope.cosmos.util.render.RenderBuilder.Box;
+
 public class NewChunks extends Module {
+    public static NewChunks INSTANCE;
+
     public NewChunks() {
-        super("NewChunks", Category.VISUAL, "Highlights newly generated chunks", () -> String.valueOf(newChunks.size()));
+        super("NewChunks", Category.VISUAL, "Highlights newly generated chunks");
+        INSTANCE = this;
     }
 
-    public static final Setting<LimitedBox> box = new Setting<>("Box", LimitedBox.OUTLINE).setDescription("How to draw the box");
+    public static final Setting<LimitedBox> box = new Setting<>("Render", LimitedBox.OUTLINE).setDescription("How to draw the box");
+    public static final Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 1).setDescription("The height to render the new chunk at");
 
-    public static final Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> box.getValue().equals(LimitedBox.FILLED) || box.getValue().equals(LimitedBox.BOTH) || box.getValue().equals(LimitedBox.OUTLINE) || box.getValue().equals(LimitedBox.CLAW));
+    public static final Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> box.getValue().equals(LimitedBox.BOTH) || box.getValue().equals(LimitedBox.OUTLINE) || box.getValue().equals(LimitedBox.CLAW));
     public static final Setting<Color> color = new Setting<>("Color", new Color(255, 0, 0, 45)).setDescription("The highlight color");
+    public static final Setting<Boolean> sync = new Setting<>("Sync", false).setDescription("If to sync the color with the client color").setParent(color);
 
-    private static final Set<Chunk> newChunks = new ConcurrentSet<>();
+    private final Frustum frustum = new Frustum();
+    private final Set<Vec2f> newChunks = new ConcurrentSet<>();
 
     @Override
     public void onDisable() {
@@ -35,9 +46,14 @@ public class NewChunks extends Module {
 
     @Override
     public void onRender3D() {
-        for (Chunk chunk : newChunks) {
-            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(chunk.x, 0, chunk.z)).box(box.getValue().box).length(16).height(0.0).width(outlineWidth.getValue()).color(color.getValue()).blend().depth(true).texture());
-        }
+        newChunks.forEach((chunk) -> {
+            frustum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
+
+            AxisAlignedBB axisAlignedBB = new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16.0, height.getValue(), chunk.y + 16.0);
+            if (frustum.isBoundingBoxInFrustum(axisAlignedBB)) {
+                RenderUtil.drawBox(new RenderBuilder().position(axisAlignedBB).box(box.getValue().box).width(outlineWidth.getValue()).color(sync.getValue() ? Colors.color.getValue() : color.getValue()).blend().depth(true).texture());
+            }
+        });
     }
 
     @Subscription
@@ -45,30 +61,21 @@ public class NewChunks extends Module {
         if (event.getPacket() instanceof SPacketChunkData) {
             SPacketChunkData packet = (SPacketChunkData) event.getPacket();
             if (!packet.isFullChunk()) {
-                newChunks.add(new Chunk(packet.getChunkX() * 16, packet.getChunkZ() * 16));
+                newChunks.add(new Vec2f(packet.getChunkX() * 16.0f, packet.getChunkZ() * 16.0f));
             }
-        }
-    }
-
-    private static class Chunk {
-        private final int x, z;
-
-        public Chunk(int x, int y) {
-            this.x = x;
-            this.z = y;
         }
     }
 
     // we dont want to use glow or reverse box modes, so..
     public enum LimitedBox {
-        OUTLINE(RenderBuilder.Box.OUTLINE),
-        FILLED(RenderBuilder.Box.FILL),
-        BOTH(RenderBuilder.Box.BOTH),
-        CLAW(RenderBuilder.Box.CLAW),
-        NONE(RenderBuilder.Box.NONE);
+        OUTLINE(Box.OUTLINE),
+        FILLED(Box.FILL),
+        BOTH(Box.BOTH),
+        CLAW(Box.CLAW);
 
-        private final RenderBuilder.Box box;
-        LimitedBox(RenderBuilder.Box box) {
+        private final Box box;
+
+        LimitedBox(Box box) {
             this.box = box;
         }
     }
