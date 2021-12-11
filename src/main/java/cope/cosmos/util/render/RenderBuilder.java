@@ -1,6 +1,7 @@
 package cope.cosmos.util.render;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 import java.awt.*;
@@ -19,7 +20,7 @@ public class RenderBuilder {
     private boolean shade = false;
 
     // box
-    private BlockPos blockPos = BlockPos.ORIGIN;
+    private AxisAlignedBB axisAlignedBB = new AxisAlignedBB(0, 0, 0, 0, 0, 0);
     private Box box = Box.FILL;
 
     private double height = 0;
@@ -126,7 +127,12 @@ public class RenderBuilder {
     }
 
     public RenderBuilder position(BlockPos in) {
-        blockPos = in;
+        position(new AxisAlignedBB(in.getX(), in.getY(), in.getZ(), in.getX() + 1, in.getY() + 1, in.getZ() + 1));
+        return this;
+    }
+
+    public RenderBuilder position(AxisAlignedBB in) {
+        axisAlignedBB = in;
         return this;
     }
 
@@ -155,8 +161,8 @@ public class RenderBuilder {
         return this;
     }
 
-    public BlockPos getBlockPos() {
-        return blockPos;
+    public AxisAlignedBB getAxisAlignedBB() {
+        return axisAlignedBB;
     }
 
     public double getHeight() {
