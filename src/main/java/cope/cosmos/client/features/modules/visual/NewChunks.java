@@ -9,12 +9,10 @@ import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderUtil;
 import io.netty.util.internal.ConcurrentSet;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec2f;
 
-import java.awt.*;
 import java.util.Set;
 
 import static cope.cosmos.util.render.RenderBuilder.Box;
@@ -29,12 +27,8 @@ public class NewChunks extends Module {
 
     public static final Setting<LimitedBox> box = new Setting<>("Render", LimitedBox.OUTLINE).setDescription("How to draw the box");
     public static final Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 1).setDescription("The height to render the new chunk at");
-
     public static final Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> box.getValue().equals(LimitedBox.BOTH) || box.getValue().equals(LimitedBox.OUTLINE) || box.getValue().equals(LimitedBox.CLAW));
-    public static final Setting<Color> color = new Setting<>("Color", new Color(255, 0, 0, 45)).setDescription("The highlight color");
-    public static final Setting<Boolean> sync = new Setting<>("Sync", false).setDescription("If to sync the color with the client color").setParent(color);
 
-    private final Frustum frustum = new Frustum();
     private final Set<Vec2f> newChunks = new ConcurrentSet<>();
 
     @Override
@@ -47,11 +41,9 @@ public class NewChunks extends Module {
     @Override
     public void onRender3D() {
         newChunks.forEach((chunk) -> {
-            frustum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
-
             AxisAlignedBB axisAlignedBB = new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16.0, height.getValue(), chunk.y + 16.0);
-            if (frustum.isBoundingBoxInFrustum(axisAlignedBB)) {
-                RenderUtil.drawBox(new RenderBuilder().position(axisAlignedBB).box(box.getValue().box).width(outlineWidth.getValue()).color(sync.getValue() ? Colors.color.getValue() : color.getValue()).blend().depth(true).texture());
+            if (RenderUtil.isBoundingBoxInFrustum(mc.getRenderViewEntity(), axisAlignedBB)) {
+                RenderUtil.drawBox(new RenderBuilder().position(axisAlignedBB).box(box.getValue().box).width(outlineWidth.getValue()).color(Colors.color.getValue()).blend().depth(true).texture());
             }
         });
     }

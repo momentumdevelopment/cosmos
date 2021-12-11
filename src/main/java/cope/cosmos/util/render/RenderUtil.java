@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -553,5 +554,10 @@ public class RenderUtil implements Wrapper {
 
 	public static void scissor(int x, int y, int x2, int y2) {
 		glScissor(x * new ScaledResolution(mc).getScaleFactor(), (new ScaledResolution(mc).getScaledHeight() - y2) * new ScaledResolution(mc).getScaleFactor(), (x2 - x) * new ScaledResolution(mc).getScaleFactor(), (y2 - y) * new ScaledResolution(mc).getScaleFactor());
+	}
+
+	public static boolean isBoundingBoxInFrustum(Entity renderViewEntity, AxisAlignedBB axisAlignedBB) {
+		frustum.setPosition(renderViewEntity.posX, renderViewEntity.posY, renderViewEntity.posZ);
+		return frustum.isBoundingBoxInFrustum(axisAlignedBB);
 	}
 }
