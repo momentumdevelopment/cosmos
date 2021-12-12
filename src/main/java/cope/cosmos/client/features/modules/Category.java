@@ -1,23 +1,43 @@
 package cope.cosmos.client.features.modules;
 
-import net.minecraft.util.ResourceLocation;
-
+/**
+ * @author bon55
+ * @since 05/05/2021
+ */
 public enum Category {
-	CLIENT(new ResourceLocation("cosmos", "textures/icons/client.png")),
-	COMBAT(new ResourceLocation("cosmos", "textures/icons/combat.png")),
-	VISUAL(new ResourceLocation("cosmos", "textures/icons/visual.png")),
-	PLAYER(new ResourceLocation("cosmos", "textures/icons/player.png")),
-	MOVEMENT(new ResourceLocation("cosmos", "textures/icons/movement.png")),
-	MISC(new ResourceLocation("cosmos", "textures/icons/misc.png")),
-	HIDDEN(new ResourceLocation("cosmos", "textures/icons/client.png"));
 
-	private final ResourceLocation resourceLocation;
+	/**
+	 * Modules associated with client processes
+	 */
+	CLIENT,
 
-	Category(ResourceLocation resourceLocation) {
-		this.resourceLocation = resourceLocation;
-	}
+	/**
+	 * Modules used for combat (Ex: KillAura, AutoCrystal, etc.)
+	 */
+	COMBAT,
 
-	public ResourceLocation getResourceLocation() {
-		return this.resourceLocation;
-	}
+	/**
+	 * Modules that are visual modifications (Ex: ESP, Nametags, HoleESP, etc.)
+	 */
+	VISUAL,
+
+	/**
+	 * Modules that are modifications to player characteristics (Ex: AntiHunger, SpeedMine, FastUse, etc.)
+	 */
+	PLAYER,
+
+	/**
+	 * Modules that allow the player to move in unnatural ways (Ex: Flight, Speed, ReverseStep, etc.)
+	 */
+	MOVEMENT,
+
+	/**
+	 * Modules that don't fit in the other categories
+	 */
+	MISC,
+
+	/**
+	 * Modules hidden from the ClickGUI
+	 */
+	HIDDEN
 }

@@ -45,11 +45,29 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
 
                 // set the value based on the type
                 if (getSetting().getValue() instanceof Double) {
-                    getSetting().setValue(MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale()));
+                    double valueSlid = MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale());
+
+                    // exclude number
+                    if (getSetting().isExclusion(valueSlid)) {
+                        getSetting().setValue(valueSlid + Math.pow(1, -getSetting().getRoundingScale()));
+                    }
+
+                    else {
+                        getSetting().setValue(valueSlid);
+                    }
                 }
 
                 else if (getSetting().getValue() instanceof Float) {
-                    getSetting().setValue(MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale()));
+                    float valueSlid = MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale());
+
+                    // exclude number
+                    if (getSetting().isExclusion(valueSlid)) {
+                        getSetting().setValue(valueSlid + Math.pow(1, -getSetting().getRoundingScale()));
+                    }
+
+                    else {
+                        getSetting().setValue(valueSlid);
+                    }
                 }
             }
         }

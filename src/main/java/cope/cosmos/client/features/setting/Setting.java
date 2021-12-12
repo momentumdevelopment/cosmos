@@ -5,13 +5,14 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.util.Wrapper;
-import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 /**
+ * Mutable Setting associated with a {@link Feature} Feature in the ClickGUI
  * @author bon55, linustouchtips
  * @since 05/05/2021
  * @param <T> The value type for the setting
@@ -35,6 +36,9 @@ public class Setting<T> extends Feature implements Wrapper {
 	// visibility of the setting in the GUI
 	private Supplier<Boolean> visible;
 
+	// list of value exclusions
+	private final List<T> exclusions = new ArrayList<>();
+
 	// the parent setting to this setting
 	private Setting<?> parentSetting;
 
@@ -45,17 +49,16 @@ public class Setting<T> extends Feature implements Wrapper {
 		super(name);
 		this.value = value;
 
+		// subscribe to event bus
 		Cosmos.EVENT_BUS.subscribe(this);
 	}
 	
 	public Setting(String name, T min, T value, T max, int scale) {
-		super(name);
+		this(name, value);
+
 		this.min = min;
-		this.value = value;
 		this.max = max;
 		this.scale = scale;
-
-		Cosmos.EVENT_BUS.subscribe(this);
 	}
 
 	/**
@@ -137,6 +140,29 @@ public class Setting<T> extends Feature implements Wrapper {
 	}
 
 	/**
+	 * Checks whether or not a value is an exclusion
+	 * @param in The value to check
+	 * @return Whether or not the value is an exclusion
+	 */
+	public boolean isExclusion(T in) {
+		return exclusions.contains(in);
+	}
+
+	/**
+	 * Sets the setting's value exclusions
+	 * @param in The list of value exclusions
+	 * @return The setting
+	 */
+	@SafeVarargs
+	public final Setting<T> setExclusion(T... in) {
+		// add to our exclusion
+		exclusions.addAll(Arrays.asList(in));
+
+		// builder
+		return this;
+	}
+
+	/**
 	 * Checks if the setting is visible
 	 * @return Whether the setting is visible
 	 */
@@ -179,7 +205,7 @@ public class Setting<T> extends Feature implements Wrapper {
 	 * @return The setting
 	 */
 	public Setting<T> setParent(Setting<?> in) {
-		// add this setting to the parent's subsetting list
+		// add this setting to the parent's sub-setting list
 		in.getSubSettings().add(this);
 
 		// update our parent setting
@@ -190,8 +216,8 @@ public class Setting<T> extends Feature implements Wrapper {
 	}
 
 	/**
-	 * Gets a list of the subsettings for the setting
-	 * @return A list of the subsettings for the setting
+	 * Gets a list of the sub-settings for the setting
+	 * @return A list of the sub-settings for the setting
 	 */
 	public List<Setting<?>> getSubSettings() {
 		return subSettings;

@@ -9,9 +9,10 @@ import java.lang.reflect.Method;
  */
 public class Listener {
 
-    public final Object object;
     public final Class<? extends Event> clazz;
+    public final Object object;
     public final Method method;
+    
     public final boolean receiveCancelled;
     public final int priority;
 

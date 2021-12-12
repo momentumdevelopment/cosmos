@@ -8,10 +8,7 @@ import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
-import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.client.event.InputUpdateEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
@@ -216,5 +213,17 @@ public class EventManager extends Manager implements Wrapper {
 	public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
 		LeftClickBlockEvent leftClickBlockEvent = new LeftClickBlockEvent(event.getPos(), event.getFace());
 		Cosmos.EVENT_BUS.dispatch(leftClickBlockEvent);
+	}
+
+	@SubscribeEvent
+	public void onPushOutOfBlocks(PlayerSPPushOutOfBlocksEvent event) {
+		if (event.getEntity().equals(mc.player)) {
+			PushOutOfBlocksEvent pushOutOfBlocksEvent = new PushOutOfBlocksEvent();
+			Cosmos.EVENT_BUS.dispatch(pushOutOfBlocksEvent);
+
+			if (pushOutOfBlocksEvent.isCanceled()) {
+				event.setCanceled(true);
+			}
+		}
 	}
 }

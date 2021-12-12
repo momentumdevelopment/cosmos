@@ -3,10 +3,11 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.event.annotation.Subscription;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
+import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.network.play.server.SPacketChunkData;
@@ -15,8 +16,11 @@ import net.minecraft.util.math.Vec2f;
 
 import java.util.Set;
 
-import static cope.cosmos.util.render.RenderBuilder.Box;
-
+/**
+ * @author aesthetical
+ * @since 12/11/2021
+ */
+@SuppressWarnings("unused")
 public class NewChunks extends Module {
     public static NewChunks INSTANCE;
 
@@ -25,50 +29,64 @@ public class NewChunks extends Module {
         INSTANCE = this;
     }
 
-    public static final Setting<LimitedBox> box = new Setting<>("Render", LimitedBox.OUTLINE).setDescription("How to draw the box");
-    public static final Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 1).setDescription("The height to render the new chunk at");
-    public static final Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> box.getValue().equals(LimitedBox.BOTH) || box.getValue().equals(LimitedBox.OUTLINE) || box.getValue().equals(LimitedBox.CLAW));
+    public static Setting<Box> box = new Setting<>("Render", Box.OUTLINE).setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE);
+    public static Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 0).setDescription("The height to render the new chunk at");
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the render").setVisible(() -> box.getValue().equals(Box.BOTH) || box.getValue().equals(Box.OUTLINE) || box.getValue().equals(Box.CLAW));
 
-    private final Set<Vec2f> newChunks = new ConcurrentSet<>();
+    // new chunks
+    private final Set<Vec2f> chunks = new ConcurrentSet<>();
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        newChunks.clear();
+        // reset our chunks
+        chunks.clear();
     }
 
     @Override
     public void onRender3D() {
-        newChunks.forEach((chunk) -> {
-            AxisAlignedBB axisAlignedBB = new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16.0, height.getValue(), chunk.y + 16.0);
-            if (RenderUtil.isBoundingBoxInFrustum(mc.getRenderViewEntity(), axisAlignedBB)) {
-                RenderUtil.drawBox(new RenderBuilder().position(axisAlignedBB).box(box.getValue().box).width(outlineWidth.getValue()).color(Colors.color.getValue()).blend().depth(true).texture());
+
+        // render the new chunks
+        chunks.forEach((chunk) -> {
+
+            // make sure the chunk is within render distance
+            if (getDistance(chunk) <= mc.gameSettings.renderDistanceChunks) {
+                RenderUtil.drawBox(new RenderBuilder()
+                        .position(new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16, height.getValue(), chunk.y + 16))
+                        .box(box.getValue())
+                        .width(width.getValue())
+                        .color(ColorUtil.getPrimaryColor())
+                        .blend()
+                        .depth(true)
+                        .texture()
+                );
             }
         });
     }
 
     @Subscription
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        // packet for chunk data
         if (event.getPacket() instanceof SPacketChunkData) {
-            SPacketChunkData packet = (SPacketChunkData) event.getPacket();
-            if (!packet.isFullChunk()) {
-                newChunks.add(new Vec2f(packet.getChunkX() * 16.0f, packet.getChunkZ() * 16.0f));
+            // add it to our set if it's not been newly generated
+            if (!((SPacketChunkData) event.getPacket()).isFullChunk()) {
+                chunks.add(new Vec2f(((SPacketChunkData) event.getPacket()).getChunkX() * 16, ((SPacketChunkData) event.getPacket()).getChunkZ() * 16));
             }
         }
     }
 
-    // we dont want to use glow or reverse box modes, so..
-    public enum LimitedBox {
-        OUTLINE(Box.OUTLINE),
-        FILLED(Box.FILL),
-        BOTH(Box.BOTH),
-        CLAW(Box.CLAW);
+    /**
+     * Gets the player's distance to a chunk
+     * @param chunk The chunk to get the distance to
+     * @return The player's distance to the chunk
+     */
+    public int getDistance(Vec2f chunk) {
+        // x and z distance to the chunk
+        double xDistance = Math.abs(mc.player.posX - chunk.x);
+        double zDistance = Math.abs(mc.player.posZ - chunk.y);
 
-        private final Box box;
-
-        LimitedBox(Box box) {
-            this.box = box;
-        }
+        // pythag divided by 16 (size of one chunk)
+        return (int) (Math.sqrt(Math.pow(xDistance, 2) + Math.pow(zDistance, 2)) / 16);
     }
 }

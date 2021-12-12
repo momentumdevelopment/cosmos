@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.PushOutOfBlocksEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -18,7 +19,6 @@ import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -190,8 +190,8 @@ public class PacketFlight extends Module {
 	}
 
 	@Subscription
-	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
-		event.setCanceled(nullCheck() && event.getEntityPlayer().equals(mc.player));
+	public void onPushOutOfBlocks(PushOutOfBlocksEvent event) {
+		event.setCanceled(true);
 	}
 
 	private void processPackets(double[] motion) {

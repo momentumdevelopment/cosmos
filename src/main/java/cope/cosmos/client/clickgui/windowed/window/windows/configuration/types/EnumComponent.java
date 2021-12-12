@@ -34,7 +34,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         super(settingComponent, setting);
 
         Enum<?> modeValue = setting.getValue();
-        String[] modes = Arrays.stream(modeValue.getClass().getEnumConstants()).map(Enum::name).toArray(String[]::new);
+        String[] modes = Arrays.stream(modeValue.getClass().getEnumConstants()).filter(in -> !setting.isExclusion(in)).map(Enum::name).toArray(String[]::new);
 
         for (String mode : modes) {
             modeComponents.add(new ModeComponent(this, getSetting(), mode));
@@ -136,11 +136,13 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
             setWidth(width);
 
             // hover animation
-            if (mouseOver(position.x, position.y, width, 13) && hoverAnimation < 25)
+            if (mouseOver(position.x, position.y, width, 13) && hoverAnimation < 25) {
                 hoverAnimation += 5;
+            }
 
-            else if (!mouseOver(position.x, position.y, width, 13) && hoverAnimation > 0)
+            else if (!mouseOver(position.x, position.y, width, 13) && hoverAnimation > 0) {
                 hoverAnimation -= 5;
+            }
 
             RenderUtil.drawRect(position.x, position.y, width, 13, setting.getValue().equals(Enum.valueOf(setting.getValue().getClass(), mode)) ? new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), 90) : new Color(hoverAnimation, hoverAnimation, hoverAnimation, 90));
 
