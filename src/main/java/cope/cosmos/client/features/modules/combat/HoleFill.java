@@ -45,10 +45,10 @@ public class HoleFill extends Module {
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 0).setParent(target).setDescription("Range to consider a player a target");
+    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 0).setDescription("Range to consider a player a target").setParent(target);
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the filling process");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setParent(render).setDescription("Style of the visual");
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setDescription("Style of the visual").setParent(render);
 
     private EntityPlayer fillTarget;
     private BlockPos fillPosition = null;
@@ -125,7 +125,6 @@ public class HoleFill extends Module {
     public void onUpdate() {
         if (fillPosition == null) {
             fillTarget = null;
-            fillPosition = null;
             return;
         }
 

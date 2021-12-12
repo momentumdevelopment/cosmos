@@ -183,7 +183,7 @@ public class SpeedMine extends Module {
                 previousSlot = mc.player.inventory.currentItem;
 
                 // re-click
-                if (minePosition != null && event.getPos().equals(minePosition)) {
+                if (event.getPos().equals(minePosition)) {
                     if (mode.getValue().equals(Mode.PACKET)) {
                         // if our damage is enough to destroy the block then we switch to the best item
                         if (mineDamage >= 1) {
@@ -282,7 +282,7 @@ public class SpeedMine extends Module {
 
         // iterate through item in the hotbar
         for (int i = 0; i < 9; i++) {
-            if (!mc.player.inventory.getStackInSlot(i).isEmpty() && mc.player.inventory.getStackInSlot(i) != null) {
+            if (!mc.player.inventory.getStackInSlot(i).isEmpty()) {
                 float breakSpeed = mc.player.inventory.getStackInSlot(i).getDestroySpeed(state);
 
                 // make sure the block is breakable

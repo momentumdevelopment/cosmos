@@ -226,7 +226,7 @@ public class Speed extends Module {
             moveSpeed = Math.min(moveSpeed, mc.player.isPotionActive(MobEffects.SPEED) ? 0.718 : 0.547);
         }
 
-        if (boost.getValue() && boostTicks <= 5) {
+        if (boost.getValue() && boostTicks <= 10) {
             moveSpeed = Math.max(moveSpeed, boostSpeed);
         }
 

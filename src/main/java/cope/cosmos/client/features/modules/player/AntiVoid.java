@@ -39,7 +39,10 @@ public class AntiVoid extends Module {
                     break;
                 case GLIDE:
                     // fall slower
-                    mc.player.motionY /= glide.getValue();
+                    if (mc.player.motionY < 0) {
+                        mc.player.motionY /= glide.getValue();
+                    }
+
                     break;
                 case RUBBERBAND:
                     // attempt to rubberband out of the void

@@ -29,9 +29,9 @@ public class NewChunks extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Box> box = new Setting<>("Render", Box.OUTLINE).setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE);
+    public static Setting<Box> render = new Setting<>("Render", Box.OUTLINE).setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE);
     public static Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 0).setDescription("The height to render the new chunk at");
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the render").setVisible(() -> box.getValue().equals(Box.BOTH) || box.getValue().equals(Box.OUTLINE) || box.getValue().equals(Box.CLAW));
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the render").setVisible(() -> render.getValue().equals(Box.BOTH) || render.getValue().equals(Box.OUTLINE) || render.getValue().equals(Box.CLAW));
 
     // new chunks
     private final Set<Vec2f> chunks = new ConcurrentSet<>();
@@ -46,7 +46,6 @@ public class NewChunks extends Module {
 
     @Override
     public void onRender3D() {
-
         // render the new chunks
         chunks.forEach((chunk) -> {
 
@@ -54,7 +53,7 @@ public class NewChunks extends Module {
             if (getDistance(chunk) <= mc.gameSettings.renderDistanceChunks) {
                 RenderUtil.drawBox(new RenderBuilder()
                         .position(new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16, height.getValue(), chunk.y + 16))
-                        .box(box.getValue())
+                        .box(render.getValue())
                         .width(width.getValue())
                         .color(ColorUtil.getPrimaryColor())
                         .blend()

@@ -355,6 +355,7 @@ public class AutoCrystal extends Module {
                 // make sure the direction we are facing is consistent with our rotations
                 switch (placeInteraction.getValue()) {
                     case NONE:
+                        facingDirection = EnumFacing.DOWN;
                         facingX = 0.5;
                         facingY = 0.5;
                         facingZ = 0.5;
@@ -362,11 +363,14 @@ public class AutoCrystal extends Module {
                     case NORMAL:
                         // find the direction to place against
                         RayTraceResult laxResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), interactVector);
-                        facingDirection = (laxResult == null || laxResult.sideHit == null) ? EnumFacing.UP : laxResult.sideHit;
 
-                        // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
-                        if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
-                            facingDirection = EnumFacing.DOWN;
+                        if (laxResult != null && laxResult.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
+                            facingDirection = laxResult.sideHit;
+
+                            // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
+                            if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
+                                facingDirection = EnumFacing.DOWN;
+                            }
                         }
 
                         // find rotations based on the placement

@@ -1,99 +1,163 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.RenderRotationsEvent;
+import cope.cosmos.client.events.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.util.math.MathHelper;
+import cope.cosmos.util.system.Timer;
+import cope.cosmos.util.system.Timer.*;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
+/**
+ * @author linustouchtips
+ * @since 07/24/2021
+ */
 @SuppressWarnings("unused")
 public class AntiAim extends Module {
+    public static AntiAim INSTANCE;
+
     public AntiAim() {
         super("AntiAim", Category.MISC, "Makes you harder to hit");
+        INSTANCE = this;
     }
 
     public static Setting<Yaw> yaw = new Setting<>("Yaw", Yaw.LINEAR).setDescription("Changes how your yaw is rotated");
     public static Setting<Pitch> pitch = new Setting<>("Pitch", Pitch.NONE).setDescription("Changes how your pitch is rotated");
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET).setDescription("How to rotate");
 
-    int aimTicks = 0;
-    float aimYaw = 0;
-    float aimPitch = 0;
-    boolean aimToggle = false;
+    // rotation values
+    private float aimYaw, aimPitch;
 
-    @Override
-    public void onEnable() {
-        super.onEnable();
-        aimTicks = 0;
-    }
+    // keeps track of rotations time
+    private final Timer rotationTimer = new Timer();
 
     @Override
     public void onUpdate() {
+        // randomized rotations
+        Random aimRandom = new Random();
+
         switch (yaw.getValue()) {
             case LINEAR:
+                // linear increase
                 aimYaw += 5;
                 break;
             case REVERSE:
+                // linear decrease
                 aimYaw -= 5;
                 break;
             case RANDOM:
-                aimYaw = ThreadLocalRandom.current().nextInt(0, 360);
-                break;
-            case TOGGLE:
-                aimYaw += ThreadLocalRandom.current().nextInt(-360, 360);
+                // random yaw value
+                aimYaw = aimRandom.nextInt() * 180;
+
+                // randomize direction
+                if (aimRandom.nextBoolean()) {
+                    aimYaw *= -1;
+                }
+
                 break;
             case NONE:
                 break;
         }
 
         switch (pitch.getValue()) {
-            case TOGGLE:
-                if (aimPitch == -90 || aimPitch == 90) {
-                    aimToggle = !aimToggle;
+            case RANDOM:
+                // randomize pitch value
+                aimPitch = aimRandom.nextInt() * 90;
+
+                // randomize direction
+                if (aimRandom.nextBoolean()) {
+                    aimPitch *= -1;
                 }
 
-                aimPitch = aimPitch + (aimToggle ? 5 : -5);
                 break;
-            case RANDOM:
-                aimPitch = ThreadLocalRandom.current().nextInt(-90, 90);
-                break;
-            case MINMAX:
-                aimPitch = (aimTicks % 2 == 0) ? 90 : -90;
+            case MIN_MAX:
+                // toggle from min to max
+                if (rotationTimer.passedTime(2, Format.TICKS)) {
+                    // max
+                    aimPitch = 90;
+                    rotationTimer.resetTime();
+                }
+
+                else {
+                    // min
+                    aimPitch = -90;
+                }
+
                 break;
             case NONE:
                 break;
         }
-
-        // make sure pitch isn't above or below the max/min
-        aimPitch = MathHelper.clamp(aimPitch, -90, 90);
-
-        // update player model
-        Rotation aimRotation = new Rotation(aimYaw, aimPitch, rotate.getValue());
-        aimRotation.updateRotations();
-
-        aimTicks++;
     }
 
     @SubscribeEvent
-    public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        if (event.getPacket() instanceof CPacketPlayer) {
-            ((ICPacketPlayer) event.getPacket()).setYaw(aimYaw);
-            ((ICPacketPlayer) event.getPacket()).setPitch(aimPitch);
+    public void onRotationUpdate(RotationUpdateEvent event) {
+        // server-side update our rotations
+        if (rotate.getValue().equals(Rotate.PACKET)) {
+            // cancel vanilla rotations, we'll send our own
+            event.setCanceled(true);
+
+            // send rotations
+            getCosmos().getRotationManager().addRotation(new Rotation(aimYaw, aimPitch), -100);
+        }
+    }
+
+    // anti aim renders should be priority for rotation rendering
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onRenderRotations(RenderRotationsEvent event) {
+        if (rotate.getValue().equals(Rotate.PACKET)) {
+            // cancel the model rendering for rotations, we'll set it to our values
+            event.setCanceled(true);
+
+            // set our model angles; visual
+            event.setYaw(aimYaw);
+            event.setPitch(aimPitch);
         }
     }
 
     public enum Yaw {
-        LINEAR, REVERSE, RANDOM, TOGGLE, NONE
+
+        /**
+         * Linear increase
+         */
+        LINEAR,
+
+        /**
+         * Linear decrease
+         */
+        REVERSE,
+
+        /**
+         * Randomize yaw values
+         */
+        RANDOM,
+
+        /**
+         * No yaw changes
+         */
+        NONE
     }
 
     public enum Pitch {
-        TOGGLE, RANDOM, MINMAX, NONE
+
+        /**
+         * Randomize pitch values
+         */
+        RANDOM,
+
+        /**
+         * Toggle between min and max values for pitch
+         */
+        MIN_MAX,
+
+        /**
+         * No pitch changes
+         */
+        NONE
     }
 }

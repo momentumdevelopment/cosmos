@@ -29,8 +29,8 @@ public class ElytraFlight extends Module {
     }
 
     public static Setting<Elytra> mode = new Setting<>("Mode", Elytra.CONTROL).setDescription("Mode for ElytraFlight");
-    public static Setting<Double> yaw = new Setting<>("Yaw", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed yaw").setVisible(() -> mode.getValue().equals(Elytra.STRICT));
-    public static Setting<Double> pitch = new Setting<>("Pitch", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed pitch").setVisible(() -> mode.getValue().equals(Elytra.STRICT));
+    public static Setting<Double> yaw = new Setting<>("Yaw", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed yaw").setVisible(() -> mode.getValue().equals(Elytra.CONTROL_STRICT));
+    public static Setting<Double> pitch = new Setting<>("Pitch", 0.0, 30.0, 90.0, 1).setDescription("Maximum allowed pitch").setVisible(() -> mode.getValue().equals(Elytra.CONTROL_STRICT));
 
     public static Setting<Double> glide = new Setting<>("Glide", 0.0, 2.5, 5.0, 2).setDescription("Speed when gliding");
     public static Setting<Double> ascend = new Setting<>("Ascend", 0.0, 1.0, 5.0, 2).setDescription("Speed when ascending");
@@ -40,11 +40,11 @@ public class ElytraFlight extends Module {
     public static Setting<Boolean> lockRotation = new Setting<>("LockRotation", false).setDescription("Locks rotation and flies in a straight path");
 
     public static Setting<Boolean> takeOff = new Setting<>("TakeOff", false).setDescription("Easier takeoff");
-    public static Setting<Double> takeOffTimer = new Setting<>("Timer", 0.0, 0.2, 1.0, 2).setParent(takeOff).setDescription("Timer ticks when taking off");
+    public static Setting<Double> takeOffTimer = new Setting<>("Timer", 0.0, 0.2, 1.0, 2).setDescription("Timer ticks when taking off").setParent(takeOff);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("Pause elytra flight when");
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", true).setParent(pause).setDescription("When in liquid");
-    public static Setting<Boolean> pauseCollision = new Setting<>("Collision", false).setParent(pause).setDescription("When colliding");
+    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", true).setDescription("When in liquid").setParent(pause);
+    public static Setting<Boolean> pauseCollision = new Setting<>("Collision", false).setDescription("When colliding").setParent(pause);
 
     @SubscribeEvent
     public void onTravel(TravelEvent event) {
@@ -100,7 +100,7 @@ public class ElytraFlight extends Module {
             case CONTROL:
                 handleControl();
                 break;
-            case STRICT:
+            case CONTROL_STRICT:
                 handleStrict();
                 break;
             case PACKET:
@@ -134,7 +134,7 @@ public class ElytraFlight extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-        if (nullCheck() && event.getPacket() instanceof SPacketPlayerPosLook && !firework.getValue().equals(Switch.NONE)) {
+        if (event.getPacket() instanceof SPacketPlayerPosLook && !firework.getValue().equals(Switch.NONE)) {
             if (mc.player.isElytraFlying()) {
                 InventoryUtil.switchToSlot(Items.FIREWORKS, firework.getValue());
                 mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
@@ -148,6 +148,6 @@ public class ElytraFlight extends Module {
     }
 
     public enum Elytra {
-        CONTROL, STRICT, PACKET
+        CONTROL, CONTROL_STRICT, PACKET
     }
 }

@@ -59,7 +59,7 @@ public class Portal extends Module {
         if (event.getPacket() instanceof CPacketConfirmTeleport) {
 
             // make sure you are in a portal
-            if (mc.player.timeInPortal > 0 && godMode.getValue()) {
+            if (((IEntity) mc.player).getInPortal() && godMode.getValue()) {
                 event.setCanceled(true);
             }
         }

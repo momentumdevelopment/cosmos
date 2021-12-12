@@ -41,6 +41,7 @@ public class FakePlayer extends Module {
     public void onDeath(LivingDeathEvent event) {
         if (event.getEntity().equals(mc.player)) {
             mc.world.removeEntityFromWorld(id);
+            disable();
             id = -1;
         }
     }

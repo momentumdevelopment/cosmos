@@ -25,14 +25,14 @@ public class NoRender extends Module {
     }
 
     public static Setting<Boolean> overlays = new Setting<>("Overlays", true).setDescription("Prevents overlays from rendering");
-    public static Setting<Boolean> overlayFire = new Setting<>("Fire", true).setParent(overlays).setDescription("Prevents fire overlay from rendering");
-    public static Setting<Boolean> overlayLiquid = new Setting<>("Liquid", true).setParent(overlays).setDescription("Prevents liquid overlay from rendering");
-    public static Setting<Boolean> overlayBlock = new Setting<>("Block", true).setParent(overlays).setDescription("Prevents block overlay from rendering");
-    public static Setting<Boolean> overlayBoss = new Setting<>("Boss", true).setParent(overlays).setDescription("Prevents boss bar overlay from rendering");
+    public static Setting<Boolean> overlayFire = new Setting<>("Fire", true).setDescription("Prevents fire overlay from rendering").setParent(overlays);
+    public static Setting<Boolean> overlayLiquid = new Setting<>("Liquid", true).setDescription("Prevents liquid overlay from rendering").setParent(overlays);
+    public static Setting<Boolean> overlayBlock = new Setting<>("Block", true).setDescription("Prevents block overlay from rendering").setParent(overlays);
+    public static Setting<Boolean> overlayBoss = new Setting<>("Boss", true).setDescription("Prevents boss bar overlay from rendering").setParent(overlays);
 
     public static Setting<Boolean> fog = new Setting<>("Fog", true).setDescription("Prevents fog from rendering");
-    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true).setParent(fog).setDescription("Clears fog in liquid");
-    public static Setting<Double> fogDensity = new Setting<>("Density", 0.0, 0.0, 20.0, 0).setParent(fog).setDescription("Density of the fog");
+    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true).setDescription("Clears fog in liquid").setParent(fog);
+    public static Setting<Double> fogDensity = new Setting<>("Density", 0.0, 0.0, 20.0, 0).setDescription("Density of the fog").setParent(fog);
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Prevents armor from rendering");
     public static Setting<Boolean> items = new Setting<>("Items", false).setDescription("Prevents dropped items from rendering");
@@ -50,57 +50,63 @@ public class NoRender extends Module {
     public void onUpdate() {
         if (items.getValue()) {
             for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
-                if (entity instanceof EntityItem)
+                if (entity instanceof EntityItem) {
                     mc.world.removeEntity(entity);
+                }
             }
         }
 
         if (potion.getValue()) {
-            if (mc.player.isPotionActive(MobEffects.BLINDNESS))
+            if (mc.player.isPotionActive(MobEffects.BLINDNESS)) {
                 mc.player.removePotionEffect(MobEffects.BLINDNESS);
+            }
 
-            if (mc.player.isPotionActive(MobEffects.NAUSEA))
+            if (mc.player.isPotionActive(MobEffects.NAUSEA)) {
                 mc.player.removePotionEffect(MobEffects.NAUSEA);
+            }
         }
     }
 
     @SubscribeEvent
     public void onRenderBlockOverlay(RenderBlockOverlayEvent event) {
-        if (nullCheck() && overlays.getValue()) {
-            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.FIRE) && overlayFire.getValue())
+        if (overlays.getValue()) {
+            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.FIRE) && overlayFire.getValue()) {
                 event.setCanceled(true);
+            }
 
-            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.WATER) && overlayLiquid.getValue())
+            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.WATER) && overlayLiquid.getValue()) {
                 event.setCanceled(true);
+            }
 
-            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.BLOCK) && overlayBlock.getValue())
+            if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.BLOCK) && overlayBlock.getValue()) {
                 event.setCanceled(true);
+            }
         }
     }
 
     @SubscribeEvent
     public void onRenderBossOverlay(BossOverlayEvent event) {
-        event.setCanceled(nullCheck() && overlayBoss.getValue());
+        event.setCanceled(overlayBoss.getValue());
     }
 
     @SubscribeEvent
     public void onRenderEnchantmentTableBook(RenderEnchantmentTableBookEvent event) {
-        event.setCanceled(nullCheck() && tileEntities.getValue());
+        event.setCanceled(tileEntities.getValue());
     }
 
     @SubscribeEvent
     public void onRenderBeaconBeam(RenderBeaconBeamEvent event) {
-        event.setCanceled(nullCheck() && tileEntities.getValue());
+        event.setCanceled(tileEntities.getValue());
     }
 
     @SubscribeEvent
     public void onRenderSkylight(RenderSkylightEvent event) {
-        event.setCanceled(nullCheck() && skylight.getValue());
+        event.setCanceled(skylight.getValue());
     }
 
     @SubscribeEvent
     public void onRenderMap(RenderMapEvent event) {
-        event.setCanceled(nullCheck() && maps.getValue());
+        event.setCanceled(maps.getValue());
     }
 
     @SubscribeEvent
@@ -135,25 +141,27 @@ public class NoRender extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-        if (event.getPacket() instanceof SPacketParticles && ((SPacketParticles) event.getPacket()).getParticleCount() > 200)
+        if (event.getPacket() instanceof SPacketParticles && ((SPacketParticles) event.getPacket()).getParticleCount() > 200) {
             event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
     public void onHurtCamera(HurtCameraEvent event) {
-        event.setCanceled(nullCheck() && hurtCamera.getValue());
+        event.setCanceled(hurtCamera.getValue());
     }
 
     @SubscribeEvent
     public void onRenderWitherSkull(RenderWitherSkullEvent event) {
-        event.setCanceled(nullCheck() && witherSkull.getValue());
+        event.setCanceled(witherSkull.getValue());
     }
 
     @SubscribeEvent
     public void onRenderFog(EntityViewRenderEvent.FogDensity event) {
-        if (nullCheck() && fog.getValue()) {
-            if (!PlayerUtil.isInLiquid() && fogLiquid.getValue())
+        if (fog.getValue()) {
+            if (!PlayerUtil.isInLiquid() && fogLiquid.getValue()) {
                 return;
+            }
 
             event.setDensity(fogDensity.getValue().floatValue());
             event.setCanceled(true);
@@ -162,6 +170,6 @@ public class NoRender extends Module {
 
     @SubscribeEvent
     public void onFOVModifier(ModifyFOVEvent event) {
-        event.setCanceled(nullCheck() && fov.getValue());
+        event.setCanceled(fov.getValue());
     }
 }

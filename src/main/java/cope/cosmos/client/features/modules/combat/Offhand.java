@@ -41,8 +41,10 @@ public class Offhand extends Module {
     public static Setting<Boolean> pauseAir = new Setting<>("Air", true).setParent(pause).setDescription("When falling or flying");
     public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", true).setParent(pause).setDescription("When elytra flying");
 
+    // offhand stage
     private Stage stage = Stage.IDLE;
 
+    // offhand delay
     private final Timer offhandTimer = new Timer();
 
     @Override

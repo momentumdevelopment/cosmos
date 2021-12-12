@@ -64,13 +64,18 @@ public class Interact extends Module {
             }
         }
 
-        if (ghostHand.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown() && !isAutoPlacing()) {
+        if (ghostHand.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown()) {
+            if (AutoCrystal.INSTANCE.isActive() || HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isEnabled() || Surround.INSTANCE.isActive()) {
+                return;
+            }
+
             new ArrayList<>(mc.world.loadedTileEntityList).forEach(tileEntity -> {
                 RayTraceResult openResult = mc.player.rayTrace(mc.playerController.getBlockReachDistance(), mc.getRenderPartialTicks());
 
                 if (openResult != null) {
-                    if (openResult.getBlockPos().equals(tileEntity.getPos()))
+                    if (openResult.getBlockPos().equals(tileEntity.getPos())) {
                         return;
+                    }
 
                     if (openResult.typeOfHit.equals(RayTraceResult.Type.BLOCK) && openResult.getBlockPos().getDistance(tileEntity.getPos().getX(), tileEntity.getPos().getY(), tileEntity.getPos().getZ()) <= 5) {
                         mc.playerController.processRightClickBlock(mc.player, mc.world, tileEntity.getPos(), EnumFacing.UP, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND);
@@ -148,9 +153,5 @@ public class Interact extends Module {
         if (event.getPacket() instanceof CPacketAnimation && noSwing.getValue()) {
             event.setCanceled(true);
         }
-    }
-
-    public boolean isAutoPlacing() {
-        return AutoCrystal.INSTANCE.isActive() || HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isEnabled() || Surround.INSTANCE.isActive();
     }
 }

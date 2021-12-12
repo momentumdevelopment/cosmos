@@ -180,6 +180,7 @@ public class NoSlow extends Module {
                         groundTimer.resetTime();
                     }
 
+                    // force ground
                     ((ICPacketPlayer) event.getPacket()).setOnGround(false);
                 }
             }
@@ -258,11 +259,20 @@ public class NoSlow extends Module {
          */
         FAKE_CONTEXT {
 
+            /**
+             * Checks whether or not a conflict is currently active
+             * @return Whether or not this conflict is currently active
+             */
             @Override
             public boolean isActive() {
                 return false;
             }
 
+            /**
+             * Sets the conflict with another context
+             * @param other The conflict with another context
+             * @return Whether it conflicts with another context
+             */
             @Override
             public boolean conflicts(IKeyConflictContext other) {
                 return false;

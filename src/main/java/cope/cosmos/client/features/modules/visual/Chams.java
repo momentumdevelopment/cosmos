@@ -27,16 +27,16 @@ public class Chams extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setParent(mode).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIREMODEL));
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setParent(mode).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
 
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
-    public static Setting<Boolean> local = new Setting<>("Local", false).setParent(players).setDescription("Renders chams on the local player");
+    public static Setting<Boolean> local = new Setting<>("Local", false).setDescription("Renders chams on the local player").setParent(players);
 
     public static Setting<Boolean> mobs = new Setting<>("Mobs", true).setDescription("Renders chams on mobs");
     public static Setting<Boolean> monsters = new Setting<>("Monsters", true).setDescription("Renders chams on monsters");
 
     public static Setting<Boolean> crystals = new Setting<>("Crystals", true).setDescription("Renders chams on crystals");
-    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2).setParent(crystals).setDescription("Scale for crystal model");
+    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2).setDescription("Scale for crystal model").setParent(crystals);
 
     public static Setting<Boolean> texture = new Setting<>("Texture", false).setDescription("Enables entity texture");
     public static Setting<Boolean> lighting = new Setting<>("Lighting", true).setDescription("Disables vanilla lighting");
@@ -46,10 +46,10 @@ public class Chams extends Module {
     public static Setting<Boolean> walls = new Setting<>("Walls", true).setDescription("Renders chams models through walls");
 
     public static Setting<Boolean> xqz = new Setting<>("XQZ", true).setDescription("Colors chams models through walls");
-    public static Setting<Color> xqzColor = new Setting<>("XQZColor", new Color(0, 70, 250, 50)).setParent(xqz).setDescription("Color of models through walls");
+    public static Setting<Color> xqzColor = new Setting<>("XQZColor", new Color(0, 70, 250, 50)).setDescription("Color of models through walls").setParent(xqz);
 
     public static Setting<Boolean> highlight = new Setting<>("Highlight", true).setDescription("Colors chams models when visible");
-    public static Setting<Color> highlightColor = new Setting<>("HighlightColor", new Color(250, 0, 250, 50)).setParent(highlight).setDescription("Color of models when visible");
+    public static Setting<Color> highlightColor = new Setting<>("HighlightColor", new Color(250, 0, 250, 50)).setDescription("Color of models when visible").setParent(highlight);
 
     @SubscribeEvent
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {
@@ -81,7 +81,7 @@ public class Chams extends Module {
                 case WIRE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                     break;
-                case WIREMODEL:
+                case WIRE_MODEL:
                 case MODEL:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
@@ -96,18 +96,18 @@ public class Chams extends Module {
 
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
 
-            if (walls.getValue() && !mode.getValue().equals(Mode.WIREMODEL))
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
-            if (mode.getValue().equals(Mode.WIREMODEL))
+            if (mode.getValue().equals(Mode.WIRE_MODEL))
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             if (highlight.getValue())
-                ColorUtil.setColor(mode.getValue().equals(Mode.WIREMODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
+                ColorUtil.setColor(mode.getValue().equals(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
 
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
 
-            if (walls.getValue() && mode.getValue().equals(Mode.WIREMODEL))
+            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
             if (lighting.getValue())
@@ -167,7 +167,7 @@ public class Chams extends Module {
                 case WIRE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                     break;
-                case WIREMODEL:
+                case WIRE_MODEL:
                 case MODEL:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
@@ -185,21 +185,21 @@ public class Chams extends Module {
             else
                 event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
 
-            if (walls.getValue() && !mode.getValue().equals(Mode.WIREMODEL))
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
-            if (mode.getValue().equals(Mode.WIREMODEL))
+            if (mode.getValue().equals(Mode.WIRE_MODEL))
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             if (highlight.getValue())
-                ColorUtil.setColor(mode.getValue().equals(Mode.WIREMODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
+                ColorUtil.setColor(mode.getValue().equals(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
 
             if (event.getEntityEnderCrystal().shouldShowBottom())
                 event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
             else
                 event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
 
-            if (walls.getValue() && mode.getValue().equals(Mode.WIREMODEL))
+            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
             if (lighting.getValue())
@@ -222,6 +222,6 @@ public class Chams extends Module {
     }
 
     public enum Mode {
-        MODEL, WIRE, WIREMODEL, SHINE
+        MODEL, WIRE, WIRE_MODEL, SHINE
     }
 }

@@ -8,6 +8,7 @@ import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.client.event.*;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
@@ -224,5 +225,11 @@ public class EventManager extends Manager implements Wrapper {
 				event.setCanceled(true);
 			}
 		}
+	}
+
+	@SubscribeEvent
+	public void onDeath(LivingDeathEvent event) {
+		DeathEvent deathEvent = new DeathEvent(event.getEntity());
+		Cosmos.EVENT_BUS.post(deathEvent);
 	}
 }
