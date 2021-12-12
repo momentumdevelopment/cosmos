@@ -8,8 +8,6 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
-import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.world.TeleportUtil;
@@ -19,6 +17,8 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -60,7 +60,7 @@ public class PacketFlight extends Module {
 	double serverY;
 	double serverZ;
 
-	@Subscription(priority = Priority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onMotionUpdate(MotionUpdateEvent event) {
 		if (nullCheck()) {
 			mc.player.setVelocity(0, 0, 0);
@@ -78,7 +78,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onMove(MotionEvent event) {
 		if (nullCheck()) {
 			event.setCanceled(true);
@@ -92,7 +92,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@Subscription(priority = Priority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onPacketSend(PacketEvent.PacketSendEvent event) {
 		if (event.getPacket() instanceof CPacketPlayer) {
 			CPacketPlayer packet = (CPacketPlayer) event.getPacket();
@@ -103,7 +103,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@Subscription(priority = Priority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 		if (nullCheck()) {
 			clientYaw = mc.player.rotationYaw;
@@ -189,7 +189,7 @@ public class PacketFlight extends Module {
 		}
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
 		event.setCanceled(nullCheck() && event.getEntityPlayer().equals(mc.player));
 	}

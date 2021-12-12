@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderEnchantmentTableBookEvent;
 import net.minecraft.client.renderer.tileentity.TileEntityEnchantmentTableRenderer;
 import net.minecraft.tileentity.TileEntityEnchantmentTable;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +16,7 @@ public class MixinTileEntityEnchantmentTableRenderer {
     @Inject(method = "render", at = @At(value = "INVOKE"), cancellable = true)
     private void renderEnchantingTableBook(TileEntityEnchantmentTable tileEntityEnchantmentTable, double x, double y, double z, float partialTicks, int destroyStage, float alpha, CallbackInfo info) {
         RenderEnchantmentTableBookEvent renderEnchantmentTableBookEvent = new RenderEnchantmentTableBookEvent();
-        Cosmos.EVENT_BUS.dispatch(renderEnchantmentTableBookEvent);
+        Cosmos.EVENT_BUS.post(renderEnchantmentTableBookEvent);
 
         if (renderEnchantmentTableBookEvent.isCanceled()) {
             info.cancel();

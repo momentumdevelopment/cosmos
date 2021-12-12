@@ -1,8 +1,8 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.listener.Event;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Called when the player left clicks a block

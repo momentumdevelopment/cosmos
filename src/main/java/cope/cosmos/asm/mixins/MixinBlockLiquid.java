@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.LiquidInteractEvent;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +16,7 @@ public class MixinBlockLiquid {
     @Inject(method = "canCollideCheck", at = @At("HEAD"), cancellable = true)
     public void canCollideCheck(IBlockState blockState, boolean liquidLevel, CallbackInfoReturnable<Boolean> info) {
         LiquidInteractEvent liquidInteractEvent = new LiquidInteractEvent(blockState, liquidLevel);
-        Cosmos.EVENT_BUS.dispatch(liquidInteractEvent);
+        Cosmos.EVENT_BUS.post(liquidInteractEvent);
 
         if (liquidInteractEvent.isCanceled()) {
             info.cancel();

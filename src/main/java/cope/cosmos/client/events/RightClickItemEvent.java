@@ -1,8 +1,8 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.annotation.Cancelable;
-import cope.cosmos.event.listener.Event;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Called when an item is right-clicked by the player

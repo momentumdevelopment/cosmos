@@ -6,7 +6,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,7 +21,7 @@ public abstract class MixinEntityEnderCrystal extends Entity {
     @Inject(method = "attackEntityFrom", at = @At("RETURN"), cancellable = true)
     public void attackEntityFrom(DamageSource source, float amount, CallbackInfoReturnable<Boolean> info) {
         CrystalAttackEvent crystalAttackEvent = new CrystalAttackEvent(source);
-        Cosmos.EVENT_BUS.dispatch(crystalAttackEvent);
+        Cosmos.EVENT_BUS.post(crystalAttackEvent);
 
         if (crystalAttackEvent.isCanceled()) {
             info.cancel();

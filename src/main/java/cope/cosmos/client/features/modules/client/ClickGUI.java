@@ -5,9 +5,7 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
@@ -30,7 +28,7 @@ public class ClickGUI extends Module {
 		super.onEnable();
 
 		mc.displayGuiScreen(getCosmos().getWindowGUI());
-		Cosmos.EVENT_BUS.subscribe(getCosmos().getWindowGUI());
+		Cosmos.EVENT_BUS.register(getCosmos().getWindowGUI());
 
 		// blur shader for background
 		if (blur.getValue()) {
@@ -38,7 +36,7 @@ public class ClickGUI extends Module {
 		}
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onSettingEnable(SettingUpdateEvent event) {
 		if (event.getSetting().equals(blur)) {
 			if (blur.getValue()) {

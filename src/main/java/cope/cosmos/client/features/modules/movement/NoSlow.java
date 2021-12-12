@@ -5,7 +5,6 @@ import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import net.minecraft.client.gui.GuiChat;
@@ -19,6 +18,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 /**
@@ -164,7 +164,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             if (isSlowed()) {
@@ -193,7 +193,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onItemInputUpdate(ItemInputUpdateEvent event) {
         // remove vanilla slowdown effect
         if (isSlowed()) {
@@ -202,7 +202,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onUseItem(EntityUseItemEvent event) {
         // send sneaking packet when we use an item
         if (isSlowed() && airStrict.getValue() && !isSneaking) {
@@ -211,7 +211,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSoulSand(SoulSandEvent event) {
         // remove soul sand slowdown effect
         if (soulsand.getValue()) {
@@ -219,7 +219,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSlime(SlimeEvent event) {
         // remove soul slime effect
         if (slime.getValue()) {
@@ -227,7 +227,7 @@ public class NoSlow extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onKeyDown(KeyDownEvent event) {
         // remove conflict context when pressing keys
         if (inventoryMove.getValue()) {

@@ -5,13 +5,13 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec2f;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public class NewChunks extends Module {
         });
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketChunkData) {
             SPacketChunkData packet = (SPacketChunkData) event.getPacket();

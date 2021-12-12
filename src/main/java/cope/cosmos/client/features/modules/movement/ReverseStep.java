@@ -5,7 +5,6 @@ import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -26,7 +25,7 @@ public class ReverseStep extends Module {
     public static Setting<Boolean> hole = new Setting<>("OnlyHole", false).setDescription("Only pulls you down into holes");
     public static Setting<Boolean> webs = new Setting<>("Webs", false).setDescription("Pulls you down in webs");
 
-    @Subscription
+    @SubscribeEvent
     public void onMotion(MotionEvent event) {
         if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder() || mc.gameSettings.keyBindJump.isKeyDown() || mc.player.fallDistance > height.getValue() || hole.getValue() && !getCosmos().getHoleManager().isInHole(mc.player) || ((IEntity) mc.player).getInWeb() && !webs.getValue()) {
             getCosmos().getTickManager().setClientTicks(1);

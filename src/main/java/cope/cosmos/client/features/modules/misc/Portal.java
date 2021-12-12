@@ -5,10 +5,10 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -45,7 +45,7 @@ public class Portal extends Module {
         GuiIngameForge.renderPortal = true;
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSound(PlaySoundEvent event) {
         // prevents portal ambience sounds from playing
         if (sounds.getValue() && (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger"))) {
@@ -53,7 +53,7 @@ public class Portal extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         // allows you to become invincible while in portals on some servers
         if (event.getPacket() instanceof CPacketConfirmTeleport) {

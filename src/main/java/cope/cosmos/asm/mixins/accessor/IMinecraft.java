@@ -1,7 +1,6 @@
 package cope.cosmos.asm.mixins.accessor;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.Session;
 import net.minecraft.util.Timer;
 import org.spongepowered.asm.mixin.Mixin;

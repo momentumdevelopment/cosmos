@@ -3,7 +3,6 @@ package cope.cosmos.asm.mixins;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.KeyDownEvent;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +22,7 @@ public class MixinKeyBinding {
     @Inject(method = "isKeyDown", at = @At("HEAD"), cancellable = true)
     public void hookIsKeyDown(CallbackInfoReturnable<Boolean> info) {
         KeyDownEvent keyDownEvent = new KeyDownEvent(keyCode, pressed);
-        Cosmos.EVENT_BUS.dispatch(keyDownEvent);
+        Cosmos.EVENT_BUS.post(keyDownEvent);
 
         if (keyDownEvent.isCanceled()) {
             info.setReturnValue(keyDownEvent.isPressed());

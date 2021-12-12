@@ -1,11 +1,9 @@
 package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
-import net.minecraft.entity.Entity;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.util.EnumHand;
 
 public class PlayerUtil implements Wrapper {

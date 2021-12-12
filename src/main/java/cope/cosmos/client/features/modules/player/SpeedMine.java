@@ -7,7 +7,6 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
@@ -244,7 +243,7 @@ public class SpeedMine extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onBlockReset(BlockResetEvent event) {
         // don't allow block break progress to be reset
         if (reset.getValue()) {
@@ -252,7 +251,7 @@ public class SpeedMine extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSettingChange(SettingUpdateEvent event) {
         // clear haste effect on mode change
         if (event.getSetting().equals(mode) && !event.getSetting().getValue().equals(Mode.VANILLA)) {

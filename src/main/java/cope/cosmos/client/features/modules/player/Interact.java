@@ -12,7 +12,6 @@ import cope.cosmos.client.features.modules.combat.Burrow;
 import cope.cosmos.client.features.modules.combat.HoleFill;
 import cope.cosmos.client.features.modules.combat.Surround;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.PlayerUtil.Hand;
 import net.minecraft.block.BlockLiquid;
@@ -98,24 +97,24 @@ public class Interact extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onHitboxSize(EntityHitboxSizeEvent event) {
         if (hitBox.getValue()) {
             event.setHitboxSize(hitBoxExtend.getValue().floatValue());
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onReach(ReachEvent event) {
         event.setReach((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + reach.getValue().floatValue());
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onLiquidInteract(LiquidInteractEvent event) {
         event.setCanceled(liquid.getValue() || event.getLiquidLevel() && event.getBlockState().getValue(BlockLiquid.LEVEL) == 0);
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
             BlockPos limitPosition = ((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos();

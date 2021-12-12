@@ -6,7 +6,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.event.annotation.Subscription;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -23,7 +22,7 @@ public class Social extends Module {
     public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");
 
     @SuppressWarnings("unused")
-    @Subscription
+    @SubscribeEvent
     public void onTabOverlay(TabOverlayEvent event) {
         if (nullCheck() && Cosmos.INSTANCE.getSocialManager().getSocial(event.getInformation()).equals(Relationship.FRIEND) && friends.getValue()) {
             event.setCanceled(true);

@@ -6,7 +6,6 @@ import cope.cosmos.client.events.RenderFontEvent;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,7 +18,7 @@ public class MixinFontRenderer {
     @Inject(method = "drawString(Ljava/lang/String;FFIZ)I", at = @At("HEAD"), cancellable = true)
     public void renderString(String text, float x, float y, int color, boolean dropShadow, CallbackInfoReturnable<Integer> info) {
         RenderFontEvent renderFontEvent = new RenderFontEvent();
-        Cosmos.EVENT_BUS.dispatch(renderFontEvent);
+        Cosmos.EVENT_BUS.post(renderFontEvent);
 
         // formatted values
         String textFormatted = text;
@@ -39,7 +38,7 @@ public class MixinFontRenderer {
     @Inject(method = "getStringWidth", at = @At("HEAD"), cancellable = true)
     public void getWidth(String text, CallbackInfoReturnable<Integer> info) {
         RenderFontEvent renderFontEvent = new RenderFontEvent();
-        Cosmos.EVENT_BUS.dispatch(renderFontEvent);
+        Cosmos.EVENT_BUS.post(renderFontEvent);
 
         if (renderFontEvent.isCanceled()) {
             info.setReturnValue(FontUtil.getStringWidth(text));

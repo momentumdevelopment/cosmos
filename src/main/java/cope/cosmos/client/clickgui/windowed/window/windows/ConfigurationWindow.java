@@ -8,7 +8,6 @@ import cope.cosmos.client.clickgui.windowed.window.windows.configuration.Setting
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.manager.managers.ModuleManager;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
@@ -16,7 +15,7 @@ import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
-import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -70,7 +69,7 @@ public class ConfigurationWindow extends TabbedWindow {
         // update our columns
         updateColumns();
 
-        Cosmos.EVENT_BUS.subscribe(this);
+        Cosmos.EVENT_BUS.register(this);
     }
 
     @Override
@@ -361,7 +360,7 @@ public class ConfigurationWindow extends TabbedWindow {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSettingChange(SettingUpdateEvent event) {
         // update columns when settings update, in case of visibilty changes
         updateColumns();

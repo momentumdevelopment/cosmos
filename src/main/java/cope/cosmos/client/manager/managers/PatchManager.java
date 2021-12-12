@@ -14,10 +14,8 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.NotificationManager.Notification;
 import cope.cosmos.client.manager.managers.NotificationManager.Type;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.util.math.Vec2f;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -33,13 +31,13 @@ public class PatchManager extends Manager implements Wrapper {
 
     public PatchManager() {
         super("PatchManager", "Makes sure certain features are toggled safely");
-        Cosmos.EVENT_BUS.subscribe(this);
+        Cosmos.EVENT_BUS.register(this);
 
         // set the patches on initialization
         updatePatches();
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
         if (event.getEntity().equals(mc.player)) {
             // reset our patch list each time we spawn
@@ -48,7 +46,7 @@ public class PatchManager extends Manager implements Wrapper {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
         if (!mc.isIntegratedServerRunning() && mc.getCurrentServerData() != null && mc.player.ticksExisted >= 40) {
             patchMap.forEach((patch, patchState) -> {
@@ -74,7 +72,7 @@ public class PatchManager extends Manager implements Wrapper {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onSettingChange(SettingUpdateEvent event) {
         if (!mc.isIntegratedServerRunning() && mc.getCurrentServerData() != null && mc.player.ticksExisted >= 40) {
             patchMap.forEach((patch, patchState) -> {

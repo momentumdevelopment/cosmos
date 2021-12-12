@@ -4,7 +4,6 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
@@ -12,7 +11,7 @@ import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.*;
+import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -188,7 +187,7 @@ public class Surround extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // packet for block changes
         if (event.getPacket() instanceof SPacketBlockChange) {

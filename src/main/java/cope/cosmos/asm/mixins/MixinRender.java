@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ShaderColorEvent;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +16,7 @@ public class MixinRender<T extends Entity> {
     @Inject(method = "getTeamColor", at = @At("HEAD"), cancellable = true)
     public void getTeamColor(T entity, CallbackInfoReturnable<Integer> info) {
         ShaderColorEvent shaderColorEvent = new ShaderColorEvent(entity);
-        Cosmos.EVENT_BUS.dispatch(shaderColorEvent);
+        Cosmos.EVENT_BUS.post(shaderColorEvent);
 
         if (shaderColorEvent.isCanceled()) {
             info.cancel();

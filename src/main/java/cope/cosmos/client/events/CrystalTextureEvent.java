@@ -1,7 +1,7 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.annotation.Cancelable;
-import cope.cosmos.event.listener.Event;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
 public class CrystalTextureEvent extends Event {

@@ -4,7 +4,6 @@ import cope.cosmos.client.events.CameraClipEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -22,7 +21,7 @@ public class CameraClip extends Module {
 
     public static Setting<Double> distance = new Setting<>("Distance", 1.0, 5.0, 20.0, 0).setDescription("How many blocks the camera should clip through");
 
-    @Subscription
+    @SubscribeEvent
     public void onCameraClip(CameraClipEvent event) {
         // override the vanilla camera clip distance
         event.setDistance(distance.getValue());

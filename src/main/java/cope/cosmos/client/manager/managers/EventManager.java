@@ -4,7 +4,6 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
@@ -155,11 +154,11 @@ public class EventManager extends Manager implements Wrapper {
 		}
 	}
 
-	@Subscription
+	@SubscribeEvent
 	public void onTotemPop(PacketEvent.PacketReceiveEvent event) {
 		if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 35) {
 			TotemPopEvent totemPopEvent = new TotemPopEvent(((SPacketEntityStatus) event.getPacket()).getEntity(mc.world));
-			Cosmos.EVENT_BUS.dispatch(totemPopEvent);
+			Cosmos.EVENT_BUS.post(totemPopEvent);
 
 			if (totemPopEvent.isCanceled()) {
 				event.setCanceled(true);
@@ -172,7 +171,7 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onCriticalHit(CriticalHitEvent event) {
 		CriticalModifierEvent criticalModifierEvent = new CriticalModifierEvent();
-		Cosmos.EVENT_BUS.dispatch(criticalModifierEvent);
+		Cosmos.EVENT_BUS.post(criticalModifierEvent);
 
 		// update damage modifier
 		event.setDamageModifier(criticalModifierEvent.getDamageModifier());
@@ -181,19 +180,19 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onInputUpdate(InputUpdateEvent event) {
 		ItemInputUpdateEvent itemInputUpdateEvent = new ItemInputUpdateEvent(event.getMovementInput());
-		Cosmos.EVENT_BUS.dispatch(itemInputUpdateEvent);
+		Cosmos.EVENT_BUS.post(itemInputUpdateEvent);
 	}
 
 	@SubscribeEvent
 	public void onLivingEntityUseItem(LivingEntityUseItemEvent event) {
 		EntityUseItemEvent entityUseItemEvent = new EntityUseItemEvent();
-		Cosmos.EVENT_BUS.dispatch(entityUseItemEvent);
+		Cosmos.EVENT_BUS.post(entityUseItemEvent);
 	}
 
 	@SubscribeEvent
 	public void onKnockback(LivingKnockBackEvent event) {
 		KnockBackEvent knockBackEvent = new KnockBackEvent();
-		Cosmos.EVENT_BUS.dispatch(knockBackEvent);
+		Cosmos.EVENT_BUS.post(knockBackEvent);
 
 		if (knockBackEvent.isCanceled()) {
 			event.setCanceled(true);
@@ -204,7 +203,7 @@ public class EventManager extends Manager implements Wrapper {
 	public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
 		if (event.getEntityPlayer().equals(mc.player)) {
 			RightClickItemEvent rightClickItemEvent = new RightClickItemEvent(event.getItemStack());
-			Cosmos.EVENT_BUS.dispatch(rightClickItemEvent);
+			Cosmos.EVENT_BUS.post(rightClickItemEvent);
 
 			if (rightClickItemEvent.isCanceled()) {
 				event.setCanceled(true);
@@ -215,6 +214,6 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
 		LeftClickBlockEvent leftClickBlockEvent = new LeftClickBlockEvent(event.getPos(), event.getFace());
-		Cosmos.EVENT_BUS.dispatch(leftClickBlockEvent);
+		Cosmos.EVENT_BUS.post(leftClickBlockEvent);
 	}
 }

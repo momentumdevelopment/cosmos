@@ -6,7 +6,6 @@ import cope.cosmos.client.events.RightClickItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -19,6 +18,7 @@ import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -87,7 +87,7 @@ public class FastUse extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
 
@@ -98,7 +98,7 @@ public class FastUse extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPlayerRightClick(RightClickItemEvent event) {
         if (packetUse.getValue()) {
 

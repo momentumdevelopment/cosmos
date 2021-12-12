@@ -5,8 +5,7 @@ import cope.cosmos.client.events.RenderNametagEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.SocialManager.*;
-import cope.cosmos.event.annotation.Subscription;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -17,7 +16,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -160,7 +159,7 @@ public class Nametags extends Module {
         return searchedInfoMap;
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onRenderNametag(RenderNametagEvent event) {
         // cancel vanilla nametag rendering
         event.setCanceled(true);

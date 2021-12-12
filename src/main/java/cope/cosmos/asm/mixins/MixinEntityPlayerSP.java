@@ -13,7 +13,6 @@ import net.minecraft.entity.MoverType;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -64,7 +63,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     @Redirect(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"))
     public void move(AbstractClientPlayer player, MoverType type, double x, double y, double z) {
         MotionEvent motionEvent = new MotionEvent(type, x, y, z);
-        Cosmos.EVENT_BUS.dispatch(motionEvent);
+        Cosmos.EVENT_BUS.post(motionEvent);
 
         if (motionEvent.isCanceled()) {
             super.move(motionEvent.getType(), motionEvent.getX(), motionEvent.getY(), motionEvent.getZ());
@@ -78,7 +77,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     @Redirect(method= "onLivingUpdate" , at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;setSprinting(Z)V", ordinal = 2))
     public void onLivingUpdate(EntityPlayerSP entityPlayerSP, boolean sprintUpdate) {
         LivingUpdateEvent livingUpdateEvent = new LivingUpdateEvent(entityPlayerSP, sprintUpdate);
-        Cosmos.EVENT_BUS.dispatch(livingUpdateEvent);
+        Cosmos.EVENT_BUS.post(livingUpdateEvent);
 
         if (livingUpdateEvent.isCanceled()) {
             livingUpdateEvent.getEntityPlayerSP().setSprinting(true);
@@ -93,12 +92,12 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     public void onUpdateMovingPlayer(CallbackInfo info) {
         // pre
         RotationUpdateEvent rotationUpdateEvent = new RotationUpdateEvent();
-        Cosmos.EVENT_BUS.dispatch(rotationUpdateEvent);
+        Cosmos.EVENT_BUS.post(rotationUpdateEvent);
 
         if (rotationUpdateEvent.isCanceled()) {
             // post
             MotionUpdateEvent motionUpdateEvent = new MotionUpdateEvent();
-            Cosmos.EVENT_BUS.dispatch(motionUpdateEvent);
+            Cosmos.EVENT_BUS.post(motionUpdateEvent);
 
             if (motionUpdateEvent.isCanceled()) {
                 info.cancel();

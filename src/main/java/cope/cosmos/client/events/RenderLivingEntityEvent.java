@@ -2,8 +2,8 @@ package cope.cosmos.client.events;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.EntityLivingBase;
-import cope.cosmos.event.annotation.Cancelable;
-import cope.cosmos.event.listener.Event;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
 public class RenderLivingEntityEvent extends Event {

@@ -1,7 +1,7 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.listener.Event;
 import net.minecraft.util.MovementInput;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Called when the player inputs on an item

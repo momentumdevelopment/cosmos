@@ -9,7 +9,6 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.system.MathUtil;
@@ -194,7 +193,7 @@ public class HUD extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onRenderPotionHUD(RenderPotionHUDEvent event) {
         if (!potionHUD.getValue()) {
             // cancel vanilla potion hud from rendering
@@ -202,7 +201,7 @@ public class HUD extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onRenderAdvancement(RenderAdvancementEvent event) {
         if (!advancements.getValue()) {
             // cancel vanilla advancement notification from rendering

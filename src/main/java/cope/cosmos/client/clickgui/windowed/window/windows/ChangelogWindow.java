@@ -6,7 +6,7 @@ import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec2f;
 
-import java.awt.Color;
+import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
 

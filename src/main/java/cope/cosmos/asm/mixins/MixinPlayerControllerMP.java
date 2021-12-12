@@ -7,7 +7,6 @@ import cope.cosmos.client.events.ReachEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,7 +20,7 @@ public class MixinPlayerControllerMP implements Wrapper {
     @Inject(method = "onPlayerDestroyBlock", at = @At("RETURN"))
     private void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> info) {
         BlockBreakEvent blockBreakEvent = new BlockBreakEvent(pos);
-        Cosmos.EVENT_BUS.dispatch(blockBreakEvent);
+        Cosmos.EVENT_BUS.post(blockBreakEvent);
 
         if (blockBreakEvent.isCanceled()) {
             info.cancel();
@@ -32,7 +31,7 @@ public class MixinPlayerControllerMP implements Wrapper {
     @Inject(method = "resetBlockRemoving", at = @At(value = "HEAD"), cancellable = true)
     private void resetBlock(CallbackInfo info) {
         BlockResetEvent blockResetEvent = new BlockResetEvent();
-        Cosmos.EVENT_BUS.dispatch(blockResetEvent);
+        Cosmos.EVENT_BUS.post(blockResetEvent);
 
         if (blockResetEvent.isCanceled())
             info.cancel();
@@ -41,7 +40,7 @@ public class MixinPlayerControllerMP implements Wrapper {
     @Inject(method = "getBlockReachDistance", at = @At("RETURN"), cancellable = true)
     private void getReachDistanceHook(final CallbackInfoReturnable<Float> info) {
         ReachEvent reachEvent = new ReachEvent();
-        Cosmos.EVENT_BUS.dispatch(reachEvent);
+        Cosmos.EVENT_BUS.post(reachEvent);
 
         if (reachEvent.isCanceled()) {
             info.cancel();

@@ -5,7 +5,6 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.util.Wrapper;
-import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ public class Setting<T> extends Feature implements Wrapper {
 		super(name);
 		this.value = value;
 
-		Cosmos.EVENT_BUS.subscribe(this);
+		Cosmos.EVENT_BUS.register(this);
 	}
 	
 	public Setting(String name, T min, T value, T max, int scale) {
@@ -55,7 +54,7 @@ public class Setting<T> extends Feature implements Wrapper {
 		this.max = max;
 		this.scale = scale;
 
-		Cosmos.EVENT_BUS.subscribe(this);
+		Cosmos.EVENT_BUS.register(this);
 	}
 
 	/**
@@ -76,7 +75,7 @@ public class Setting<T> extends Feature implements Wrapper {
 		// post the setting update event
 		if (nullCheck()) {
 			SettingUpdateEvent settingUpdateEvent = new SettingUpdateEvent(this);
-			Cosmos.EVENT_BUS.dispatch(settingUpdateEvent);
+			Cosmos.EVENT_BUS.post(settingUpdateEvent);
 		}
 	}
 

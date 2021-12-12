@@ -10,8 +10,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
-import cope.cosmos.event.annotation.Subscription;
-import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.combat.TargetUtil.Target;
@@ -25,15 +23,22 @@ import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
-import cope.cosmos.util.world.*;
+import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.world.InterpolationUtil;
+import cope.cosmos.util.world.RaytraceUtil;
+import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Random;
 import java.util.TreeMap;
@@ -407,7 +412,7 @@ public class Aura extends Module {
         return INSTANCE.isEnabled() && auraTarget != null;
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
         if (event.getPopEntity().equals(auraTarget) && reactive.getValue()) {
             new Thread(() -> {
@@ -419,7 +424,7 @@ public class Aura extends Module {
         }
     }
 
-    @Subscription(priority = Priority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRotationUpdate(RotationUpdateEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the existing rotations, we'll send our own
@@ -461,7 +466,7 @@ public class Aura extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onRenderRotations(RenderRotationsEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
             // cancel the model rendering for rotations, we'll set it to our values
@@ -480,7 +485,7 @@ public class Aura extends Module {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // we just switched, so reset our time

@@ -1,9 +1,9 @@
 package cope.cosmos.util.system;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.event.annotation.Subscription;
 import cope.cosmos.util.Wrapper;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @SuppressWarnings("unused")
 public class Timer implements Wrapper {
@@ -18,10 +18,10 @@ public class Timer implements Wrapper {
         ticks = -1;
 
         // register to event bus
-        Cosmos.EVENT_BUS.subscribe(this);
+        Cosmos.EVENT_BUS.register(this);
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onUpdate(LivingEvent.LivingUpdateEvent event) {
         // update ticks
         if (nullCheck()) {

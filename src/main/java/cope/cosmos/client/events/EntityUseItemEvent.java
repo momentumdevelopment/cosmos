@@ -1,6 +1,6 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.listener.Event;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
  * Called when an entity uses an item

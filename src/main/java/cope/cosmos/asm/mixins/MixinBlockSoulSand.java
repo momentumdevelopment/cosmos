@@ -7,7 +7,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,7 +19,7 @@ public class MixinBlockSoulSand {
     @Inject(method = "onEntityCollidedWithBlock", at = @At("HEAD"), cancellable = true)
     public void onEntityCollidedWithBlock(World world, BlockPos blockPos, IBlockState iBlockState, Entity entity, CallbackInfo info) {
         SoulSandEvent soulSandEvent = new SoulSandEvent();
-        Cosmos.EVENT_BUS.dispatch(soulSandEvent);
+        Cosmos.EVENT_BUS.post(soulSandEvent);
 
         if (soulSandEvent.isCanceled())
             info.cancel();

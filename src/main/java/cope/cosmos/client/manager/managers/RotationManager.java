@@ -5,12 +5,9 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.event.annotation.Subscription;
-import cope.cosmos.event.listener.Priority;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.player.Rotation;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -27,10 +24,10 @@ public class RotationManager extends Manager implements Wrapper {
 
     public RotationManager() {
         super("RotationManager", "Keeps track of server rotations");
-        Cosmos.EVENT_BUS.subscribe(this);
+        Cosmos.EVENT_BUS.register(this);
     }
 
-    @Subscription(priority = Priority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             CPacketPlayer packet = (CPacketPlayer) event.getPacket();
@@ -41,7 +38,7 @@ public class RotationManager extends Manager implements Wrapper {
         }
     }
 
-    @Subscription
+    @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
         if (!rotationMap.isEmpty()) {
             // rotation with the highest priority
