@@ -29,7 +29,12 @@ public class BooleanComponent extends TypeComponent<Boolean> implements Wrapper 
     public void handleLeftClick() {
         if (mouseOver(getPosition().x + getWidth() - 19, getPosition().y + 2, 17, 17)) {
             boolean previousValue = getSetting().getValue();
-            getSetting().setValue(!previousValue);
+
+            // check for exclusion
+            if (!getSetting().isExclusion(!previousValue)) {
+                getSetting().setValue(!previousValue);
+            }
+
             getCosmos().getSoundManager().playSound("click");
         }
     }

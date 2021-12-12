@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.PushOutOfBlocksEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -16,7 +17,6 @@ import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -190,8 +190,8 @@ public class PacketFlight extends Module {
 	}
 
 	@SubscribeEvent
-	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
-		event.setCanceled(nullCheck() && event.getEntityPlayer().equals(mc.player));
+	public void onPushOutOfBlocks(PushOutOfBlocksEvent event) {
+		event.setCanceled(true);
 	}
 
 	private void processPackets(double[] motion) {
@@ -221,7 +221,7 @@ public class PacketFlight extends Module {
 	private double[] getMotion(double factor) {
 		double motionY = getMotionY();
 		double speed;
-		
+
 		if (motionY != 0) {
 			speed = 0.026;
 		}
@@ -229,15 +229,15 @@ public class PacketFlight extends Module {
 		else {
 			speed = 0.040;
 		}
-		
+
 		double[] motion = MotionUtil.getMoveSpeed(motionY != 0 ? speed : speed * factor);
-		
+
 		if (!isPlayerClipped()) {
 			if (motionY != 0 && motionY != -0.0325) {
 				motion[0] = 0;
 				motion[1] = 0;
-			} 
-			
+			}
+
 			else {
 				if (mode.getValue().equals(Mode.STRICT)) {
 					motion[0] *= 2.3425;
@@ -249,8 +249,8 @@ public class PacketFlight extends Module {
 					motion[1] *= 3.59125;
 				}
 			}
-		} 
-		
+		}
+
 		else {
 			if (mode.getValue().equals(Mode.STRICT)) {
 				motion[0] *= 0.8;
@@ -262,7 +262,7 @@ public class PacketFlight extends Module {
 				motion[1] *= 0.75;
 			}
 		}
-		
+
 		return new double[] {
 				motion[0], motionY, motion[1]
 		};

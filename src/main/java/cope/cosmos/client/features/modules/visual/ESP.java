@@ -12,10 +12,7 @@ import net.minecraft.client.shader.Shader;
 import net.minecraft.client.shader.ShaderGroup;
 import net.minecraft.client.shader.ShaderUniform;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityEnderCrystal;
-import net.minecraft.entity.item.EntityExpBottle;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.item.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -70,8 +67,9 @@ public class ESP extends Module {
             shaders.forEach(shader -> {
                 ShaderUniform outlineRadius = shader.getShaderManager().getShaderUniform("Radius");
 
-                if (outlineRadius != null)
+                if (outlineRadius != null) {
                     outlineRadius.set(width.getValue().floatValue());
+                }
             });
         }
     }
@@ -102,26 +100,31 @@ public class ESP extends Module {
     }
 
     public Color getColorByEntity(Entity entity) {
-        if (entity instanceof EntityPlayer)
+        if (entity instanceof EntityPlayer) {
             return playersColor.getValue();
+        }
 
-        else if (EntityUtil.isPassiveMob(entity))
+        else if (EntityUtil.isPassiveMob(entity)) {
             return passivesColor.getValue();
+        }
 
-        else if (EntityUtil.isNeutralMob(entity))
+        else if (EntityUtil.isNeutralMob(entity)) {
             return neutralsColor.getValue();
+        }
 
-        else if (EntityUtil.isHostileMob(entity))
+        else if (EntityUtil.isHostileMob(entity)) {
             return hostilesColor.getValue();
+        }
 
         else if (EntityUtil.isVehicleMob(entity))
             return vehiclesColor.getValue();
 
-        else if (entity instanceof EntityItem || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb)
+        else if (entity instanceof EntityItem || entity instanceof EntityEnderPearl || entity instanceof EntityEnderEye || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb)
             return itemsColor.getValue();
 
-        else if (entity instanceof EntityEnderCrystal)
+        else if (entity instanceof EntityEnderCrystal) {
             return crystalsColor.getValue();
+        }
 
         return Color.WHITE;
     }

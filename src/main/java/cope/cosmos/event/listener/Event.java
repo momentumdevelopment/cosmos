@@ -8,6 +8,7 @@ import cope.cosmos.event.annotation.Cancelable;
  * @since 12/08/2021
  */
 public class Event {
+
     /**
      * If the event should be cancelable
      */

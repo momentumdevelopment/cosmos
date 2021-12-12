@@ -2,16 +2,12 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ISPacketEntityVelocity;
 import cope.cosmos.asm.mixins.accessor.ISPacketExplosion;
-import cope.cosmos.client.events.EntityCollisionEvent;
-import cope.cosmos.client.events.KnockBackEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.WaterCollisionEvent;
+import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
-import net.minecraftforge.client.event.PlayerSPPushOutOfBlocksEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -26,7 +22,7 @@ public class Velocity extends Module {
 		super("Velocity", Category.MOVEMENT, "Take no knockback.", () -> "H" + horizontal.getValue() + "%, V" + vertical.getValue() + "%");
 		INSTANCE = this;
 	}
-	
+
 	public static Setting<Double> horizontal = new Setting<>("Horizontal", 0.0, 0.0, 100.0, 2).setDescription("Horizontal velocity modifier");
 	public static Setting<Double> vertical = new Setting<>("Vertical", 0.0, 0.0, 100.0, 2).setDescription("Vertical velocity modifier");
 
@@ -100,7 +96,7 @@ public class Velocity extends Module {
 	}
 
 	@SubscribeEvent
-	public void onPush(PlayerSPPushOutOfBlocksEvent event) {
+	public void onPush(PushOutOfBlocksEvent event) {
 		// cancel velocity from blocks
 		if (noPush.getValue() && blocks.getValue()) {
 			event.setCanceled(true);

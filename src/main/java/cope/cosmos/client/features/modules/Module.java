@@ -14,49 +14,42 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * @author bon55
+ * @since 05/05/2021
+ */
 public class Module extends Feature implements Wrapper {
 
+	// enabled state
 	private boolean enabled;
+
+	// drawn state -> visible in the arraylist
 	private boolean drawn;
+
+	// exempt from being reloaded
 	private boolean exempt;
+
+	// module key bind, pressing this key will toggle the enable state
 	private int key;
-	private Supplier<String> info;
+
+	// the module Category
 	private final Category category;
 
-	private final List<Setting<?>> settings = new ArrayList<>();
+	// the module arraylist info
+	private Supplier<String> info;
 
-	private final AnimationManager animation;
+	// the module two-way animation manager
+	private AnimationManager animation;
+
+	// all the module's settings
+	private final List<Setting<?>> settings = new ArrayList<>();
 
 	public Module(String name, Category category, String description) {
 		super(name, description);
+
 		this.category = category;
 
-		// get all associated settings
-		setFields();
-
-		// default module state
-		drawn = true;
-		exempt = false;
-		key = Keyboard.KEY_NONE;
-		animation = new AnimationManager(150, this.enabled);
-	}
-
-	public Module(String name, Category category, String description, Supplier<String> info) {
-		super(name, description);
-		this.category = category;
-		this.info = info;
-
-		// get all associated settings
-		setFields();
-
-		// default module state
-		drawn = true;
-		exempt = false;
-		key = Keyboard.KEY_NONE;
-		animation = new AnimationManager(150, this.enabled);
-	}
-
-	private void setFields() {
+		// add all associated settings in the class
 		Arrays.stream(this.getClass().getDeclaredFields())
 				.filter(field -> Setting.class.isAssignableFrom(field.getType()))
 				.forEach(field -> {
@@ -73,8 +66,23 @@ public class Module extends Feature implements Wrapper {
 						exception.printStackTrace();
 					}
 				});
+
+		// default module state
+		drawn = true;
+		key = Keyboard.KEY_NONE;
+		animation = new AnimationManager(150, enabled);
 	}
 
+	public Module(String name, Category category, String description, Supplier<String> info) {
+		this(name, category, description);
+
+		// add module arraylist info
+		this.info = info;
+	}
+
+	/**
+	 * Switches the enabled state
+	 */
 	public void toggle() {
 		if (enabled) {
 			disable();
@@ -85,9 +93,14 @@ public class Module extends Feature implements Wrapper {
 		}
 	}
 
+	/**
+	 * Enables the module, subscribing it to the event bus and allowing it to function
+	 */
 	public void enable() {
 		if (!enabled) {
+			// set the enabled state to true
 			enabled = true;
+
 			Cosmos.EVENT_BUS.register(this);
 			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
 				// runs onEnable callbacks
@@ -103,10 +116,16 @@ public class Module extends Feature implements Wrapper {
 		}
 	}
 
+	/**
+	 * Disables the module, unsubscribing it from event bus and stopping it from functioning
+	 */
 	public void disable() {
 		if (enabled) {
+			// sets the enabled state to false
 			enabled = false;
-			if (nullCheck() || Cosmos.INSTANCE.getNullSafeMods().contains(this)) {
+
+			// run the onDisable event
+			if (nullCheck() || getCosmos().getNullSafeMods().contains(this)) {
 				// runs onDisable callbacks
 				ModuleDisableEvent event = new ModuleDisableEvent(this);
 				Cosmos.EVENT_BUS.post(event);
@@ -122,95 +141,155 @@ public class Module extends Feature implements Wrapper {
 		}
 	}
 
+	/**
+	 * Runs when the module is enabled
+	 */
 	public void onEnable() {
-		// toggle animation & reset world timer
-		animation.setState(true);
-		Cosmos.INSTANCE.getTickManager().setClientTicks(1);
+		// toggle animation
+		getAnimation().setState(true);
+
+		// reset world timer
+		getCosmos().getTickManager().setClientTicks(1);
 	}
 
+	/**
+	 * Runs when the module is disabled
+	 */
 	public void onDisable() {
-		// toggle animation & reset world timer
-		animation.setState(false);
-		Cosmos.INSTANCE.getTickManager().setClientTicks(1);
+		// toggle animation
+		getAnimation().setState(false);
+
+		// reset world timer
+		getCosmos().getTickManager().setClientTicks(1);
 	}
 
-	// runs every update ticks (i.e. 20 times a second)
+	/**
+	 * Runs every update ticks (i.e. 20 times a second)
+	 */
 	public void onUpdate() {
 
 	}
 
-	// runs every tick (i.e. 40 times a second)
+	/**
+	 * Runs every tick (i.e. 40 times a second)
+ 	 */
 	public void onTick() {
 
 	}
 
-	// runs on the separate module thread (i.e. every cpu tick)
+	/**
+	 * Runs on the separate module thread (i.e. every cpu tick)
+	 */
 	public void onThread() {
 
 	}
 
-	// runs on the game overlay tick (i.e. once every frame)
+	/**
+	 * Runs on the game overlay tick (i.e. once every frame)
+	 */
 	public void onRender2D() {
 
 	}
 
-	// runs on the global render tick (i.e. once every frame)
+	/**
+	 * Runs on the global render tick (i.e. once every frame)
+	 */
 	public void onRender3D() {
 
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public Category getCategory() {
-		return category;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public String getInfo() {
-		return info != null ? info.get() : "";
-	}
-
-	public List<Setting<?>> getSettings() {
-		return settings;
-	}
-
-	public int getKey() {
-		return key;
-	}
-
-	public void setKey(int in) {
-		key = in;
-	}
-
-	public AnimationManager getAnimation() {
-		return animation;
-	}
-
+	/**
+	 * Gets whether or not the module is enabled
+	 * @return Whether or not the module is enabled
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
+	/**
+	 * Sets the module's drawn state
+	 * @param in The module's new drawn state
+	 */
 	public void setDrawn(boolean in) {
 		drawn = in;
 	}
 
+	/**
+	 * Gets the module's drawn state
+	 * @return The module's drawn state
+	 */
 	public boolean isDrawn() {
 		return drawn;
 	}
 
+	/**
+	 * Sets the module's exempt state
+	 * @param in The module's new exempt state
+	 */
 	public void setExempt(boolean in) {
 		exempt = in;
 	}
 
+	/**
+	 * Gets the module's exempt state
+	 * @return The module's exempt state
+	 */
 	public boolean isExempt() {
 		return exempt;
 	}
 
+	/**
+	 * Sets the module's keybind
+	 * @param in The module's new keybind
+	 */
+	public void setKey(int in) {
+		key = in;
+	}
+
+	/**
+	 * Gets the module's keybind
+	 * @return The module's keybind
+	 */
+	public int getKey() {
+		return key;
+	}
+
+	/**
+	 * Gets the {@link Category} category associated with this module
+	 * @return The category associated with this module
+	 */
+	public Category getCategory() {
+		return category;
+	}
+
+	/**
+	 * Gets the arraylist info
+	 * @return The arraylist info
+	 */
+	public String getInfo() {
+		return info != null ? info.get() : "";
+	}
+
+	/**
+	 * Gets the two-way animation
+	 * @return The two-way animation
+	 */
+	public AnimationManager getAnimation() {
+		return animation;
+	}
+
+	/**
+	 * Gets a list of the module's settings
+	 * @return List of the module's settings
+	 */
+	public List<Setting<?>> getSettings() {
+		return settings;
+	}
+
+	/**
+	 * Checks whether or not the current module is functioning
+	 * @return Whether or not the current module is functioning
+	 */
 	public boolean isActive() {
 		return isEnabled();
 	}
