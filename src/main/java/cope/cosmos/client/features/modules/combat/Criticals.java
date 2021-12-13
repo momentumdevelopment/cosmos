@@ -119,9 +119,10 @@ public class Criticals extends Module {
 
                 // destroying a vehicle takes 5 hits -> regardless of damage
                 if (EntityUtil.isVehicleMob(attackEntity)) {
+
                     // attack 5 times
-                    for (int i = 0; i < 5; i++) {
-                        if (mc.getConnection() != null) {
+                    if (mc.getConnection() != null) {
+                        for (int i = 0; i < 5; i++) {
                             mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
                             mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation());
                         }

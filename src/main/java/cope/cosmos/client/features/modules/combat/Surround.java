@@ -52,7 +52,7 @@ public class Surround extends Module {
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the surround");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setParent(render).setDescription("Style of the visual");
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE).setParent(render);
 
     // switch info
     private int previousSlot = -1;

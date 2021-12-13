@@ -19,8 +19,8 @@ public class ReverseStep extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MOTION).setDescription("Mode for pulling down");
-    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 1.0, 10.0, 2).setDescription("Pull down speed").setVisible(() -> mode.getValue().equals(Mode.MOTION) || mode.getValue().equals(Mode.TIMER));
-    public static Setting<Double> tickShift = new Setting<>("ShiftTicks", 1.0, 1.0, 5.0, 0).setDescription("Ticks to shift").setVisible(() -> mode.getValue().equals(Mode.TICKSHIFT));
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 1.0, 10.0, 2).setDescription("Pull down speed").setVisible(() -> !mode.getValue().equals(Mode.TICK_SHIFT));
+    public static Setting<Double> tickShift = new Setting<>("ShiftTicks", 1.0, 1.0, 5.0, 0).setDescription("Ticks to shift").setVisible(() -> mode.getValue().equals(Mode.TICK_SHIFT));
     public static Setting<Double> height = new Setting<>("Height", 0.0, 2.0, 5.0, 1).setDescription("Maximum height to be pulled down");
     public static Setting<Boolean> hole = new Setting<>("OnlyHole", false).setDescription("Only pulls you down into holes");
     public static Setting<Boolean> webs = new Setting<>("Webs", false).setDescription("Pulls you down in webs");
@@ -38,7 +38,7 @@ public class ReverseStep extends Module {
                     mc.player.connection.sendPacket(new CPacketPlayer(false));
                     mc.player.motionY = -speed.getValue();
                     break;
-                case TICKSHIFT:
+                case TICK_SHIFT:
                     // shift ticks
                     getCosmos().getTickManager().shiftServerTicks(tickShift.getValue().intValue());
                     mc.player.motionY = -speed.getValue();
@@ -52,6 +52,6 @@ public class ReverseStep extends Module {
 
 
     public enum Mode {
-        MOTION, TICKSHIFT, TIMER
+        MOTION, TICK_SHIFT, TIMER
     }
 }

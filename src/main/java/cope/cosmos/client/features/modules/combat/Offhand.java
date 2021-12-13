@@ -15,6 +15,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
+/**
+ * @author linustouchtips
+ * @since 11/20/2021
+ */
 @SuppressWarnings("unused")
 public class Offhand extends Module {
     public static Offhand INSTANCE;

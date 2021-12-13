@@ -154,7 +154,7 @@ public class AutoCrystal extends Module {
 
     // render category
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual for calculated placement");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setDescription("Style for visual").setParent(render);
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setDescription("Style for visual").setExclusion(Box.GLOW, Box.REVERSE).setParent(render);
     public static Setting<Text> renderText = new Setting<>("Text", Text.NONE).setDescription("Text for the visual").setParent(render);
     public static Setting<Double> renderWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription( "Line width for the visual").setVisible(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE)).setParent(render);
 
@@ -1129,6 +1129,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Placements {
+
         /**
          * Crystal placements for version 1.12.2
          */
@@ -1141,6 +1142,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Timing {
+
         /**
          * Times the explosions based on when the crystal spawns
          */
@@ -1163,6 +1165,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Sync {
+
         /**
          * Syncs the crystal removal to the explosion sound
          */
@@ -1180,6 +1183,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Logic {
+
         /**
          * Heuristic: Best position is the one that deals the most damage
          */
@@ -1197,6 +1201,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum When {
+
         /**
          * Rotate when breaking
          */
@@ -1214,6 +1219,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Text {
+
         /**
          * Render the damage done to the target
          */
@@ -1236,6 +1242,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Hand {
+
         /**
          * Sync the hand to the interacting hand
          */
@@ -1263,6 +1270,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Interact {
+
         /**
          * Places on the closest face, regardless of visibility, Allows placements at world borders
          */
@@ -1280,6 +1288,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Raytrace {
+
         /**
          * Raytrace to the center of the block
          */
@@ -1321,6 +1330,7 @@ public class AutoCrystal extends Module {
     }
 
     public enum Limit {
+
         /**
          * Skips ticks based on yaw limit
          */

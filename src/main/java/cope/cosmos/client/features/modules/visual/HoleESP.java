@@ -8,6 +8,7 @@ import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
+import net.minecraft.util.math.BlockPos;
 
 import java.awt.*;
 
@@ -52,8 +53,11 @@ public class HoleESP extends Module {
         // get the holes
         getCosmos().getHoleManager().getHoles().forEach(hole -> {
 
+            // the position of the hole
+            BlockPos holePosition = hole.getHole();
+
             // check if they are in range
-            if (mc.player.getDistanceSq(hole.getHole()) < Math.pow(range.getValue(), 2)) {
+            if (mc.player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ()) < range.getValue()) {
 
                 // draw the hole
                 drawHole(hole);
