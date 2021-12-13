@@ -20,6 +20,10 @@ import java.awt.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author linustouchtips
+ * @since 12/02/2021
+ */
 @SuppressWarnings("unused")
 public class Nametags extends Module {
     public static Nametags INSTANCE;
@@ -36,6 +40,7 @@ public class Nametags extends Module {
 
     public static Setting<Boolean> background = new Setting<>("Background", true).setDescription("Displays a background behind the nametags");
 
+    // map of all nametag info
     private Map<EntityPlayer, String> playerInfoMap = new ConcurrentHashMap<>();
 
     @Override

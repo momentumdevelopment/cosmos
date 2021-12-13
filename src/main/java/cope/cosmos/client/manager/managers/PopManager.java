@@ -1,6 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.DeathEvent;
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.misc.Notifier;
 import cope.cosmos.client.manager.Manager;
@@ -25,22 +26,20 @@ public class PopManager extends Manager implements Wrapper {
         Cosmos.EVENT_BUS.register(this);
     }
 
-    @Override
-    public void onUpdate() {
-        new ArrayList<>(mc.world.loadedEntityList).forEach(entity -> {
-            if (totemPops.containsKey(entity) && EnemyUtil.isDead(entity)) {
-                if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
-                    ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + entity.getName() + TextFormatting.RESET + " died after popping " + totemPops.get(entity) + " totems!");
-                }
-
-                totemPops.remove(entity);
-            }
-        });
-    }
-
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
         totemPops.put(event.getPopEntity(), totemPops.containsKey(event.getPopEntity()) ? totemPops.get(event.getPopEntity()) + 1 : 1);
+    }
+
+    @SubscribeEvent
+    public void onDeath(DeathEvent event) {
+        if (totemPops.containsKey(event.getEntity())) {
+            if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
+                ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + totemPops.get(event.getEntity()) + " totems!");
+            }
+
+            totemPops.remove(event.getEntity());
+        }
     }
 
     public int getTotemPops(Entity entity) {

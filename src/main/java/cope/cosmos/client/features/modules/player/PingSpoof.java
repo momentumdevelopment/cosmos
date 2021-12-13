@@ -81,7 +81,7 @@ public class PingSpoof extends Module {
         if (event.getPacket() instanceof CPacketKeepAlive) {
 
             // make sure it's not one of our packets
-            if (packets.isEmpty()) {
+            if (!packets.contains((CPacketKeepAlive) event.getPacket())) {
 
                 // cancel the packet, queue the packet to be sent later
                 event.setCanceled(true);

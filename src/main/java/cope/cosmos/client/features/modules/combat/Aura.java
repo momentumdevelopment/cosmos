@@ -9,6 +9,7 @@ import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.SocialManager.*;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
@@ -64,14 +65,14 @@ public class Aura extends Module {
 
     // timing category
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA).setDescription("Mode for timing attacks");
-    public static Setting<Delay> delayMode = new Setting<>("Mode", Delay.SWING).setParent(timing).setDescription("Mode for timing units");
-    public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2).setParent(timing).setDescription("Vanilla attack factor").setVisible(() -> delayMode.getValue().equals(Delay.SWING));
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 1000.0, 2000.0, 0).setParent(timing).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS));
-    public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0).setParent(timing).setDescription("Attack Delay in ticks").setVisible(() -> delayMode.getValue().equals(Delay.TICK));
-    public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE).setParent(timing).setDescription("Sync attack timing to server ticks").setVisible(() -> delayMode.getValue().equals(Delay.TPS));
-    public static Setting<Double> delaySwitch = new Setting<>("Switch", 0.0, 0.0, 500.0, 0).setParent(timing).setDescription("Time to delay attacks after switching items");
-    public static Setting<Double> delayRandom = new Setting<>("Random", 0.0, 0.0, 200.0, 0).setParent(timing).setDescription("Randomizes delay to simulate vanilla attacks");
-    public static Setting<Double> delayTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 50.0, 0).setParent(timing).setDescription("The minimum age of the target to attack");
+    public static Setting<Delay> delayMode = new Setting<>("Mode", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
+    public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2).setDescription("Vanilla attack factor").setVisible(() -> delayMode.getValue().equals(Delay.SWING)).setParent(timing);
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
+    public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0).setDescription("Attack Delay in ticks").setVisible(() -> delayMode.getValue().equals(Delay.TICK)).setParent(timing);
+    public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE).setDescription("Sync attack timing to server ticks").setVisible(() -> delayMode.getValue().equals(Delay.TPS)).setParent(timing);
+    public static Setting<Double> delaySwitch = new Setting<>("Switch", 0.0, 0.0, 500.0, 0).setDescription("Time to delay attacks after switching items").setParent(timing);
+    public static Setting<Double> delayRandom = new Setting<>("Random", 0.0, 0.0, 200.0, 0).setDescription("Randomizes delay to simulate vanilla attacks").setParent(timing);
+    public static Setting<Double> delayTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 50.0, 0).setDescription("The minimum age of the target to attack").setParent(timing);
 
     // misc. category
     public static Setting<Double> timer = new Setting<>("Timer", 0.0, 1.0, 2.0, 2).setDescription("Client-Side timer");
@@ -79,15 +80,15 @@ public class Aura extends Module {
 
     // weapon category
     public static Setting<Weapon> weapon = new Setting<>("Weapon", Weapon.SWORD).setDescription("Weapon to use for attacking");
-    public static Setting<Boolean> weaponOnly = new Setting<>("OnlyWeapon", true).setParent(weapon).setDescription("Only attack if holding weapon");
-    public static Setting<Boolean> weaponThirtyTwoK = new Setting<>("32K", false).setParent(weapon).setDescription("Only attack if holding 32k");
-    public static Setting<Boolean> weaponBlock = new Setting<>("Block", false).setParent(weapon).setDescription("Automatically blocks if you're holding a shield");
+    public static Setting<Boolean> weaponOnly = new Setting<>("OnlyWeapon", true).setDescription("Only attack if holding weapon").setParent(weapon);
+    public static Setting<Boolean> weaponThirtyTwoK = new Setting<>("32K", false).setDescription("Only attack if holding 32k").setParent(weapon);
+    public static Setting<Boolean> weaponBlock = new Setting<>("Block", false).setDescription("Automatically blocks if you're holding a shield").setParent(weapon);
 
     // rotate category
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
-    public static Setting<Limit> rotateLimit = new Setting<>("Limit", Limit.NONE).setParent(rotate).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET));
+    public static Setting<Limit> rotateLimit = new Setting<>("Limit", Limit.NONE).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET)).setParent(rotate);
     public static Setting<Bone> rotateBone = new Setting<>("Bone", Bone.EYES).setDescription("What body part to rotate to");
-    public static Setting<Double> rotateRandom = new Setting<>("Random", 0.0, 0.0, 5.0, 1).setParent(rotate).setDescription("Randomize rotations to simulate real rotations");
+    public static Setting<Double> rotateRandom = new Setting<>("Random", 0.0, 0.0, 5.0, 1).setDescription("Randomize rotations to simulate real rotations").setParent(rotate);
 
     // anti-cheat category
     public static Setting<Hand> swing = new Setting<>("Swing", Hand.MAINHAND).setDescription("Hand to swing");
@@ -100,20 +101,20 @@ public class Aura extends Module {
 
     // pause category
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause");
-    public static Setting<Double> pauseHealth = new Setting<>("Health", 0.0, 2.0, 36.0, 0).setParent(pause).setDescription("Pause when below this health");
-    public static Setting<Boolean> pauseEating = new Setting<>("Eating", false).setParent(pause).setDescription("Pause when eating");
-    public static Setting<Boolean> pauseMining = new Setting<>("Mining", true).setParent(pause).setDescription("Pause when mining");
-    public static Setting<Boolean> pauseMending = new Setting<>("Mending", false).setParent(pause).setDescription("Pause when mending");
+    public static Setting<Double> pauseHealth = new Setting<>("Health", 0.0, 2.0, 36.0, 0).setDescription("Pause when below this health").setParent(pause);
+    public static Setting<Boolean> pauseEating = new Setting<>("Eating", false).setDescription("Pause when eating").setParent(pause);
+    public static Setting<Boolean> pauseMining = new Setting<>("Mining", true).setDescription("Pause when mining").setParent(pause);
+    public static Setting<Boolean> pauseMending = new Setting<>("Mending", false).setDescription("Pause when mending").setParent(pause);
 
     // switch category
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to weapon");
 
     // target category
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Boolean> targetPlayers = new Setting<>("Players", true).setParent(target).setDescription("Target players");
-    public static Setting<Boolean> targetPassives = new Setting<>("Passives", false).setParent(target).setDescription("Target passives");
-    public static Setting<Boolean> targetNeutrals = new Setting<>("Neutrals", false).setParent(target).setDescription("Target neutrals");
-    public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", false).setParent(target).setDescription("Target hostiles");
+    public static Setting<Boolean> targetPlayers = new Setting<>("Players", true).setDescription("Target players").setParent(target);
+    public static Setting<Boolean> targetPassives = new Setting<>("Passives", false).setDescription("Target passives").setParent(target);
+    public static Setting<Boolean> targetNeutrals = new Setting<>("Neutrals", false).setDescription("Target neutrals").setParent(target);
+    public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", false).setDescription("Target hostiles").setParent(target);
 
     // render category
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual over the target");
@@ -161,6 +162,12 @@ public class Aura extends Module {
 
             // find our target
             for (Entity entity : mc.world.loadedEntityList) {
+
+                // make sure the entity is valid to attack
+                if (entity.isDead || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                    continue;
+                }
+
                 // distance to the entity
                 double distance = mc.player.getDistance(entity);
 
@@ -185,7 +192,7 @@ public class Aura extends Module {
                     continue;
                 }
 
-                // make sure the entity is truly visible, useful for strict antichears
+                // make sure the entity is truly visible, useful for strict anticheats
                 float[] attackAngles = AngleUtil.calculateAngles(entity.getPositionVector());
                 if (AngleUtil.calculateAngleDifference(mc.player.rotationYaw, attackAngles[0]) > fov.getValue()) {
                     continue;
@@ -494,6 +501,7 @@ public class Aura extends Module {
     }
 
     public enum Delay {
+
         /**
          * Vanilla swing delay for maximum damage
          */
@@ -516,6 +524,7 @@ public class Aura extends Module {
     }
 
     public enum Timing {
+
         /**
          * Times the attacks based on entity updates
          */
@@ -528,6 +537,7 @@ public class Aura extends Module {
     }
 
     public enum Weapon {
+
         /**
          * Sword is the preferred weapon
          */
@@ -559,6 +569,7 @@ public class Aura extends Module {
     }
 
     public enum Limit {
+
         /**
          * Skips ticks based on yaw limit
          */
@@ -576,6 +587,7 @@ public class Aura extends Module {
     }
 
     public enum Bone {
+
         /**
          * Attack the entity at the eyes
          */

@@ -50,7 +50,6 @@ public class ReverseStep extends Module {
         }
     }
 
-
     public enum Mode {
         MOTION, TICK_SHIFT, TIMER
     }

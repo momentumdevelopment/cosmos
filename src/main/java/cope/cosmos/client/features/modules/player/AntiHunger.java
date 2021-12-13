@@ -62,6 +62,8 @@ public class AntiHunger extends Module {
 
         // stops the client from sending sprint packets, to prevent the server from knowing when we are sprinting
         if (stopSprint.getValue() && event.getPacket() instanceof CPacketEntityAction) {
+
+            // start or stop packet
             if (((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING)) {
                 event.setCanceled(true);
             }

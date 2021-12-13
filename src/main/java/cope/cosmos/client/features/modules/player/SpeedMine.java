@@ -169,7 +169,6 @@ public class SpeedMine extends Module {
 
     @SubscribeEvent
     public void onLeftClickBlock(LeftClickBlockEvent event) {
-
         // make sure the block is breakable
         if (BlockUtil.isBreakable(event.getPos()) && !mc.player.capabilities.isCreativeMode) {
             if (mode.getValue().equals(Mode.CREATIVE)) {

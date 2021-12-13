@@ -31,13 +31,14 @@ public class Speed extends Module {
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE).setDescription("Mode for Speed");
 
     public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
-    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setParent(timer).setDescription("Timer speed");
+    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
 
     public static Setting<Boolean> accelerate = new Setting<>("Accelerate", false).setDescription("Accelerates speed after jumping");
     public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
     public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
     public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
+    // current strafe stage
     private StrafeStage strafeStage = StrafeStage.SPEED;
 
     // the move speed for the current mode
@@ -45,6 +46,7 @@ public class Speed extends Module {
     private double latestMoveSpeed;
     private double boostSpeed;
 
+    // ticks
     private int strictTicks;
     private int timerTicks;
     private int boostTicks;
@@ -216,16 +218,17 @@ public class Speed extends Module {
             }
 
             // final move speed
-            moveSpeed = (baseSpeed * 1.38) - 0.01;
+            moveSpeed = baseSpeed * 1.38;
         }
 
         // the final move speed, finds the higher speed
         moveSpeed = Math.max(moveSpeed, baseSpeed);
 
         if (mode.getValue().equals(Mode.STRAFE)) {
-            moveSpeed = Math.min(moveSpeed, mc.player.isPotionActive(MobEffects.SPEED) ? 0.718 : 0.547);
+            moveSpeed = Math.max(moveSpeed, baseSpeed);
         }
 
+        // boost the move speed for 10 ticks
         if (boost.getValue() && boostTicks <= 10) {
             moveSpeed = Math.max(moveSpeed, boostSpeed);
         }
@@ -238,10 +241,12 @@ public class Speed extends Module {
         // update & reset our tick count
         strictTicks++;
 
+        // update boost ticks
         if (moveSpeed >= boostSpeed && boostSpeed > 0) {
             boostTicks++;
         }
 
+        // reset strict ticks every 50 ticks
         if (strictTicks > 50) {
             strictTicks = 0;
         }
@@ -251,30 +256,61 @@ public class Speed extends Module {
         float strafe = mc.player.movementInput.moveStrafe;
         float yaw = mc.player.rotationYaw;
 
-        // if we're not inputting any movements, then we shouldn't be adding any motion
-        if (!MotionUtil.isMoving()) {
-            event.setX(0.0);
-            event.setZ(0.0);
+        // find the rotations and inputs based on our current movements
+        if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+
+            // if we're not inputting any movements, then we shouldn't be adding any motion
+            if (!MotionUtil.isMoving()) {
+                event.setX(0);
+                event.setZ(0);
+            }
+
+            else if (forward != 0) {
+                if (strafe >= 1) {
+                    yaw += (forward > 0 ? -45 : 45);
+                    strafe = 0;
+                }
+
+                else if (strafe <= -1) {
+                    yaw += (forward > 0 ? 45 : -45);
+                    strafe = 0;
+                }
+
+                if (forward > 0) {
+                    forward = 1;
+                }
+
+                else if (forward < 0) {
+                    forward = -1;
+                }
+            }
         }
 
-        // find the rotations and inputs based on our current movements
-        else if (forward != 0) {
-            if (strafe >= 1) {
-                yaw += (forward > 0 ? -45 : 45);
-                strafe = 0;
-            } 
-            
-            else if (strafe <= -1) {
-                yaw += (forward > 0 ? 45 : -45);
-                strafe = 0;
+        else {
+            // if we're not inputting any movements, then we shouldn't be adding any motion
+            if (!MotionUtil.isMoving()) {
+                event.setX(0);
+                event.setZ(0);
             }
-            
-            if (forward > 0) {
-                forward = 1;
-            } 
-            
-            else if (forward < 0) {
-                forward = -1;
+
+            else if (forward != 0) {
+                if (strafe > 0) {
+                    yaw += forward > 0 ? -45 : 45;
+                } 
+                
+                else if (strafe < 0) {
+                    yaw += forward > 0 ? 45 : -45;
+                }
+
+                strafe = 0;
+
+                if (forward > 0) {
+                    forward = 1;
+                } 
+                
+                else if (forward < 0) {
+                    forward = -1;
+                }
             }
         }
 
@@ -288,8 +324,8 @@ public class Speed extends Module {
 
         // if we're not inputting any movements, then we shouldn't be adding any motion
         if (!MotionUtil.isMoving()) {
-            event.setX(0.0);
-            event.setZ(0.0);
+            event.setX(0);
+            event.setZ(0);
         }
     }
 
@@ -321,6 +357,7 @@ public class Speed extends Module {
     }
 
     public enum Mode {
+
         /**
          * Speed that automatically jumps to simulate BHops
          */
@@ -338,6 +375,7 @@ public class Speed extends Module {
     }
 
     public enum StrafeStage {
+
         /**
          * Stage when the player has collided into a block or entity
          */

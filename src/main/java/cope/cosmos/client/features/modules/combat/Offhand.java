@@ -245,6 +245,7 @@ public class Offhand extends Module {
     }
 
     public enum Stage {
+
         /**
          * Stage where no switching occurs
          */
@@ -267,6 +268,7 @@ public class Offhand extends Module {
     }
 
     public enum OffhandItem {
+
         /**
          * Switch to an End Crystal
          */
@@ -288,12 +290,17 @@ public class Offhand extends Module {
             this.item = item;
         }
 
+        /**
+         * Gets the item associated with the offhand
+         * @return The item associated with the offhand
+         */
         public Item getItem() {
             return item;
         }
     }
 
     public enum Interact {
+
         /**
          * Interacts at all times
          */
@@ -311,6 +318,7 @@ public class Offhand extends Module {
     }
 
     public enum Gapple {
+
         /**
          * Switches the offhand to a gapple when right clicking
          */

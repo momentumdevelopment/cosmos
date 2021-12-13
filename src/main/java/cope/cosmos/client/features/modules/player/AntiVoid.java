@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.player;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -30,7 +31,7 @@ public class AntiVoid extends Module {
         // if we are in the void, aka below y-pos 0
         if (mc.player.posY <= 0) {
             // notify the player that we are attempting to get out of the void
-            ChatUtil.sendMessageWithOptionalDeletion("Attempting to get player out of void!", 100);
+            ChatUtil.sendMessageWithOptionalDeletion(ChatFormatting.DARK_RED + "Attempting to get player out of void!", 100);
 
             switch (mode.getValue()) {
                 case SUSPEND:
@@ -57,6 +58,7 @@ public class AntiVoid extends Module {
     }
 
     public enum Mode {
+
         /**
          * Stops all vertical motion, freezes the player
          */

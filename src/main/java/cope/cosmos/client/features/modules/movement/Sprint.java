@@ -69,6 +69,7 @@ public class Sprint extends Module {
     }
 
     public enum Mode {
+
         /**
          * Allows you to sprint in all directions
          */
