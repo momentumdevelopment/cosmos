@@ -29,6 +29,7 @@ import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.RaytraceUtil;
+import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -53,7 +54,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -88,82 +88,82 @@ public class AutoCrystal extends Module {
 
     // explode category
     public static Setting<Boolean> explode = new Setting<>("Explode", true).setDescription("Explode crystals");
-    public static Setting<Double> explodeRange = new Setting<>("Range", 0.0, 6.0, 8.0, 1).setParent(explode).setDescription("Range to explode crystals");
-    public static Setting<Double> explodeWall = new Setting<>("WallRange", 0.0, 3.5, 8.0, 1).setParent(explode).setDescription("Range to explode crystals through walls");
-    public static Setting<Double> explodeDelay = new Setting<>("Delay", 0.0, 60.0, 500.0, 0).setParent(explode).setDescription("Delay to explode crystals");
-    public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", 0.0, 0.0, 500.0, 0).setParent(explode).setDescription("Randomize the delay slightly to simulate real explosions");
-    public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", 0.0, 0.0, 500.0, 0).setParent(explode).setDescription("Delay to wait after switching");
-    public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 5.0, 0).setParent(explode).setDescription("The minimum age of the crystal to explode");
-    public static Setting<Double> explodeDamage = new Setting<>("Damage", 0.0, 5.0, 36.0, 1).setParent(explode).setDescription("Required damage to explode a crystal");
-    public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", 0.0, 5.0, 36.0, 1).setParent(explode).setDescription("Maximum allowed local damage to the player");
-    public static Setting<Double> explodeLimit = new Setting<>("Limit", 0.0, 10.0, 10.0, 0).setParent(explode).setDescription("Limits attacks per crystal");
-    public static Setting<Boolean> explodePacket = new Setting<>("Packet", true).setParent(explode).setDescription("Explode with packets");
-    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", false).setParent(explode).setDescription("Prevents attacks on crystals that would already be exploded");
-    public static Setting<Hand> explodeHand = new Setting<>("Hand", Hand.SYNC).setParent(explode).setDescription("Hand to swing when exploding crystals");
-    public static Setting<Switch> explodeWeakness = new Setting<>("Weakness", Switch.NONE).setParent(explode).setDescription("Switch to a tool when weakness is active");
+    public static Setting<Double> explodeRange = new Setting<>("Range", 0.0, 6.0, 8.0, 1).setDescription("Range to explode crystals").setParent(explode);
+    public static Setting<Double> explodeWall = new Setting<>("WallRange", 0.0, 3.5, 8.0, 1).setDescription("Range to explode crystals through walls").setParent(explode);
+    public static Setting<Double> explodeDelay = new Setting<>("Delay", 0.0, 60.0, 500.0, 0).setDescription("Delay to explode crystals").setParent(explode);
+    public static Setting<Double> explodeRandom = new Setting<>("RandomDelay", 0.0, 0.0, 500.0, 0).setDescription("Randomize the delay slightly to simulate real explosions").setParent(explode);
+    public static Setting<Double> explodeSwitch = new Setting<>("SwitchDelay", 0.0, 0.0, 500.0, 0).setDescription("Delay to wait after switching").setParent(explode);
+    public static Setting<Double> explodeTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 5.0, 0).setDescription("The minimum age of the crystal to explode").setParent(explode);
+    public static Setting<Double> explodeDamage = new Setting<>("Damage", 0.0, 5.0, 36.0, 1).setDescription("Required damage to explode a crystal").setParent(explode);
+    public static Setting<Double> explodeLocal = new Setting<>("LocalDamage", 0.0, 5.0, 36.0, 1).setDescription("Maximum allowed local damage to the player").setParent(explode);
+    public static Setting<Double> explodeLimit = new Setting<>("Limit", 0.0, 10.0, 10.0, 0).setDescription("Limits attacks per crystal").setParent(explode);
+    public static Setting<Boolean> explodePacket = new Setting<>("Packet", true).setDescription("Explode with packets").setParent(explode);
+    public static Setting<Boolean> explodeInhibit = new Setting<>("Inhibit", false).setDescription("Prevents attacks on crystals that would already be exploded").setParent(explode);
+    public static Setting<Hand> explodeHand = new Setting<>("Hand", Hand.SYNC).setDescription("Hand to swing when exploding crystals").setParent(explode);
+    public static Setting<Switch> explodeWeakness = new Setting<>("Weakness", Switch.NONE).setDescription("Switch to a tool when weakness is active").setParent(explode);
 
     // place category
     public static Setting<Boolean> place = new Setting<>("Place", true).setDescription("Place Crystals");
-    public static Setting<Double> placeRange = new Setting<>("Range", 0.0, 5.0, 8.0, 1).setParent(place).setDescription("Range to place crystals");
-    public static Setting<Double> placeWall = new Setting<>("WallRange", 0.0, 3.5, 8.0, 1).setParent(place).setDescription("Range to place crystals through walls");
-    public static Setting<Double> placeDelay = new Setting<>("Delay", 0.0, 20.0, 500.0, 0).setParent(place).setDescription("Delay to place crystals");
-    public static Setting<Double> placeDamage = new Setting<>("Damage", 0.0, 5.0, 36.0, 1).setParent(place).setDescription("Required damage to be considered for placement");
-    public static Setting<Double> placeLocal = new Setting<>("LocalDamage", 0.0, 5.0, 36.0, 1).setParent(place).setDescription("Maximum allowed local damage to the player");
-    public static Setting<Boolean> placePacket = new Setting<>("Packet", true).setParent(place).setDescription("Place with packets");
-    public static Setting<Interact> placeInteraction = new Setting<>("Interact", Interact.NORMAL).setParent(place).setDescription("Limits the direction of placements");
-    public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", Raytrace.DOUBLE).setParent(place).setDescription("Mode to verify placements through walls");
-    public static Setting<Hand> placeHand = new Setting<>("Hand", Hand.SYNC).setParent(place).setDescription("Hand to swing when placing crystals");
-    public static Setting<Switch> placeSwitch = new Setting<>("Switch", Switch.NONE).setParent(place).setDescription("Mode to use when switching to a crystal");
+    public static Setting<Double> placeRange = new Setting<>("Range", 0.0, 5.0, 8.0, 1).setDescription("Range to place crystals").setParent(place);
+    public static Setting<Double> placeWall = new Setting<>("WallRange", 0.0, 3.5, 8.0, 1).setDescription("Range to place crystals through walls").setParent(place);
+    public static Setting<Double> placeDelay = new Setting<>("Delay", 0.0, 20.0, 500.0, 0).setDescription("Delay to place crystals").setParent(place);
+    public static Setting<Double> placeDamage = new Setting<>("Damage", 0.0, 5.0, 36.0, 1).setDescription("Required damage to be considered for placement").setParent(place);
+    public static Setting<Double> placeLocal = new Setting<>("LocalDamage", 0.0, 5.0, 36.0, 1).setDescription("Maximum allowed local damage to the player").setParent(place);
+    public static Setting<Boolean> placePacket = new Setting<>("Packet", true).setDescription("Place with packets").setParent(place);
+    public static Setting<Interact> placeInteraction = new Setting<>("Interact", Interact.NORMAL).setDescription("Limits the direction of placements").setParent(place);
+    public static Setting<Raytrace> placeRaytrace = new Setting<>("Raytrace", Raytrace.DOUBLE).setDescription("Mode to verify placements through walls").setParent(place);
+    public static Setting<Hand> placeHand = new Setting<>("Hand", Hand.SYNC).setDescription("Hand to swing when placing crystals").setParent(place);
+    public static Setting<Switch> placeSwitch = new Setting<>("Switch", Switch.NONE).setDescription("Mode to use when switching to a crystal").setParent(place);
 
     // pause category
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause");
-    public static Setting<Double> pauseHealth = new Setting<>("Health", 0.0, 10.0, 36.0, 0).setParent(pause).setDescription("Pause below this health");
-    public static Setting<Boolean> pauseSafety = new Setting<>("Safety", true).setParent(pause).setDescription("Pause when the current crystal will kill you");
-    public static Setting<Boolean> pauseEating = new Setting<>("Eating", false).setParent(pause).setDescription("Pause when eating");
-    public static Setting<Boolean> pauseMining = new Setting<>("Mining", false).setParent(pause).setDescription("Pause when mining");
-    public static Setting<Boolean> pauseMending = new Setting<>("Mending", false).setParent(pause).setDescription("Pause when mending");
+    public static Setting<Double> pauseHealth = new Setting<>("Health", 0.0, 10.0, 36.0, 0).setDescription("Pause below this health").setParent(pause);
+    public static Setting<Boolean> pauseSafety = new Setting<>("Safety", true).setDescription("Pause when the current crystal will kill you").setParent(pause);
+    public static Setting<Boolean> pauseEating = new Setting<>("Eating", false).setDescription("Pause when eating").setParent(pause);
+    public static Setting<Boolean> pauseMining = new Setting<>("Mining", false).setDescription("Pause when mining").setParent(pause);
+    public static Setting<Boolean> pauseMending = new Setting<>("Mending", false).setDescription("Pause when mending").setParent(pause);
 
     // override category
     public static Setting<Boolean> override = new Setting<>("Override", true).setDescription("When to override minimum damage");
-    public static Setting<Double> overrideHealth = new Setting<>("Health", 0.0, 10.0, 36.0, 0).setParent(override).setDescription("Override when target is below this health");
-    public static Setting<Double> overrideThreshold = new Setting<>("Threshold", 0.0, 0.0, 4.0, 1).setParent(override).setDescription("Override if we can do lethal damage in this amount of crystals");
-    public static Setting<Double> overrideArmor = new Setting<>("Armor", 0.0, 0.0, 100.0, 0).setParent(override).setDescription("Override when target's armor is below this percent");
+    public static Setting<Double> overrideHealth = new Setting<>("Health", 0.0, 10.0, 36.0, 0).setDescription("Override when target is below this health").setParent(override);
+    public static Setting<Double> overrideThreshold = new Setting<>("Threshold", 0.0, 0.0, 4.0, 1).setDescription("Override if we can do lethal damage in this amount of crystals").setParent(override);
+    public static Setting<Double> overrideArmor = new Setting<>("Armor", 0.0, 0.0, 100.0, 0).setDescription("Override when target's armor is below this percent").setParent(override);
 
     // rotate category
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack and placement rotation");
-    public static Setting<Limit> rotateLimit = new Setting<>("Limit", Limit.NONE).setParent(rotate).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET));
-    public static Setting<When> rotateWhen = new Setting<>("When", When.BOTH).setParent(rotate).setDescription("Mode for when to rotate");
-    public static Setting<Double> rotateRandom = new Setting<>("Random", 0.0, 0.0, 5.0, 1).setParent(rotate).setDescription("Randomize rotations to simulate real rotations");
+    public static Setting<Limit> rotateLimit = new Setting<>("Limit", Limit.NONE).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET)).setParent(rotate);
+    public static Setting<When> rotateWhen = new Setting<>("When", When.BOTH).setDescription("Mode for when to rotate").setParent(rotate);
+    public static Setting<Double> rotateRandom = new Setting<>("Random", 0.0, 0.0, 5.0, 1).setDescription("Randomize rotations to simulate real rotations").setParent(rotate);
 
     // calculations category
     public static Setting<Boolean> calculations = new Setting<>("Calculations", true).setDescription("Preferences for calculations");
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR).setParent(calculations).setDescription("Optimizes process at the cost of anti-cheat compatibility");
-    public static Setting<Placements> placements = new Setting<>("Placements", Placements.NATIVE).setParent(calculations).setDescription("Placement calculations for current version");
-    public static Setting<Logic> logic = new Setting<>("Logic", Logic.DAMAGE).setParent(calculations).setDescription("Logic for heuristic to prioritize");
-    public static Setting<Sync> sync = new Setting<>("Sync", Sync.SOUND).setParent(calculations).setDescription("Sync for broken crystals");
-    public static Setting<Boolean> prediction = new Setting<>("Prediction", false).setParent(calculations).setDescription("Attempts to account target's predicted position into the calculations");
-    public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", false).setParent(calculations).setDescription("Ignores terrain when calculating damage");
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR).setDescription("Optimizes process at the cost of anti-cheat compatibility").setParent(calculations);
+    public static Setting<Placements> placements = new Setting<>("Placements", Placements.NATIVE).setDescription("Placement calculations for current version").setParent(calculations);
+    public static Setting<Logic> logic = new Setting<>("Logic", Logic.DAMAGE).setDescription("Logic for heuristic to prioritize").setParent(calculations);
+    public static Setting<Sync> sync = new Setting<>("Sync", Sync.SOUND).setDescription("Sync for broken crystals").setParent(calculations);
+    public static Setting<Boolean> prediction = new Setting<>("Prediction", false).setDescription("Attempts to account target's predicted position into the calculations").setParent(calculations);
+    public static Setting<Boolean> ignoreTerrain = new Setting<>("IgnoreTerrain", false).setDescription("Ignores terrain when calculating damage").setParent(calculations);
 
     // target category
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 1).setParent(target).setDescription("Range to consider an entity as a target");
-    public static Setting<Boolean> targetPlayers = new Setting<>("Players", true).setParent(target).setDescription("Target players");
-    public static Setting<Boolean> targetPassives = new Setting<>("Passives", false).setParent(target).setDescription("Target passives");
-    public static Setting<Boolean> targetNeutrals = new Setting<>("Neutrals", false).setParent(target).setDescription("Target neutrals");
-    public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", false).setParent(target).setDescription("Target hostiles");
+    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 1).setDescription("Range to consider an entity as a target").setParent(target);
+    public static Setting<Boolean> targetPlayers = new Setting<>("Players", true).setDescription("Target players").setParent(target);
+    public static Setting<Boolean> targetPassives = new Setting<>("Passives", false).setDescription("Target passives").setParent(target);
+    public static Setting<Boolean> targetNeutrals = new Setting<>("Neutrals", false).setDescription("Target neutrals").setParent(target);
+    public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", false).setDescription("Target hostiles").setParent(target);
 
     // render category
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual for calculated placement");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setParent(render).setDescription("Style for visual");
-    public static Setting<Text> renderText = new Setting<>("Text", Text.NONE).setParent(render).setDescription("Text for the visual");
-    public static Setting<Double> renderWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setParent(render).setDescription( "Line width for the visual").setVisible(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE));
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setDescription("Style for visual").setParent(render);
+    public static Setting<Text> renderText = new Setting<>("Text", Text.NONE).setDescription("Text for the visual").setParent(render);
+    public static Setting<Double> renderWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription( "Line width for the visual").setVisible(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE)).setParent(render);
 
     // crystal info
     private Crystal explodeCrystal = new Crystal(null, 0, 0);
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
     private final Map<Integer, Integer> attemptedExplosions = new ConcurrentHashMap<>();
-    private final List<EntityEnderCrystal> inhibitExplosions = new CopyOnWriteArrayList<>();
+    private final Set<EntityEnderCrystal> inhibitExplosions = new ConcurrentSet<>();
 
     // placement info
     private static CrystalPosition placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
@@ -214,6 +214,7 @@ public class AutoCrystal extends Module {
                 return;
             }
 
+            // make sure we are not already auto-placing
             if (HoleFill.INSTANCE.isActive() || Surround.INSTANCE.isActive() || Burrow.INSTANCE.isActive()) {
                 resetProcess();
                 return;
@@ -950,17 +951,23 @@ public class AutoCrystal extends Module {
             // clear our old inhibit entities
             inhibitExplosions.clear();
 
-            mc.addScheduledTask(() -> new ArrayList<>(mc.world.loadedEntityList).stream().filter(entity -> entity instanceof EntityEnderCrystal).filter(entity -> entity.getDistance(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ()) < 6).forEach(entity -> {
-                // going to be exploded anyway, so don't attempt explosion
-                if (explodeInhibit.getValue()) {
-                    inhibitExplosions.add((EntityEnderCrystal) entity);
-                }
+            // schedule to main mc thread
+            mc.addScheduledTask(() -> {
+                for (Iterator<Entity> entityList = mc.world.loadedEntityList.iterator(); entityList.hasNext();) {
+                    // next entity in the world
+                    Entity entity = entityList.next();
 
-                // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
-                if (sync.getValue().equals(Sync.SOUND)) {
-                    mc.world.removeEntityDangerously(entity);
+                    // going to be exploded anyway, so don't attempt explosion
+                    if (explodeInhibit.getValue()) {
+                        inhibitExplosions.add((EntityEnderCrystal) entity);
+                    }
+
+                    // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
+                    if (sync.getValue().equals(Sync.SOUND)) {
+                        mc.world.removeEntityDangerously(entity);
+                    }
                 }
-            }));
+            });
         }
     }
 
