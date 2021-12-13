@@ -957,6 +957,17 @@ public class AutoCrystal extends Module {
                     // next entity in the world
                     Entity entity = entityList.next();
 
+                    // make sure it's a crystal
+                    if (!(entity instanceof EntityEnderCrystal) || entity.isDead) {
+                        continue;
+                    }
+
+                    // make sure the crystal is in range from the sound to be destroyed
+                    double soundDistance = entity.getDistance(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ());
+                    if (soundDistance > 6) {
+                        continue;
+                    }
+
                     // going to be exploded anyway, so don't attempt explosion
                     if (explodeInhibit.getValue()) {
                         inhibitExplosions.add((EntityEnderCrystal) entity);
@@ -979,12 +990,14 @@ public class AutoCrystal extends Module {
      * @param packet Whether or not to place with a packet
      */
     public void placeCrystal(BlockPos position, EnumFacing facing, Vec3d vector, boolean packet) {
-        if (packet) {
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(position, facing, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
-        }
+        if (position != null) {
+            if (packet) {
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(position, facing, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND, (float) vector.x, (float) vector.y, (float) vector.z));
+            }
 
-        else {
-            mc.playerController.processRightClickBlock(mc.player, mc.world, position, facing, vector, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
+            else {
+                mc.playerController.processRightClickBlock(mc.player, mc.world, position, facing, vector, mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND);
+            }
         }
     }
 
@@ -994,12 +1007,14 @@ public class AutoCrystal extends Module {
      * @param packet Whether or not to explode with packet
      */
     public void explodeCrystal(EntityEnderCrystal crystal, boolean packet) {
-        if (packet) {
-            mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
-        }
+        if (crystal != null) {
+            if (packet) {
+                mc.player.connection.sendPacket(new CPacketUseEntity(crystal));
+            }
 
-        else {
-            mc.playerController.attackEntity(mc.player, crystal);
+            else {
+                mc.playerController.attackEntity(mc.player, crystal);
+            }
         }
     }
 
