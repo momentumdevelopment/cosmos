@@ -128,7 +128,7 @@ public class Offhand extends Module {
             }
 
             // make sure we've passed our delay and we're not already holding the item
-            if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.SYSTEM) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
+            if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.MILLISECONDS) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
                 // we are now picking up the item
                 stage = Stage.PICKUP_ITEM;
 
@@ -189,7 +189,7 @@ public class Offhand extends Module {
             }
 
             if (interact.getValue().equals(Interact.STRICT)) {
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.SYSTEM) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
+                if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.MILLISECONDS) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
                     // we are now moving the item to the offhand
                     stage = Stage.MOVE_TO_OFFHAND;
 
@@ -211,7 +211,7 @@ public class Offhand extends Module {
                     }
                 }
 
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.SYSTEM) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
+                if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.MILLISECONDS) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
                     // we are now swapping the old item
                     stage = Stage.SWAP_OLD;
 

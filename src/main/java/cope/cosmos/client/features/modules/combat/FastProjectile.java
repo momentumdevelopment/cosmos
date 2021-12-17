@@ -25,7 +25,7 @@ public class FastProjectile extends Module {
     public FastProjectile() {
         super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> {
             // if we are charged
-            if (projectileTimer.passedTime(2000, Format.SYSTEM)) {
+            if (projectileTimer.passedTime(2, Format.SECONDS)) {
                 return "Charged";
             }
 
@@ -65,7 +65,7 @@ public class FastProjectile extends Module {
             if (InventoryUtil.isHolding(Items.BOW) && bows.getValue() || InventoryUtil.isHolding(Items.EGG) && eggs.getValue() || InventoryUtil.isHolding(Items.SNOWBALL) && snowballs.getValue()) {
 
                 // make sure there has been enough time since last shot
-                if (projectileTimer.passedTime(2000, Format.SYSTEM)) {
+                if (projectileTimer.passedTime(2, Format.SECONDS)) {
                     // bypass
                     mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
 

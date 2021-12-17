@@ -35,7 +35,7 @@ public class PingSpoof extends Module {
     @Override
     public void onUpdate() {
         // if we've cleared our time to send
-        if (packetTimer.passedTime(delay.getValue().longValue() * 1000, Format.SYSTEM)) {
+        if (packetTimer.passedTime(delay.getValue().longValue(), Format.SECONDS)) {
 
             // in case this function is called too many times
             if (!packets.isEmpty()) {

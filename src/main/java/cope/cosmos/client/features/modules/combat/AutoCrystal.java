@@ -280,7 +280,7 @@ public class AutoCrystal extends Module {
                 }
             }
 
-            if (explodeTimer.passedTime(explodeDelay.getValue().longValue() + ThreadLocalRandom.current().nextInt(explodeRandom.getValue().intValue() + 1), Format.SYSTEM) && switchTimer.passedTime(explodeSwitch.getValue().longValue(), Format.SYSTEM)) {
+            if (explodeTimer.passedTime(explodeDelay.getValue().longValue() + ThreadLocalRandom.current().nextInt(explodeRandom.getValue().intValue() + 1), Format.MILLISECONDS) && switchTimer.passedTime(explodeSwitch.getValue().longValue(), Format.MILLISECONDS)) {
                 // explode the crystal
                 explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
                 swingArm(explodeHand.getValue());
@@ -337,7 +337,7 @@ public class AutoCrystal extends Module {
             // switch to crystals if needed
             InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
 
-            if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.SYSTEM) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
+            if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
                 double facingX = 0;
                 double facingY = 0;
@@ -794,8 +794,8 @@ public class AutoCrystal extends Module {
                 // since it's been confirmed that the crystal spawned, we can move on to our next process
                 if (timing.getValue().equals(Timing.SEQUENTIAL)) {
                     // clear our timer
-                    if (!explodeTimer.passedTime(explodeDelay.getValue().longValue(), Format.SYSTEM)) {
-                        explodeTimer.setTime(explodeDelay.getValue().longValue(), Format.SYSTEM);
+                    if (!explodeTimer.passedTime(explodeDelay.getValue().longValue(), Format.MILLISECONDS)) {
+                        explodeTimer.setTime(explodeDelay.getValue().longValue(), Format.MILLISECONDS);
                     }
                 }
 
@@ -934,8 +934,8 @@ public class AutoCrystal extends Module {
                     // since it's been confirmed that the crystal exploded, we can move on to our next process
                     if (timing.getValue().equals(Timing.SEQUENTIAL) || timing.getValue().equals(Timing.UNIFORM)) {
                         // clear our timer
-                        if (!placeTimer.passedTime(placeDelay.getValue().longValue(), Format.SYSTEM)) {
-                            placeTimer.setTime(placeDelay.getValue().longValue(), Format.SYSTEM);
+                        if (!placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS)) {
+                            placeTimer.setTime(placeDelay.getValue().longValue(), Format.MILLISECONDS);
                         }
                     }
 

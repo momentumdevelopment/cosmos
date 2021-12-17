@@ -343,7 +343,7 @@ public class Aura extends Module {
                         attackCleared = mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - getCosmos().getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue() + randomFactor;
                         break;
                     case MILLISECONDS:
-                        attackCleared = auraTimer.passedTime(delay.getValue().longValue() + randomFactor, Format.SYSTEM);
+                        attackCleared = auraTimer.passedTime(delay.getValue().longValue() + randomFactor, Format.MILLISECONDS);
                         break;
                     case TICK:
                         attackCleared = auraTimer.passedTime(delayTicks.getValue().longValue() + randomFactor, Format.TICKS);
@@ -354,10 +354,10 @@ public class Aura extends Module {
                 if (attackCleared) {
 
                     // make sure our switch timer has cleared it's time, attacking right after switching flags Updated NCP
-                    if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.SYSTEM)) {
+                    if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.MILLISECONDS)) {
 
                         // if we passed our critical time, then we can attempt a critical attack
-                        if (criticalTimer.passedTime(300, Format.SYSTEM) && timing.getValue().equals(Timing.SEQUENTIAL)) {
+                        if (criticalTimer.passedTime(300, Format.MILLISECONDS) && timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                             // spoof our fall state to simulate a critical attack
                             mc.player.fallDistance = 0.1F;

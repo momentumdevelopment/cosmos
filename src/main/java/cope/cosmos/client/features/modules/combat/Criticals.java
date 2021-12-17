@@ -144,7 +144,7 @@ public class Criticals extends Module {
                         }
 
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
-                        if (criticalTimer.passedTime(delay.getValue().longValue(), Format.SYSTEM)) {
+                        if (criticalTimer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
                             if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
