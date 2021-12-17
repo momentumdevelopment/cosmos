@@ -29,7 +29,7 @@ public class AntiVoid extends Module {
     @Override
     public void onUpdate() {
         // if we are in the void, aka below y-pos 0
-        if (mc.player.posY <= 0) {
+        if (mc.player.posY <= 0.5) {
             // notify the player that we are attempting to get out of the void
             ChatUtil.sendMessageWithOptionalDeletion(ChatFormatting.DARK_RED + "Attempting to get player out of void!", 100);
 

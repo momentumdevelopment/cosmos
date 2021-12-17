@@ -397,6 +397,7 @@ public class SpeedMine extends Module {
         }
 
         if (mc.player.isPotionActive(MobEffects.MINING_FATIGUE)) {
+
             // scale based on fatigue effect level
             float fatigueScale;
             switch (mc.player.getActivePotionEffect(MobEffects.MINING_FATIGUE).getAmplifier()) {
@@ -448,6 +449,7 @@ public class SpeedMine extends Module {
     }
 
     public enum Mode {
+
         /**
          * Mines the block with packets, so the block breaking animation shouldn't be visible
          */

@@ -1,10 +1,10 @@
 package cope.cosmos.client.features.modules.misc;
 
+import cope.cosmos.client.events.DeathEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -43,6 +43,7 @@ public class FakePlayer extends Module {
         // copy inventory from player
         if (inventory.getValue()) {
             fakePlayer.inventory.copyInventory(mc.player.inventory);
+            fakePlayer.inventoryContainer = mc.player.inventoryContainer;
         }
 
         // copy health from player
@@ -50,6 +51,10 @@ public class FakePlayer extends Module {
             fakePlayer.setHealth(mc.player.getHealth());
             fakePlayer.setAbsorptionAmount(mc.player.getAbsorptionAmount());
         }
+
+        // set player traits
+        fakePlayer.setSneaking(mc.player.isSneaking());
+        fakePlayer.setPrimaryHand(mc.player.getPrimaryHand());
 
         // add the fake player to world
         id = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
@@ -66,7 +71,7 @@ public class FakePlayer extends Module {
     }
 
     @SubscribeEvent
-    public void onDeath(LivingDeathEvent event) {
+    public void onDeath(DeathEvent event) {
         if (event.getEntity().equals(mc.player)) {
             // remove fake player from world
             mc.world.removeEntityFromWorld(id);
