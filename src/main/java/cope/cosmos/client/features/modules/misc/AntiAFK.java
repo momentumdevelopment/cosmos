@@ -55,7 +55,7 @@ public class AntiAFK extends Module {
             if (jump.getValue()) {
 
                 // jump if we've passed two seconds
-                if (jumpTimer.passedTime(5, Format.SECONDS)) {
+                if (jumpTimer.passedTime(5, Format.SECONDS) && mc.player.onGround) {
                     mc.player.jump();
 
                     // reset clearance
