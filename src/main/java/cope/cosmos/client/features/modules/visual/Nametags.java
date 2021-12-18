@@ -93,7 +93,7 @@ public class Nametags extends Module {
                         GlStateManager.enableBlend();
 
                         // draw the background
-                        RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() + 1, width + 1, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
+                        RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() + 1, width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
 
                         GlStateManager.disableBlend();
                     }
