@@ -172,7 +172,7 @@ public class Nametags extends Module {
                     if (totemPops.getValue()) {
                         int pops = getCosmos().getPopManager().getTotemPops(player);
                         if (pops > 0) {
-                            playerInfo.append("-").append(getCosmos().getPopManager().getTotemPops(player)).append(" ").append(TextFormatting.RESET);
+                            playerInfo.append("-").append(pops).append(" ").append(TextFormatting.RESET);
                         }
                     }
 
