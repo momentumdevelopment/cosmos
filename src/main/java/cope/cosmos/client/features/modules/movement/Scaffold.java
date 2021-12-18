@@ -80,7 +80,7 @@ public class Scaffold extends Module {
             }
         }
 
-        if (!timer.passedTime(delay.getValue().longValue(), Timer.Format.SYSTEM)) {
+        if (!timer.passedTime(delay.getValue().longValue(), Timer.Format.MILLISECONDS)) {
             return;
         }
 
@@ -115,7 +115,7 @@ public class Scaffold extends Module {
                 mc.player.jump();
 
                 // after 1.2 seconds, stop vertical motion for anti-cheat compatibility.
-                if (towerTimer.passedTime(1200L, Timer.Format.SYSTEM)) {
+                if (towerTimer.passedTime(1200L, Timer.Format.MILLISECONDS)) {
                     towerTimer.resetTime();
                     mc.player.motionY = -0.28;
                 }
