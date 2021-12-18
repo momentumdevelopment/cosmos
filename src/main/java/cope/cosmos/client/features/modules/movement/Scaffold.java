@@ -5,6 +5,7 @@ import cope.cosmos.client.events.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.Rotation;
@@ -18,9 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -49,6 +48,12 @@ public class Scaffold extends Module {
     public static final Setting<Boolean> safewalk = new Setting<>("Safewalk", true).setDescription("If to attempt to stop you from walking off blocks");
     public static final Setting<Double> delay = new Setting<>("Delay", 0.0, 0.0, 500.0, 1).setDescription("How long to wait before placing another block");
 
+    // rendering options
+    public static final Setting<Boolean> render = new Setting<>("Render", true).setDescription("If to render the current box");
+    public static final Setting<RenderBuilder.Box> box = new Setting<>("Box", RenderBuilder.Box.BOTH).setDescription("How to render the current block").setParent(render);
+    public static final Setting<RenderBuilder.Box> outline = new Setting<>("Outline", RenderBuilder.Box.OUTLINE).setDescription("The outline of the rendered box").setParent(render);
+    public static final Setting<Float> lineWidth = new Setting<>("LineWidth", 1.0F, 1.5F, 5.0F, 1).setDescription("The width of the lines rendered").setParent(render);
+
     private final Queue<BlockPos> positions = new ConcurrentLinkedQueue<>();
     private Vec3d currentVector = null;
 
@@ -59,8 +64,34 @@ public class Scaffold extends Module {
 
     @Override
     public void onRender3D() {
-        if (currentVector != null) {
-            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(currentVector.x, currentVector.y, currentVector.z)).box(RenderBuilder.Box.FILL).color(Color.WHITE).blend().depth(true).texture());
+        if (currentVector != null && render.getValue()) {
+            RenderUtil.drawBox(new RenderBuilder()
+                    .position(currentVector)
+                    .color(ColorUtil.getPrimaryAlphaColor(60))
+                    .box(box.getValue())
+                    .setup()
+                    .line(lineWidth.getValue())
+                    .cull(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .shade(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .alpha(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .depth(true)
+                    .blend()
+                    .texture()
+            );
+
+            RenderUtil.drawBox(new RenderBuilder()
+                    .position(currentVector)
+                    .color(ColorUtil.getPrimaryColor())
+                    .box(outline.getValue())
+                    .setup()
+                    .line(lineWidth.getValue())
+                    .cull(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .shade(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .alpha(outline.getValue().equals(RenderBuilder.Box.GLOW) || box.getValue().equals(RenderBuilder.Box.REVERSE))
+                    .depth(true)
+                    .blend()
+                    .texture()
+            );
         }
     }
 

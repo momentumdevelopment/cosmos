@@ -3,6 +3,7 @@ package cope.cosmos.util.render;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
 
@@ -128,6 +129,11 @@ public class RenderBuilder {
 
     public RenderBuilder position(BlockPos in) {
         position(new AxisAlignedBB(in.getX(), in.getY(), in.getZ(), in.getX() + 1, in.getY() + 1, in.getZ() + 1));
+        return this;
+    }
+
+    public RenderBuilder position(Vec3d in) {
+        position(new AxisAlignedBB(in.x, in.y, in.z, in.x + 1, in.y + 1, in.z + 1));
         return this;
     }
 
