@@ -170,7 +170,10 @@ public class Nametags extends Module {
 
                     // add the player's totem pops
                     if (totemPops.getValue()) {
-                        playerInfo.append(getCosmos().getPopManager().getTotemPops(player)).append(" ").append(TextFormatting.RESET);
+                        int pops = getCosmos().getPopManager().getTotemPops(player);
+                        if (pops > 0) {
+                            playerInfo.append("-").append(getCosmos().getPopManager().getTotemPops(player)).append(" ").append(TextFormatting.RESET);
+                        }
                     }
 
                     // add it to the map of the player info
