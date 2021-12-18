@@ -6,13 +6,16 @@ import cope.cosmos.client.events.RenderAdvancementEvent;
 import cope.cosmos.client.events.RenderPotionHUDEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.movement.Speed;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.system.MathUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -70,16 +73,31 @@ public class HUD extends Module {
         bottomLeft = 10;
         bottomRight = 10;
 
+        // offset chat box height
+        if (mc.currentScreen instanceof GuiChat) {
+            bottomLeft += 14;
+            bottomRight += 14;
+        }
+
         if (watermark.getValue()) {
             FontUtil.drawStringWithShadow(Cosmos.NAME + TextFormatting.WHITE + " " + Cosmos.VERSION, 2, 2, ColorUtil.getPrimaryColor(globalOffset).getRGB());
         }
 
-        if (mc.currentScreen == null) {
+        if (mc.currentScreen == null || mc.currentScreen instanceof GuiChat) {
             if (activeModules.getValue()) {
                 listOffset = 0;
 
                 ModuleManager.getModules(Module::isDrawn).stream().filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
-                    FontUtil.drawStringWithShadow(module.getName() + TextFormatting.WHITE + (!module.getInfo().equals("") ? " " + module.getInfo() : ""), (float) (new ScaledResolution(mc).getScaledWidth() - ((FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) + 2) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                    // formatted string
+                    StringBuilder moduleString = new StringBuilder(module.getName());
+
+                    if (!module.getInfo().equals("")) {
+                        moduleString.append(TextFormatting.WHITE).append(" ").append(module.getInfo());
+                    }
+
+                    // draw string
+                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))))) - 1, 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1);
@@ -121,10 +139,23 @@ public class HUD extends Module {
             }
 
             if (speed.getValue()) {
+                // distance travelled
                 double distanceX = mc.player.posX - mc.player.prevPosX;
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;
-                String speedDisplay = "Speed " + TextFormatting.WHITE + MathUtil.roundFloat((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600), 1) + " kmh";
-                FontUtil.drawStringWithShadow(speedDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(speedDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+
+                // speed in kmh
+                float speed = MathUtil.roundFloat((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600), 1);
+
+                // future moment
+                if (MotionUtil.isMoving() && Speed.INSTANCE.isEnabled()) {
+                    speed += 2;
+                }
+
+                // formatted string
+                String speedString = "Speed " + TextFormatting.WHITE + speed + " kmh";
+
+                // draw string
+                FontUtil.drawStringWithShadow(speedString, SCREEN_WIDTH - FontUtil.getStringWidth(speedString) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                 // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
@@ -175,12 +206,26 @@ public class HUD extends Module {
                 armorOffset = 0;
                 mc.player.inventory.armorInventory.forEach(itemStack -> {
                     if (!itemStack.isEmpty()) {
+                        // y offset
+                        int yScaled = 0;
+
+                        // if we're in the water, then the armor should render above the bubbles
+                        if (mc.player.isInWater()) {
+                            yScaled = 10;
+                        }
+
+                        // if we're in creative, we have no hunger bar, so we should render lower
+                        if (mc.player.capabilities.isCreativeMode) {
+                            yScaled = -15;
+                        }
+
+                        // draw armor item
                         GlStateManager.pushMatrix();
                         RenderHelper.enableGUIStandardItemLighting();
 
                         mc.getRenderItem().zLevel = 200;
-                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55);
-                        mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - (mc.player.isInWater() ? 10 : 0) - 55, "");
+                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - yScaled - 55);
+                        mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - yScaled - 55, "");
                         mc.getRenderItem().zLevel = 0;
 
                         RenderHelper.disableStandardItemLighting();

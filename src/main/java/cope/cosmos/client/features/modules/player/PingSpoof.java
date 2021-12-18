@@ -31,27 +31,24 @@ public class PingSpoof extends Module {
 
     // timer for packet delay
     private final Timer packetTimer = new Timer();
-    private boolean processing;
 
     @Override
     public void onUpdate() {
         // if we've cleared our time to send
-        if (packetTimer.passedTime(delay.getValue().longValue() * 1000L, Format.SYSTEM)) {
+        if (packetTimer.passedTime(delay.getValue().longValue(), Format.SECONDS)) {
+
             // in case this function is called too many times
-            if (!processing) { 
-                
+            if (!packets.isEmpty()) {
+
                 // we can now begin processing packets
-                processing = true;
-                
-                // send all queued packets
                 packets.forEach(packet -> {
                     if (packet != null) {
+                        // send all queued packets
                         mc.player.connection.sendPacket(packet);
                     }
                 });
 
-                // we are done, processing packets
-                processing = false;
+                packets.clear();
             }
             
             // reset our packetTimer
@@ -64,27 +61,28 @@ public class PingSpoof extends Module {
         super.onDisable();
 
         // send our packets before disabling
-        if (!processing) {
+        if (!packets.isEmpty()) {
 
             // we can now begin processing packets
-            processing = true;
-
-            // send all queued packets
             packets.forEach(packet -> {
                 if (packet != null) {
+                    // send all queued packets
                     mc.player.connection.sendPacket(packet);
                 }
             });
 
-            // we are done, processing packets
-            processing = false;
+            packets.clear();
         }
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        // packet that tells the server to keep the connection alive
         if (event.getPacket() instanceof CPacketKeepAlive) {
-            if (!processing) {
+
+            // make sure it's not one of our packets
+            if (!packets.contains((CPacketKeepAlive) event.getPacket())) {
+
                 // cancel the packet, queue the packet to be sent later
                 event.setCanceled(true);
                 packets.add((CPacketKeepAlive) event.getPacket());

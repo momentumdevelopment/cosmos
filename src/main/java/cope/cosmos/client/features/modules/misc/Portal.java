@@ -34,6 +34,7 @@ public class Portal extends Module {
         // allows you to send messages while in portals
         ((IEntity) mc.player).setInPortal(!screens.getValue() && ((IEntity) mc.player).getInPortal());
 
+        // disable portal rendering
         GuiIngameForge.renderPortal = !effect.getValue();
     }
 
@@ -47,9 +48,12 @@ public class Portal extends Module {
 
     @SubscribeEvent
     public void onSound(PlaySoundEvent event) {
-        // prevents portal ambience sounds from playing
-        if (sounds.getValue() && (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger"))) {
-            event.setResultSound(null);
+        if (sounds.getValue()) {
+
+            // prevents portal ambience sounds from playing
+            if (event.getName().equals("block.portal.ambient") || event.getName().equals("block.portal.travel") || event.getName().equals("block.portal.trigger")) {
+                event.setResultSound(null);
+            }
         }
     }
 

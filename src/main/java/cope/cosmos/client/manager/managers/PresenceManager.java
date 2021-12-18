@@ -121,4 +121,8 @@ public class PresenceManager extends Manager implements Wrapper {
         discordPresence.Discord_Shutdown();
         discordPresence.Discord_ClearPresence();
     }
+
+    public static String[] getPresenceDetails() {
+        return presenceDetails;
+    }
 }

@@ -41,6 +41,7 @@ public class ModuleManager extends Manager {
 			new Surround(),
 			
 			//Misc
+			new AntiAFK(),
 			new AntiAim(),
 			new ChatModifications(),
 			new FakePlayer(),

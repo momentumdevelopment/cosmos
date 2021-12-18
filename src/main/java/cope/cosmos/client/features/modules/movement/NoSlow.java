@@ -43,7 +43,7 @@ public class NoSlow extends Module {
 
     // inventory move
     public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", true).setDescription("Allows you to move around while in GUIs");
-    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", 0.0F, 5.0F, 10.0F, 1).setParent(inventoryMove).setDescription("The speed that the arrow keys should rotate you with");
+    public static Setting<Float> arrowLook = new Setting<>("ArrowLook", 0.0F, 5.0F, 10.0F, 1).setDescription("The speed that the arrow keys should rotate you with").setParent(inventoryMove);
 
     // no slow instances
     public static Setting<Boolean> items = new Setting<>("Items", true).setDescription("Removes the slowdown effect while using items");

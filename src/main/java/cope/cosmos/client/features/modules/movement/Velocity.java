@@ -23,13 +23,15 @@ public class Velocity extends Module {
 		INSTANCE = this;
 	}
 
+	// velocity modifiers
 	public static Setting<Double> horizontal = new Setting<>("Horizontal", 0.0, 0.0, 100.0, 2).setDescription("Horizontal velocity modifier");
 	public static Setting<Double> vertical = new Setting<>("Vertical", 0.0, 0.0, 100.0, 2).setDescription("Vertical velocity modifier");
 
+	// NoPush
 	public static Setting<Boolean> noPush = new Setting<>("NoPush", true).setDescription("Prevents being pushed");
-	public static Setting<Boolean> entities = new Setting<>("Entities", true).setParent(noPush).setDescription("Prevents being pushed by entities");
-	public static Setting<Boolean> blocks = new Setting<>("Blocks", true).setParent(noPush).setDescription("Prevents being pushed out of blocks");
-	public static Setting<Boolean> liquid = new Setting<>("Liquid", true).setParent(noPush).setDescription("Prevents being pushed by liquids");
+	public static Setting<Boolean> entities = new Setting<>("Entities", true).setDescription("Prevents being pushed by entities").setParent(noPush);
+	public static Setting<Boolean> blocks = new Setting<>("Blocks", true).setDescription("Prevents being pushed out of blocks").setParent(noPush);
+	public static Setting<Boolean> liquid = new Setting<>("Liquid", true).setDescription("Prevents being pushed by liquids").setParent(noPush);
 
 	// previous collision reduction
 	private float collisionReduction;

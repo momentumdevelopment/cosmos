@@ -43,9 +43,11 @@ public class Timer implements Wrapper {
      */
     public boolean passedTime(long time, Format format) {
         switch (format) {
-            case SYSTEM:
+            case MILLISECONDS:
             default:
                 return (System.currentTimeMillis() - milliseconds) >= time;
+            case SECONDS:
+                return (System.currentTimeMillis() - milliseconds) >= (time * 1000);
             case TICKS:
                 return ticks >= time;
         }
@@ -70,9 +72,12 @@ public class Timer implements Wrapper {
      */
     public void setTime(long in, Format format) {
         switch (format) {
-            case SYSTEM:
+            case MILLISECONDS:
             default:
                 milliseconds = System.currentTimeMillis() - in;
+                break;
+            case SECONDS:
+                milliseconds = System.currentTimeMillis() - (in * 1000);
                 break;
             case TICKS:
                 ticks = in;
@@ -93,7 +98,12 @@ public class Timer implements Wrapper {
         /**
          * Time in milliseconds
          */
-        SYSTEM,
+        MILLISECONDS,
+
+        /**
+         * Time in seconds
+         */
+        SECONDS,
 
         /**
          * Time in ticks

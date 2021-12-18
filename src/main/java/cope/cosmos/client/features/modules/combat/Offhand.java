@@ -15,6 +15,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
+/**
+ * @author linustouchtips
+ * @since 11/20/2021
+ */
 @SuppressWarnings("unused")
 public class Offhand extends Module {
     public static Offhand INSTANCE;
@@ -37,9 +41,9 @@ public class Offhand extends Module {
     public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
 
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause and use a totem");
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", false).setParent(pause).setDescription("When in liquid");
-    public static Setting<Boolean> pauseAir = new Setting<>("Air", true).setParent(pause).setDescription("When falling or flying");
-    public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", true).setParent(pause).setDescription("When elytra flying");
+    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", false).setDescription("When in liquid").setParent(pause);
+    public static Setting<Boolean> pauseAir = new Setting<>("Air", true).setDescription("When falling or flying").setParent(pause);
+    public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", true).setDescription("When elytra flying").setParent(pause);
 
     // offhand stage
     private Stage stage = Stage.IDLE;
@@ -124,7 +128,7 @@ public class Offhand extends Module {
             }
 
             // make sure we've passed our delay and we're not already holding the item
-            if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.SYSTEM) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
+            if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.MILLISECONDS) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
                 // we are now picking up the item
                 stage = Stage.PICKUP_ITEM;
 
@@ -185,7 +189,7 @@ public class Offhand extends Module {
             }
 
             if (interact.getValue().equals(Interact.STRICT)) {
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.SYSTEM) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
+                if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.MILLISECONDS) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
                     // we are now moving the item to the offhand
                     stage = Stage.MOVE_TO_OFFHAND;
 
@@ -207,7 +211,7 @@ public class Offhand extends Module {
                     }
                 }
 
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.SYSTEM) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
+                if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.MILLISECONDS) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
                     // we are now swapping the old item
                     stage = Stage.SWAP_OLD;
 
@@ -241,6 +245,7 @@ public class Offhand extends Module {
     }
 
     public enum Stage {
+
         /**
          * Stage where no switching occurs
          */
@@ -263,6 +268,7 @@ public class Offhand extends Module {
     }
 
     public enum OffhandItem {
+
         /**
          * Switch to an End Crystal
          */
@@ -284,12 +290,17 @@ public class Offhand extends Module {
             this.item = item;
         }
 
+        /**
+         * Gets the item associated with the offhand
+         * @return The item associated with the offhand
+         */
         public Item getItem() {
             return item;
         }
     }
 
     public enum Interact {
+
         /**
          * Interacts at all times
          */
@@ -307,6 +318,7 @@ public class Offhand extends Module {
     }
 
     public enum Gapple {
+
         /**
          * Switches the offhand to a gapple when right clicking
          */

@@ -119,9 +119,10 @@ public class Criticals extends Module {
 
                 // destroying a vehicle takes 5 hits -> regardless of damage
                 if (EntityUtil.isVehicleMob(attackEntity)) {
+
                     // attack 5 times
-                    for (int i = 0; i < 5; i++) {
-                        if (mc.getConnection() != null) {
+                    if (mc.getConnection() != null) {
+                        for (int i = 0; i < 5; i++) {
                             mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
                             mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation());
                         }
@@ -143,7 +144,7 @@ public class Criticals extends Module {
                         }
 
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
-                        if (criticalTimer.passedTime(delay.getValue().longValue(), Format.SYSTEM)) {
+                        if (criticalTimer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
                             if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
