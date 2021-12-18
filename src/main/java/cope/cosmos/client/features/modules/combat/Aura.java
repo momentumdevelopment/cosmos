@@ -164,7 +164,7 @@ public class Aura extends Module {
             for (Entity entity : mc.world.loadedEntityList) {
 
                 // make sure the entity is valid to attack
-                if (entity.isDead || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                if (entity == null || entity == mc.player || entity.isDead || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 
@@ -172,22 +172,10 @@ public class Aura extends Module {
                 double distance = mc.player.getDistance(entity);
 
                 // vector to trace to
-                double traceOffset = 0;
-
-                // scale by bone
-                switch (rotateBone.getValue()) {
-                    case EYES:
-                        traceOffset = auraTarget.getEyeHeight();
-                        break;
-                    case BODY:
-                        traceOffset = (auraTarget.height / 2);
-                        break;
-                    case FEET:
-                        break;
-                }
+                double traceOffset = calculateTraceOffset(entity);
 
                 // check if it's in range
-                boolean wallAttack = !RaytraceUtil.raytraceEntity(auraTarget, traceOffset) && raytrace.getValue();
+                boolean wallAttack = !RaytraceUtil.raytraceEntity(entity, traceOffset) && raytrace.getValue();
                 if (distance > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     continue;
                 }
@@ -238,6 +226,14 @@ public class Aura extends Module {
 
             // if we found a target to attack, then attack
             if (auraTarget != null) {
+
+                // check our distance to the entity as it could have changed since we last calculated our target
+                // we also check if the Aura target is dead, which will also make the target invalid
+                boolean wallAttack = !RaytraceUtil.raytraceEntity(auraTarget, calculateTraceOffset(auraTarget)) && raytrace.getValue();
+                if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
+                    auraTarget = null; // set our target to null, as it is now invalid
+                    return;
+                }
 
                 // switch to our weapon
                 InventoryUtil.switchToSlot(weapon.getValue().getItem(), autoSwitch.getValue());
@@ -498,6 +494,25 @@ public class Aura extends Module {
             // we just switched, so reset our time
             switchTimer.resetTime();
         }
+    }
+
+    private double calculateTraceOffset(Entity entity) {
+        // vector to trace to
+        double traceOffset = 0;
+
+        // scale by bone
+        switch (rotateBone.getValue()) {
+            case EYES:
+                traceOffset = entity.getEyeHeight();
+                break;
+            case BODY:
+                traceOffset = (entity.height / 2);
+                break;
+            case FEET:
+                break;
+        }
+
+        return traceOffset;
     }
 
     public enum Delay {
