@@ -181,6 +181,8 @@ public class Scaffold extends Module {
         }
     }
 
+    // @todo this was originally for testing, but i have to look into how to extend blocks for scaffold in stricter settings
+    // if you want to remove it/rewrite it, go ahead. its gonna end up getting rewritten by me anyway
     private void addPlacePositions(BlockPos pos) {
         ArrayList<BlockPos> blocks = new ArrayList<>();
         BlockPos blockPos = new BlockPos(pos);
