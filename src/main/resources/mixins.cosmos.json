@@ -44,6 +44,7 @@
       "accessor.IMinecraft",
       "accessor.IPlayerControllerMP",
       "accessor.IRenderGlobal",
+      "accessor.IRenderManager",
       "accessor.ISession",
       "accessor.IShaderGroup",
       "accessor.ISPacketEntityVelocity",

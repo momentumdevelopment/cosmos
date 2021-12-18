@@ -10,9 +10,11 @@ import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.util.world.InterpolationUtil;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -39,6 +41,7 @@ public class Nametags extends Module {
     public static Setting<Boolean> totemPops = new Setting<>("TotemPops", true).setDescription("Displays the number of totems that the player popped");
 
     public static Setting<Boolean> background = new Setting<>("Background", true).setDescription("Displays a background behind the nametags");
+    public static Setting<Double> scale = new Setting<>("Scale", 0.1, 0.3, 3.0, 1).setDescription("The scaling of the nametag");
 
     // map of all nametag info
     private Map<EntityPlayer, String> playerInfoMap = new ConcurrentHashMap<>();
@@ -54,9 +57,24 @@ public class Nametags extends Module {
         if (mc.renderEngine != null && mc.getRenderManager().options != null) {
             playerInfoMap.forEach((player, info) -> {
                 if (mc.getRenderViewEntity() != null) {
+                    // get our render offsets.
+                    double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
+                    double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
+                    double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
+
+                    // interpolate the player's position. if we were to use static positions, the nametags above the player would jitter and would not look good.
+                    Vec3d interpolatedPosition = InterpolationUtil.getInterpolatedPos(player, mc.getRenderPartialTicks());
+
                     // width of the background
                     int width = FontUtil.getStringWidth(info);
                     float halfWidth = width / 2F;
+
+                    // get the distance from the current render view entity to the player we are rendering the nametag of.
+                    double distance = mc.getRenderViewEntity().getDistance(interpolatedPosition.x, interpolatedPosition.y, interpolatedPosition.z);
+
+                    // figure out the scaling from the player.
+                    // we have a static value because if we get too close to the player, the nametag will be so small you are unable to see it.
+                    double scaling = Math.max(scale.getValue() * 3, scale.getValue() * distance) / 50;
 
                     // offset the background and text by player view
                     GlStateManager.pushMatrix();
@@ -64,10 +82,10 @@ public class Nametags extends Module {
                     GlStateManager.enablePolygonOffset();
                     GlStateManager.doPolygonOffset(1, -1500000);
                     GlStateManager.disableLighting();
-                    GlStateManager.translate(player.posX - ((IRenderManager) mc.getRenderManager()).getRenderX(), (player.posY + player.height) - ((IRenderManager) mc.getRenderManager()).getRenderY() + (player.isSneaking() ? 0 : 0.08) + 2.05, player.posZ - ((IRenderManager) mc.getRenderManager()).getRenderZ());
+                    GlStateManager.translate(interpolatedPosition.x - renderX, ((interpolatedPosition.y + player.height) + (player.isSneaking() ? 0.05 : 0.08)) - renderY, interpolatedPosition.z - renderZ);
                     GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0, 1, 0);
                     GlStateManager.rotate(mc.getRenderManager().playerViewX, (mc.gameSettings.thirdPersonView == 2) ? -1 : 1, 0, 0);
-                    // GlStateManager.scale(-0.02, -0.02, 0.02);
+                    GlStateManager.scale(-scaling, -scaling, scaling);
                     GlStateManager.disableDepth();
                     GlStateManager.enableBlend();
 
@@ -75,7 +93,7 @@ public class Nametags extends Module {
                         GlStateManager.enableBlend();
 
                         // draw the background
-                        RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() + 1, width + 3, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
+                        RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() + 1, width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
 
                         GlStateManager.disableBlend();
                     }
@@ -152,7 +170,10 @@ public class Nametags extends Module {
 
                     // add the player's totem pops
                     if (totemPops.getValue()) {
-                        playerInfo.append(getCosmos().getPopManager().getTotemPops(player)).append(" ").append(TextFormatting.RESET);
+                        int pops = getCosmos().getPopManager().getTotemPops(player);
+                        if (pops > 0) {
+                            playerInfo.append("-").append(pops).append(" ").append(TextFormatting.RESET);
+                        }
                     }
 
                     // add it to the map of the player info
