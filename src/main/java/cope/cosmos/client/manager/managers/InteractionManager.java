@@ -8,6 +8,7 @@ import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
@@ -89,7 +90,7 @@ public class InteractionManager extends Manager implements Wrapper {
             }
 
             // make sure the offset is empty
-            if (!mc.world.getBlockState(position).getMaterial().isReplaceable()) {
+            if (mc.world.getBlockState(directionOffset).getMaterial().isReplaceable()) {
                 continue;
             }
 
