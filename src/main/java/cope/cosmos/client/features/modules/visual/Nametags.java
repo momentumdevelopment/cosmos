@@ -63,14 +63,14 @@ public class Nametags extends Module {
                     double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
 
                     // interpolate the player's position. if we were to use static positions, the nametags above the player would jitter and would not look good.
-                    Vec3d pos = InterpolationUtil.getInterpolatedPos(player, mc.getRenderPartialTicks());
+                    Vec3d interpolatedPosition = InterpolationUtil.getInterpolatedPos(player, mc.getRenderPartialTicks());
 
                     // width of the background
                     int width = FontUtil.getStringWidth(info);
                     float halfWidth = width / 2F;
 
                     // get the distance from the current render view entity to the player we are rendering the nametag of.
-                    double distance = mc.getRenderViewEntity().getDistance(pos.x, pos.y, pos.z);
+                    double distance = mc.getRenderViewEntity().getDistance(interpolatedPosition.x, interpolatedPosition.y, interpolatedPosition.z);
 
                     // figure out the scaling from the player.
                     // we have a static value because if we get too close to the player, the nametag will be so small you are unable to see it.
@@ -82,7 +82,7 @@ public class Nametags extends Module {
                     GlStateManager.enablePolygonOffset();
                     GlStateManager.doPolygonOffset(1, -1500000);
                     GlStateManager.disableLighting();
-                    GlStateManager.translate(pos.x - renderX, ((pos.y + player.height) + (player.isSneaking() ? 0.05 : 0.08)) - renderY, pos.z - renderZ);
+                    GlStateManager.translate(interpolatedPosition.x - renderX, ((interpolatedPosition.y + player.height) + (player.isSneaking() ? 0.05 : 0.08)) - renderY, interpolatedPosition.z - renderZ);
                     GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0, 1, 0);
                     GlStateManager.rotate(mc.getRenderManager().playerViewX, (mc.gameSettings.thirdPersonView == 2) ? -1 : 1, 0, 0);
                     GlStateManager.scale(-scaling, -scaling, scaling);
