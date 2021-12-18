@@ -15,6 +15,7 @@ import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.EntityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
@@ -99,8 +100,8 @@ public class Criticals extends Module {
             // entity we attacked, if there was one
             Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
 
-            // pause in liquid, webs, and air, since strict anticheats will flag as irregular movement
-            if (PlayerUtil.isInLiquid() || mc.player.fallDistance >= 3 || ((IEntity) mc.player).getInWeb()) {
+            // pause in liquid, ladders, blindness, webs, and air, since strict anticheats will flag as irregular movement
+            if (PlayerUtil.isInLiquid() || mc.player.isRiding() || mc.player.isPotionActive(MobEffects.BLINDNESS) || mc.player.isOnLadder() || mc.player.fallDistance >= 3 || ((IEntity) mc.player).getInWeb()) {
                 return;
             }
 

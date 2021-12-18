@@ -10,7 +10,10 @@ import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since 08/22/2021
+ */
 public class Notifier extends Module {
     public static Notifier INSTANCE;
 
@@ -24,22 +27,40 @@ public class Notifier extends Module {
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
-        if (mc.player.getDistance(event.getPopEntity()) < 10 && popNotify.getValue()) {
-            ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + event.getPopEntity().getName() + TextFormatting.RESET + " has popped " + Cosmos.INSTANCE.getPopManager().getTotemPops(event.getPopEntity()) + " totems!");
+        if (popNotify.getValue()) {
+            // if the player is in range
+            if (mc.player.getDistance(event.getPopEntity()) < 10) {
+
+                // formatted message for the pop notification
+                String popMessage = TextFormatting.DARK_PURPLE + event.getPopEntity().getName() + TextFormatting.RESET + " has popped " + getCosmos().getPopManager().getTotemPops(event.getPopEntity()) + " totems!";
+
+                // send notification
+                ChatUtil.sendMessageWithOptionalDeletion(TextFormatting.DARK_PURPLE + "[Cosmos] " + TextFormatting.RESET + popMessage, 101);
+            }
         }
     }
 
     @SubscribeEvent
     public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN) {
-            ChatUtil.sendModuleEnableMessage(event.getModule());
+        if (enableNotify.getValue()) {
+            // make sure the module isn't hidden
+            if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
+
+                // send an enable notification
+                ChatUtil.sendModuleEnableMessage(event.getModule());
+            }
         }
     }
 
     @SubscribeEvent
     public void onModuleDisable(ModuleToggleEvent.ModuleDisableEvent event) {
-        if (enableNotify.getValue() && event.getModule().getCategory() != Category.HIDDEN) {
-            ChatUtil.sendModuleDisableMessage(event.getModule());
+        if (enableNotify.getValue()) {
+            // make sure the module isn't hidden
+            if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
+
+                // send an disable notification
+                ChatUtil.sendModuleDisableMessage(event.getModule());
+            }
         }
     }
 }

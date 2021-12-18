@@ -40,13 +40,15 @@ public class Sprint extends Module {
         }
 
         // update player sprint state
-        switch (mode.getValue()) {
-            case DIRECTIONAL:
-                mc.player.setSprinting(MotionUtil.isMoving());
-                break;
-            case NORMAL:
-                mc.player.setSprinting(MotionUtil.isMoving() && !mc.player.collidedHorizontally && mc.gameSettings.keyBindForward.isKeyDown());
-                break;
+        if (MotionUtil.isMoving()) {
+            switch (mode.getValue()) {
+                case DIRECTIONAL:
+                    mc.player.setSprinting(true);
+                    break;
+                case NORMAL:
+                    mc.player.setSprinting(!mc.player.collidedHorizontally && mc.gameSettings.keyBindForward.isKeyDown());
+                    break;
+            }
         }
     }
 

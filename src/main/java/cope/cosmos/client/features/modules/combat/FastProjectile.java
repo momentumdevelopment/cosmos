@@ -80,13 +80,13 @@ public class FastProjectile extends Module {
 
                         // send packets
                         if (projectileRandom.nextBoolean()) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
+                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY + 5, mc.player.posZ + (cos * 100), false));
                             mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX - (sin * 100), mc.player.posY, mc.player.posZ - (cos * 100), true));
                         }
 
                         else {
                             mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX - (sin * 100), mc.player.posY, mc.player.posZ - (cos * 100), true));
-                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY, mc.player.posZ + (cos * 100), false));
+                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + (sin * 100), mc.player.posY + 5, mc.player.posZ + (cos * 100), false));
                         }
                     }
 

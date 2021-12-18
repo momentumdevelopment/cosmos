@@ -60,23 +60,25 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
-		if (nullCheck()) {
-			ModuleManager.getAllModules().forEach(mod -> {
+		ModuleManager.getAllModules().forEach(mod -> {
+			if (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) {
 				try {
 					mod.onTick();
 				} catch (Exception exception) {
 					exception.printStackTrace();
 				}
-			});
+			}
+		});
 
-			getCosmos().getManagers().forEach(manager -> {
-				try {
+		getCosmos().getManagers().forEach(manager -> {
+			try {
+				if (nullCheck()) {
 					manager.onTick();
-				} catch (Exception exception) {
-					exception.printStackTrace();
 				}
-			});
-		}
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
+		});
 	}
 	
 	@SubscribeEvent
@@ -231,5 +233,29 @@ public class EventManager extends Manager implements Wrapper {
 	public void onDeath(LivingDeathEvent event) {
 		DeathEvent deathEvent = new DeathEvent(event.getEntity());
 		Cosmos.EVENT_BUS.post(deathEvent);
+	}
+
+	@SubscribeEvent
+	public void onRenderBlockOverlay(RenderBlockOverlayEvent event) {
+		RenderOverlayEvent renderOverlayEvent = new RenderOverlayEvent(event.getOverlayType());
+		Cosmos.EVENT_BUS.post(renderOverlayEvent);
+
+		if (renderOverlayEvent.isCanceled()) {
+			event.setCanceled(true);
+		}
+	}
+
+	@SubscribeEvent
+	public void onFogDensity(EntityViewRenderEvent.FogDensity event) {
+		RenderFogEvent renderFogEvent = new RenderFogEvent(event.getDensity());
+		Cosmos.EVENT_BUS.post(renderFogEvent);
+
+		if (renderFogEvent.isCanceled()) {
+			event.setCanceled(true);
+		}
+
+		else {
+			event.setDensity(renderFogEvent.getDensity());
+		}
 	}
 }

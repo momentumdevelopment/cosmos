@@ -7,8 +7,8 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.MobEffects;
+import net.minecraft.network.play.server.SPacketAnimation;
 import net.minecraft.network.play.server.SPacketParticles;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderBlockOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -49,6 +49,7 @@ public class NoRender extends Module {
     public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true).setDescription("Prevents flying wither skulls from rendering");
     public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
     public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
+    public static Setting<Boolean> swing = new Setting<>("Swing", false).setDescription("Prevents other player's swing animations from rendering");
 
     @Override
     public void onUpdate() {
@@ -75,7 +76,7 @@ public class NoRender extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderBlockOverlay(RenderBlockOverlayEvent event) {
+    public void onRenderOverlay(RenderOverlayEvent event) {
         if (overlays.getValue()) {
             // cancels fire hud overlay
             if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.FIRE) && overlayFire.getValue()) {
@@ -167,13 +168,21 @@ public class NoRender extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        // packet for particle spawns
         if (event.getPacket() instanceof SPacketParticles) {
-
             if (particles.getValue()) {
                 // cancels particles from rendering
                 if (((SPacketParticles) event.getPacket()).getParticleCount() > 200) {
                     event.setCanceled(true);
                 }
+            }
+        }
+
+        // packet for player swings
+        if (event.getPacket() instanceof SPacketAnimation) {
+            if (swing.getValue()) {
+                // prevent server from rendering swing animations
+                event.setCanceled(true);
             }
         }
     }
@@ -195,7 +204,7 @@ public class NoRender extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderFog(EntityViewRenderEvent.FogDensity event) {
+    public void onRenderFog(RenderFogEvent event) {
         // cancels fog from rendering
         if (fog.getValue()) {
 
@@ -205,8 +214,13 @@ public class NoRender extends Module {
             }
 
             // sets the density of the fog
-            event.setDensity(fogDensity.getValue().floatValue());
-            event.setCanceled(true);
+            if (fogDensity.getValue() > 0) {
+                event.setDensity(fogDensity.getValue().floatValue());
+            }
+
+            else {
+                event.setCanceled(true);
+            }
         }
     }
 

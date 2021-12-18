@@ -18,6 +18,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 @SuppressWarnings("unused")
 public class ChatModifications extends Module {
     public static ChatModifications INSTANCE;
@@ -40,20 +44,32 @@ public class ChatModifications extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        // packet for chat messages
         if (event.getPacket() instanceof CPacketChatMessage) {
-            if (((CPacketChatMessage) event.getPacket()).getMessage().startsWith("/") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("!") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("$") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("?") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(".") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(","))
+            // make sure the message is not a command
+            if (((CPacketChatMessage) event.getPacket()).getMessage().startsWith("/") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("!") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("$") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("?") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(".") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(",")) {
                 return;
+            }
 
-            ((ICPacketChatMessage) event.getPacket()).setMessage((colored.getValue() ? "> " : "") + ((CPacketChatMessage) event.getPacket()).getMessage() + (suffix.getValue() ? " \u23d0 " + ChatUtil.toUnicode(Cosmos.NAME) : ""));
+            // reformat message
+            String formattedMessage = (colored.getValue() ? "> " : "") + ((CPacketChatMessage) event.getPacket()).getMessage() + (suffix.getValue() ? " \u23d0 " + ChatUtil.toUnicode(Cosmos.NAME) : "");
+
+            // update the message
+            ((ICPacketChatMessage) event.getPacket()).setMessage(formattedMessage);
         }
     }
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-        if (nullCheck() && event.getPacket() instanceof SPacketChat) {
+        // packet for server chat messages
+        if (event.getPacket() instanceof SPacketChat) {
+
+            // get the text
             if (((SPacketChat) event.getPacket()).getChatComponent() instanceof TextComponentString && !((SPacketChat) event.getPacket()).getType().equals(ChatType.GAME_INFO)) {
+                // the chat message
                 TextComponentString component = (TextComponentString) ((SPacketChat) event.getPacket()).getChatComponent();
 
+                // timestamp
                 String formattedTime = "";
                 switch (time.getValue()) {
                     case NA:
@@ -65,6 +81,7 @@ public class ChatModifications extends Module {
                 }
 
                 if (component.getText() != null) {
+                    // timestamp formatted
                     String formattedText = (!time.getValue().equals(Time.NONE) ? TextFormatting.GRAY + "[" + formattedTime + "] " + TextFormatting.RESET : "") + (prefix.getValue() ? ChatUtil.getPrefix() : "") + component.getText();
 
                     /*
@@ -77,6 +94,7 @@ public class ChatModifications extends Module {
                     }
                      */
 
+                    // replace the chat message
                     ((ITextComponentString) component).setText(formattedText);
                 }
             }
@@ -84,6 +102,20 @@ public class ChatModifications extends Module {
     }
 
     public enum Time {
-        NA, EU, NONE
+
+        /**
+         * Display NA time
+         */
+        NA,
+
+        /**
+         * Display EU time
+         */
+        EU,
+
+        /**
+         * No timestamps
+         */
+        NONE
     }
 }

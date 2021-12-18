@@ -1,123 +1,344 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class HoleManager extends Manager implements Wrapper {
+/**
+ * @author linustouchtips
+ * @since 12/17/2021
+ */
+public class HoleManager extends Manager {
 
+    // list of holes
     private List<Hole> holes = new CopyOnWriteArrayList<>();
 
     public HoleManager() {
         super("HoleManager", "Manages all nearby holes");
     }
 
+    /**
+     * Standard Holes, player can stand in them to prevent large amounts of explosion damage
+     */
     public static final Vec3i[] HOLE = {
             new Vec3i(1, 0, 0),
             new Vec3i(-1, 0, 0),
             new Vec3i(0, 0, 1),
+            new Vec3i(0, 0, -1)
+    };
+
+    /**
+     * Double X Holes, player can stand in the middle of the blocks to prevent placements on these blocks
+     */
+    public static final Vec3i[] DOUBLE_HOLE_X = {
+            new Vec3i(2, 0, 0),
+            new Vec3i(-1, 0, 0),
+            new Vec3i(0, 0, 1),
+            new Vec3i(1, 0, 1),
             new Vec3i(0, 0, -1),
+            new Vec3i(1, 0, -1)
+    };
+
+    /**
+     * Double Z Holes, player can stand in the middle of the blocks to prevent placements on these blocks
+     */
+    public static final Vec3i[] DOUBLE_HOLE_Z = {
+            new Vec3i(1, 0, 0),
+            new Vec3i(1, 0, 1),
+            new Vec3i(-1, 0, 0),
+            new Vec3i(-1, 0, 1),
+            new Vec3i(0, 0, 2),
+            new Vec3i(0, 0, -1)
+    };
+
+    /**
+     * Quad Holes, player can stand in the middle of four blocks to prevent placements on these blocks
+     */
+    public static final Vec3i[] QUAD_HOLE = {
+            new Vec3i(2, 0, 0),
+            new Vec3i(2, 0, 1),
+            new Vec3i(1, 0, 2),
+            new Vec3i(0, 0, 2),
+            new Vec3i(-1, 0, 0),
+            new Vec3i(-1, 0, 1),
+            new Vec3i(0, 0, -1),
+            new Vec3i(1, 0, -1),
     };
 
     @Override
     public void onThread() {
+        // search for holes on our client thread, process is too CPU intensive to be run on mc thread
         holes = searchHoles();
     }
 
+    /**
+     * Search nearby holes
+     * @return List of nearby {@link Hole} Holes
+     */
     public List<Hole> searchHoles() {
+        // list of our found holes
         List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
-        for (BlockPos blockPos : BlockUtil.getSurroundingBlocks(mc.player, 10, false)) {
-            // number of sides that are resistant, unbreakable, or air
-            int resistantSides = 0;
-            int unbreakableSides = 0;
-            int airSides = 0;
+        // boolean to keep track of whether or not the hole is able to be entered
+        boolean standable = false;
 
-            // air side
-            Side airSide = null;
+        // search all blocks in range
+        for (BlockPos blockPosition : BlockUtil.getSurroundingBlocks(mc.player, 10, false)) {
 
-            if (BlockUtil.isBreakable(blockPos) && (mc.player.dimension == -1 ? (blockPos.getY() == 0 || blockPos.getY() == 127) : blockPos.getY() == 0)) {
-                searchedHoles.add(new Hole(blockPos, Type.VOID));
+            // void holes
+            if (BlockUtil.isBreakable(blockPosition) && (mc.player.dimension == -1 ? (blockPosition.getY() == 0 || blockPosition.getY() == 127) : blockPosition.getY() == 0)) {
+                searchedHoles.add(new Hole(blockPosition, Type.VOID));
                 continue;
             }
 
-            // must be an air block & be able to fit a player & have a block below it
-            if (mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(blockPos.up()).getBlock().equals(Blocks.AIR) && !mc.world.getBlockState(blockPos.down()).getBlock().equals(Blocks.AIR)) {
-                // count sides
-                for (Vec3i side : HOLE) {
-                    if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.RESISTANT)) {
-                        resistantSides++;
+            // check air sides
+            if (mc.world.getBlockState(blockPosition).getMaterial().isReplaceable()) {
+
+                // check lower positions
+                if (!mc.world.getBlockState(blockPosition.add(0, -1, 0)).getMaterial().isReplaceable()) {
+
+                    // check above position
+                    if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable()) {
+                        standable = true;
                     }
 
-                    else if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.UNBREAKABLE)) {
-                        unbreakableSides++;
-                    }
+                    // number of sides that are resistant or unbreakable
+                    int resistantSides = 0;
+                    int unbreakableSides = 0;
 
-                    else if (BlockUtil.getResistance(blockPos.add(side)).equals(Resistance.REPLACEABLE)) {
-                        airSides++;
+                    // check all offsets
+                    for (Vec3i holeSide : HOLE) {
 
-                        EnumFacing facing = getFacingFromVector(side);
+                        // offset position by hole side
+                        BlockPos holeOffset = blockPosition.add(holeSide);
 
-                        if (!facing.equals(EnumFacing.SOUTH) && !facing.equals(EnumFacing.WEST)) {
-                            airSide = new Side(blockPos.add(side), facing);
-                        }
-                    }
-                }
-
-                // too many air sides
-                if (airSides > 1) {
-                    continue;
-                }
-
-                // reg holes
-                if (unbreakableSides == 4) {
-                    searchedHoles.add(new Hole(blockPos, Type.BEDROCK));
-                }
-
-                else if (resistantSides == 4) {
-                    searchedHoles.add(new Hole(blockPos, Type.OBSIDIAN));
-                }
-
-                else if (unbreakableSides + resistantSides == 4) {
-                    searchedHoles.add(new Hole(blockPos, Type.MIXED));
-                }
-
-                // double holes
-                if (airSide != null) {
-                    for (Vec3i side : HOLE) {
-                        if (getFacingFromVector(side).equals(airSide.getFacing().getOpposite())) {
-                            continue;
-                        }
-
-                        if (BlockUtil.getResistance(airSide.getSide().add(side)).equals(Resistance.RESISTANT)) {
+                        // add resistant side
+                        if (BlockUtil.getResistance(holeOffset).equals(Resistance.RESISTANT)) {
                             resistantSides++;
                         }
 
-                        else if (BlockUtil.getResistance(airSide.getSide().add(side)).equals(Resistance.UNBREAKABLE)) {
+                        // add unbreakable side
+                        else if (BlockUtil.getResistance(holeOffset).equals(Resistance.UNBREAKABLE)) {
                             unbreakableSides++;
+                        }
+
+                        else {
+                            resistantSides = 0;
+                            unbreakableSides = 0;
+                            break;
                         }
                     }
 
-                    if (!mc.world.getBlockState(airSide.getSide().down()).getBlock().equals(Blocks.AIR) && mc.world.getBlockState(airSide.getSide().up()).getBlock().equals(Blocks.AIR)) {
-                        if (unbreakableSides == 6) {
-                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEBEDROCKX : Type.DOUBLEBEDROCKZ));
+                    // reg holes
+                    if (standable) {
+                        // all unbreakable = bedrock hole
+                        if (unbreakableSides == HOLE.length) {
+                            searchedHoles.add(new Hole(blockPosition, Type.BEDROCK));
+                            continue;
                         }
 
-                        else if (resistantSides == 6) {
-                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEOBSIDIANX : Type.DOUBLEOBSIDIANZ));
+                        // all resistant = obsidian hole
+                        else if (resistantSides == HOLE.length) {
+                            searchedHoles.add(new Hole(blockPosition, Type.OBSIDIAN));
+                            continue;
                         }
 
-                        else if (unbreakableSides + resistantSides == 6) {
-                            searchedHoles.add(new Hole(blockPos, airSide.getFacing().equals(EnumFacing.EAST) ? Type.DOUBLEMIXEDX : Type.DOUBLEMIXEDZ));
+                        // resistant + unbreakable = mixed hole
+                        else if (unbreakableSides + resistantSides == HOLE.length) {
+                            searchedHoles.add(new Hole(blockPosition, Type.MIXED));
+                            continue;
+                        }
+
+                        // we didn't find a hole, reset our values and move onto next check
+                        else {
+                            resistantSides = 0;
+                            unbreakableSides = 0;
+                        }
+                    }
+
+                    // check air sides
+                    if (mc.world.getBlockState(blockPosition.add(1, 0, 0)).getMaterial().isReplaceable()) {
+
+                        // check lower positions
+                        if (!mc.world.getBlockState(blockPosition.add(1, -1, 0)).getMaterial().isReplaceable()) {
+
+                            // check above position
+                            if (mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable()) {
+                                standable = true;
+                            }
+
+                            // check all offsets
+                            for (Vec3i holeSide : DOUBLE_HOLE_X) {
+
+                                // offset position by hole side
+                                BlockPos holeOffset = blockPosition.add(holeSide);
+
+                                // add resistant side
+                                if (BlockUtil.getResistance(holeOffset).equals(Resistance.RESISTANT)) {
+                                    resistantSides++;
+                                }
+
+                                // add unbreakable side
+                                else if (BlockUtil.getResistance(holeOffset).equals(Resistance.UNBREAKABLE)) {
+                                    unbreakableSides++;
+                                }
+
+                                else {
+                                    resistantSides = 0;
+                                    unbreakableSides = 0;
+                                    break;
+                                }
+                            }
+
+                            // double holes
+                            if (standable) {
+                                // all unbreakable = bedrock hole
+                                if (unbreakableSides == DOUBLE_HOLE_X.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_BEDROCK_X));
+                                    continue;
+                                }
+
+                                // all resistant = obsidian hole
+                                else if (resistantSides == DOUBLE_HOLE_X.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_OBSIDIAN_X));
+                                    continue;
+                                }
+
+                                // resistant + unbreakable = mixed hole
+                                else if (unbreakableSides + resistantSides == DOUBLE_HOLE_X.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_MIXED_X));
+                                    continue;
+                                }
+
+                                // we didn't find a hole, reset our values and move onto next check
+                                else {
+                                    resistantSides = 0;
+                                    unbreakableSides = 0;
+                                }
+                            }
+                        }
+                    }
+
+                    // check air sides
+                    if (mc.world.getBlockState(blockPosition.add(0, 0, 1)).getMaterial().isReplaceable()) {
+
+                        // check lower positions
+                        if (!mc.world.getBlockState(blockPosition.add(0, -1, 1)).getMaterial().isReplaceable()) {
+
+                            // check above position
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable()) {
+                                standable = true;
+                            }
+
+                            // check all offsets
+                            for (Vec3i holeSide : DOUBLE_HOLE_Z) {
+
+                                // offset position by hole side
+                                BlockPos holeOffset = blockPosition.add(holeSide);
+
+                                // add resistant side
+                                if (BlockUtil.getResistance(holeOffset).equals(Resistance.RESISTANT)) {
+                                    resistantSides++;
+                                }
+
+                                // add unbreakable side
+                                else if (BlockUtil.getResistance(holeOffset).equals(Resistance.UNBREAKABLE)) {
+                                    unbreakableSides++;
+                                }
+
+                                else {
+                                    resistantSides = 0;
+                                    unbreakableSides = 0;
+                                    break;
+                                }
+                            }
+
+                            // double holes
+                            if (standable) {
+                                // all unbreakable = bedrock hole
+                                if (unbreakableSides == DOUBLE_HOLE_Z.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_BEDROCK_Z));
+                                    continue;
+                                }
+
+                                // all resistant = obsidian hole
+                                else if (resistantSides == DOUBLE_HOLE_Z.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_OBSIDIAN_Z));
+                                    continue;
+                                }
+
+                                // resistant + unbreakable = mixed hole
+                                else if (unbreakableSides + resistantSides == DOUBLE_HOLE_Z.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_MIXED_Z));
+                                    continue;
+                                }
+
+                                // we didn't find a hole, reset our values and move onto next check
+                                else {
+                                    resistantSides = 0;
+                                    unbreakableSides = 0;
+                                }
+                            }
+                        }
+                    }
+
+                    // check air sides
+                    if (mc.world.getBlockState(blockPosition.add(0, 0, 1)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(1, 0, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(1, 0, 1)).getMaterial().isReplaceable()) {
+
+                        // check lower positions
+                        if (!mc.world.getBlockState(blockPosition.add(0, -1, 1)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 0)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 1)).getMaterial().isReplaceable()) {
+
+                            // check above positions
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(1, 1, 1)).getMaterial().isReplaceable()) {
+                                standable = true;
+                            }
+
+                            // check all offsets
+                            for (Vec3i holeSide : QUAD_HOLE) {
+
+                                // offset position by hole side
+                                BlockPos holeOffset = blockPosition.add(holeSide);
+
+                                // add resistant side
+                                if (BlockUtil.getResistance(holeOffset).equals(Resistance.RESISTANT)) {
+                                    resistantSides++;
+                                }
+
+                                // add unbreakable side
+                                else if (BlockUtil.getResistance(holeOffset).equals(Resistance.UNBREAKABLE)) {
+                                    unbreakableSides++;
+                                }
+
+                                else {
+                                    resistantSides = 0;
+                                    unbreakableSides = 0;
+                                    break;
+                                }
+                            }
+
+                            // quad holes
+                            if (standable) {
+                                // all unbreakable = bedrock hole
+                                if (unbreakableSides == QUAD_HOLE.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.QUAD_BEDROCK));
+                                }
+
+                                // all resistant = obsidian hole
+                                else if (resistantSides == QUAD_HOLE.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.QUAD_OBSIDIAN));
+                                }
+
+                                // resistant + unbreakable = mixed hole
+                                else if (unbreakableSides + resistantSides == QUAD_HOLE.length) {
+                                    searchedHoles.add(new Hole(blockPosition, Type.QUAD_MIXED));
+                                }
+                            }
                         }
                     }
                 }
@@ -127,30 +348,19 @@ public class HoleManager extends Manager implements Wrapper {
         return searchedHoles;
     }
 
-    public EnumFacing getFacingFromVector(Vec3i in) {
-        if (in.equals(new Vec3i(1, 0, 0))) {
-            return EnumFacing.EAST;
-        }
-
-        if (in.equals(new Vec3i(-1, 0, 0))) {
-            return EnumFacing.WEST;
-        }
-
-        if (in.equals(new Vec3i(0, 0, 1))) {
-            return EnumFacing.NORTH;
-        }
-
-        if (in.equals(new Vec3i(0, 0, -1))) {
-            return EnumFacing.SOUTH;
-        }
-
-        return null;
-    }
-
+    /**
+     * Gets all nearby holes
+     * @return List of all nearby {@link Hole} Holes
+     */
     public List<Hole> getHoles() {
         return holes;
     }
 
+    /**
+     * Checks whether or not an entity is standing in a hole
+     * @param in The entity to check
+     * @return Whether or not the entity is standing in a hole
+     */
     public boolean isInHole(Entity in) {
         // check each of the hole offsets
         for (Vec3i holeOffset : HOLE) {
@@ -159,7 +369,7 @@ public class HoleManager extends Manager implements Wrapper {
             BlockPos holeSide = in.getPosition().add(holeOffset);
 
             // check the side's resistance
-            if (!BlockUtil.getResistance(holeSide).equals(Resistance.RESISTANT) || !BlockUtil.getResistance(holeSide).equals(Resistance.UNBREAKABLE)) {
+            if (!BlockUtil.getResistance(holeSide).equals(Resistance.RESISTANT) && !BlockUtil.getResistance(holeSide).equals(Resistance.UNBREAKABLE)) {
                 return false;
             }
         }
@@ -168,30 +378,76 @@ public class HoleManager extends Manager implements Wrapper {
     }
 
     public enum Type {
-        OBSIDIAN, MIXED, BEDROCK, DOUBLEOBSIDIANX, DOUBLEOBSIDIANZ, DOUBLEMIXEDX, DOUBLEMIXEDZ, DOUBLEBEDROCKX, DOUBLEBEDROCKZ, VOID
-    }
 
-    public static class Side {
+        /**
+         * Resistant hole -> Resistant to explosions but breakable
+         */
+        OBSIDIAN,
 
-        private final BlockPos side;
-        private final EnumFacing facing;
+        /**
+         * Mixed hole -> Mix of resistant and unbreakable blocks
+         */
+        MIXED,
 
-        public Side(BlockPos side, EnumFacing facing) {
-            this.side = side;
-            this.facing = facing;
-        }
+        /**
+         * Unbreakable hole -> Unbreakable blocks, resistant to explosions
+         */
+        BEDROCK,
 
-        public BlockPos getSide() {
-            return side;
-        }
+        /**
+         * Resistant double hole -> Resistant to explosions but breakable
+         */
+        DOUBLE_OBSIDIAN_X,
 
-        public EnumFacing getFacing() {
-            return facing;
-        }
+        /**
+         * Resistant double hole -> Resistant to explosions but breakable
+         */
+        DOUBLE_OBSIDIAN_Z,
+
+        /**
+         * Mixed double hole -> Mix of resistant and unbreakable blocks
+         */
+        DOUBLE_MIXED_X,
+
+        /**
+         * Mixed double hole -> Mix of resistant and unbreakable blocks
+         */
+        DOUBLE_MIXED_Z,
+
+        /**
+         * Unbreakable double hole -> Unbreakable blocks, resistant to explosions
+         */
+        DOUBLE_BEDROCK_X,
+
+        /**
+         * Unbreakable double hole -> Unbreakable blocks, resistant to explosions
+         */
+        DOUBLE_BEDROCK_Z,
+
+        /**
+         * Resistant quad hole -> Resistant to explosions but breakable
+         */
+        QUAD_OBSIDIAN,
+
+        /**
+         * Mixed quad hole -> Mix of resistant and unbreakable blocks
+         */
+        QUAD_MIXED,
+
+        /**
+         * Unbreakable quad hole -> Unbreakable blocks, resistant to explosions
+         */
+        QUAD_BEDROCK,
+
+        /**
+         * Void hole -> Hole to outside world bounds
+         */
+        VOID
     }
 
     public static class Hole {
 
+        // hole info
         private final BlockPos hole;
         private final Type type;
 
@@ -200,16 +456,36 @@ public class HoleManager extends Manager implements Wrapper {
             this.type = type;
         }
 
+        /**
+         * Gets the hole's position
+         * @return The hole's position
+         */
         public BlockPos getHole() {
             return hole;
         }
 
+        /**
+         * Gets the hole's type
+         * @return The hole's type
+         */
         public Type getType() {
             return type;
         }
 
+        /**
+         * Checks whether or not a hole is a double hole
+         * @return whether or not the hole is a double hole
+         */
         public boolean isDouble() {
-            return type.equals(Type.DOUBLEOBSIDIANX) || type.equals(Type.DOUBLEMIXEDX) || type.equals(Type.DOUBLEBEDROCKX) || type.equals(Type.DOUBLEOBSIDIANZ) || type.equals(Type.DOUBLEMIXEDZ) || type.equals(Type.DOUBLEBEDROCKZ);
+            return type.equals(Type.DOUBLE_OBSIDIAN_X) || type.equals(Type.DOUBLE_MIXED_X) || type.equals(Type.DOUBLE_BEDROCK_X) || type.equals(Type.DOUBLE_OBSIDIAN_Z) || type.equals(Type.DOUBLE_MIXED_Z) || type.equals(Type.DOUBLE_BEDROCK_Z);
+        }
+
+        /**
+         * Checks whether or not a hole is a quad hole
+         * @return whether or not the hole is a quad hole
+         */
+        public boolean isQuad() {
+            return type.equals(Type.QUAD_OBSIDIAN) || type.equals(Type.QUAD_MIXED) || type.equals(Type.QUAD_BEDROCK);
         }
     }
 }

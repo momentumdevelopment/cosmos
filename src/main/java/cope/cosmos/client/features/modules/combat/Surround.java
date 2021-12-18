@@ -41,9 +41,7 @@ public class Surround extends Module {
     public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN).setDescription("Block item to use for surround");
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR).setDescription("When to toggle surround");
     public static Setting<Center> center = new Setting<>("Center", Center.NONE).setDescription("Mode to center the player position");
-
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
-
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
@@ -185,6 +183,11 @@ public class Surround extends Module {
                 );
             }
         }
+    }
+
+    @Override
+    public boolean isActive() {
+        return isEnabled() && !getCosmos().getHoleManager().isInHole(mc.player);
     }
 
     @SubscribeEvent
