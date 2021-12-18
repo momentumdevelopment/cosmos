@@ -18,6 +18,10 @@ public class InventoryUtil implements Wrapper {
         return mc.player.getHeldItemMainhand().getItem().equals(item) || mc.player.getHeldItemOffhand().getItem().equals(item);
     }
 
+    public static boolean isHolding(Class<? extends Item> clazz) {
+        return clazz.isInstance(mc.player.getHeldItemMainhand().getItem()) || clazz.isInstance(mc.player.getHeldItemOffhand().getItem());
+    }
+
     public static void switchToSlot(int slot, Switch switchMode) {
         if (slot != -1 && mc.player.inventory.currentItem != slot) {
             switch (switchMode) {
@@ -54,6 +58,25 @@ public class InventoryUtil implements Wrapper {
             case HOTBAR:
                 for (int i = 0; i < 9; i++) {
                     if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
+                        return i;
+                    }
+                }
+        }
+
+        return -1;
+    }
+
+    public static int getItemSlot(Class<? extends Item> clazz, Inventory inventory) {
+        switch (inventory) {
+            case INVENTORY:
+                for (int i = 9; i <= 44; i++) {
+                    if (clazz.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
+                        return i;
+                    }
+                }
+            case HOTBAR:
+                for (int i = 0; i < 9; i++) {
+                    if (clazz.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
                         return i;
                     }
                 }
