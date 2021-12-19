@@ -1,51 +1,110 @@
 /**
- * @author perry, linustouchtips.
- * @since 11/23/2021
+ * @author bush & perry.
+ * @description This is the best Gradle in anarchy sad that retarded 13-14 yr OyVey skidders can't come close to comparing.
  */
- 
-//file:noinspection GroovyAssignabilityCheck // I don't like warnings!!!! fuck you nigga!!!
-//file:noinspection JCenterRepository // I don't like warnings!!!! fuck you nigga!!!
-//file:noinspection GroovyUnusedAssignment // I don't like warnings!!!! fuck you nigga!!!
+//file:noinspection GroovyAssignabilityCheck I don't like warnings!!!! fuck you nigga!!!
+//file:noinspection GroovyUnusedAssignment I don't like warnings!!!! fuck you nigga!!!
 buildscript {
     repositories {
-        jcenter() // Uses JCenterRepository to resolve dependencies & Builds will no longer be able to resolve artifacts from JCenter after February 1st, 2022.
-        mavenCentral() // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
-        maven { url 'https://repo.spongepowered.org/maven' } // The url to get the spongepowered dependencies from.
-        maven { url 'https://files.minecraftforge.net/maven' } // The url to get the forge dependencies from.
+        // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
+        mavenCentral()
+        // The url to get the spongepowered dependencies from.
+        maven { url 'https://repo.spongepowered.org/maven' }
+        // The url to get the forge dependencies from.
+        maven { url 'https://files.minecraftforge.net/maven' }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3.4' // Latest 2 version of ForgeGradle will update to 5.1.24 later. Versions list: https://maven.minecraftforge.net/net/minecraftforge/gradle/ForgeGradle/maven-metadata.xml
-        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.4' // Versions of this dependency are based on ur gradle version. Ex: If u have Gradle 4 u go to 4.0.4. If u have Gradle 7 u go to 7.1.0 etc.
-        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT' // Upgrade to 0.7-SNAPSHOT when upgrading ForgeGradle to 3.0+ & mixin ver at dependencies has to be 0.8+ for upgrading mixingradle ver.
+        // Latest 2 version of ForgeGradle will update to 5.1.26 later. Versions list: https://maven.minecraftforge.net/net/minecraftforge/gradle/ForgeGradle/maven-metadata.xml
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3.4'
+        // Upgrade to 0.7-SNAPSHOT when upgrading ForgeGradle to 3.0+ & mixin ver at dependencies has to be 0.8+ for upgrading mixingradle ver. https://github.com/SpongePowered/MixinGradle
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge' // Gradle plugin for all Minecraft mod development needs.
-apply plugin: 'com.github.johnrengelman.shadow' // Gradle plugin to create fat/uber JARs, apply file transforms, & relocate packages for applications & libraries. Gradle version of Maven's Shade plugin.
-apply plugin: 'org.spongepowered.mixin' // Gradle plugin providing integration for plugins made for the Sponge platform.
-// Only edit below this line, The above code adds & enables the necessary things for Forge to be setup.
+// Gradle plugin for all Minecraft mod development needs.
+apply plugin: 'net.minecraftforge.gradle.forge'
+// Gradle plugin. Mixin is a trait/mixin & bytecode weaving framework for Java using ASM.
+apply plugin: 'org.spongepowered.mixin'
+// Only edit below this line, the above code adds & enables the necessary things for Forge to be setup.
 
-version = '1.1.0' // The jar version number that will be output when building.
-group = 'cope.cosmos' // https://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'cosmos' // The jar name that will be output when building.
+// The jar version number that will be output when building.
+version = modversion
+// https://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = modgroup
+// The jar name that will be output when building.
+archivesBaseName = modname
 
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+// Need this here so eclipse task generates correctly.
+sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
-    sourceCompatibility = targetCompatibility = '1.8' // This ensures that the generated class files will be compatible with JVMs specified by targetCompatibility.
-    options.encoding = 'UTF-8' // Makes it so u don't need to convert unicode to basic latin when trying to compile.
+    // This ensures that the generated class files will be compatible with JVMs specified by targetCompatibility.
+    sourceCompatibility = targetCompatibility = '1.8'
+    // Makes it so u don't need to convert unicode to basic latin for it to be able to build/run.
+    options.encoding 'UTF-8'
 }
 
 minecraft {
-    version '1.12.2-14.23.5.2847' // The version of forge.
-    runDir 'run' // The directory of where the files that are output when doing runClient will be put.
-    // The mappings can be changed at any time, & must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at ur own risk. They may not always work.
-    // Simply re-run ur setup task after changing the mappings to update ur workspace.
-    mappings 'snapshot_20171003' // MCP Mapping version.
-    coreMod 'cope.cosmos.asm.MixinLoader' // The directory of the main class needed for when ur doing runClient.
-    makeObfSourceJar false // An Srg named sources jar is made by default. Pretty useless so disabled.
+    // The version of forge & if u want to update to the patch 1.12.2-14.23.5.2860 for log4j exploit u need to have ForgeGradle 3+ version.
+    version = mcforgeversion
+    // The directory of where the files that are output when doing runClient will be put.
+    runDir = 'run'
+    // MCP Mapping version.
+    mappings = mappingsversion
+    // An Srg named sources jar is made by default. No point for it aka bloat so it has been disabled.
+    makeObfSourceJar = false
+    // Tells FML to load our mixin loader in IDE's.
+    clientJvmArgs += '-Dfml.coreMods.load=' + mixinclass
+    // Tells mixin to use our mixin config in IDE's.
+    clientRunArgs += '--mixin ' + mixinconfig
+}
+
+mixin {
+    // The obfuscation environment to use when generating refMaps. This is the obfuscation which will end up in the mappings in the generated refMap.
+    defaultObfuscationEnv searge // Types of obf env: searge, notch.
+    // Sets the main sourceSets refmap name instead of add sourceSets.main so there is no conflict cause of it adding another value instead of setting the 1 value.
+    sourceSets {
+        main {
+            ext.refMap = 'mixins.cosmos.refmap.json'
+        }
+    }
+}
+
+repositories {
+    // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
+    mavenCentral()
+    // The url to get the spongepowered dependencies from.
+    maven { url 'https://repo.spongepowered.org/maven' }
+}
+
+configurations {
+    // Adds a reference so that we extend/add on to it with depends so we can grab them and compile them into the jar.
+    embed
+    // Grabs what's extended/added on from/to embed and compiles it into the jar when being built.
+    compile.extendsFrom embed
+}
+
+dependencies {
+    // Upgrading to 0.8+ can possibly break compatibility with other clients like Future/RusherHack.
+    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        // Excludes unneeded stuff.
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+    // Compiles the library needed for Discord RPC's and grabs the actual disc dlls from the disc repo and puts it in so can't say the disc dlls are rats lel.
+    embed('club.minnced:java-discord-rpc:2.0.2') {
+        // For no reason it includes the com.sun.jna library.
+        exclude module: 'jna'
+    }
+    // Mojang's command system for Minecraft.
+    embed 'com.mojang:brigadier:1.0.17'
+    // File reader.
+    embed ('com.moandjiezana.toml:toml4j:0.7.2') {
+        // Why include google gson.
+        exclude module: 'gson'
+    }
 }
 
 processResources {
@@ -63,67 +122,27 @@ processResources {
     }
 }
 
-repositories {
-    jcenter() // Uses JCenterRepository to resolve dependencies & Builds will no longer be able to resolve artifacts from JCenter after February 1st, 2022.
-    mavenCentral() // The mavenCentral() alias means that dependencies are fetched from the central Maven 2 repository (https://repo1.maven.org/maven2).
-    maven {
-        name 'spongepowered-repo' // The name of what directory to grab files from the url below.
-        url 'https://repo.spongepowered.org/maven' // The url to get the spongepowered dependencies from.
-    }
-}
-
-dependencies {
-    compile('org.spongepowered:mixin:0.7.11-SNAPSHOT') { // WARNING: Upgrading to 0.8+ can possibly break compatibility with future client.
-        exclude module: 'launchwrapper' // Excludes unneeded stuff.
-        exclude module: 'guava' // Excludes unneeded stuff.
-        exclude module: 'gson' // Excludes unneeded stuff.
-        exclude module: 'commons-io' // Excludes unneeded stuff.
-        exclude module: 'log4j-core' // Excludes unneeded stuff.
-    }
-    compile 'club.minnced:java-discord-rpc:2.0.2' // Compiles the library for Discord RPC's & the latest version.
-    compile 'com.mojang:brigadier:1.0.17' // Mojang's command system for Minecraft.
-    compile 'com.moandjiezana.toml:toml4j:0.7.2' // File reader.
-}
-
-task getDeps(type: Copy) {
-    from sourceSets.main.runtimeClasspath
-    into 'runtime/'
-}
-
-shadowJar {
-    dependencies {
-        // The libraries are put in the shadow jar path so it will be put into the jar when compiled or else it wont work.
-        include dependency('club.minnced:java-discord-rpc') // The needed Library for Discord RPC's.
-        include dependency('org.spongepowered:mixin') // The needed Library for Minecraft Mixin's.
-        include dependency('com.mojang:brigadier:1.0.17') // The needed Library for the Command system.
-        include dependency('com.moandjiezana.toml:toml4j:0.7.2') // The needed Library for the Config system.
-    }
-    exclude 'dummyThing', 'LICENSE.txt', 'org/**/*.html', 'META-INF/maven/**' // Removes unneeded files that are legit just useless bloat text files.
-    classifier = '' // The name at the end of the jar that will have all the sources. If u put nothing it will only output one jar with all the needed depends.
-}
-
-mixin {
-    defaultObfuscationEnv searge
-    add sourceSets.main, 'mixins.cosmos.refmap.json' // Name for the refmap of the clients mixins.json.
-}
-
-reobf {
-    shadowJar {
-        mappingType = 'SEARGE'
-        classpath = sourceSets.main.compileClasspath
-    }
-}
-
 jar {
-    manifest {
-        attributes(
-                'MixinConfigs': 'mixins.cosmos.json', // Name for the clients mixins.json.
-                'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker', // Directory for the org library mixin loader.
-                'TweakOrder': 0, // Actually not too sure what this is for.
-                'FMLCorePlugin': 'cope.cosmos.asm.Mixinloader', // Directory for the mixin loader for the built jar.
-                'ForceLoadAsMod': 'true', // Whether or not to make it load as a actual mod or not.
-        )
+    from(configurations.embed.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }) {
+        // Excludes/Removes useless bloat files from the compiled jar.
+        exclude 'dummyThing',
+                'LICENSE.txt',
+                'META-INF/MUMFREY.RSA',
+                'META-INF/maven/**',
+                'org/**/*.html'
     }
+    manifest.attributes(
+            // Name for the clients mixins.json.
+            'MixinConfigs': mixinconfig,
+            // Directory for the org library mixin loader.
+            'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+            // Actually not too sure what this is for.
+            'TweakOrder': 0,
+            // Directory for the mixin loader for the built jar.
+            'FMLCorePlugin': mixinclass,
+            // Turn this to false for the client to be able to load in a IDE.
+            'ForceLoadAsMod': 'true'
+    )
 }
-
-build.dependsOn shadowJar // Makes it so that when u build all the needed libraries are put into the shadow jar.
