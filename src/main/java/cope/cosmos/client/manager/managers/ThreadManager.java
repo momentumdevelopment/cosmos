@@ -35,7 +35,7 @@ public class ThreadManager extends Manager {
                         continue;
                     }
 
-                    ModuleManager.getModules(Module::isEnabled).forEach(module -> {
+                    ModuleManager.getAllModules().forEach(module -> {
                         try {
                             // run and remove the latest service
                             if (clientProcesses.size() > 0) {
@@ -43,13 +43,15 @@ public class ThreadManager extends Manager {
                                 clientProcesses.remove();
                             }
 
-                            module.onThread();
+                            if (module.isEnabled()) {
+                                module.onThread();
+                            }
                         } catch (Exception exception) {
                             exception.printStackTrace();
                         }
                     });
 
-                    Cosmos.INSTANCE.getManagers().forEach(manager -> {
+                    getCosmos().getManagers().forEach(manager -> {
                         if (nullCheck()) {
                             try {
                                 // run and remove the latest service

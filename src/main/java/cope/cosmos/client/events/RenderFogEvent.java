@@ -1,6 +1,6 @@
 package cope.cosmos.client.events;
 
-import cope.cosmos.event.annotation.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
