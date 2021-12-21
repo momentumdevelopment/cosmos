@@ -281,7 +281,7 @@ public class Nametags extends Module {
                                 GlStateManager.scale(0.5, 0.5, 0.5);
 
                                 // durability (percent) of the item
-                                float durability = MathUtil.roundFloat(((itemStack.getMaxDamage() - itemStack.getItemDamage()) / ((float) itemStack.getMaxDamage())) * 100, 0);
+                                int durability = (int) MathUtil.roundFloat(((itemStack.getMaxDamage() - itemStack.getItemDamage()) / ((float) itemStack.getMaxDamage())) * 100, 0);
 
                                 // color for the durability
                                 TextFormatting color = TextFormatting.GREEN;

@@ -85,9 +85,6 @@ public class HoleManager extends Manager {
         // list of our found holes
         List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
-        // boolean to keep track of whether or not the hole is able to be entered
-        boolean standable = false;
-
         // search all blocks in range
         for (BlockPos blockPosition : BlockUtil.getSurroundingBlocks(mc.player, 10, false)) {
 
@@ -103,8 +100,11 @@ public class HoleManager extends Manager {
                 // check lower positions
                 if (!mc.world.getBlockState(blockPosition.add(0, -1, 0)).getMaterial().isReplaceable()) {
 
+                    // boolean to keep track of whether or not the hole is able to be entered
+                    boolean standable = false;
+                    
                     // check above position
-                    if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable()) {
+                    if (mc.world.isAirBlock(blockPosition.add(0, 1, 0))) {
                         standable = true;
                     }
 
@@ -168,9 +168,12 @@ public class HoleManager extends Manager {
                         // check lower positions
                         if (!mc.world.getBlockState(blockPosition.add(1, -1, 0)).getMaterial().isReplaceable()) {
 
+                            // boolean to keep track of whether or not the hole is able to be entered
+                            boolean doubleXStandable = false;
+
                             // check above position
-                            if (mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable()) {
-                                standable = true;
+                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(1, 1, 0))) {
+                                doubleXStandable = true;
                             }
 
                             // check all offsets
@@ -197,7 +200,7 @@ public class HoleManager extends Manager {
                             }
 
                             // double holes
-                            if (standable) {
+                            if (doubleXStandable) {
                                 // all unbreakable = bedrock hole
                                 if (unbreakableSides == DOUBLE_HOLE_X.length) {
                                     searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_BEDROCK_X));
@@ -231,9 +234,12 @@ public class HoleManager extends Manager {
                         // check lower positions
                         if (!mc.world.getBlockState(blockPosition.add(0, -1, 1)).getMaterial().isReplaceable()) {
 
+                            // boolean to keep track of whether or not the hole is able to be entered
+                            boolean doubleZStandable = false;
+
                             // check above position
-                            if (mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable()) {
-                                standable = true;
+                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(0, 1, 1))) {
+                                doubleZStandable = true;
                             }
 
                             // check all offsets
@@ -260,7 +266,7 @@ public class HoleManager extends Manager {
                             }
 
                             // double holes
-                            if (standable) {
+                            if (doubleZStandable) {
                                 // all unbreakable = bedrock hole
                                 if (unbreakableSides == DOUBLE_HOLE_Z.length) {
                                     searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_BEDROCK_Z));
@@ -294,9 +300,12 @@ public class HoleManager extends Manager {
                         // check lower positions
                         if (!mc.world.getBlockState(blockPosition.add(0, -1, 1)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 0)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 1)).getMaterial().isReplaceable()) {
 
-                            // check above positions
-                            if (mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(1, 1, 1)).getMaterial().isReplaceable()) {
-                                standable = true;
+                            // boolean to keep track of whether or not the hole is able to be entered
+                            boolean quadStandable = false;
+
+                            // check above position
+                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(1, 1, 0)) || mc.world.isAirBlock(blockPosition.add(0, 1, 1)) || mc.world.isAirBlock(blockPosition.add(1, 1, 1))) {
+                                quadStandable = true;
                             }
 
                             // check all offsets
@@ -323,7 +332,7 @@ public class HoleManager extends Manager {
                             }
 
                             // quad holes
-                            if (standable) {
+                            if (quadStandable) {
                                 // all unbreakable = bedrock hole
                                 if (unbreakableSides == QUAD_HOLE.length) {
                                     searchedHoles.add(new Hole(blockPosition, Type.QUAD_BEDROCK));
