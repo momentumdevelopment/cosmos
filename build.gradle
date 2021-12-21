@@ -1,6 +1,6 @@
 /**
- * @author bush & perry.
- * @description This is the best Gradle in anarchy sad that retarded 13-14 yr OyVey skidders can't come close to comparing.
+ * This is the best Gradle in anarchy sad that retarded 13-14 yr OyVey skidders can't come close to comparing.
+ * @author bush, perry
  */
 //file:noinspection GroovyAssignabilityCheck I don't like warnings!!!! fuck you nigga!!!
 //file:noinspection GroovyUnusedAssignment I don't like warnings!!!! fuck you nigga!!!
@@ -32,7 +32,7 @@ version = modversion
 // https://maven.apache.org/guides/mini/guide-naming-conventions.html
 group = modgroup
 // The jar name that will be output when building.
-archivesBaseName = modname
+archivesBaseName = modid
 
 // Need this here so eclipse task generates correctly.
 sourceCompatibility = targetCompatibility = '1.8'
