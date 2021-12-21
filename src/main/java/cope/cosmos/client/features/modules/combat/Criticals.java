@@ -101,7 +101,7 @@ public class Criticals extends Module {
             Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
 
             // pause in liquid, ladders, blindness, webs, and air, since strict anticheats will flag as irregular movement
-            if (PlayerUtil.isInLiquid() || mc.player.isRiding() || mc.player.isPotionActive(MobEffects.BLINDNESS) || mc.player.isOnLadder() || mc.player.fallDistance >= 3 || ((IEntity) mc.player).getInWeb()) {
+            if (PlayerUtil.isInLiquid() || mc.player.isRiding() || mc.player.isPotionActive(MobEffects.BLINDNESS) || mc.player.isOnLadder() || !mc.player.onGround || ((IEntity) mc.player).getInWeb()) {
                 return;
             }
 

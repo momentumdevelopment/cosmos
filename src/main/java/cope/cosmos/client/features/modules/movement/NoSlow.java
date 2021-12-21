@@ -113,11 +113,6 @@ public class NoSlow extends Module {
 
         // if we are slowed, then send corresponding packets
         if (isSlowed()) {
-            // Updated NCP bypass
-            if (switchStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
-            }
-
             // Old NCP bypass
             if (placeStrict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(mc.objectMouseOver.getBlockPos(), EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
@@ -190,6 +185,13 @@ public class NoSlow extends Module {
             // Updated NCP bypass for inventory move
             if (strict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING)); // rofl nice patch ncp devs
+            }
+        }
+
+        if (event.getPacket() instanceof CPacketPlayerTryUseItem || event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+            // Updated NCP bypass
+            if (switchStrict.getValue()) {
+                mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
             }
         }
     }
