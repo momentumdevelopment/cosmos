@@ -221,7 +221,7 @@ public class AutoCrystal extends Module {
             }
 
             // make sure we are not already auto-placing
-            if (HoleFill.INSTANCE.isActive() || Surround.INSTANCE.isActive() || Burrow.INSTANCE.isActive()) {
+            if (HoleFill.INSTANCE.isActive() || Burrow.INSTANCE.isActive()) {
                 resetProcess();
                 return;
             }

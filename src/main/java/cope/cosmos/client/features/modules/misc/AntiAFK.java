@@ -29,7 +29,7 @@ public class AntiAFK extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> chat = new Setting<>("Chat", true).setDescription("Send messages in chat to avoid AFK detection");
+    public static Setting<Boolean> chat = new Setting<>("Chat", true).setDescription("Send messages in the chat to avoid AFK detection");
     public static Setting<Boolean> jump = new Setting<>("Jump", true).setDescription("Jumps to avoid AFK detection");
     public static Setting<Boolean> rotate = new Setting<>("Rotate", false).setDescription("Rotates to avoid AFK detection");
 
