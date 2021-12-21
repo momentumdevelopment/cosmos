@@ -4,11 +4,14 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
@@ -37,6 +40,8 @@ public class Offhand extends Module {
     public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 0).setDescription("Delay when switching items");
 
     public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", false).setDescription("Swaps to a totem when you have armor slots empty, prevents totem fails");
+    public static Setting<Boolean> crystalSafe = new Setting<>("CrystalSafe", false).setDescription("Swaps to a totem when nearby crystals could potentially kill you");
+
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false).setDescription("Stops motion before switching");
     public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
 
@@ -114,9 +119,27 @@ public class Offhand extends Module {
             // make sure none of our armor pieces are missing
             if (armorSafe.getValue()) {
                 for (ItemStack stack : mc.player.getArmorInventoryList()) {
+
+                    // armor stack is empty
                     if (stack == null || stack.getItem() == Items.AIR) {
                         switchItem = Items.TOTEM_OF_UNDYING;
                         break;
+                    }
+                }
+            }
+
+            // check nearby crystals
+            if (crystalSafe.getValue()) {
+                for (Entity entity : mc.world.loadedEntityList) {
+                    if (entity instanceof EntityEnderCrystal) {
+                        // damage from crystal
+                        double damage = ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
+
+                        // crystal will kill us
+                        if (PlayerUtil.getHealth() - damage <= 1) {
+                            switchItem = Items.TOTEM_OF_UNDYING;
+                            break;
+                        }
                     }
                 }
             }
