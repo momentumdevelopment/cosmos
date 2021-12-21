@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.IEntity;
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -11,6 +12,8 @@ import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.MathUtil;
 import net.minecraft.init.MobEffects;
+import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -33,8 +36,12 @@ public class Speed extends Module {
     public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
     public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
 
-    public static Setting<Boolean> accelerate = new Setting<>("Accelerate", false).setDescription("Accelerates speed after jumping");
+    // anticheat
     public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
+    public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
+    public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Keeps sprint");
+    public static Setting<Boolean> quickStart = new Setting<>("QuickStart", false).setDescription("Quickly restarts strafe after collision");
+
     public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
     public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
@@ -86,6 +93,11 @@ public class Speed extends Module {
         // cancel vanilla movement, we'll send our own movements
         event.setCanceled(true);
 
+        // start sprinting
+        if (strictSprint.getValue() && (!mc.player.isSprinting() || !((IEntityPlayerSP) mc.player).getServerSprintState())) {
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+        }
+
         // timer
         if (timer.getValue()) {
             // update the timer ticks
@@ -127,7 +139,7 @@ public class Speed extends Module {
 
             if (mode.getValue().equals(Mode.STRAFE)) {
                 // boost speed
-                moveSpeed = (baseSpeed * 1.38) - 0.01;
+                moveSpeed = baseSpeed * 1.38;
             }
         }
 
@@ -154,7 +166,7 @@ public class Speed extends Module {
                 strafeStage = StrafeStage.JUMP;
 
                 // the jump height
-                double jumpSpeed = 0.399399995803833;
+                double jumpSpeed = 0.3999999463558197;
 
                 if (mode.getValue().equals(Mode.STRAFE_LOW)) {
                     jumpSpeed = 0.27;
@@ -171,19 +183,6 @@ public class Speed extends Module {
 
                 // acceleration jump factor
                 double acceleration = 2.149;
-
-                // acceleration due to jump
-                if (accelerate.getValue()) {
-                    switch (mode.getValue()) {
-                        case STRAFE:
-                        case STRAFE_LOW:
-                            acceleration = Math.max(2.149 * baseSpeed, 2.547);
-                            break;
-                        case STRAFE_STRICT:
-                            acceleration = Math.max(2.149 * baseSpeed, Math.max(baseSpeed * 1.78, latestMoveSpeed * 1.78));
-                            break;
-                    }
-                }
 
                 // since we just jumped, we can now move faster
                 moveSpeed *= acceleration;
@@ -204,10 +203,22 @@ public class Speed extends Module {
                 // if we collided then reset our stage
                 if (mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, mc.player.motionY, 0)).size() > 0 || mc.player.collidedVertically) {
                     strafeStage = StrafeStage.COLLISION;
+
+                    // restart, disregard slowdown
+                    if (quickStart.getValue()) {
+                        strafeStage = StrafeStage.START;
+                    }
+                }
+
+                double collisionSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
+
+                // reset to base speed
+                if (strictCollision.getValue()) {
+                    collisionSpeed = baseSpeed;
                 }
 
                 // reset our move speed
-                moveSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
+                moveSpeed = collisionSpeed;
             }
         }
 
@@ -225,7 +236,7 @@ public class Speed extends Module {
         moveSpeed = Math.max(moveSpeed, baseSpeed);
 
         if (mode.getValue().equals(Mode.STRAFE)) {
-            moveSpeed = Math.max(moveSpeed, baseSpeed);
+            moveSpeed = Math.min(moveSpeed, 0.551);
         }
 
         // boost the move speed for 10 ticks
@@ -330,15 +341,49 @@ public class Speed extends Module {
     }
 
     @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        if (event.getPacket() instanceof CPacketEntityAction) {
+            // slowdown movement
+            if (((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING)) {
+                if (strictSprint.getValue()) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // reset our process on a rubberband
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             resetProcess();
         }
 
-        // boost our speed when taking knockback damage
+        // boost our speed when taking explosion damage
         if (event.getPacket() instanceof SPacketExplosion) {
-            boostSpeed = Math.sqrt(Math.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2) + Math.pow(((SPacketExplosion) event.getPacket()).getMotionZ(), 2));
+
+            // velocity from explosion
+            double boostMotionX = Math.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
+            double boostMotionZ = Math.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
+
+            // boost our speed
+            boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
+
+            // start our timer
+            boostTicks = 0;
+        }
+
+        // boost our speed when taking knockback damage
+        if (event.getPacket() instanceof SPacketEntityVelocity) {
+
+            // velocity from knockback
+            double boostMotionX = Math.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
+            double boostMotionZ = Math.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
+
+            // boost our speed
+            boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
+
+            // start our timer
             boostTicks = 0;
         }
     }

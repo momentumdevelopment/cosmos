@@ -108,7 +108,10 @@ public class NoSlow extends Module {
         // update our sneak state
         if (isSneaking && airStrict.getValue() && !mc.player.isHandActive()) {
             isSneaking = false;
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+
+            if (mc.getConnection() != null) {
+                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+            }
         }
 
         // if we are slowed, then send corresponding packets
@@ -210,7 +213,10 @@ public class NoSlow extends Module {
         // send sneaking packet when we use an item
         if (isSlowed() && airStrict.getValue() && !isSneaking) {
             isSneaking = true;
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+
+            if (mc.getConnection() != null) {
+                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+            }
         }
     }
 
