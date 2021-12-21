@@ -439,7 +439,7 @@ public class Aura extends Module {
 
     @Override
     public boolean isActive() {
-        return INSTANCE.isEnabled() && auraTarget != null;
+        return isEnabled() && auraTarget != null;
     }
 
     @SubscribeEvent

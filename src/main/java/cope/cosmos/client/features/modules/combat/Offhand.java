@@ -58,21 +58,25 @@ public class Offhand extends Module {
     }
 
     @Override
-    public void onUpdate() {
+    public void onTick() {
         // we are not switching right now;
         stage = Stage.IDLE;
 
-        if (mc.currentScreen == null && !mc.player.getHeldItemOffhand().getItem().equals(item.getValue().getItem())) {
+        // switching in GUI's causes crash
+        if (mc.currentScreen == null) {
+
             // the item to switch to
             Item switchItem = item.getValue().getItem();
 
             // if don't have out main item, try our fallback item
-            if (InventoryUtil.getItemCount(item.getValue().getItem()) <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
+            int itemCount = InventoryUtil.getItemCount(item.getValue().getItem());
+            if (itemCount <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
                 switchItem = fallBack.getValue().getItem();
             }
 
             // if we don't have anything to switch to, then we break the process
-            if (InventoryUtil.getItemCount(switchItem) <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
+            int fallbackCount = InventoryUtil.getItemCount(fallBack.getValue().getItem());
+            if (fallbackCount <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
                 return;
             }
 

@@ -31,8 +31,10 @@ public class Speed extends Module {
         INSTANCE = this;
     }
 
+    // mode
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE).setDescription("Mode for Speed");
 
+    // timer
     public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
     public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
 
@@ -42,6 +44,7 @@ public class Speed extends Module {
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Keeps sprint");
     public static Setting<Boolean> quickStart = new Setting<>("QuickStart", false).setDescription("Quickly restarts strafe after collision");
 
+    // pause
     public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
     public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
@@ -345,6 +348,8 @@ public class Speed extends Module {
         if (event.getPacket() instanceof CPacketEntityAction) {
             // slowdown movement
             if (((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING)) {
+
+                // keep sprint
                 if (strictSprint.getValue()) {
                     event.setCanceled(true);
                 }
