@@ -29,6 +29,7 @@ import cope.cosmos.util.world.InterpolationUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -165,6 +166,11 @@ public class Aura extends Module {
 
                 // make sure the entity is valid to attack
                 if (entity == null || entity == mc.player || entity.isDead || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                    continue;
+                }
+
+                // crystal aura should be delegated to the AutoCrystal
+                if (entity instanceof EntityEnderCrystal) {
                     continue;
                 }
 
