@@ -20,7 +20,7 @@ public class ClickGUI extends Module {
 	}
 
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false).setDescription("Pause the game when in GUI");
-	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", false).setDescription("Blur shader for GUI Panels");
+	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", true).setDescription("Blur shader for GUI Panels");
 	public static Setting<Boolean> blur = new Setting<>("Blur", false).setDescription("Blur shader for GUI background");
 
 	@Override

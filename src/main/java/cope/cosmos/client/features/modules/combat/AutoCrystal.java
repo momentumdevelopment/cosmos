@@ -72,7 +72,7 @@ public class AutoCrystal extends Module {
 
             // calculate the heuristic
             if (placePosition != null) {
-                double heuristic = MathUtil.roundDouble(placePosition.getTargetDamage() - placePosition.getLocalDamage(), 2) / 10;
+                double heuristic = MathUtil.roundDouble((placePosition.getTargetDamage() - placePosition.getLocalDamage() / 10), 2) ;
                 info.append(heuristic).append(", ");
             }
 

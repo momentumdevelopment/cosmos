@@ -9,6 +9,7 @@ import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.client.shader.ShaderGroup;
@@ -17,7 +18,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
-import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -48,11 +48,11 @@ public class Window implements GUIUtil, Wrapper {
 
     // blur shader
     private ShaderGroup blurShader;
+
+    // framebuffer
     private Framebuffer framebuffer;
 
-    private int lastScale;
-    private int lastScaleWidth;
-    private int lastScaleHeight;
+    private int lastScale, lastScaleWidth, lastScaleHeight;
 
     public Window(String name, Vec2f position, float width, float height, boolean pinned) {
         this.name = name;
@@ -95,7 +95,7 @@ public class Window implements GUIUtil, Wrapper {
 
         // blur window background
         if (ClickGUI.windowBlur.getValue()) {
-            drawBlurRect((int) position.x, (int) position.y - 6, (int) width, (int) height + 6, 6, 1, 0);
+            drawBlurRect((int) position.x, (int) position.y - 6, (int) width, (int) height + 6);
         }
 
         glPushMatrix();
@@ -153,64 +153,72 @@ public class Window implements GUIUtil, Wrapper {
 
     }
 
-    /**
-     * @author Gopro336
-     */
-
-    private void createShaderAndFrameBuffer() {
-        try {
-            blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("shaders/post/blur.json"));
-            blurShader.createBindFramebuffers(mc.displayWidth, mc.displayHeight);
-            framebuffer = ((IShaderGroup) blurShader).getMainFramebuffer();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    private void configureShader(float intensity, float blurWidth, float blurHeight) {
-        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius")).set(intensity);
-        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius")).set(intensity);
-        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir")).set(blurWidth, blurHeight);
-        Objects.requireNonNull(((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir")).set(blurHeight, blurWidth);
-    }
-
-    private void drawBlurRect(int x, int y, int width, int height, float intensity, float blurWidth, float blurHeight) {
+    private void drawBlurRect(int x, int y, int width, int height) {
         ScaledResolution resolution = new ScaledResolution(mc);
-
-        createShaderAndFrameBuffer();
 
         int scaleFactor = resolution.getScaleFactor();
         int widthFactor = resolution.getScaledWidth();
         int heightFactor = resolution.getScaledHeight();
 
+        // create a new framebuffer
         if (lastScale != scaleFactor || lastScaleWidth != widthFactor || lastScaleHeight != heightFactor || framebuffer == null || blurShader == null) {
-            createShaderAndFrameBuffer();
+            try {
+
+                // delete old framebuffer, we're creating a new one
+                if (framebuffer != null) {
+                    framebuffer.deleteFramebuffer();
+                }
+
+                // create our blur shader
+                blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("cosmos", "shaders/blur.json"));
+
+                // create the framebuffers for the shader
+                blurShader.createBindFramebuffers(mc.displayWidth, mc.displayHeight);
+
+                // set our new framebuffer
+                framebuffer = ((IShaderGroup) blurShader).getMainFramebuffer();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         }
 
+        // save our scale
         lastScale = scaleFactor;
         lastScaleWidth = widthFactor;
         lastScaleHeight = heightFactor;
 
-        if (!OpenGlHelper.isFramebufferEnabled()) {
-            return;
+        if (OpenGlHelper.isFramebufferEnabled()) {
+            glScissor(x * scaleFactor, (mc.displayHeight - (y * scaleFactor) - height * scaleFactor), width * scaleFactor, height * scaleFactor - 12);
+            glEnable(GL_SCISSOR_TEST);
+
+            // set shader config
+            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(6);
+            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(6);
+            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
+            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
+
+            // attach shader to framebuffer
+            framebuffer.bindFramebuffer(true);
+
+            // draw the shader
+            blurShader.render(mc.getRenderPartialTicks());
+
+            // attach shader to framebuffer
+            mc.getFramebuffer().bindFramebuffer(true);
+
+            glDisable(GL_SCISSOR_TEST);
+
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+
+            // render externals
+            framebuffer.framebufferRenderExt(mc.displayWidth, mc.displayHeight, false);
+
+            GlStateManager.disableBlend();
+
+            // reset scale
+            glScalef(scaleFactor, scaleFactor, 0);
         }
-
-        glScissor(x * scaleFactor, (mc.displayHeight - (y * scaleFactor) - height * scaleFactor), width * scaleFactor, height * scaleFactor - 12);
-        glEnable(GL_SCISSOR_TEST);
-
-        configureShader(intensity, blurWidth, blurHeight);
-        framebuffer.bindFramebuffer(true);
-        blurShader.render(mc.getRenderPartialTicks());
-        mc.getFramebuffer().bindFramebuffer(true);
-
-        glDisable(GL_SCISSOR_TEST);
-
-        // GlStateManager.enableBlend();
-        // GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-        framebuffer.framebufferRenderExt(mc.displayWidth, mc.displayHeight, false);
-        // GlStateManager.disableBlend();
-
-        glScalef(scaleFactor, scaleFactor, 0);
     }
 
     public String getName() {
