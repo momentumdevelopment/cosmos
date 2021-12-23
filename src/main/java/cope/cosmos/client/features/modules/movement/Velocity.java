@@ -64,25 +64,28 @@ public class Velocity extends Module {
 	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 		// packet for velocity caused by factors that are not explosions
 		if (event.getPacket() instanceof SPacketEntityVelocity) {
-			// if our settings are 0, then we can cancel this packet
-			if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
-				event.setCanceled(true);
-			}
 
-			else {
-				// if we want to modify the velocity, then we update the packet's values
-				SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
-				if (packet.getEntityID() == mc.player.getEntityId()) {
+			if (((SPacketEntityVelocity) event.getPacket()).getEntityID() == mc.player.getEntityId()) {
 
-					// motion from the packet
-					int motionX = ((ISPacketEntityVelocity) packet).getMotionX() / 100;
-					int motionY = ((ISPacketEntityVelocity) packet).getMotionY() / 100;
-					int motionZ = ((ISPacketEntityVelocity) packet).getMotionZ() / 100;
+				// if our settings are 0, then we can cancel this packet
+				if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
+					event.setCanceled(true);
+				}
+				else {
+					// if we want to modify the velocity, then we update the packet's values
+					SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
+					if (packet.getEntityID() == mc.player.getEntityId()) {
 
-					// modify motion
-					((ISPacketEntityVelocity) packet).setMotionX(motionX * horizontal.getValue().intValue());
-					((ISPacketEntityVelocity) packet).setMotionY(motionY * vertical.getValue().intValue());
-					((ISPacketEntityVelocity) packet).setMotionZ(motionZ * horizontal.getValue().intValue());
+						// motion from the packet
+						int motionX = ((ISPacketEntityVelocity) packet).getMotionX() / 100;
+						int motionY = ((ISPacketEntityVelocity) packet).getMotionY() / 100;
+						int motionZ = ((ISPacketEntityVelocity) packet).getMotionZ() / 100;
+
+						// modify motion
+						((ISPacketEntityVelocity) packet).setMotionX(motionX * horizontal.getValue().intValue());
+						((ISPacketEntityVelocity) packet).setMotionY(motionY * vertical.getValue().intValue());
+						((ISPacketEntityVelocity) packet).setMotionZ(motionZ * horizontal.getValue().intValue());
+					}
 				}
 			}
 		}
