@@ -22,6 +22,7 @@ public class ClickGUI extends Module {
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false).setDescription("Pause the game when in GUI");
 	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", true).setDescription("Blur shader for GUI Panels");
 	public static Setting<Boolean> blur = new Setting<>("Blur", false).setDescription("Blur shader for GUI background");
+	public static Setting<Boolean> intvertedScrolling = new Setting<>("InvertScroll", false).setDescription("Inverts scrolling in GUI windows (useful for trackpad users, can make scrolling feel more natural)");
 
 	@Override
 	public void onEnable() {
