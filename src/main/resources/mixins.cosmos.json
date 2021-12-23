@@ -51,6 +51,7 @@
       "accessor.ISPacketExplosion",
       "accessor.ISPacketPlayerPosLook",
       "accessor.ITextComponentString",
-      "accessor.ITimer"
+      "accessor.ITimer",
+      "accessor.IEntityRenderer"
     ]
 }

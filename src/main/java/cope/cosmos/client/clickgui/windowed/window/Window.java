@@ -170,7 +170,7 @@ public class Window implements GUIUtil, Wrapper {
                 }
 
                 // create our blur shader
-                blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("cosmos", "shaders/blur.json"));
+                blurShader = new ShaderGroup(mc.getTextureManager(), mc.getResourceManager(), mc.getFramebuffer(), new ResourceLocation("cosmos", "shaders/minecraft/blur.json"));
 
                 // create the framebuffers for the shader
                 blurShader.createBindFramebuffers(mc.displayWidth, mc.displayHeight);
