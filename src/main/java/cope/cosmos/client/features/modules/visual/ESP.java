@@ -3,6 +3,8 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.asm.mixins.accessor.IEntityRenderer;
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.asm.mixins.accessor.IShaderGroup;
+import cope.cosmos.client.events.RenderCrystalEvent;
+import cope.cosmos.client.events.RenderLivingEntityEvent;
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.events.ShaderColorEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -15,6 +17,7 @@ import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.world.EntityUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.client.shader.Shader;
@@ -26,8 +29,11 @@ import net.minecraft.entity.item.EntityExpBottle;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.EXTPackedDepthStencil;
 
 import java.util.List;
 
@@ -206,16 +212,228 @@ public class ESP extends Module {
     }
 
     @SubscribeEvent
+    public void onRenderEntity(RenderLivingEntityEvent event) {
+        if (mode.getValue().equals(Mode.OUTLINE)) {
+            if (hasHighlight(event.getEntityLivingBase())) {
+                
+                // setup framebuffer
+                if (mc.getFramebuffer().depthBuffer > -1) {
+
+                    // delete old framebuffer extensions
+                    EXTFramebufferObject.glDeleteRenderbuffersEXT(mc.getFramebuffer().depthBuffer);
+
+                    // generates a new render buffer ID for the depth and stencil extension
+                    int stencilFrameBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
+
+                    // bind a new render buffer
+                    EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // add the depth and stencil extension
+                    EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, EXTPackedDepthStencil.GL_DEPTH_STENCIL_EXT, mc.displayWidth, mc.displayHeight);
+
+                    // add the depth and stencil attachment
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // reset depth buffer
+                    mc.getFramebuffer().depthBuffer = -1;
+                }
+
+                // begin drawing the stencil
+                glPushAttrib(GL_ALL_ATTRIB_BITS);
+                glDisable(GL_ALPHA_TEST);
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glLineWidth(width.getValue().floatValue());
+                glEnable(GL_LINE_SMOOTH);
+                glEnable(GL_STENCIL_TEST);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                glClearStencil(0xF);
+                glStencilFunc(GL_NEVER, 1, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // render the entity model
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+
+                // fill the entity model
+                glStencilFunc(GL_NEVER, 0, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+                // render the entity model
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+
+                // outline the entity model
+                glStencilFunc(GL_EQUAL, 1, 0xF);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // color the stencil and clear the depth
+                glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
+                glDepthMask(false);
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_POLYGON_OFFSET_LINE);
+                glPolygonOffset(3, -2000000F);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
+
+                // render the entity model
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+
+                // reset stencil
+                glPolygonOffset(-3, 2000000F);
+                glDisable(GL_POLYGON_OFFSET_LINE);
+                glEnable(GL_DEPTH_TEST);
+                glDepthMask(true);
+                glDisable(GL_STENCIL_TEST);
+                glDisable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+                glEnable(GL_BLEND);
+                glEnable(GL_LIGHTING);
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_ALPHA_TEST);
+                glPopAttrib();
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderCrystal(RenderCrystalEvent.RenderCrystalPostEvent event) {
+        if (mode.getValue().equals(Mode.OUTLINE)) {
+            if (crystals.getValue()) {
+                // calculate model rotations
+                float rotation = event.getEntityEnderCrystal().innerRotation + event.getPartialTicks();
+                float rotationMoved = MathHelper.sin(rotation * 0.2F) / 2 + 0.5F;
+                rotationMoved += Math.pow(rotationMoved, 2);
+
+                glPushMatrix();
+                
+                // translate module to position
+                glTranslated(event.getX(), event.getY(), event.getZ());
+                glLineWidth(width.getValue().floatValue());
+
+                // render the entity model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                // setup framebuffer
+                if (mc.getFramebuffer().depthBuffer > -1) {
+
+                    // delete old framebuffer extensions
+                    EXTFramebufferObject.glDeleteRenderbuffersEXT(mc.getFramebuffer().depthBuffer);
+
+                    // generates a new render buffer ID for the depth and stencil extension
+                    int stencilFrameBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
+
+                    // bind a new render buffer
+                    EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // add the depth and stencil extension
+                    EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, EXTPackedDepthStencil.GL_DEPTH_STENCIL_EXT, mc.displayWidth, mc.displayHeight);
+
+                    // add the depth and stencil attachment
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // reset depth buffer
+                    mc.getFramebuffer().depthBuffer = -1;
+                }
+
+                // begin drawing the stencil
+                glPushAttrib(GL_ALL_ATTRIB_BITS);
+                glDisable(GL_ALPHA_TEST);
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glLineWidth(width.getValue().floatValue());
+                glEnable(GL_LINE_SMOOTH);
+                glEnable(GL_STENCIL_TEST);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                glClearStencil(0xF);
+                glStencilFunc(GL_NEVER, 1, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // render the entity model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                // fill the entity model
+                glStencilFunc(GL_NEVER, 0, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+                // render the entity model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                // outline the entity model
+                glStencilFunc(GL_EQUAL, 1, 0xF);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // color the stencil and clear the depth
+                glDepthMask(false);
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_POLYGON_OFFSET_LINE);
+                glPolygonOffset(3, -2000000F);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
+                glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
+
+                // render the entity model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                // reset stencil
+                glPolygonOffset(-3, 2000000F);
+                glDisable(GL_POLYGON_OFFSET_LINE);
+                glEnable(GL_DEPTH_TEST);
+                glDepthMask(true);
+                glDisable(GL_STENCIL_TEST);
+                glDisable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+                glEnable(GL_BLEND);
+                glEnable(GL_LIGHTING);
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_ALPHA_TEST);
+                glPopAttrib();
+
+                glPopMatrix();
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onShaderColor(ShaderColorEvent event) {
         if (mode.getValue().equals(Mode.GLOW)) {
             // change the shader color
-            if (hasHighlight(event.getEntity())) {
+            event.setColor(ColorUtil.getPrimaryColor());
 
-                event.setColor(ColorUtil.getPrimaryColor());
-
-                // remove vanilla team color
-                event.setCanceled(true);
-            }
+            // remove vanilla team color
+            event.setCanceled(true);
         }
     }
 
@@ -239,5 +457,10 @@ public class ESP extends Module {
          * Draws a 2D shader on the GPU over the entity
          */
         SHADER,
+
+        /**
+         * Draws an outline over the entity
+         */
+        OUTLINE
     }
 }

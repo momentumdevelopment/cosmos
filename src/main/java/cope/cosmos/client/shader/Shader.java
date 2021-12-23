@@ -19,10 +19,10 @@ import static org.lwjgl.opengl.GL20.*;
 public class Shader implements Wrapper {
 
     // the current program id
-    public int program;
+    private int program;
 
     // map of all uniforms (shader configs)
-    public Map<String, Integer> configurationMap;
+    private Map<String, Integer> configurationMap;
 
     /**
      * Sets up a shader that can be drawn on a new Framebuffer

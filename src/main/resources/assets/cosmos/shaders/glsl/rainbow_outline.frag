@@ -41,11 +41,7 @@ void main(void) {
                 if (currentColor.a != 0) {
                     if (rainbowSpeed > -1.0) {
                         vec2 coords = vec2(gl_FragCoord.xy * rainbowStrength);
-                        vec3 rainbowColor = vec3(clamp ((abs(
-                        ((fract((vec3(
-                        (float(mod (((coords.x + coords.y) + rainbowSpeed), 1.0)))
-                        ) + vec3(1.0, 0.6666667, 0.3333333))) * 6.0) - vec3(3.0, 3.0, 3.0))
-                        ) - vec3(1.0, 1.0, 1.0)), 0.0, 1.0));
+                        vec3 rainbowColor = vec3(clamp ((abs(((fract((vec3((float(mod (((coords.x + coords.y) + rainbowSpeed), 1.0)))) + vec3(1.0, 0.6666667, 0.3333333))) * 6.0) - vec3(3.0, 3.0, 3.0))) - vec3(1.0, 1.0, 1.0)), 0.0, 1.0));
                         vec3 hsv = vec3(rgb2hsv(rainbowColor).xyz);
                         hsv.y = saturation;
                         vec3 finalColor = vec3(hsv2rgb(hsv).xyz);
