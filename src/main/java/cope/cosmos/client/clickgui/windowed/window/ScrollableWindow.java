@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.windowed.window;
 
+import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.ResourceLocation;
@@ -104,7 +105,11 @@ public class ScrollableWindow extends Window {
     @Override
     public void handleScroll(int in) {
         super.handleScroll(in);
-        scroll += in * 0.05F;
+        if (ClickGUI.intvertedScrolling.getValue()){
+            scroll += -in * 0.05F;
+        } else {
+            scroll += in * 0.05F;
+        }
     }
 
     @Override
