@@ -105,11 +105,8 @@ public class ScrollableWindow extends Window {
     @Override
     public void handleScroll(int in) {
         super.handleScroll(in);
-        if (ClickGUI.intvertedScrolling.getValue()){
-            scroll += -in * 0.05F;
-        } else {
-            scroll += in * 0.05F;
-        }
+
+        scroll += in * (ClickGUI.invertedScrolling.getValue() ? -0.05 : 0.05);
     }
 
     @Override
