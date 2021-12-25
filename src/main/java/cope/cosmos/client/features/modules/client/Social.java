@@ -17,6 +17,9 @@ public class Social extends Module {
         INSTANCE = this;
         setExempt(true);
         setDrawn(false);
+
+        // enable by default
+        enable();
     }
 
     public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");

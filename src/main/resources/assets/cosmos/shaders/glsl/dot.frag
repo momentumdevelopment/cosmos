@@ -1,20 +1,29 @@
 #version 120
 
-// texture based on the entity, uv (1 / resolution)
+// texture info
 uniform sampler2D texture;
 uniform vec2 texelSize;
 
-// color and width
-uniform vec4 color;
+// colors and width
+uniform vec4 colorDot;
+uniform vec4 colorFilled;
 uniform float radius;
 
 void main(void) {
     // color for the entity model, each vertex is assigned a color
     vec4 centerCol = texture2D(texture, gl_TexCoord[0].xy);
 
-    // if a color is already assigned (alpha value is greater than 0), we don't want to overwrite it with our shader (i.e. shader should only apply to the outline of the entity)
+    // if a color is already assigned (alpha value is greater than 0), we want to overwrite it
     if (centerCol.a > 0) {
-        gl_FragColor = vec4(0, 0, 0, 0);
+        // dots have no alpha, so use dot color every 8 vertices
+        if ((int(gl_FragCoord.x) - (8 * floor(int(gl_FragCoord.x) / 8))) == 0 && (int(gl_FragCoord.y) - (8 * floor(int(gl_FragCoord.y) / 8))) == 0) {
+            gl_FragColor = colorDot;
+        }
+
+        // else we'll use our fill color
+        else {
+            gl_FragColor = colorFilled;
+        }
     }
 
     else {
@@ -27,7 +36,7 @@ void main(void) {
 
                 // gl_FragColor is the current color of the fragment, we'll update it according to our uniform (custom value)
                 if (currentColor.a > 0) {
-                    gl_FragColor = color;
+                    gl_FragColor = colorDot;
                 }
             }
         }

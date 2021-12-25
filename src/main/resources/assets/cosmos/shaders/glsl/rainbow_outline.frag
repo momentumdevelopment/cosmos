@@ -29,7 +29,7 @@ vec3 hsv2rgb(vec3 c){
 void main(void) {
     vec4 centerCol = texture2D(texture, gl_TexCoord[0].xy);
 
-    if (centerCol.a != 0) {
+    if (centerCol.a > 0) {
         gl_FragColor = vec4(0, 0, 0, 0);
     }
 
@@ -38,7 +38,7 @@ void main(void) {
             for (float y = -radius; y <= radius; y++) {
                 vec4 currentColor = texture2D(texture, gl_TexCoord[0].xy + vec2(texelSize.x * x, texelSize.y * y));
 
-                if (currentColor.a != 0) {
+                if (currentColor.a > 0) {
                     if (rainbowSpeed > -1.0) {
                         vec2 coords = vec2(gl_FragCoord.xy * rainbowStrength);
                         vec3 rainbowColor = vec3(clamp ((abs(((fract((vec3((float(mod (((coords.x + coords.y) + rainbowSpeed), 1.0)))) + vec3(1.0, 0.6666667, 0.3333333))) * 6.0) - vec3(3.0, 3.0, 3.0))) - vec3(1.0, 1.0, 1.0)), 0.0, 1.0));

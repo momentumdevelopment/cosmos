@@ -33,6 +33,7 @@
       "MixinWorld",
       "MixinGuiInGame",
       "MixinGuiToast",
+      "MixinTileEntityRenderDispatcher",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",
