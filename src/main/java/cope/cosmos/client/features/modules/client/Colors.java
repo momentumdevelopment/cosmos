@@ -11,9 +11,12 @@ public class Colors extends Module {
 
     public Colors() {
         super("Colors", Category.CLIENT, "The universal color for the client");
+        INSTANCE = this;
         setDrawn(false);
         setExempt(true);
-        INSTANCE = this;
+
+        // enable by default
+        enable();
     }
 
     public static Setting<Color> color = new Setting<>("Color", new Color(118, 98, 224, 255)).setDescription("The primary color for the client");
@@ -26,6 +29,7 @@ public class Colors extends Module {
     public static Setting<Double> difference = new Setting<>("Difference", 0.1, 40.0, 100.0, 1).setParent(rainbow).setDescription("Difference offset of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
 
     public enum Rainbow {
+
         /**
          * Dynamically updates rainbow based on offset
          */

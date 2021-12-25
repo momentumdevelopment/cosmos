@@ -218,6 +218,7 @@ public class Speed extends Module {
                 // reset to base speed
                 if (strictCollision.getValue()) {
                     collisionSpeed = baseSpeed;
+                    latestMoveSpeed = 0;
                 }
 
                 // reset our move speed

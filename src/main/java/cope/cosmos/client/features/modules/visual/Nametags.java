@@ -530,35 +530,38 @@ public class Nametags extends Module {
                     // add the player's ping
                     if (ping.getValue() && mc.getConnection() != null) {
 
-                        // player -> server response time
-                        int responseTime = mc.getConnection().getPlayerInfo(player.getUniqueID()).getResponseTime();
+                        if (mc.getConnection().getPlayerInfo(player.getUniqueID()) != null) {
 
-                        // godly ping
-                        TextFormatting color = TextFormatting.GREEN;
+                            // player -> server response time
+                            int responseTime = mc.getConnection().getPlayerInfo(player.getUniqueID()).getResponseTime();
 
-                        // friend ping :D
-                        if (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
-                            color = TextFormatting.AQUA;
+                            // godly ping
+                            TextFormatting color = TextFormatting.GREEN;
+
+                            // friend ping :D
+                            if (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
+                                color = TextFormatting.AQUA;
+                            }
+
+                            else {
+                                // decent ping
+                                if (responseTime >= 70 && responseTime < 120) {
+                                    color = TextFormatting.YELLOW;
+                                }
+
+                                // bad ping
+                                else if (responseTime >= 120 && responseTime < 150) {
+                                    color = TextFormatting.GOLD;
+                                }
+
+                                // awful ping
+                                else if (responseTime >= 150) {
+                                    color = TextFormatting.RED;
+                                }
+                            }
+
+                            playerInfo.append(color).append(responseTime).append("ms ");
                         }
-
-                        else {
-                            // decent ping
-                            if (responseTime >= 70 && responseTime < 120) {
-                                color = TextFormatting.YELLOW;
-                            }
-
-                            // bad ping
-                            else if (responseTime >= 120 && responseTime < 150) {
-                                color = TextFormatting.GOLD;
-                            }
-
-                            // awful ping
-                            else if (responseTime >= 150) {
-                                color = TextFormatting.RED;
-                            }
-                        }
-
-                        playerInfo.append(color).append(responseTime).append("ms ");
                     }
 
                     // add the player's health

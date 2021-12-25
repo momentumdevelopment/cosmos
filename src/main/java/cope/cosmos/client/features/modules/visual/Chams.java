@@ -31,7 +31,6 @@ public class Chams extends Module {
 
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
     public static Setting<Boolean> local = new Setting<>("Local", false).setDescription("Renders chams on the local player").setParent(players);
-
     public static Setting<Boolean> mobs = new Setting<>("Mobs", true).setDescription("Renders chams on mobs");
     public static Setting<Boolean> monsters = new Setting<>("Monsters", true).setDescription("Renders chams on monsters");
 

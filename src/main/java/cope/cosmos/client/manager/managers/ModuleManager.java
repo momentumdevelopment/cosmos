@@ -44,6 +44,7 @@ public class ModuleManager extends Manager {
 			new AntiAFK(),
 			new AntiAim(),
 			new ChatModifications(),
+			new ExtraTab(),
 			new FakePlayer(),
 			new Notifier(),
 			new Portal(),

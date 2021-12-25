@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.HoleManager.Hole;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -63,475 +62,465 @@ public class HoleESP extends Module {
             if (mc.player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ()) < range.getValue()) {
 
                 // draw the hole
-                drawHole(hole);
+                switch (hole.getType()) {
+                    case VOID:
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .color(voidColor.getValue())
+                                .box(Box.FILL)
+                                .setup()
+                                .line(1.5F)
+                                .depth(true)
+                                .blend()
+                                .texture()
+                        );
+
+                        break;
+                    case OBSIDIAN:
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(mainHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(obsidianColor.getValue())
+                                .box(main.getValue()).setup()
+                                .line(mainWidth.getValue().floatValue())
+                                .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(outlineHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(obsidianColor.getValue())
+                                .box(outline.getValue())
+                                .setup()
+                                .line(outlineWidth.getValue().floatValue())
+                                .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        break;
+                    case MIXED:
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(mainHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(mixedColor.getValue())
+                                .box(main.getValue())
+                                .setup()
+                                .line(mainWidth.getValue().floatValue())
+                                .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(outlineHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(mixedColor.getValue())
+                                .box(outline.getValue())
+                                .setup()
+                                .line(outlineWidth.getValue().floatValue())
+                                .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        break;
+                    case BEDROCK:
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(mainHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(bedrockColor.getValue())
+                                .box(main.getValue())
+                                .setup()
+                                .line(mainWidth.getValue().floatValue())
+                                .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        RenderUtil.drawBox(new RenderBuilder()
+                                .position(hole.getHole())
+                                .height(outlineHeight.getValue() - 1)
+                                .length(0)
+                                .width(0)
+                                .color(bedrockColor.getValue())
+                                .box(outline.getValue())
+                                .setup()
+                                .line(outlineWidth.getValue().floatValue())
+                                .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                .depth(depth.getValue())
+                                .blend()
+                                .texture()
+                        );
+
+                        break;
+                }
+
+                // draw double holes, scale length and width
+                if (doubles.getValue()) {
+                    switch (hole.getType()) {
+                        case DOUBLE_OBSIDIAN_X:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(obsidianColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(obsidianColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case DOUBLE_MIXED_X:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(mixedColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(mixedColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case DOUBLE_BEDROCK_X:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(bedrockColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(0)
+                                    .color(bedrockColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case DOUBLE_OBSIDIAN_Z:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(obsidianColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(obsidianColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case DOUBLE_MIXED_Z:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(mixedColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(mixedColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case DOUBLE_BEDROCK_Z:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(bedrockColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(0)
+                                    .width(1)
+                                    .color(bedrockColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                    }
+                }
+
+                // draw quad holes, scale length and width
+                if (quads.getValue()) {
+                    switch (hole.getType()) {
+                        case QUAD_OBSIDIAN:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(obsidianColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(obsidianColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case QUAD_BEDROCK:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(bedrockColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(bedrockColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                        case QUAD_MIXED:
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(mainHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(mixedColor.getValue())
+                                    .box(main.getValue())
+                                    .setup()
+                                    .line(mainWidth.getValue().floatValue())
+                                    .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            RenderUtil.drawBox(new RenderBuilder()
+                                    .position(hole.getHole())
+                                    .height(outlineHeight.getValue() - 1)
+                                    .length(1)
+                                    .width(1)
+                                    .color(mixedColor.getValue())
+                                    .box(outline.getValue())
+                                    .setup()
+                                    .line(outlineWidth.getValue().floatValue())
+                                    .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
+                                    .depth(depth.getValue())
+                                    .blend()
+                                    .texture()
+                            );
+
+                            break;
+                    }
+                }
             }
         });
-    }
-
-    /**
-     * Renders a hole
-     * @param hole The hole to render
-     */
-    public void drawHole(Hole hole) {
-
-        // draw the hole based on the settings
-        switch (hole.getType()) {
-            case VOID:
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .color(voidColor.getValue())
-                        .box(Box.FILL)
-                        .setup()
-                        .line(1.5F)
-                        .depth(true)
-                        .blend()
-                        .texture()
-                );
-
-                break;
-            case OBSIDIAN:
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(mainHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(obsidianColor.getValue())
-                        .box(main.getValue()).setup()
-                        .line(mainWidth.getValue().floatValue())
-                        .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(outlineHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(obsidianColor.getValue())
-                        .box(outline.getValue())
-                        .setup()
-                        .line(outlineWidth.getValue().floatValue())
-                        .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                break;
-            case MIXED:
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(mainHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(mixedColor.getValue())
-                        .box(main.getValue())
-                        .setup()
-                        .line(mainWidth.getValue().floatValue())
-                        .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(outlineHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(mixedColor.getValue())
-                        .box(outline.getValue())
-                        .setup()
-                        .line(outlineWidth.getValue().floatValue())
-                        .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                break;
-            case BEDROCK:
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(mainHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(bedrockColor.getValue())
-                        .box(main.getValue())
-                        .setup()
-                        .line(mainWidth.getValue().floatValue())
-                        .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(hole.getHole())
-                        .height(outlineHeight.getValue() - 1)
-                        .length(0)
-                        .width(0)
-                        .color(bedrockColor.getValue())
-                        .box(outline.getValue())
-                        .setup()
-                        .line(outlineWidth.getValue().floatValue())
-                        .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                        .depth(depth.getValue())
-                        .blend()
-                        .texture()
-                );
-
-                break;
-        }
-
-        // draw double holes, scale length and width
-        if (doubles.getValue()) {
-            switch (hole.getType()) {
-                case DOUBLE_OBSIDIAN_X:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(obsidianColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(obsidianColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case DOUBLE_MIXED_X:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(mixedColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(mixedColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case DOUBLE_BEDROCK_X:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(bedrockColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(0)
-                            .color(bedrockColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case DOUBLE_OBSIDIAN_Z:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(obsidianColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(obsidianColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case DOUBLE_MIXED_Z:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(mixedColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(mixedColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case DOUBLE_BEDROCK_Z:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(bedrockColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(0)
-                            .width(1)
-                            .color(bedrockColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-            }
-        }
-
-        // draw quad holes, scale length and width
-        if (quads.getValue()) {
-            switch (hole.getType()) {
-                case QUAD_OBSIDIAN:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(obsidianColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(obsidianColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case QUAD_BEDROCK:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(bedrockColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(bedrockColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-                case QUAD_MIXED:
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(mainHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(mixedColor.getValue())
-                            .box(main.getValue())
-                            .setup()
-                            .line(mainWidth.getValue().floatValue())
-                            .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    RenderUtil.drawBox(new RenderBuilder()
-                            .position(hole.getHole())
-                            .height(outlineHeight.getValue() - 1)
-                            .length(1)
-                            .width(1)
-                            .color(mixedColor.getValue())
-                            .box(outline.getValue())
-                            .setup()
-                            .line(outlineWidth.getValue().floatValue())
-                            .cull(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .shade(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .alpha(outline.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
-                            .depth(depth.getValue())
-                            .blend()
-                            .texture()
-                    );
-
-                    break;
-            }
-        }
     }
 }
