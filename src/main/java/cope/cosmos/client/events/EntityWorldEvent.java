@@ -1,8 +1,10 @@
 package cope.cosmos.client.events;
 
 import net.minecraft.entity.Entity;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
+@Cancelable
 public class EntityWorldEvent extends Event {
 
     private final Entity entity;
@@ -19,6 +21,12 @@ public class EntityWorldEvent extends Event {
 
     public static class EntityRemoveEvent extends EntityWorldEvent {
         public EntityRemoveEvent(Entity entity) {
+            super(entity);
+        }
+    }
+
+    public static class EntityUpdateEvent extends EntityWorldEvent {
+        public EntityUpdateEvent(Entity entity) {
             super(entity);
         }
     }

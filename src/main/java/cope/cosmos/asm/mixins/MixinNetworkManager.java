@@ -1,6 +1,7 @@
 package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.ExceptionThrownEvent;
 import cope.cosmos.client.events.PacketEvent;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NetworkManager;
@@ -30,6 +31,16 @@ public class MixinNetworkManager {
         Cosmos.EVENT_BUS.post(packetReceiveEvent);
 
         if (packetReceiveEvent.isCanceled()) {
+            info.cancel();
+        }
+    }
+
+    @Inject(method = "exceptionCaught", at = @At("HEAD"), cancellable = true)
+    private void exceptionCaught(ChannelHandlerContext exceptionCaught1, Throwable exceptionCaught2, CallbackInfo info) {
+        ExceptionThrownEvent exceptionThrownEvent = new ExceptionThrownEvent(exceptionCaught2);
+        Cosmos.EVENT_BUS.post(exceptionThrownEvent);
+
+        if (exceptionThrownEvent.isCanceled()) {
             info.cancel();
         }
     }

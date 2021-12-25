@@ -19,24 +19,44 @@ public class MixinWorld {
 
     @Inject(method = "checkLightFor", at = @At("HEAD"), cancellable = true)
     public void checkLightFor(EnumSkyBlock lightType, BlockPos pos, CallbackInfoReturnable<Boolean> info) {
-        RenderSkylightEvent renderSkylightEvent = new RenderSkylightEvent();
-        Cosmos.EVENT_BUS.post(renderSkylightEvent);
+        if (lightType.equals(EnumSkyBlock.SKY)) {
+            RenderSkylightEvent renderSkylightEvent = new RenderSkylightEvent();
+            Cosmos.EVENT_BUS.post(renderSkylightEvent);
 
-        if (renderSkylightEvent.isCanceled()) {
-            info.cancel();
-            info.setReturnValue(true);
+            if (renderSkylightEvent.isCanceled()) {
+                info.cancel();
+                info.setReturnValue(true);
+            }
         }
     }
 
-    @Inject(method = "spawnEntity", at = @At("RETURN"))
-    public void spawnEntity(Entity entityIn, CallbackInfoReturnable<Boolean> info) {
-        EntityWorldEvent.EntitySpawnEvent entitySpawnEvent = new EntityWorldEvent.EntitySpawnEvent(entityIn);
+    @Inject(method = "spawnEntity", at = @At("RETURN"), cancellable = true)
+    public void spawnEntity(Entity entity, CallbackInfoReturnable<Boolean> info) {
+        EntityWorldEvent.EntitySpawnEvent entitySpawnEvent = new EntityWorldEvent.EntitySpawnEvent(entity);
         Cosmos.EVENT_BUS.post(entitySpawnEvent);
+
+        if (entitySpawnEvent.isCanceled()) {
+            info.cancel();
+        }
     }
 
-    @Inject(method = "removeEntity", at = @At("HEAD"))
-    public void removeEntity(Entity entityIn, CallbackInfo info) {
-        EntityWorldEvent.EntityRemoveEvent entityRemoveEvent = new EntityWorldEvent.EntityRemoveEvent(entityIn);
+    @Inject(method = "removeEntity", at = @At("HEAD"), cancellable = true)
+    public void removeEntity(Entity entity, CallbackInfo info) {
+        EntityWorldEvent.EntityRemoveEvent entityRemoveEvent = new EntityWorldEvent.EntityRemoveEvent(entity);
         Cosmos.EVENT_BUS.post(entityRemoveEvent);
+
+        if (entityRemoveEvent.isCanceled()) {
+            info.cancel();
+        }
+    }
+
+    @Inject(method = "updateEntity", at = @At("HEAD"), cancellable = true)
+    public void updateEntity(Entity entity, CallbackInfo info) {
+        EntityWorldEvent.EntityUpdateEvent entityUpdateEvent = new EntityWorldEvent.EntityUpdateEvent(entity);
+        Cosmos.EVENT_BUS.post(entityUpdateEvent);
+
+        if (entityUpdateEvent.isCanceled()) {
+            info.cancel();
+        }
     }
 }

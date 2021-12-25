@@ -24,7 +24,9 @@ public class XCarry extends Module {
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketCloseWindow) {
             // prevent the client from sending the packet that lets the server know when you've closed your inventory
-            event.setCanceled(((ICPacketCloseWindow) event.getPacket()).getWindowID() == mc.player.inventoryContainer.windowId);
+            if (((ICPacketCloseWindow) event.getPacket()).getWindowID() == mc.player.inventoryContainer.windowId) {
+                event.setCanceled(true);
+            }
         }
     }
 }

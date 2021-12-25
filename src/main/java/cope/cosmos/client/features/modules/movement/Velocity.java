@@ -66,11 +66,11 @@ public class Velocity extends Module {
 		if (event.getPacket() instanceof SPacketEntityVelocity) {
 
 			if (((SPacketEntityVelocity) event.getPacket()).getEntityID() == mc.player.getEntityId()) {
-
 				// if our settings are 0, then we can cancel this packet
 				if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
 					event.setCanceled(true);
 				}
+
 				else {
 					// if we want to modify the velocity, then we update the packet's values
 					SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();

@@ -234,14 +234,13 @@ public class ESP extends Module {
                 glTexCoord2d(1, 1);
                 glVertex2d(scaledResolution.getScaledWidth(), 0);
                 glEnd();
-                glUseProgram(0);
 
                 // stop drawing our shader
                 glUseProgram(0);
                 glPopMatrix();
 
                 // reset lighting
-                mc.entityRenderer.disableLightmap();
+                mc.entityRenderer.enableLightmap();
 
                 GlStateManager.popMatrix();
                 GlStateManager.popAttrib();

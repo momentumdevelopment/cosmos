@@ -40,11 +40,8 @@ public class NoRender extends Module {
     // misc
     public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Prevents armor from rendering");
     public static Setting<Boolean> items = new Setting<>("Items", false).setDescription("Prevents dropped items from rendering");
-    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false).setDescription("Prevents fireworks entities from rendering");
-    public static Setting<Boolean> particles = new Setting<>("Particles", false).setDescription("Prevents laggy particles from rendering");
     public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false).setDescription("Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering");
     public static Setting<Boolean> maps = new Setting<>("Maps", false).setDescription("Prevents maps from rendering");
-    public static Setting<Boolean> skylight = new Setting<>("Skylight", false).setDescription("Prevents skylight updates from rendering");
     public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true).setDescription("Removes the hurt camera effect");
     public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true).setDescription("Prevents flying wither skulls from rendering");
     public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
@@ -118,14 +115,6 @@ public class NoRender extends Module {
     }
 
     @SubscribeEvent
-    public void onRenderSkylight(RenderSkylightEvent event) {
-        // cancels skylight updates
-        if (skylight.getValue()) {
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
     public void onRenderMap(RenderMapEvent event) {
         // cancels maps from rendering
         if (maps.getValue()) {
@@ -168,16 +157,6 @@ public class NoRender extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-        // packet for particle spawns
-        if (event.getPacket() instanceof SPacketParticles) {
-            if (particles.getValue()) {
-                // cancels particles from rendering
-                if (((SPacketParticles) event.getPacket()).getParticleCount() > 200) {
-                    event.setCanceled(true);
-                }
-            }
-        }
-
         // packet for player swings
         if (event.getPacket() instanceof SPacketAnimation) {
             if (swing.getValue()) {
