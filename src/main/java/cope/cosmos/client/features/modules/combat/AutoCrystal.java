@@ -71,10 +71,12 @@ public class AutoCrystal extends Module {
             StringBuilder info = new StringBuilder();
 
             // calculate the heuristic
+            double heuristic = 0;
             if (placePosition != null) {
-                double heuristic = MathUtil.roundDouble((placePosition.getTargetDamage() - placePosition.getLocalDamage() / 10), 2) ;
-                info.append(heuristic).append(", ");
+                heuristic = MathUtil.roundDouble((placePosition.getTargetDamage() - placePosition.getLocalDamage() / 10), 2) ;
             }
+
+            info.append(heuristic).append(", ");
 
             // response time
             double ping = MathUtil.roundDouble(responseTime / 10, 3);
