@@ -12,7 +12,6 @@ import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.monster.EntitySlime;
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -96,7 +95,6 @@ public class AntiCrash extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
-
             // player is placing a sign
             if (InventoryUtil.isHolding(Items.SIGN)) {
                 placedSigns.add(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos());
@@ -132,20 +130,20 @@ public class AntiCrash extends Module {
                 event.setCanceled(true);
             }
         }
-    }
-
-    @SubscribeEvent
-    public void onEntitySpawn(EntityWorldEvent.EntityUpdateEvent event) {
-        if (event.getEntity() instanceof EntityFireworkRocket) {
-            // prevent firework rocket entities from updating
-            if (fireworks.getValue()) {
-                event.setCanceled(true);
-            }
-        }
 
         if (event.getEntity() instanceof EntitySlime && ((EntitySlime) event.getEntity()).getSlimeSize() > 4) {
             // prevent the entity from spawning if the slime size is too large
             if (slime.getValue()) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityUpdate(EntityWorldEvent.EntityUpdateEvent event) {
+        if (event.getEntity() instanceof EntityFireworkRocket) {
+            // prevent firework rocket entities from updating
+            if (fireworks.getValue()) {
                 event.setCanceled(true);
             }
         }

@@ -121,24 +121,26 @@ public class Surround extends Module {
         // switch to obsidian
         InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
 
-        // place on each of the offsets
-        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+        if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+            // place on each of the offsets
+            for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
-            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+                // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
+                BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
-            // the position to place the block
-            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+                // the position to place the block
+                BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
 
-            // check that the block can be replaced by obsidian
-            if (BlockUtil.getResistance(surroundPosition).equals(Resistance.REPLACEABLE)) {
+                // check that the block can be replaced by obsidian
+                if (BlockUtil.getResistance(surroundPosition).equals(Resistance.REPLACEABLE)) {
 
-                // make sure we haven't placed too many blocks this tick
-                if (blocksPlaced <= blocks.getValue()) {
-                    blocksPlaced++;
+                    // make sure we haven't placed too many blocks this tick
+                    if (blocksPlaced <= blocks.getValue()) {
+                        blocksPlaced++;
 
-                    // place a block
-                    getCosmos().getInteractionManager().placeBlock(surroundPosition, rotate.getValue(), strict.getValue());
+                        // place a block
+                        getCosmos().getInteractionManager().placeBlock(surroundPosition, rotate.getValue(), strict.getValue());
+                    }
                 }
             }
         }
@@ -218,11 +220,13 @@ public class Surround extends Module {
                             // switch to obsidian
                             InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
 
-                            // update blocks placed
-                            blocksPlaced++;
+                            if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+                                // update blocks placed
+                                blocksPlaced++;
 
-                            // place a block
-                            getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                                // place a block
+                                getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                            }
 
                             // switch back to our previous item
                             if (previousSlot != -1) {
@@ -268,11 +272,13 @@ public class Surround extends Module {
                                 // switch to obsidian
                                 InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
 
-                                // update blocks placed
-                                blocksPlaced++;
+                                if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+                                    // update blocks placed
+                                    blocksPlaced++;
 
-                                // place a block
-                                getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                                    // place a block
+                                    getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                                }
 
                                 // switch back to our previous item
                                 if (previousSlot != -1) {
@@ -290,6 +296,7 @@ public class Surround extends Module {
     }
 
     public enum SurroundVectors {
+
         /**
          * Surrounds the lower offsets of the hole, Works better on ledges -> Rarely works on Updated NCP
          */
