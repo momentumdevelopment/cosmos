@@ -54,6 +54,7 @@ public class ModuleManager extends Manager {
 			
 			//Movement
 			new ElytraFlight(),
+			new LongJump(),
 			new NoSlow(),
 			new PacketFlight(),
 			new ReverseStep(),
