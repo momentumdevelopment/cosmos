@@ -144,7 +144,7 @@ public class HUD extends Module {
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;
 
                 // speed in kmh
-                float speed = MathUtil.roundFloat((getCosmos().getTickManager().getTickLength()/50) * ((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600)), 1);
+                float speed = MathUtil.roundFloat(((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600) * (50 / getCosmos().getTickManager().getTickLength())), 1);
 
                 // future moment
                 if (MotionUtil.isMoving() && Speed.INSTANCE.isEnabled()) {
