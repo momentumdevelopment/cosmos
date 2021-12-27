@@ -16,7 +16,7 @@ public class Help extends Command {
                 .then(RequiredArgumentBuilder.argument("page", IntegerArgumentType.integer())
                         .executes((context) -> {
                             sendHelpList(IntegerArgumentType.getInteger(context, "page"));
-                            return -1;
+                            return 1;
                         })
                 )
                 .executes((context) -> {
