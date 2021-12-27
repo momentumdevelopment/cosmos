@@ -39,6 +39,7 @@ public class Speed extends Module {
     public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
 
     // anticheat
+    public static Setting<Boolean> strictHeight = new Setting<>("StrictJumps", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
     public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
     public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Keeps sprint");
@@ -169,7 +170,7 @@ public class Speed extends Module {
                 strafeStage = StrafeStage.JUMP;
 
                 // the jump height
-                double jumpSpeed = 0.3999999463558197;
+                double jumpSpeed = strictHeight.getValue() ? .42 : 0.3999999463558197;
 
                 if (mode.getValue().equals(Mode.STRAFE_LOW)) {
                     jumpSpeed = 0.27;
