@@ -67,6 +67,14 @@ public class TickManager extends Manager implements Wrapper {
         ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((50 / ticks));
     }
 
+    public void setClientTicksDirect(float ticks) {
+        ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((ticks));
+    }
+
+    public float getTickLength() {
+        return ((ITimer) ((IMinecraft) mc).getTimer()).getTickLength();
+    }
+
     // should tell the server to move forward by a number of ticks
     public void shiftServerTicks(int tickShift) {
         for (int ticks = 0; ticks < tickShift; ticks++) {
