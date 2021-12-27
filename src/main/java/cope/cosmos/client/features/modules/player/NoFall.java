@@ -8,6 +8,8 @@ import cope.cosmos.util.player.InventoryUtil.Inventory;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 public class NoFall extends Module {
     public static NoFall INSTANCE;
@@ -19,9 +21,10 @@ public class NoFall extends Module {
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("How to negate fall damage");
     public static Setting<Double> distance = new Setting<>("Distance", 1.0, 2.0, 5.0, 1).setDescription("The minimum fall distance before doing anything");
+    public static Setting<Boolean> oldfag = new Setting<>("Oldfag", false).setDescription("Bypass for oldfag.org").setVisible(() -> mode.getValue().equals(Mode.RUBBERBAND));
 
-    public static Setting<Swap> swap = new Setting<>("Swap", Swap.LEGIT).setDescription("How to swap to a water bucket");
-    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", 0.1, 1.5, 5.0, 1).setDescription("The speed to glide at");
+    public static Setting<Swap> swap = new Setting<>("Swap", Swap.LEGIT).setDescription("How to swap to a water bucket").setVisible(() -> mode.getValue().equals(Mode.WATER));
+    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", 0.1, 1.5, 5.0, 1).setDescription("The speed to glide at").setVisible(() -> mode.getValue().equals(Mode.GLIDE));
 
     private EnumHand hand = EnumHand.MAIN_HAND;
     private int oldSlot = -1;
@@ -53,7 +56,12 @@ public class NoFall extends Module {
                 }
 
                 case RUBBERBAND: {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, 0, mc.player.posZ, true));
+                    if(mc.player.dimension == 1) {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(0, 64, 0, true));
+                    } else {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, 0, mc.player.posZ, true));
+                    }
+                    if(oldfag.getValue()) mc.player.fallDistance = 0;
                     break;
                 }
             }
