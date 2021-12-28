@@ -23,9 +23,9 @@ public class Step extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("How to step up blocks");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("Mode for how to step up blocks");
     public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The maximum height to step up blocks");
-    public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false).setDescription("Allows you to step up blocks while riding entites");
+    public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false).setDescription("Allows you to step up blocks while riding entities");
 
     // timer
     private boolean timer;

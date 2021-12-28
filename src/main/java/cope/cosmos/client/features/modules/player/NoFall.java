@@ -49,7 +49,7 @@ public class NoFall extends Module {
                     InventoryUtil.switchToSlot(Items.WATER_BUCKET, autoSwitch.getValue());
 
                     // attempt to rotate and place water to cancel fall damage
-                    mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, -90, false));
+                    mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, 90, false));
                     mc.playerController.processRightClick(mc.player, mc.world, EnumHand.MAIN_HAND);
 
                     // switchback to previous slot
