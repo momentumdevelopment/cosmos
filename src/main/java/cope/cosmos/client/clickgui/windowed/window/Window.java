@@ -192,10 +192,21 @@ public class Window implements GUIUtil, Wrapper {
             glEnable(GL_SCISSOR_TEST);
 
             // set shader config
-            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(6);
-            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(6);
-            ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
-            ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
+            if (((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius") != null) {
+                ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("Radius").set(6);
+            }
+
+            if (((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius") != null) {
+                ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("Radius").set(6);
+            }
+
+            if (((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir") != null) {
+                ((IShaderGroup) blurShader).getListShaders().get(0).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
+            }
+
+            if (((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir") != null) {
+                ((IShaderGroup) blurShader).getListShaders().get(1).getShaderManager().getShaderUniform("BlurDir").set(1, 1);
+            }
 
             // attach shader to framebuffer
             framebuffer.bindFramebuffer(true);

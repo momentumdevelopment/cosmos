@@ -8,82 +8,155 @@ import cope.cosmos.util.client.StringFormatter;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * @author Doogie13
+ * @since 12/27/2021
+ */
 public class Step extends Module {
-
-    static final double[] one = {0.42, 0.753};
-    static final double[] oneF = {0.42, 0.75, 1.0, 1.16, 1.23, 1.2};
-    static final double[] two = {0.42, 0.78, 0.63, 0.51, 0.9, 1.21, 1.45, 1.43};
-    static final double[] twoF = {0.425, 0.821, 0.699, 0.599, 1.022, 1.372, 1.652, 1.869, 2.019, 1.907};
     public static Step INSTANCE;
-
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("How to step up blocks");
-    public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The maximum height to step up blocks");
-    public static Setting<Boolean> timer = new Setting<>("Timer", false).setDescription("Use timer to rubberband less on normal mode");
 
     public Step() {
         super("Step", Category.MOVEMENT, "Allows you to step up blocks", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
-    boolean timering;
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("Mode for how to step up blocks");
+    public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The maximum height to step up blocks");
+    public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false).setDescription("Allows you to step up blocks while riding entities");
+
+    // timer
+    private boolean timer;
 
     @Override
     public void onDisable() {
         super.onDisable();
-        mc.player.stepHeight = 0.5f;
+
+        // reset our step heights
+        mc.player.stepHeight = 0.5F;
+
+        if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+            mc.player.getRidingEntity().stepHeight = 0.5F;
+        }
     }
 
     @Override
     public void onUpdate() {
+        // update our player's step height
         mc.player.stepHeight = height.getValue().floatValue();
 
-        if (timering)
-            getCosmos().getTickManager().setClientTicksDirect(50);
+        if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+            if (entityStep.getValue()) {
+                // update our riding entity's step height
+                mc.player.getRidingEntity().stepHeight = height.getValue().floatValue();
+            }
+        }
+
+        // reset our timer if needed
+        if (timer) {
+            getCosmos().getTickManager().setClientTicks(1);
+        }
     }
 
     @SubscribeEvent
-    public void onStepEvent(StepEvent event) {
+    public void onStep(StepEvent event) {
+        if (mode.getValue().equals(Mode.NORMAL)) {
 
-        if (mode.getValue().equals(Mode.VANILLA))
-            return;
+            // don't attempt to step if we are not on the ground
+            if (!mc.player.onGround) {
+                event.setHeight(0.6F);
+            }
 
-        if (!mc.player.onGround) {
-            event.setHeight(.6f);
-            return;
+            else {
+                // current step height
+                double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
+
+                // calculate the packet offsets
+                double[] offsets = getOffset(stepHeight);
+
+                if (offsets.length > 1) {
+                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
+                    getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
+
+                    // only slow down timer for one tick
+                    timer = true;
+
+                    // send our NCP offsets
+                    for (double offset : offsets) {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
+                    }
+                }
+
+                // as not to cancel any vanilla steps such as stairs, paths
+                else if (stepHeight > 0.5) {
+                    event.setHeight(0.6F);
+                }
+            }
         }
-
-        double step = event.getBB().minY - mc.player.posY;
-
-        if (step == 1)
-            step(one);
-        else if (step == 1.5)
-            step(oneF);
-        else if (step == 2)
-            step(two);
-        else if (step == 2.5)
-            step(twoF);
-        else if (step > 0.5) // as not to cancel any vanilla steps such as stairs, paths
-            event.setHeight(.6f);
-
     }
 
-    void step(double[] offsets) {
+    /**
+     * Gets the NCP packet offsets for a given step height
+     * @param height The step height
+     * @return The NCP packet offsets for the given step height
+     */
+    public double[] getOffset(double height) {
+        // list of step heights
+        List<StepHeight> stepHeights = Arrays.asList(
+                new StepHeight(1, 0.42, 0.753),
+                new StepHeight(1.5, 0.42, 0.75, 1.0, 1.16, 1.23, 1.2),
+                new StepHeight(2, 0.42, 0.78, 0.63, 0.51, 0.9, 1.21, 1.45, 1.43),
+                new StepHeight(2.5, 0.425, 0.821, 0.699, 0.599, 1.022, 1.372, 1.652, 1.869, 2.019, 1.907)
+        );
 
-        if (timer.getValue()) {
-            getCosmos().getTickManager().setClientTicksDirect(50 * (offsets.length + 1 ));
-            // + 1 to offsets length because of the movement packet vanilla sends at the top of the step
-            timering = true;
-            // only timer for one tick
-        }
-
-        for (double offset : offsets)
-            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-
-        // send our NCP offsets
-
+        // find the offsets for the step height
+        return stepHeights.stream()
+                .filter(stepHeight -> stepHeight.getHeight() == height)
+                .findFirst()
+                .orElse(new StepHeight(0, 0))
+                .getOffsets();
     }
 
     public enum Mode {
-        NORMAL, VANILLA
+
+        /**
+         * Sends packets to simulate a jump, bypasses NCP
+         */
+        NORMAL,
+
+        /**
+         * Increases step height, does not send packets
+         */
+        VANILLA
+    }
+
+    public static class StepHeight {
+
+        // step info
+        private final double height;
+        private final double[] offsets;
+
+        public StepHeight(double height, double... offsets) {
+            this.height = height;
+            this.offsets = offsets;
+        }
+
+        /**
+         * Gets the height for the step
+         * @return The height for the step
+         */
+        public double getHeight() {
+            return height;
+        }
+
+        /**
+         * Gets the packet offsets for the step
+         * @return The packet offsets for the step
+         */
+        public double[] getOffsets() {
+            return offsets;
+        }
     }
 }

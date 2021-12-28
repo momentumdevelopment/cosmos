@@ -6,7 +6,10 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since 07/12/2021
+ */
 public class Font extends Module {
 	public static Font INSTANCE;
 	
@@ -22,6 +25,7 @@ public class Font extends Module {
 	@SubscribeEvent
 	public void onFontRender(RenderFontEvent event) {
 		if (vanilla.getValue()) {
+			// override vanilla font rendering
 			event.setCanceled(true);
 		}
 	}

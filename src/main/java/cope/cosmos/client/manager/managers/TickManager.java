@@ -67,10 +67,6 @@ public class TickManager extends Manager implements Wrapper {
         ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((50 / ticks));
     }
 
-    public void setClientTicksDirect(float ticks) {
-        ((ITimer) ((IMinecraft) mc).getTimer()).setTickLength((ticks));
-    }
-
     public float getTickLength() {
         return ((ITimer) ((IMinecraft) mc).getTimer()).getTickLength();
     }

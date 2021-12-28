@@ -6,6 +6,9 @@ import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.projectile.EntityFishHook;
+import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -32,6 +35,7 @@ public class Velocity extends Module {
 	public static Setting<Boolean> entities = new Setting<>("Entities", true).setDescription("Prevents being pushed by entities").setParent(noPush);
 	public static Setting<Boolean> blocks = new Setting<>("Blocks", true).setDescription("Prevents being pushed out of blocks").setParent(noPush);
 	public static Setting<Boolean> liquid = new Setting<>("Liquid", true).setDescription("Prevents being pushed by liquids").setParent(noPush);
+	public static Setting<Boolean> fishHook = new Setting<>("Fishhooks", true).setDescription("Prevents being pulled by fishhooks").setParent(noPush);
 
 	// previous collision reduction
 	private float collisionReduction;
@@ -110,6 +114,24 @@ public class Velocity extends Module {
 				((ISPacketExplosion) packet).setMotionX(motionX * horizontal.getValue().floatValue());
 				((ISPacketExplosion) packet).setMotionY(motionY * vertical.getValue().floatValue());
 				((ISPacketExplosion) packet).setMotionZ(motionZ * horizontal.getValue().floatValue());
+			}
+		}
+
+		// packet for being pulled
+		if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 31) {
+			if (fishHook.getValue()) {
+				// get the entity that is pulling us
+				Entity entity = ((SPacketEntityStatus) event.getPacket()).getEntity(mc.world);
+
+				// check if it's a fishhook
+				if (entity instanceof EntityFishHook) {
+
+					// cancel the pull
+					EntityFishHook entityFishHook = (EntityFishHook) entity;
+					if (entityFishHook.caughtEntity.equals(mc.player)) {
+						event.setCanceled(true);
+					}
+				}
 			}
 		}
 	}

@@ -4,6 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.features.command.commands.Drawn;
 import cope.cosmos.client.features.command.commands.Friend;
+import cope.cosmos.client.features.command.commands.Help;
 import cope.cosmos.client.features.command.commands.Preset;
 import cope.cosmos.client.manager.Manager;
 
@@ -20,6 +21,7 @@ public class CommandManager extends Manager {
 	private static final List<Command> commands = Arrays.asList(
 			new Friend(),
 			new Preset(),
+			new Help(),
 			new Drawn()
 	);
 
