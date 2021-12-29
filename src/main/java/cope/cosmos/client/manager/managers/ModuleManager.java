@@ -71,6 +71,7 @@ public class ModuleManager extends Manager {
 			new FastUse(),
 			new Interact(),
 			new NoFall(),
+			new NoRotate(),
 			new PingSpoof(),
 			new SpeedMine(),
 
