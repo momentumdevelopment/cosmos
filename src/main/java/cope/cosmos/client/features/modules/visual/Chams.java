@@ -27,16 +27,16 @@ import static org.lwjgl.opengl.GL11.*;
  */
 @SuppressWarnings("unused")
 public class Chams extends Module {
-    public static cope.cosmos.client.features.modules.visual.Chams INSTANCE;
+    public static Chams INSTANCE;
 
     public Chams() {
         super("Chams", Category.VISUAL, "Renders entity models through walls");
         INSTANCE = this;
     }
 
-    public static Setting<cope.cosmos.client.features.modules.visual.Chams.Mode> mode = new Setting<>("Mode", cope.cosmos.client.features.modules.visual.Chams.Mode.MODEL).setDescription("Mode for Chams");
-    public static Setting<cope.cosmos.client.features.modules.visual.Chams.Shader> shader = new Setting<>("Shader", cope.cosmos.client.features.modules.visual.Chams.Shader.WATER).setDescription("Shader mode for Chams").setVisible(() -> mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.SHADER));
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setParent(mode).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE) || mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL));
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
+    public static Setting<Shader> shader = new Setting<>("Shader", Shader.WATER).setDescription("Shader mode for Chams").setVisible(() -> mode.getValue().equals(Mode.SHADER));
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setParent(mode).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
 
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
     public static Setting<Boolean> local = new Setting<>("Local", false).setDescription("Renders chams on the local player").setParent(players);
@@ -79,7 +79,7 @@ public class Chams extends Module {
             glPushMatrix();
             glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-            if (!texture.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.SHINE))
+            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE))
                 glDisable(GL_TEXTURE_2D);
 
             if (blend.getValue())
@@ -113,18 +113,18 @@ public class Chams extends Module {
 
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
 
-            if (walls.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
-            if (mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (mode.getValue().equals(Mode.WIRE_MODEL))
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             if (highlight.getValue())
-                ColorUtil.setColor(mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
+                ColorUtil.setColor(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
 
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
 
-            if (walls.getValue() && mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
             if (lighting.getValue())
@@ -136,7 +136,7 @@ public class Chams extends Module {
             if (blend.getValue())
                 glDisable(GL_BLEND);
 
-            if (!texture.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.SHINE))
+            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE))
                 glEnable(GL_TEXTURE_2D);
 
             glPopAttrib();
@@ -151,7 +151,7 @@ public class Chams extends Module {
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
                 GL11.glEnable(GL11.GL_BLEND);
 
-                Minecraft.getMinecraft().getRenderManager().renderEngine.bindTexture(cope.cosmos.client.features.modules.visual.Chams.GLINT_TEX);
+                Minecraft.getMinecraft().getRenderManager().renderEngine.bindTexture(GLINT_TEX);
                 GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL_FILL);
                 GL11.glDisable(GL11.GL_LIGHTING);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -165,16 +165,16 @@ public class Chams extends Module {
                     float textureScale = 0.33333334F * glintScale.getValue();
                     GlStateManager.scale(textureScale, textureScale, textureScale);
                     GlStateManager.rotate(30.0F - (float)i * 60.0F, 0.0F, 0.0F, 1.0F);
-                    GlStateManager.translate(0.0F, (event.getEntityLivingBase().ticksExisted + mc.getRenderPartialTicks()) * (0.001F + (float)i * 0.003F) * cope.cosmos.client.features.modules.visual.Chams.glintSpeed.getValue(), 0.0F);
+                    GlStateManager.translate(0.0F, (event.getEntityLivingBase().ticksExisted + mc.getRenderPartialTicks()) * (0.001F + (float)i * 0.003F) * glintSpeed.getValue(), 0.0F);
                     GlStateManager.matrixMode(GL11.GL_MODELVIEW);
                     GL11.glTranslatef(0.0f, 0.0f, 0.0f);
                     GlStateManager.color(glintColor.getValue().getRed() / 255f, glintColor.getValue().getGreen() / 255f, glintColor.getValue().getBlue() / 255f, glintColor.getValue().getAlpha() / 255f);
-                    if (cope.cosmos.client.features.modules.visual.Chams.glintWalls.getValue()) {
+                    if (glintWalls.getValue()) {
                         GL11.glDepthMask(true);
                         GL11.glEnable(GL_DEPTH_TEST);
                     }
                     event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
-                    if (cope.cosmos.client.features.modules.visual.Chams.glintWalls.getValue()) {
+                    if (glintWalls.getValue()) {
                         GL11.glDisable(GL_DEPTH_TEST);
                         GL11.glDepthMask(false);
                     }
@@ -214,7 +214,7 @@ public class Chams extends Module {
             glTranslated(event.getX(), event.getY(), event.getZ());
             glScaled(scale.getValue(), scale.getValue(), scale.getValue());
 
-            if (!texture.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.SHINE))
+            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE))
                 glDisable(GL_TEXTURE_2D);
 
             if (blend.getValue())
@@ -251,21 +251,21 @@ public class Chams extends Module {
             else
                 event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
 
-            if (walls.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
-            if (mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (mode.getValue().equals(Mode.WIRE_MODEL))
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             if (highlight.getValue())
-                ColorUtil.setColor(mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
+                ColorUtil.setColor(mode.getValue().equals(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue());
 
             if (event.getEntityEnderCrystal().shouldShowBottom())
                 event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
             else
                 event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
 
-            if (walls.getValue() && mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.WIRE_MODEL))
+            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL))
                 glEnable(GL_DEPTH_TEST);
 
             if (lighting.getValue())
@@ -277,7 +277,7 @@ public class Chams extends Module {
             if (blend.getValue())
                 glDisable(GL_BLEND);
 
-            if (!texture.getValue() && !mode.getValue().equals(cope.cosmos.client.features.modules.visual.Chams.Mode.SHINE))
+            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE))
                 glEnable(GL_TEXTURE_2D);
 
             glScaled(1 / scale.getValue(), 1 / scale.getValue(), 1 / scale.getValue());
