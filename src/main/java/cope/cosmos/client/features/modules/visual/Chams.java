@@ -27,7 +27,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 @SuppressWarnings("unused")
 public class Chams extends Module {
-    public static cope.cosmos.client.features.modules.visual.Chams INSTANCE;
+    public static Chams INSTANCE;
 
     public Chams() {
         super("Chams", Category.VISUAL, "Renders entity models through walls");
