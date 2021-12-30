@@ -47,6 +47,7 @@ public class ModuleManager extends Manager {
 			new ChatModifications(),
 			new ExtraTab(),
 			new FakePlayer(),
+			new MiddleClick(),
 			new Notifier(),
 			new Portal(),
 			new Timer(),
