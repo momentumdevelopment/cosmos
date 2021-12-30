@@ -5,8 +5,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.*;
 import cope.cosmos.util.client.ChatUtil;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.*;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketChatMessage;
@@ -41,13 +40,13 @@ public class MiddleClick extends Module {
                     int previousSlot = mc.player.inventory.currentItem;
 
                     // swap to the ender pearl slot
-                    InventoryUtil.switchToSlot(Items.ENDER_PEARL, Switch.NORMAL);
+                    getCosmos().getInventoryManager().switchToItem(Items.ENDER_PEARL, Switch.NORMAL);
 
                     // use the pearl by sending a right click action
                     mc.playerController.processRightClick(mc.player, mc.world, EnumHand.MAIN_HAND);
 
                     // we are all done, we can swap back to our original slot
-                    InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
                 }
             }
 

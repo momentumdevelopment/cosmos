@@ -4,8 +4,8 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -14,7 +14,6 @@ import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
@@ -119,9 +118,9 @@ public class Surround extends Module {
         previousSlot = mc.player.inventory.currentItem;
 
         // switch to obsidian
-        InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+        getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
-        if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+        if (InventoryUtil.isHolding(block.getValue().getBlock())) {
             // place on each of the offsets
             for (Vec3i surroundOffset : mode.getValue().getVectors()) {
 
@@ -147,7 +146,7 @@ public class Surround extends Module {
 
         // switch back to our previous item
         if (previousSlot != -1) {
-            InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
 
             // reset previous slot info
             previousSlot = -1;
@@ -218,9 +217,9 @@ public class Surround extends Module {
                             previousSlot = mc.player.inventory.currentItem;
 
                             // switch to obsidian
-                            InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+                            getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
-                            if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+                            if (InventoryUtil.isHolding(block.getValue().getBlock())) {
                                 // update blocks placed
                                 blocksPlaced++;
 
@@ -230,7 +229,7 @@ public class Surround extends Module {
 
                             // switch back to our previous item
                             if (previousSlot != -1) {
-                                InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+                                getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
 
                                 // reset previous slot info
                                 previousSlot = -1;
@@ -270,9 +269,9 @@ public class Surround extends Module {
                                 previousSlot = mc.player.inventory.currentItem;
 
                                 // switch to obsidian
-                                InventoryUtil.switchToSlot(Item.getItemFromBlock(block.getValue().getBlock()), autoSwitch.getValue());
+                                getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
-                                if (InventoryUtil.isHolding(Item.getItemFromBlock(block.getValue().getBlock()))) {
+                                if (InventoryUtil.isHolding(block.getValue().getBlock())) {
                                     // update blocks placed
                                     blocksPlaced++;
 
@@ -282,7 +281,7 @@ public class Surround extends Module {
 
                                 // switch back to our previous item
                                 if (previousSlot != -1) {
-                                    InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+                                    getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
 
                                     // reset previous slot info
                                     previousSlot = -1;

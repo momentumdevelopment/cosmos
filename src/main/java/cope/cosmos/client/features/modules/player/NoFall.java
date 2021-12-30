@@ -4,7 +4,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.*;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumHand;
@@ -46,7 +46,7 @@ public class NoFall extends Module {
                     int previousSlot = mc.player.inventory.currentItem;
 
                     // switch to water bucket
-                    InventoryUtil.switchToSlot(Items.WATER_BUCKET, autoSwitch.getValue());
+                    getCosmos().getInventoryManager().switchToItem(Items.WATER_BUCKET, autoSwitch.getValue());
 
                     // attempt to rotate and place water to cancel fall damage
                     mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, 90, false));
@@ -54,7 +54,7 @@ public class NoFall extends Module {
 
                     // switchback to previous slot
                     if (previousSlot != -1) {
-                        InventoryUtil.switchToSlot(previousSlot, autoSwitch.getValue());
+                        getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
                     }
 
                     break;

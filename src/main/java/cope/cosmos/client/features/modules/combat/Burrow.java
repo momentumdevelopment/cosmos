@@ -3,9 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Inventory;
-import cope.cosmos.util.player.InventoryUtil.Switch;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -56,21 +54,8 @@ public class Burrow extends Module {
 		// save our previous slot
 		int previousSlot = mc.player.inventory.currentItem;
 
-		// find the item in our hotbar
-		int blockSlot = -1;
-		for (Block block : mode.getValue().getBlocks()) {
-			// get the slot of the current block
-			int potentialSlot = InventoryUtil.getBlockSlot(block, Inventory.HOTBAR);
-
-			// we found a potential block to switch to
-			if (potentialSlot != -1) {
-				blockSlot = potentialSlot;
-				break;
-			}
-		}
-
 		// switch to our block slot
-		InventoryUtil.switchToSlot(blockSlot, Switch.NORMAL);
+		getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
 
 		// place at our previous position
 		getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
@@ -79,7 +64,7 @@ public class Burrow extends Module {
 		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
 		// switch back to our previous slot
-		InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+		getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
 
 		// send an out of bounds packet, ideally NCP will rubberband us back and we will be inside the block position
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));

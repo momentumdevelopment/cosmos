@@ -15,8 +15,7 @@ import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Inventory;
-import cope.cosmos.util.player.InventoryUtil.Switch;
+import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
@@ -269,8 +268,8 @@ public class AutoCrystal extends Module {
                 // verify that we cannot break the crystal due to weakness
                 if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
                     // find the slots of our tools
-                    int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
-                    int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
+                    int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
+                    int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
 
                     if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
                         // log the previous slot
@@ -278,11 +277,11 @@ public class AutoCrystal extends Module {
 
                         // prefer the sword over a pickaxe
                         if (swordSlot != -1) {
-                            InventoryUtil.switchToSlot(swordSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
                         }
 
                         else if (pickSlot != -1) {
-                            InventoryUtil.switchToSlot(pickSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
                         }
                     }
                 }
@@ -305,7 +304,7 @@ public class AutoCrystal extends Module {
 
                 // switch to our previous slot
                 if (previousSlot != -1) {
-                    InventoryUtil.switchToSlot(previousSlot, explodeWeakness.getValue());
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                     // reset our previous slot
                     previousSlot = -1;
@@ -343,7 +342,7 @@ public class AutoCrystal extends Module {
             }
 
             // switch to crystals if needed
-            InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
+            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
@@ -441,7 +440,7 @@ public class AutoCrystal extends Module {
 
                 // switch back after placing, should only switch serverside
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
-                    InventoryUtil.switchToSlot(previousSlot, placeSwitch.getValue());
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, placeSwitch.getValue());
 
                     if (previousHand != null) {
                         mc.player.setActiveHand(previousHand);
@@ -889,8 +888,8 @@ public class AutoCrystal extends Module {
                             // verify that we cannot break the crystal due to weakness
                             if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
                                 // find the slots of our tools
-                                int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
-                                int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
+                                int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
+                                int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
 
                                 if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
                                     // log the previous slot
@@ -898,11 +897,11 @@ public class AutoCrystal extends Module {
 
                                     // prefer the sword over a pickaxe
                                     if (swordSlot != -1) {
-                                        InventoryUtil.switchToSlot(swordSlot, explodeWeakness.getValue());
+                                        getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
                                     }
 
                                     else if (pickSlot != -1) {
-                                        InventoryUtil.switchToSlot(pickSlot, explodeWeakness.getValue());
+                                        getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
                                     }
                                 }
                             }
@@ -922,7 +921,7 @@ public class AutoCrystal extends Module {
 
                         // switch to our previous slot
                         if (previousSlot != -1) {
-                            InventoryUtil.switchToSlot(previousSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                             // reset our previous slot
                             previousSlot = -1;
