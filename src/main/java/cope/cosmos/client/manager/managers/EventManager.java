@@ -19,6 +19,8 @@ import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
+import java.awt.*;
+
 @SuppressWarnings("unused")
 public class EventManager extends Manager implements Wrapper {
 
@@ -61,7 +63,7 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
-			if (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) {
+			if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
 				try {
 					mod.onTick();
 				} catch (Exception exception) {
@@ -250,12 +252,20 @@ public class EventManager extends Manager implements Wrapper {
 		RenderFogEvent renderFogEvent = new RenderFogEvent(event.getDensity());
 		Cosmos.EVENT_BUS.post(renderFogEvent);
 
+		event.setDensity(renderFogEvent.getDensity());
+
 		if (renderFogEvent.isCanceled()) {
 			event.setCanceled(true);
 		}
+	}
 
-		else {
-			event.setDensity(renderFogEvent.getDensity());
-		}
+	@SubscribeEvent
+	public void onFogColor(EntityViewRenderEvent.FogColors event) {
+		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent(new Color(event.getRed(), event.getGreen(), event.getBlue()));
+		Cosmos.EVENT_BUS.post(fogColorEvent);
+
+		event.setRed(fogColorEvent.getColor().getRed());
+		event.setGreen(fogColorEvent.getColor().getGreen());
+		event.setBlue(fogColorEvent.getColor().getBlue());
 	}
 }
