@@ -1,81 +1,131 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.MotionEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author Doogie13
- * @since 27/12/2021
- * */
-
+ * @author Doogie13, linustouchtips
+ * @since 12/27/2021
+ */
 public class LongJump extends Module {
-
-    public static Setting<Double> speed = new Setting<>("Boost", 0d, .6, 1d, 2).setDescription("Initial speed");
-    public static Setting<Boolean> low = new Setting<>("Low",false).setDescription("Do a lower hop");
-    public static Setting<Double> accelerate = new Setting<>("Accelerate",0.92,0.92,1.10,2).setDescription("Increase or decrease speed every tick");
-    public static Setting<Double> glide = new Setting<>("Glide", 0.0, .65, 1d, 2).setDescription("Decrease fall speed");
-    public static Setting<Boolean> disable = new Setting<>("AutoDisable", true).setDescription("Disable on rubberband");
-
     public LongJump INSTANCE;
-    double currentSpeed;
 
     public LongJump() {
-        super("LongJump", Category.MOVEMENT, "Jump further after taking damage");
+        super("LongJump", Category.MOVEMENT, "Allows you to jump farther");
+        INSTANCE = this;
     }
 
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 0.6, 1.0, 2).setDescription("Jump speed");
+    public static Setting<Double> accelerate = new Setting<>("Acceleration",0.92,0.92,1.10,2).setDescription("Factor for acceleration speed");
+    public static Setting<Double> glide = new Setting<>("Glide", 0.0, 0.65, 1.0, 2).setDescription("Fall speed");
+
+    // move speed
+    private double moveSpeed;
+    
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
 
-        // Vanilla movement
-        event.setCanceled(true);
-
-        // If we are onGround and are actually trying to move
-        if (mc.player.onGround && MotionUtil.isMoving()) {
-            // Set the event motion to .42
-            event.setY(.42);
-
-            // Only make the motion .42 if we want to do a normal hop
-            mc.player.motionY = low.getValue() ? 0 : .42;
-
-            // Reset our current speed
-            currentSpeed = speed.getValue();
-
-            // Apply speed effect if present
-            if (mc.player.isPotionActive(MobEffects.SPEED)) {
-                int amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
-                currentSpeed *= 1 + (0.2 * (amplifier + 1));
-            }
-
-        } else if (mc.player.motionY < 0) {
-
-            // If we are falling, slow our fall
-            event.setY(event.getY() * glide.getValue());
-
+        // make sure the player is not in a liquid
+        if (PlayerUtil.isInLiquid()) {
+            moveSpeed = 0;
+            return;
         }
 
-        // Set motion to the speed (or minimum air speed, whichever is higher)
-        event.setX(MotionUtil.getMoveSpeed(Math.max(currentSpeed + .20855, 0.28055))[0]);
-        event.setZ(MotionUtil.getMoveSpeed(Math.max(currentSpeed + .20855, 0.28055))[1]);
+        // make sure the player is not in a web
+        if (((IEntity) mc.player).getInWeb()) {
+            moveSpeed = 0;
+            return;
+        }
 
-        // Multiply speed by acceleration (for next tick)
-        currentSpeed *= accelerate.getValue();
+        // make sure the player can have speed applied
+        if (mc.player.isOnLadder() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.fallDistance > 2) {
+            moveSpeed = 0;
+            return;
+        }
 
+        // cancel vanilla movement
+        event.setCanceled(true);
+
+        // attempt jump if we are onGround and are actually trying to move
+        if (mc.player.onGround && MotionUtil.isMoving()) {
+            // set the event motion to 0.42
+            event.setY(0.42);
+
+            // only make the motion 0.42 if we want to do a normal hop
+            mc.player.motionY = 0.42;
+
+            // reset our current speed
+            moveSpeed = speed.getValue();
+
+            // apply speed effect if present
+            if (mc.player.isPotionActive(MobEffects.SPEED)) {
+                int amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
+                moveSpeed *= 1 + (0.2 * (amplifier + 1));
+            }
+        }
+
+        else if (mc.player.motionY < 0) {
+            // If we are falling, slow our fall
+            event.setY(event.getY() * glide.getValue());
+        }
+
+        // the current movement input values of the user
+        float forward = mc.player.movementInput.moveForward;
+        float strafe = mc.player.movementInput.moveStrafe;
+        float yaw = mc.player.rotationYaw;
+
+        // find the rotations and inputs based on our current movements
+        if (strafe > 0) {
+            yaw += forward > 0 ? -45 : 45;
+        }
+
+        else if (strafe < 0) {
+            yaw += forward > 0 ? 45 : -45;
+        }
+
+        strafe = 0;
+
+        if (forward > 0) {
+            forward = 1;
+        }
+
+        else if (forward < 0) {
+            forward = -1;
+        }
+
+        // our facing values, according to movement not rotations
+        double cos = Math.cos(Math.toRadians(yaw + 90));
+        double sin = Math.sin(Math.toRadians(yaw + 90));
+
+        // update the movements
+        event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * sin));
+        event.setZ((forward * moveSpeed * sin) - (strafe * moveSpeed * cos));
+
+        // if we're not inputting any movements, then we shouldn't be adding any motion
+        if (!MotionUtil.isMoving()) {
+            event.setX(0);
+            event.setZ(0);
+        }
+
+        // multiply speed by acceleration (for next tick)
+        moveSpeed *= accelerate.getValue();
     }
 
     @SubscribeEvent
-    void onPacket(PacketEvent.PacketReceiveEvent event) {
-
-        // Disable on rubberband or teleport
-        if (event.getPacket() instanceof SPacketPlayerPosLook && disable.getValue())
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        // disable on rubberband or teleport
+        if (event.getPacket() instanceof SPacketPlayerPosLook) {
+            moveSpeed = 0;
             disable();
-
+        }
     }
-
 }

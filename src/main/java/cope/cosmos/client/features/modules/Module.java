@@ -39,7 +39,7 @@ public class Module extends Feature implements Wrapper {
 	private Supplier<String> info;
 
 	// the module two-way animation manager
-	private AnimationManager animation;
+	private final AnimationManager animation;
 
 	// all the module's settings
 	private final List<Setting<?>> settings = new ArrayList<>();
@@ -50,7 +50,7 @@ public class Module extends Feature implements Wrapper {
 		this.category = category;
 
 		// add all associated settings in the class
-		Arrays.stream(this.getClass().getDeclaredFields())
+		Arrays.stream(getClass().getDeclaredFields())
 				.filter(field -> Setting.class.isAssignableFrom(field.getType()))
 				.forEach(field -> {
 					field.setAccessible(true);

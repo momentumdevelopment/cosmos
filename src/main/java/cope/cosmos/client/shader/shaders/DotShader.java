@@ -6,6 +6,10 @@ import cope.cosmos.util.client.ColorUtil;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.glUniform1f;
 
+/**
+ * @author linustouchtips
+ * @since 12/23/2021
+ */
 public class DotShader extends Shader {
     public DotShader() {
         super("/assets/cosmos/shaders/glsl/dot.frag");

@@ -84,7 +84,8 @@ public class ModuleManager extends Manager {
 			new HoleESP(),
 			new Nametags(),
 			new NewChunks(),
-			new NoRender()
+			new NoRender(),
+			new SkyColor()
 	);
 
 	public static List<Module> getAllModules() {
