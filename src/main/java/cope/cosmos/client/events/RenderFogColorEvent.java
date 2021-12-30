@@ -14,7 +14,7 @@ import java.awt.*;
 public class RenderFogColorEvent extends Event {
 
     // fog color
-    private final Color color;
+    private Color color;
 
     public RenderFogColorEvent(Color color) {
         this.color = color;
@@ -26,5 +26,13 @@ public class RenderFogColorEvent extends Event {
      */
     public Color getColor() {
         return color;
+    }
+
+    /**
+     * Sets the fog color
+     * @param in The new fog color
+     */
+    public void setColor(Color in) {
+        color = in;
     }
 }

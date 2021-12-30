@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.NotificationManager.*;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.InventoryUtil.Inventory;
 import cope.cosmos.util.player.InventoryUtil.Switch;
@@ -43,15 +42,7 @@ public class Burrow extends Module {
 		mc.player.connection.sendPacket(new CPacketPlayer(ThreadLocalRandom.current().nextBoolean()));
 
 		// save our current position
-		BlockPos previousPosition = mc.player.getPosition();
-
-		// check if we are able to burrow
-		if (!mc.world.getBlockState(previousPosition).getMaterial().isReplaceable() || !mc.world.getBlockState(previousPosition.add(0, offset.getValue(), 0)).getMaterial().isReplaceable()) {
-			getCosmos().getNotificationManager().pushNotification(new Notification("Unable to burrow!", Type.WARNING));
-			getCosmos().getTickManager().setClientTicks(2500);
-			disable();
-			return;
-		}
+		BlockPos previousPosition = new BlockPos(mc.player.getPositionVector());
 
 		// send fake jump packets
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
@@ -128,7 +119,12 @@ public class Burrow extends Module {
 		/**
 		 * Fences, Blocks with 0.2 width
 		 */
-		FENCE(Blocks.ACACIA_FENCE, Blocks.DARK_OAK_FENCE, Blocks.BIRCH_FENCE, Blocks.JUNGLE_FENCE, Blocks.OAK_FENCE, Blocks.NETHER_BRICK_FENCE, Blocks.SPRUCE_FENCE_GATE);
+		FENCE(Blocks.ACACIA_FENCE, Blocks.DARK_OAK_FENCE, Blocks.BIRCH_FENCE, Blocks.JUNGLE_FENCE, Blocks.OAK_FENCE, Blocks.NETHER_BRICK_FENCE, Blocks.SPRUCE_FENCE_GATE),
+
+		/**
+		 * Skulls, Blocks with 0.2 height
+		 */
+		SKULL(Blocks.SKULL);
 
 		private final Block[] blocks;
 
