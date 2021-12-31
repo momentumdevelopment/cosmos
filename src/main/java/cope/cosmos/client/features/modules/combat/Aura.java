@@ -9,13 +9,13 @@ import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.SocialManager.*;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.PlayerUtil.Hand;
 import cope.cosmos.util.player.Rotation;
@@ -269,7 +269,7 @@ public class Aura extends Module {
                 }
 
                 // switch to our weapon
-                InventoryUtil.switchToSlot(weapon.getValue().getItem(), autoSwitch.getValue());
+                getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
 
                 // make sure we are holding our weapon
                 if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || !InventoryUtil.isHolding32k() && weaponThirtyTwoK.getValue()) {
