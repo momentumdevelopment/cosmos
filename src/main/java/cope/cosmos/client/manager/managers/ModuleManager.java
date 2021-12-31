@@ -75,6 +75,7 @@ public class ModuleManager extends Manager {
 			new NoFall(),
 			new NoRotate(),
 			new PingSpoof(),
+			new Reach(),
 			new SpeedMine(),
 
 			//Visual
