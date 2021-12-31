@@ -34,6 +34,7 @@
       "MixinGuiInGame",
       "MixinGuiToast",
       "MixinTileEntityRenderDispatcher",
+      "MixinMinecraft",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",

@@ -3,25 +3,25 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.combat.EnemyUtil;
-import cope.cosmos.util.combat.TargetUtil;
+import cope.cosmos.client.manager.managers.HoleManager.Hole;
+import cope.cosmos.client.manager.managers.HoleManager.Type;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
-import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
-import cope.cosmos.util.render.RenderUtil;
-import net.minecraft.entity.Entity;
+import io.netty.util.internal.ConcurrentSet;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 
-import java.util.TreeMap;
+import java.util.Set;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 @SuppressWarnings("unused")
 public class HoleFill extends Module {
     public static HoleFill INSTANCE;
@@ -32,11 +32,11 @@ public class HoleFill extends Module {
     }
 
     public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED).setDescription("Mode for the filler");
-    public static Setting<Block> block = new Setting<>("Block", Block.OBSIDIAN).setDescription("Block to use for filling");
+    public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN).setDescription("Block to use for filling");
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION).setDescription("When to consider the filling complete");
     public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 15.0, 1).setDescription("Range to scan for holes");
-    public static Setting<Double> threshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1).setDescription("Target's distance from hole for it to be considered fill-able").setVisible(() -> mode.getValue().equals(Filler.TARGETED));
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to block");
+    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
     public static Setting<Boolean> safety = new Setting<>("Safety", false).setDescription("Makes sure you are not the closest player for the current hole fill");
@@ -46,134 +46,179 @@ public class HoleFill extends Module {
 
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
     public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 0).setDescription("Range to consider a player a target").setParent(target);
+    public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1).setDescription("Target's distance from hole for it to be considered fill-able").setParent(target).setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the filling process");
     public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setDescription("Style of the visual").setParent(render);
 
-    private EntityPlayer fillTarget;
-    private BlockPos fillPosition = null;
+    // fills
+    private Set<Hole> fills = new ConcurrentSet<>();
 
-    private int previousSlot;
+    // block info
+    private int blocksPlaced = 0;
 
     @Override
     public void onThread() {
-        fillPosition = searchFill();
-    }
-
-    public BlockPos searchFill() {
-        fillTarget = (EntityPlayer) TargetUtil.getTargetEntity(targetRange.getValue(), Target.CLOSEST, true, false, false, false);
-
-        if (fillTarget == null || EnemyUtil.isDead(fillTarget))
-            return null;
-
-        TreeMap<Double, BlockPos> fillMap = new TreeMap<>();
-
-        getCosmos().getHoleManager().getHoles().forEach(hole -> {
-            if (mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(hole.getHole())).isEmpty()) {
-                double targetDistance = Math.sqrt(fillTarget.getDistanceSq(hole.getHole()));
-                double localDistance = Math.sqrt(mc.player.getDistanceSq(hole.getHole()));
-
-                boolean fillable = true;
-                switch (mode.getValue()) {
-                    case TARGETED:
-                        fillable = targetDistance <= threshold.getValue() && localDistance <= range.getValue();
-                        break;
-                    case ALL:
-                        fillable = localDistance <= range.getValue();
-                        break;
-                }
-
-                if (localDistance < targetDistance && safety.getValue()) {
-                    fillable = false;
-                }
-
-                if (!doubles.getValue() && hole.isDouble()) {
-                    fillable = false;
-                }
-
-                if (fillable) {
-                    fillMap.put(mode.getValue().equals(Filler.TARGETED) ? targetDistance : localDistance, hole.getHole());
-                }
-            }
-        });
-
-        switch (completion.getValue()) {
-            case COMPLETION:
-                if (fillMap.isEmpty()) {
-                    disable();
-                }
-
-                break;
-            case TARGET:
-                if (fillTarget == null || EnemyUtil.isDead(fillTarget)) {
-                    disable();
-                }
-
-                break;
-            case PERSISTENT:
-                break;
-        }
-
-        if (!fillMap.isEmpty()) {
-            return fillMap.firstEntry().getValue();
-        }
-
-        return null;
+        fills = searchFills();
     }
 
     @Override
     public void onUpdate() {
-        if (fillPosition == null) {
-            fillTarget = null;
+        // if we already filled in all the holes, then we can disable
+        if (fills.isEmpty() && completion.getValue().equals(Completion.COMPLETION)) {
+            disable();
             return;
         }
 
-        previousSlot = mc.player.inventory.currentItem;
+        // save the previous slot
+        int previousSlot = mc.player.inventory.currentItem;
 
-        InventoryUtil.switchToSlot(block.getValue().getItem(), autoSwitch.getValue());
+        // switch to obsidian
+        getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
-        // entity could've gotten in hole/could've been filled from the time it was calculated
-        if (fillPosition == null || !mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(fillPosition)).isEmpty())
-            return;
+        // fill in each of the holes
+        if (InventoryUtil.isHolding(block.getValue().getBlock())) {
+            for (Hole hole : fills) {
 
-        if (InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN))) {
-            getCosmos().getInteractionManager().placeBlock(fillPosition, rotate.getValue(), strict.getValue());
+                // make sure we haven't placed too many blocks this tick
+                if (blocksPlaced <= blocks.getValue()) {
+                    blocksPlaced++;
+
+                    // place block
+                    getCosmos().getInteractionManager().placeBlock(hole.getHole(), rotate.getValue(), strict.getValue());
+                }
+            }
         }
 
-        InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
-    }
-
-    @Override
-    public boolean isActive() {
-        return isEnabled() && (fillPosition != null);
-    }
-
-    @Override
-    public void onRender3D() {
-        if (nullCheck() && fillPosition != null && render.getValue()) {
-            RenderUtil.drawBox(new RenderBuilder().position(new BlockPos(fillPosition)).color(ColorUtil.getPrimaryAlphaColor(60)).setup().line(1.5F).cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE)).depth(true).blend().texture());
+        // switch back to our previous item
+        if (previousSlot != -1) {
+            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
         }
+    }
+
+    public Set<Hole> searchFills() {
+        // list of found fills
+        Set<Hole> searchedFills = new ConcurrentSet<>();
+
+        for (EntityPlayer player : mc.world.playerEntities) {
+
+            // make sure the entity is valid to fill
+            if (player == null || player == mc.player || player.isDead || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
+                continue;
+            }
+
+            // verify that the target is within fill distance
+            double targetDistance = mc.player.getDistance(player);
+            if (targetDistance > targetRange.getValue()) {
+                continue;
+            }
+
+            for (Hole hole : getCosmos().getHoleManager().getHoles()) {
+
+                // check if the hole is in range to be filled
+                double holeDistance = Math.sqrt(mc.player.getDistanceSq(hole.getHole()));
+                if (holeDistance > range.getValue()) {
+                    continue;
+                }
+
+                // not worthwhile filling quad holes, just creates more holes
+                if (hole.isQuad() || hole.getType().equals(Type.VOID)) {
+                    continue;
+                }
+
+                // check if the hole is a double hole
+                if (hole.isDouble() && !doubles.getValue()) {
+                    continue;
+                }
+
+                // target's distance from the hole
+                double holeTargetDistance = Math.sqrt(player.getDistanceSq(hole.getHole()));
+
+                // targeted fill
+                if (mode.getValue().equals(Filler.TARGETED)) {
+
+                    // check if the target is near the hole
+                    if (holeTargetDistance > targetThreshold.getValue()) {
+                        continue;
+                    }
+                }
+
+                // check safety
+                if (holeDistance < holeTargetDistance && safety.getValue()) {
+                    continue;
+                }
+
+                searchedFills.add(hole);
+            }
+        }
+
+        return searchedFills;
     }
 
     public enum Filler {
-        ALL, TARGETED
+
+        /**
+         * Fills in all holes in range
+         */
+        ALL,
+
+        /**
+         * Fills in holes that are near players
+         */
+        TARGETED
     }
 
     public enum Completion {
-        COMPLETION, TARGET, PERSISTENT
+        /**
+         * Disables when there are no more holes to fill
+         */
+        COMPLETION,
+
+        /**
+         * Disables when there are no targets
+         */
+        TARGET,
+
+        /**
+         * Doesn't dynamically disable
+         */
+        PERSISTENT
     }
 
-    private enum Block {
-        OBSIDIAN(Item.getItemFromBlock(Blocks.OBSIDIAN)), ENDER_CHEST(Item.getItemFromBlock(Blocks.ENDER_CHEST)), PRESSURE_PLATE(Item.getItemFromBlock(Blocks.WOODEN_PRESSURE_PLATE)), WEB(Item.getItemFromBlock(Blocks.WEB));
+    private enum BlockMode {
 
-        private final Item item;
+        /**
+         * Fills in holes with obsidian, standard
+         */
+        OBSIDIAN(Blocks.OBSIDIAN),
 
-        Block(Item item) {
-            this.item = item;
+        /**
+         * Fills in holes with ender chests, breaks some client's surrounds
+         */
+        ENDER_CHEST(Blocks.ENDER_CHEST),
+
+        /**
+         * Fills in holes with pressure plates to prevent them from showing up on HoleESP
+         */
+        PRESSURE_PLATE(Blocks.WOODEN_PRESSURE_PLATE),
+
+        /**
+         * Fills in holes with webs to prevent people from getting into them
+         */
+        WEB(Blocks.WEB);
+
+        private final Block block;
+
+        BlockMode(Block block) {
+            this.block = block;
         }
 
-        public Item getItem() {
-            return item;
+        /**
+         * Gets the associated block
+         * @return The associated block
+         */
+        public Block getBlock() {
+            return block;
         }
     }
 }

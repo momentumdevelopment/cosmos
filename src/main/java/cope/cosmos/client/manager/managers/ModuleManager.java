@@ -48,6 +48,7 @@ public class ModuleManager extends Manager {
 			new ExtraTab(),
 			new FakePlayer(),
 			new MiddleClick(),
+			new MultiTask(),
 			new Notifier(),
 			new Portal(),
 			new Timer(),
