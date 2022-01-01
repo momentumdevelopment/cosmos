@@ -24,7 +24,6 @@ public class Social extends Module {
 
     public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");
 
-    @SuppressWarnings("unused")
     @SubscribeEvent
     public void onTabOverlay(TabOverlayEvent event) {
         if (nullCheck() && Cosmos.INSTANCE.getSocialManager().getSocial(event.getInformation()).equals(Relationship.FRIEND) && friends.getValue()) {
