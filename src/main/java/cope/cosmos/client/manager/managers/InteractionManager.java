@@ -3,18 +3,14 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
@@ -160,8 +156,10 @@ public class InteractionManager extends Manager implements Wrapper {
 
     }
 
-    public void attackEntity(Entity entity, boolean packet, PlayerUtil.Hand hand, double variation) {
+    public void attackEntity(Entity entity, boolean packet, double variation) {
+        // check hit chance
         if (Math.random() <= (variation / 100)) {
+            // attack
             if (packet) {
                 mc.player.connection.sendPacket(new CPacketUseEntity(entity));
             }
@@ -171,20 +169,7 @@ public class InteractionManager extends Manager implements Wrapper {
             }
         }
 
-        switch (hand) {
-            case MAINHAND:
-                mc.player.swingArm(EnumHand.MAIN_HAND);
-                break;
-            case OFFHAND:
-                mc.player.swingArm(EnumHand.OFF_HAND);
-                break;
-            case PACKET:
-                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
-                break;
-            case NONE:
-                break;
-        }
-
+        // reset the attack cooldown
         mc.player.resetCooldown();
     }
 

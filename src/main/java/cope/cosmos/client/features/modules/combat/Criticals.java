@@ -111,7 +111,7 @@ public class Criticals extends Module {
             }
 
             // critical hits on 32k's are insignificant
-            if (InventoryUtil.isHolding32k()) {
+            if (InventoryUtil.getHighestEnchantLevel() >= 1000) {
                 return;
             }
 

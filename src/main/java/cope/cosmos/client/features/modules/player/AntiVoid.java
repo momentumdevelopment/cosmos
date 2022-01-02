@@ -5,7 +5,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.ChatUtil;
-import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 
 /**

@@ -14,10 +14,10 @@ import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.PlayerUtil.Hand;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
@@ -27,15 +27,13 @@ import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
 import cope.cosmos.util.world.InterpolationUtil;
 import cope.cosmos.util.world.RaytraceUtil;
-import cope.cosmos.util.world.TeleportUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayerDigging;
+import net.minecraft.network.play.client.*;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -193,7 +191,7 @@ public class Aura extends Module {
                 }
 
                 // check if it's in range
-                boolean wallAttack = !RaytraceUtil.raytraceEntity(entity, traceOffset) && raytrace.getValue();
+                boolean wallAttack = !RaytraceUtil.isVisible(entity, traceOffset) && raytrace.getValue();
                 if (distance > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     continue;
                 }
@@ -214,8 +212,22 @@ public class Aura extends Module {
                     playerBias = true;
                 }
 
+                // calculate priority (minimize)
+                double heuristic = 0;
+                switch (target.getValue()) {
+                    case LOWESTHEALTH:
+                        heuristic = EnemyUtil.getHealth(entity);
+                        break;
+                    case LOWESTARMOR:
+                        heuristic = EnemyUtil.getArmor(entity);
+                        break;
+                    case CLOSEST:
+                        heuristic = distance;
+                        break;
+                }
+
                 // add potential target to our map
-                attackTargets.put(distance, entity);
+                attackTargets.put(heuristic, entity);
             }
 
             if (!attackTargets.isEmpty()) {
@@ -237,8 +249,8 @@ public class Aura extends Module {
                 }
 
                 else {
-                    // closest target is the last entry
-                    auraTarget = attackTargets.lastEntry().getValue();
+                    // best target is the first entry
+                    auraTarget = attackTargets.firstEntry().getValue();
                 }
             }
 
@@ -262,7 +274,7 @@ public class Aura extends Module {
 
                 // check our distance to the entity as it could have changed since we last calculated our target
                 // we also check if the Aura target is dead, which will also make the target invalid
-                boolean wallAttack = !RaytraceUtil.raytraceEntity(auraTarget, traceOffset) && raytrace.getValue();
+                boolean wallAttack = !RaytraceUtil.isVisible(auraTarget, traceOffset) && raytrace.getValue();
                 if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     auraTarget = null; // set our target to null, as it is now invalid
                     return;
@@ -272,7 +284,7 @@ public class Aura extends Module {
                 getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
 
                 // make sure we are holding our weapon
-                if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || !InventoryUtil.isHolding32k() && weaponThirtyTwoK.getValue()) {
+                if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || InventoryUtil.getHighestEnchantLevel() <= 1000 && weaponThirtyTwoK.getValue()) {
                     return;
                 }
 
@@ -281,7 +293,9 @@ public class Aura extends Module {
 
                 // teleport to our target, rarely works on an actual server
                 if (teleport.getValue()) {
-                    TeleportUtil.teleportPlayer(auraTarget.posX, auraTarget.posY, auraTarget.posZ);
+                    mc.player.setVelocity(0, 0, 0);
+                    mc.player.setPosition(auraTarget.posX, auraTarget.posY, auraTarget.posZ);
+                    mc.player.connection.sendPacket(new CPacketPlayer.Position(auraTarget.posX, auraTarget.posY, auraTarget.posZ, true));
                 }
 
                 if (!rotate.getValue().equals(Rotate.NONE)) {
@@ -398,7 +412,22 @@ public class Aura extends Module {
 
                         // attack the target
                         for (int i = 0; i < iterations.getValue(); i++) {
-                            getCosmos().getInteractionManager().attackEntity(auraTarget, packet.getValue(), swing.getValue(), variation.getValue());
+                            getCosmos().getInteractionManager().attackEntity(auraTarget, packet.getValue(), variation.getValue());
+                        }
+
+                        // swing our hand
+                        switch (swing.getValue()) {
+                            case MAINHAND:
+                                mc.player.swingArm(EnumHand.MAIN_HAND);
+                                break;
+                            case OFFHAND:
+                                mc.player.swingArm(EnumHand.OFF_HAND);
+                                break;
+                            case PACKET:
+                                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
+                                break;
+                            case NONE:
+                                break;
                         }
 
                         // reset fall state
@@ -439,7 +468,7 @@ public class Aura extends Module {
                     .line(1.5F)
                     .depth(true)
                     .blend()
-                    .texture(), InterpolationUtil.getInterpolatedPos(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
+                    .texture(), InterpolationUtil.getInterpolatedPosition(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
         }
     }
 
@@ -454,7 +483,7 @@ public class Aura extends Module {
             new Thread(() -> {
                 // spam attacks a player when they pop a totem, useful for insta-killing people on 32k servers - thanks bon55
                 for (int i = 0; i < 5; i++) {
-                    getCosmos().getInteractionManager().attackEntity(auraTarget, true, swing.getValue(), 100);
+                    getCosmos().getInteractionManager().attackEntity(auraTarget, true, 100);
                 }
             }).start();
         }
@@ -627,5 +656,28 @@ public class Aura extends Module {
          * Attack the entity at the feet
          */
         FEET
+    }
+
+    public enum Hand {
+
+        /**
+         * Swings the mainhand
+         */
+        MAINHAND,
+
+        /**
+         * Swings the offhand
+         */
+        OFFHAND,
+
+        /**
+         * Swings via packets, should be silent client-side
+         */
+        PACKET,
+
+        /**
+         * Does not swing
+         */
+        NONE
     }
 }

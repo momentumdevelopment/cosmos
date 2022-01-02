@@ -574,7 +574,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(calculatedPosition, placeRaytrace.getValue());
+                boolean wallPlacement = !RaytraceUtil.isVisible(calculatedPosition, placeRaytrace.getValue().getOffset());
 
                 // position to calculate distances to
                 Vec3d distancePosition = new Vec3d(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5);
@@ -808,7 +808,7 @@ public class AutoCrystal extends Module {
 
             if ((timing.getValue().equals(Timing.LINEAR) || timing.getValue().equals(Timing.UNIFORM)) && explode.getValue()) {
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallLinear = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
+                boolean wallLinear = !RaytraceUtil.isVisible(linearPosition, placeRaytrace.getValue().getOffset());
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
@@ -1315,7 +1315,7 @@ public class AutoCrystal extends Module {
         /**
          * No raytrace to the position
          */
-        NONE(-1);
+        NONE(-1000);
 
         private final double offset;
 

@@ -11,45 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author linustouchtips
+ * @since 05/06/2021
+ */
 public class BlockUtil implements Wrapper {
-
-    public static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double blockRange, boolean motion) {
-        if (player == null) { // bruh momentum
-            return new ArrayList<>(); // rofl, threading is so funny
-        }
-
-        List<BlockPos> nearbyBlocks = new ArrayList<>();
-
-        int rangeX = (int) (Math.round(blockRange) + (motion ? player.motionX : 0));
-        int rangeY = (int) (Math.round(blockRange) + (motion ? player.motionY : 0));
-        int rangeZ = (int) (Math.round(blockRange) + (motion ? player.motionZ : 0));
-
-        for (int x = -rangeX; x <= rangeX; x++) {
-            for (int y = -rangeY; y <= rangeY; y++) {
-                for (int z = -rangeZ; z <= rangeZ; z++) {
-                    BlockPos pos = player.getPosition().add(x, y, z);
-                    if (mc.player.getDistance(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5) >= blockRange) {
-                        continue;
-                    }
-
-                    nearbyBlocks.add(pos);
-                }
-            }
-        }
-
-        return nearbyBlocks;
-    }
-
-    public static double getNearestBlockBelow() {
-        for (double y = mc.player.posY; y > 0.0; y -= 0.001) {
-            if (mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock() instanceof BlockSlab || mc.world.getBlockState(new BlockPos(mc.player.posX, y, mc.player.posZ)).getBlock().getDefaultState().getCollisionBoundingBox(mc.world, new BlockPos(0, 0, 0)) == null)
-                continue;
-
-            return y;
-        }
-
-        return -1;
-    }
 
     // All blocks that are resistant to explosions
     public static final List<Block> resistantBlocks = Arrays.asList(
@@ -105,8 +71,59 @@ public class BlockUtil implements Wrapper {
         }
     }
 
+    /**
+     * Gets all blocks in range from a specified player
+     * @param player The player to find the surrounding blocks (anchor)
+     * @param range The range to consider a block
+     * @param motion Whether or not to take into account player motion
+     * @return A list of the surrounding blocks
+     */
+    public static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double range, boolean motion) {
+        if (player != null) {
+            // list of nearby blocks
+            List<BlockPos> blocks = new ArrayList<>();
+
+            // ranges
+            double rangeX = Math.round(range);
+            double rangeY = Math.round(range);
+            double rangeZ = Math.round(range);
+
+            // add motion to reach
+            if (motion) {
+                rangeX += mc.player.motionX;
+                rangeY += mc.player.motionY;
+                rangeZ += mc.player.motionZ;
+            }
+
+            // iterate through all surrounding blocks
+            for (double x = -rangeX; x <= rangeX; x++) {
+                for (double y = -rangeY; y <= rangeY; y++) {
+                    for (double z = -rangeZ; z <= rangeZ; z++) {
+
+                        // the current position
+                        BlockPos position = player.getPosition().add(x, y, z);
+
+                        // get distance to block
+                        if (mc.player.getDistance(position.getX() + 0.5, position.getY() + 1, position.getZ() + 0.5) >= range) {
+                            continue;
+                        }
+
+                        // add the block to our list
+                        blocks.add(position);
+                    }
+                }
+            }
+
+            return blocks;
+        }
+
+        // rofl, threading is so funny
+        return new ArrayList<>();
+    }
+
     // the resistance level of the block
     public enum Resistance {
+
         /**
          * Blocks that are able to be replaced by other blocks
          */

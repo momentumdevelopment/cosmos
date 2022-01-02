@@ -10,7 +10,6 @@ import cope.cosmos.client.features.modules.combat.Burrow;
 import cope.cosmos.client.features.modules.combat.HoleFill;
 import cope.cosmos.client.features.modules.combat.Surround;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.PlayerUtil.Hand;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -38,7 +37,7 @@ public class Interact extends Module {
     // this module attempts to put all the bloat modules (i.e. Swing, LiquidInteract, NoHeightLimit) in one module
 
     // hand interactions
-    public static Setting<Hand> hand = new Setting<>("Hand", Hand.NONE).setDescription("Swinging hand");
+    public static Setting<Hand> hand = new Setting<>("Hand", Hand.MAINHAND).setDescription("Swinging hand");
     public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", false).setDescription("Allows you to interact with blocks through walls");
     public static Setting<Boolean> noSwing = new Setting<>("NoSwing", false).setDescription("Cancels the server side animation for swinging");
 
@@ -52,16 +51,9 @@ public class Interact extends Module {
 
     @Override
     public void onUpdate() {
-        if (!hand.getValue().equals(Hand.NONE)) {
+        if (hand.getValue().equals(Hand.OFFHAND)) {
             // update the player's swinging hand
-            switch (hand.getValue()) {
-                case MAINHAND:
-                    mc.player.swingingHand = EnumHand.MAIN_HAND;
-                    break;
-                case OFFHAND:
-                    mc.player.swingingHand = EnumHand.OFF_HAND;
-                    break;
-            }
+            mc.player.swingingHand = EnumHand.OFF_HAND;
         }
     }
 
@@ -130,5 +122,18 @@ public class Interact extends Module {
         if (event.getPacket() instanceof CPacketAnimation && noSwing.getValue()) {
             event.setCanceled(true);
         }
+    }
+
+    public enum Hand {
+
+        /**
+         * Swings the mainhand
+         */
+        MAINHAND,
+
+        /**
+         * Swings the offhand
+         */
+        OFFHAND,
     }
 }
