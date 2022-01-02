@@ -76,6 +76,9 @@ public class ESP extends Module {
 
     // framebuffer
     private Framebuffer framebuffer;
+    private int lastScaleFactor;
+    private int lastScaleWidth;
+    private int lastScaleHeight;
 
     // shaders
     private final OutlineShader outlineShader = new OutlineShader();
@@ -143,11 +146,29 @@ public class ESP extends Module {
 
                 // delete our old framebuffer, we'll create a new one
                 if (framebuffer != null) {
-                    framebuffer.deleteFramebuffer();
+                    framebuffer.framebufferClear();
+
+                    // resolution info
+                    ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+                    if (lastScaleFactor != scaledResolution.getScaleFactor()|| lastScaleWidth != scaledResolution.getScaledWidth() || lastScaleHeight != scaledResolution.getScaledHeight()) {
+                        framebuffer.deleteFramebuffer();
+
+                        // create a new framebuffer
+                        framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+                        framebuffer.framebufferClear();
+                    }
+
+                    // update scale info
+                    lastScaleFactor = scaledResolution.getScaleFactor();
+                    lastScaleWidth = scaledResolution.getScaledWidth();
+                    lastScaleHeight = scaledResolution.getScaledHeight();
                 }
 
-                // create a new framebuffer
-                framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+                else {
+                    // create a new framebuffer
+                    framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+                }
 
                 // bind our new framebuffer (i.e. set it as the current active buffer)
                 framebuffer.bindFramebuffer(true);
@@ -181,7 +202,7 @@ public class ESP extends Module {
                 // reset shadows
                 mc.gameSettings.entityShadows = previousShadows;
 
-                glEnable(GL_BLEND);
+                GlStateManager.enableBlend();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
                 // rebind the mc framebuffer
@@ -191,7 +212,7 @@ public class ESP extends Module {
                 mc.entityRenderer.disableLightmap();
                 RenderHelper.disableStandardItemLighting();
 
-                glPushMatrix();
+                GlStateManager.pushMatrix();
 
                 // draw the rainbow shader
                 if (!Colors.rainbow.getValue().equals(Colors.Rainbow.NONE)) {

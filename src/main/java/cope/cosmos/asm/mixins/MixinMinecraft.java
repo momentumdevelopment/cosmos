@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @SuppressWarnings("unused")
 @Mixin(Minecraft.class)
-public class MixinMinecraft implements Wrapper {
+public class MixinMinecraft {
 
     @Redirect(method = "sendClickBlockToController", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/EntityPlayerSP;isHandActive()Z"))
     public boolean isHandActive(EntityPlayerSP entityPlayerSP) {

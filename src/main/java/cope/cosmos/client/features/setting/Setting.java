@@ -48,8 +48,6 @@ public class Setting<T> extends Feature implements Wrapper {
 	public Setting(String name, T value) {
 		super(name);
 		this.value = value;
-
-		Cosmos.EVENT_BUS.register(this);
 	}
 	
 	public Setting(String name, T min, T value, T max, int scale) {
@@ -58,8 +56,6 @@ public class Setting<T> extends Feature implements Wrapper {
 		this.min = min;
 		this.max = max;
 		this.scale = scale;
-
-		Cosmos.EVENT_BUS.register(this);
 	}
 
 	/**
