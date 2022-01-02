@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author linustouchtips
+ * @since 11/25/2021
+ */
 public class ChangelogManager extends Manager {
 
     // the changelog as a list of strings

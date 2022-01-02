@@ -25,7 +25,7 @@ public class LongJump extends Module {
     }
 
     public static Setting<Double> speed = new Setting<>("Speed", 0.0, 0.6, 1.0, 2).setDescription("Jump speed");
-    public static Setting<Double> accelerate = new Setting<>("Acceleration",0.92,0.92,1.10,2).setDescription("Factor for acceleration speed");
+    public static Setting<Double> accelerate = new Setting<>("Acceleration", 0.92, 0.92, 1.10, 2).setDescription("Factor for acceleration speed");
     public static Setting<Double> glide = new Setting<>("Glide", 0.0, 0.65, 1.0, 2).setDescription("Fall speed");
 
     // move speed

@@ -4,6 +4,7 @@ import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.world.AngleUtil;
 import net.minecraft.block.Block;
@@ -77,11 +78,9 @@ public class InteractionManager extends Manager implements Wrapper {
 
             // make sure there is no entity on the block
             for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
-                if (entity instanceof EntityItem || entity instanceof EntityXPOrb) {
-                    continue;
+                if (!(entity instanceof EntityItem) && !(entity instanceof EntityXPOrb)) {
+                    return;
                 }
-
-                return;
             }
 
             // make sure the side is visible, strict NCP flags for non-visible interactions
@@ -110,17 +109,17 @@ public class InteractionManager extends Manager implements Wrapper {
 
             // rotate to block
             if (!rotate.equals(Rotate.NONE)) {
-                float[] blockAngles = AngleUtil.calculateAngles(new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5)));
+                Rotation blockAngles = AngleUtil.calculateAngles(new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5)));
 
                 // rotate via packet, server should confirm instantly?
                 switch (rotate) {
                     case CLIENT:
-                        mc.player.rotationYaw = blockAngles[0];
-                        mc.player.rotationYawHead = blockAngles[0];
-                        mc.player.rotationPitch = blockAngles[1];
+                        mc.player.rotationYaw = blockAngles.getYaw();
+                        mc.player.rotationYawHead = blockAngles.getYaw();
+                        mc.player.rotationPitch = blockAngles.getPitch();
                         break;
                     case PACKET:
-                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles[0], blockAngles[1], mc.player.onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
                         // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
                         // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
                         break;

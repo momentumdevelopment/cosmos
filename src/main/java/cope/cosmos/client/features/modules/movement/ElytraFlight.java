@@ -6,9 +6,8 @@ import cope.cosmos.client.events.TravelEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.StringFormatter;
-import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.Items;
@@ -107,7 +106,9 @@ public class ElytraFlight extends Module {
                 break;
         }
 
-        PlayerUtil.lockLimbs();
+        mc.player.prevLimbSwingAmount = 0;
+        mc.player.limbSwingAmount = 0;
+        mc.player.limbSwing = 0;
     }
 
     public void handleControl() {

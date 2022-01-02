@@ -1,13 +1,15 @@
 package cope.cosmos.client.manager.managers;
 
-import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 public class ThreadManager extends Manager {
 
     // thread used by all modules
@@ -19,6 +21,7 @@ public class ThreadManager extends Manager {
     public ThreadManager() {
         super("ThreadManager", "Manages the main client service thread");
 
+        // start the client thread
         clientService.setName("cosmos-client-thread");
         clientService.setDaemon(true);
         clientService.start();
@@ -30,6 +33,7 @@ public class ThreadManager extends Manager {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
+                    // check if the mc world is running
                     if (!nullCheck()) {
                         Thread.yield();
                         continue;
@@ -40,7 +44,6 @@ public class ThreadManager extends Manager {
                             // run and remove the latest service
                             if (clientProcesses.size() > 0) {
                                 clientProcesses.poll().run();
-                                clientProcesses.remove();
                             }
 
                             if (module.isEnabled()) {
@@ -52,18 +55,15 @@ public class ThreadManager extends Manager {
                     });
 
                     getCosmos().getManagers().forEach(manager -> {
-                        if (nullCheck()) {
-                            try {
-                                // run and remove the latest service
-                                if (clientProcesses.size() > 0) {
-                                    clientProcesses.poll().run();
-                                    clientProcesses.remove();
-                                }
-
-                                manager.onThread();
-                            } catch (Exception exception) {
-                                exception.printStackTrace();
+                        try {
+                            // run and remove the latest service
+                            if (clientProcesses.size() > 0) {
+                                clientProcesses.poll().run();
                             }
+
+                            manager.onThread();
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
                         }
                     });
 
@@ -74,10 +74,18 @@ public class ThreadManager extends Manager {
         }
     }
 
+    /**
+     * Submit a new runnable to the thread
+     * @param in The runnable
+     */
     public void submit(Runnable in) {
         clientProcesses.add(in);
     }
 
+    /**
+     * Gets the main client thread
+     * @return The main client thread
+     */
     public ClientService getService() {
         return clientService;
     }

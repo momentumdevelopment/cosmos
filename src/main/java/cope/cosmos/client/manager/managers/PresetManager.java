@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 public class PresetManager extends Manager {
 
     // the current preset to save and load to

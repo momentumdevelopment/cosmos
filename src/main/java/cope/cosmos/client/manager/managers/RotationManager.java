@@ -23,7 +23,7 @@ public class RotationManager extends Manager implements Wrapper {
     private final TreeMap<Integer, Rotation> rotationMap = new TreeMap<>();
 
     // the current server rotation
-    private final Rotation.MutableRotation serverRotation = new Rotation.MutableRotation(Float.NaN, Float.NaN);
+    private final Rotation serverRotation = new Rotation(Float.NaN, Float.NaN);
 
     public RotationManager() {
         super("RotationManager", "Keeps track of server rotations");
@@ -81,7 +81,7 @@ public class RotationManager extends Manager implements Wrapper {
      * Gets the current server rotations
      * @return The current server rotations
      */
-    public Rotation.MutableRotation getServerRotation() {
+    public Rotation getServerRotation() {
         return serverRotation;
     }
 }

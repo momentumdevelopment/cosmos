@@ -28,12 +28,6 @@ public class PlayerUtil implements Wrapper {
         }
     }
 
-    public static void lockLimbs() {
-        mc.player.prevLimbSwingAmount = 0;
-        mc.player.limbSwingAmount = 0;
-        mc.player.limbSwing = 0;
-    }
-
     public static boolean isEating() {
         if (!mc.player.isHandActive()) {
             return false;

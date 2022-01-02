@@ -199,8 +199,8 @@ public class Aura extends Module {
                 }
 
                 // make sure the entity is truly visible, useful for strict anticheats
-                float[] attackAngles = AngleUtil.calculateAngles(entity.getPositionVector());
-                if (AngleUtil.calculateAngleDifference(mc.player.rotationYaw, attackAngles[0]) > fov.getValue()) {
+                Rotation attackAngles = AngleUtil.calculateAngles(entity.getPositionVector());
+                if ((Math.abs(mc.player.rotationYaw - attackAngles.getYaw()) % 180) > fov.getValue()) {
                     continue;
                 }
 
@@ -302,12 +302,12 @@ public class Aura extends Module {
 
                     // update client rotations
                     if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        float[] attackAngles = AngleUtil.calculateAngles(attackVector);
+                        Rotation attackAngles = AngleUtil.calculateAngles(attackVector);
 
                         // update our players rotation
-                        mc.player.rotationYaw = attackAngles[0];
-                        mc.player.rotationYawHead = attackAngles[0];
-                        mc.player.rotationPitch = attackAngles[1];
+                        mc.player.rotationYaw = attackAngles.getYaw();
+                        mc.player.rotationYawHead = attackAngles.getYaw();
+                        mc.player.rotationPitch = attackAngles.getPitch();
                     }
                 }
 
@@ -467,21 +467,21 @@ public class Aura extends Module {
             event.setCanceled(true);
 
             // angles to the last attack
-            float[] packetAngles = AngleUtil.calculateAngles(attackVector);
+            Rotation packetAngles = AngleUtil.calculateAngles(attackVector);
 
             // add random values to our rotations to simulate vanilla rotations
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
-                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
+                packetAngles.setYaw(packetAngles.getYaw() + (randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue().floatValue() : -rotateRandom.getValue().floatValue())));
             }
 
             if (!rotateLimit.getValue().equals(Limit.NONE)) {
                 // difference between the new yaw and the server yaw
-                float yawDifference = MathHelper.wrapDegrees(packetAngles[0] - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
+                float yawDifference = MathHelper.wrapDegrees(packetAngles.getYaw() - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
 
                 // if it's greater than 55, we need to limit our yaw and skip a tick
                 if (Math.abs(yawDifference) > 55 && !yawLimit) {
-                    packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw();
+                    packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw());
                     strictTicks++;
                     yawLimit = true;
                 }
@@ -490,7 +490,7 @@ public class Aura extends Module {
                 if (strictTicks <= 0) {
                     // if still need to limit our rotation, clamp them to the rotation limit
                     if (rotateLimit.getValue().equals(Limit.STRICT)) {
-                        packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55));
+                        packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55)));
                     }
 
                     yawLimit = false;
@@ -498,7 +498,7 @@ public class Aura extends Module {
             }
 
             // add our rotation to our client rotations
-            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles[0], packetAngles[1]), 1000);
+            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles.getYaw(), packetAngles.getPitch()), 1000);
         }
     }
 
@@ -509,15 +509,11 @@ public class Aura extends Module {
             event.setCanceled(true);
 
             // find the angles from our interaction
-            float[] packetAngles = AngleUtil.calculateAngles(attackVector);
-            if (rotateRandom.getValue() > 0) {
-                Random randomAngle = new Random();
-                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
-            }
+            Rotation packetAngles = AngleUtil.calculateAngles(attackVector);
 
             // set our model angles; visual
-            event.setYaw(packetAngles[0]);
-            event.setPitch(packetAngles[1]);
+            event.setYaw(packetAngles.getYaw());
+            event.setPitch(packetAngles.getPitch());
         }
     }
 

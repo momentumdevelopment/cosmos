@@ -2,11 +2,17 @@ package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
 
+/**
+ * @author linustouchtips
+ * @since 05/09/2021
+ */
 public class Rotation implements Wrapper {
 
-    public float yaw;
-    public float pitch;
-    public Rotate rotate;
+    // rotation values
+    private float yaw, pitch;
+
+    // rotation mode
+    private final Rotate rotate;
 
     public Rotation(float yaw, float pitch, Rotate rotate) {
         this.yaw = yaw;
@@ -15,65 +21,73 @@ public class Rotation implements Wrapper {
     }
 
     public Rotation(float yaw, float pitch) {
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.rotate = Rotate.NONE;
+        this(yaw, pitch, Rotate.NONE);
     }
 
-    public void updateRotations() {
-
-    }
-
+    /**
+     * Gets the yaw value for the rotation
+     * @return The yaw value for the rotation
+     */
     public float getYaw() {
         return yaw;
     }
 
+    /**
+     * Sets the yaw value for the rotation
+     * @param in The new yaw value for the rotation
+     */
+    public void setYaw(float in) {
+        yaw = in;
+    }
+
+    /**
+     * Gets the pitch value for the rotation
+     * @return The pitch value for the rotation
+     */
     public float getPitch() {
         return pitch;
     }
 
+    /**
+     * Sets the pitch value for the rotation
+     * @param in The new pitch value for the rotation
+     */
+    public void setPitch(float in) {
+        pitch = in;
+    }
+
+    /**
+     * Gets the current rotation mode (NONE if holder)
+     * @return The current rotation mode
+     */
     public Rotate getRotation() {
         return rotate;
     }
 
+    /**
+     * Checks if the current yaw and pitch are valid
+     * @return Whether the current yaw and pitch are valid
+     */
     public boolean isValid() {
-        return !Float.isNaN(getYaw()) || !Float.isNaN(getPitch());
+        return !Float.isNaN(getYaw()) && !Float.isNaN(getPitch());
     }
 
     public enum Rotate {
-        PACKET, CLIENT, NONE
-    }
 
-    public static class MutableRotation extends Rotation {
+        /**
+         * Rotate via packets, should be silent client-side
+         */
+        PACKET,
 
-        public MutableRotation(float yaw, float pitch, Rotate rotate) {
-            super(yaw, pitch, rotate);
-        }
+        /**
+         * Standard rotate
+         */
+        CLIENT,
 
-        public MutableRotation(float yaw, float pitch) {
-            super(yaw, pitch, Rotate.NONE);
-        }
-
-        public boolean isValid() {
-            return !Float.isNaN(yaw) && !Float.isNaN(pitch);
-        }
-
-        public void restoreRotations() {
-            setYaw(Float.NaN);
-            setPitch(Float.NaN);
-        }
-
-        public void setYaw(float in) {
-            yaw = in;
-        }
-
-        public void setPitch(float in) {
-            pitch = in;
-        }
-
-        public void setRotation(Rotate in) {
-            rotate = in;
-        }
+        /**
+         * No actual rotation, we are using this to hold yaw & pitch values
+         */
+        NONE
     }
 }
 
