@@ -5,9 +5,9 @@ import cope.cosmos.client.events.ReachEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -54,7 +54,7 @@ public class Reach extends Module {
                     // damage block
                     if (mc.gameSettings.keyBindAttack.isKeyDown()) {
                         mc.playerController.onPlayerDamageBlock(minePos, EnumFacing.UP);
-                        PlayerUtil.swingArm(PlayerUtil.Hand.MAINHAND);
+                        mc.player.swingArm(EnumHand.MAIN_HAND);
                     }
                 }
             }

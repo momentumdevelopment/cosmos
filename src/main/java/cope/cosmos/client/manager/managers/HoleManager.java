@@ -386,6 +386,7 @@ public class HoleManager extends Manager {
         return true;
     }
 
+    // wtf lel
     public enum Type {
 
         /**

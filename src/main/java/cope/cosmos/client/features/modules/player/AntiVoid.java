@@ -5,7 +5,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.ChatUtil;
-import cope.cosmos.util.world.TeleportUtil;
+import net.minecraft.network.play.client.CPacketPlayer;
 
 /**
  * @author aesthetical, linustouchtips
@@ -46,8 +46,12 @@ public class AntiVoid extends Module {
 
                     break;
                 case RUBBERBAND:
+                    // stop motion
+                    mc.player.setVelocity(0, 0, 0);
+
                     // attempt to rubberband out of the void
-                    TeleportUtil.teleportPlayerKeepMotion(mc.player.posX, mc.player.posY + 4, mc.player.posZ);
+                    mc.player.setPosition(mc.player.posX, mc.player.posY + 4, mc.player.posZ);
+                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 4, mc.player.posZ, false));
                     break;
                 case RISE:
                     // attempt to float up out of the void

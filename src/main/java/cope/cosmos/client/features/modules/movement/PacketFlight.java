@@ -11,7 +11,6 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
-import cope.cosmos.util.world.TeleportUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -166,7 +165,7 @@ public class PacketFlight extends Module {
 					event.setCanceled(stabilize.getValue());
 
 					// teleport us back to the server values
-					TeleportUtil.teleportPlayerKeepMotion(serverX, serverY, serverZ);
+					mc.player.setPosition(serverX, serverY, serverZ);
 
 					if (limitJitter.getValue()) {
 						mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
@@ -213,7 +212,7 @@ public class PacketFlight extends Module {
 				mc.player.connection.sendPacket(new CPacketConfirmTeleport(lastTeleportId++));
 			}
 
-			TeleportUtil.teleportPlayerKeepMotion(playerIncrement.x, playerIncrement.y, playerIncrement.z);
+			mc.player.setPosition(playerIncrement.x, playerIncrement.y, playerIncrement.z);
 			vectorMap.put(lastTeleportId, playerIncrement);
 		}
 	}

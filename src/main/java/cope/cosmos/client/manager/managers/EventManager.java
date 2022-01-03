@@ -21,9 +21,13 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 
-@SuppressWarnings("unused")
+/**
+ * @author bon55, linustouchtips
+ * @since 05/05/2021
+ */
 public class EventManager extends Manager implements Wrapper {
 
+	// event manager instance
 	public static final EventManager INSTANCE = new EventManager();
 
 	public EventManager() {
@@ -32,6 +36,7 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
+		// runs on the entity update method
 		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
 			ModuleManager.getAllModules().forEach(mod -> {
 				if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
@@ -144,14 +149,15 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onChatInput(ClientChatEvent event) {
+		// event the user send a command
 		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
 			event.setCanceled(true);
 
 			try {
-				getCosmos().getCommandDispatcher().execute(Cosmos.INSTANCE.getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
+				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
 			} catch (Exception exception) {
 				// exception.printStackTrace();
-				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "No such command was found");
+				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
 			}
 		}
 	}

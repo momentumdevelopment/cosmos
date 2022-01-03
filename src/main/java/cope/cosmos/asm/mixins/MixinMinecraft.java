@@ -2,7 +2,6 @@ package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.DualInteractEvent;
-import cope.cosmos.util.Wrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import org.spongepowered.asm.mixin.Mixin;
