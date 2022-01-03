@@ -264,6 +264,171 @@ public class RenderUtil implements Wrapper {
 
 	// 2d
 
+	public static void drawLine2d(final float x1, final float y1, final float x2, final float y2, final float width, final Color color) {
+		final Tessellator tessellator = Tessellator.getInstance();
+		final BufferBuilder buffer = tessellator.getBuffer();
+		GlStateManager.disableTexture2D();
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		GlStateManager.shadeModel(GL_SMOOTH);
+		GlStateManager.glLineWidth(width);
+		buffer.begin(GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+		buffer.pos(x1, y1, 0).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+		buffer.pos(x2, y2, 0).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+		tessellator.draw();
+		GlStateManager.enableTexture2D();
+		GlStateManager.glLineWidth(1);
+
+	}
+
+	public static void drawShadowedOutlineRectRB(final float x,
+												 final float y,
+												 final float width,
+												 final float height,
+												 final int color1,
+												 final float lineWidth) {
+		final Tessellator tessellator = Tessellator.getInstance();
+		final BufferBuilder builder = tessellator.getBuffer();
+		final float mx = x + width;
+		final float my = y + height;
+		final int clr = 0x00000000;
+
+		GlStateManager.disableTexture2D();
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.shadeModel(GL_SMOOTH);
+		builder.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+		drawSeparateGradientRect(builder, mx, y, lineWidth, lineWidth, clr, clr, clr, color1);
+		drawSeparateGradientRect(builder, mx, y + lineWidth, lineWidth, height - lineWidth, color1, clr, clr, color1);
+		drawSeparateGradientRect(builder, mx, my, lineWidth, lineWidth, color1, clr, clr, clr);
+		drawSeparateGradientRect(builder, x + lineWidth, my, width - lineWidth, lineWidth, color1, color1, clr, clr);
+		drawSeparateGradientRect(builder, x, my, lineWidth, lineWidth, clr, color1, clr, clr);
+		tessellator.draw();
+		GlStateManager.disableTexture2D();
+	}
+
+	public static void drawShadowedOutlineRect(final float x,
+											   final float y,
+											   final float width,
+											   final float height,
+											   final int color1,
+											   final float lineWidth) {
+		final Tessellator tessellator = Tessellator.getInstance();
+		final BufferBuilder builder = tessellator.getBuffer();
+		final float mx = x + width;
+		final float my = y + height;
+		final int clr = 0x00000000;
+
+		GlStateManager.disableTexture2D();
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.shadeModel(GL_SMOOTH);
+		builder.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+		// top left corner
+		drawSeparateGradientRect(builder,
+				x - lineWidth,
+				y - lineWidth,
+				lineWidth,
+				lineWidth,
+				clr,
+				clr,
+				color1,
+				clr);
+		// top right corner
+		drawSeparateGradientRect(builder,
+				mx,
+				y - lineWidth,
+				lineWidth,
+				lineWidth,
+				clr,
+				clr,
+				clr,
+				color1);
+		// bottom right corner
+		drawSeparateGradientRect(builder,
+				mx,
+				my,
+				lineWidth,
+				lineWidth,
+				color1,
+				clr,
+				clr,
+				clr);
+		// bottom left corner
+		drawSeparateGradientRect(builder,
+				x - lineWidth,
+				my,
+				lineWidth,
+				lineWidth,
+				clr,
+				color1,
+				clr,
+				clr);
+		// top line
+		drawSeparateGradientRect(builder,
+				x,
+				y - lineWidth,
+				width,
+				lineWidth,
+				clr,
+				clr,
+				color1,
+				color1);
+		// bottom line
+		drawSeparateGradientRect(builder,
+				x,
+				my,
+				width,
+				lineWidth,
+				color1,
+				color1,
+				clr,
+				clr);
+		// left line
+		drawSeparateGradientRect(builder,
+				x - lineWidth,
+				y,
+				lineWidth,
+				height,
+				clr,
+				color1,
+				color1,
+				clr);
+		// right line
+		drawSeparateGradientRect(builder,
+				mx,
+				y,
+				lineWidth,
+				height,
+				color1,
+				clr,
+				clr,
+				color1);
+		tessellator.draw();
+		GlStateManager.enableTexture2D();
+	}
+
+	public static void drawRect_bb(float x, float y, float width, float height, int color) {
+		final int cr = (color >> 16) & 0xFF;
+		final int cg = (color >> 8) & 0xFF;
+		final int cb = color & 0xFF;
+		final int ca = (color >> 24) & 0xFF;
+		GlStateManager.disableTexture2D();
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.shadeModel(GL_SMOOTH);
+		final Tessellator tess = Tessellator.getInstance();
+		final BufferBuilder buffer = tessellator.getBuffer();
+		buffer.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+		buffer.pos(x, y, 0).color(cr, cg, cb, ca).endVertex();
+		buffer.pos(x + width, y, 0).color(cr, cg, cb, ca).endVertex();
+		buffer.pos(x + width, y + height, 0).color(cr, cg, cb, ca).endVertex();
+		buffer.pos(x, y + height, 0).color(cr, cg, cb, ca).endVertex();
+		tess.draw();
+		GlStateManager.enableTexture2D();
+	}
+
 	public static void drawRect(float x, float y, float width, float height, int color) {
 		Color c = new Color(color, true);
 		glPushMatrix();
@@ -306,6 +471,41 @@ public class RenderUtil implements Wrapper {
 	public static void drawBorderRect(float x, float y, float width, float height, Color color, Color borderColor) {
 		drawRect(x, y, width, height, color);
 		drawBorder(x, y, width, height, borderColor);
+	}
+
+	public static void drawSeparateGradientRect(BufferBuilder bbIn, float x, float y, float width, float height, int cxy, int cx1y, int cx1y1, int cxy1) {
+		final int cxyr = (cxy >> 16) & 0xFF;
+		final int cxyg = (cxy >> 8) & 0xFF;
+		final int cxyb = cxy & 0xFF;
+		final int cxya = (cxy >> 24) & 0xFF;
+
+		final int cxy1r = (cxy1 >> 16) & 0xFF;
+		final int cxy1g = (cxy1 >> 8) & 0xFF;
+		final int cxy1b = cxy1 & 0xFF;
+		final int cxy1a = (cxy1 >> 24) & 0xFF;
+
+		final int cx1y1r = (cx1y1 >> 16) & 0xFF;
+		final int cx1y1g = (cx1y1 >> 8) & 0xFF;
+		final int cx1y1b = cx1y1 & 0xFF;
+		final int cx1y1a = (cx1y1 >> 24) & 0xFF;
+
+		final int cx1yr = (cx1y >> 16) & 0xFF;
+		final int cx1yg = (cx1y >> 8) & 0xFF;
+		final int cx1yb = cx1y & 0xFF;
+		final int cx1ya = (cx1y >> 24) & 0xFF;
+
+		bbIn.pos(x, y, 0f)
+				.color(cxyr, cxyg, cxyb, cxya)
+				.endVertex();
+		bbIn.pos(x, y + height, 0f)
+				.color(cxy1r, cxy1g, cxy1b, cxy1a)
+				.endVertex();
+		bbIn.pos(x + width, y + height, 0f)
+				.color(cx1y1r, cx1y1g, cx1y1b, cx1y1a)
+				.endVertex();
+		bbIn.pos(x + width, y, 0f)
+				.color(cx1yr, cx1yg, cx1yb, cx1ya)
+				.endVertex();
 	}
 	
 	public static void drawGradientVerticalRect(float x, float y, float width, float height, int topColor, int bottomColor) {
@@ -553,7 +753,17 @@ public class RenderUtil implements Wrapper {
 		glTranslated(-x, -y, 0);
 	}
 
+	public static void scissor(float x, float y, float x2, float y2) {
+		glEnable(GL_SCISSOR_TEST);
+		scissor((int) Math.floor(x), (int) Math.floor(y), (int) Math.ceil(x2), (int) Math.ceil(y2));
+	}
+
 	public static void scissor(int x, int y, int x2, int y2) {
-		glScissor(x * new ScaledResolution(mc).getScaleFactor(), (new ScaledResolution(mc).getScaledHeight() - y2) * new ScaledResolution(mc).getScaleFactor(), (x2 - x) * new ScaledResolution(mc).getScaleFactor(), (y2 - y) * new ScaledResolution(mc).getScaleFactor());
+		final ScaledResolution sc = new ScaledResolution(mc);
+		glScissor(x * sc.getScaleFactor(), (sc.getScaledHeight() - y2) * sc.getScaleFactor(), (x2 - x) * sc.getScaleFactor(), (y2 - y) * sc.getScaleFactor());
+	}
+
+	public static void endScissor() {
+		glDisable(GL_SCISSOR_TEST);
 	}
 }

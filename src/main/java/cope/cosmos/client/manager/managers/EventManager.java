@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.clickgui.ethius.EthiusGuiScreen;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -133,6 +134,9 @@ public class EventManager extends Manager implements Wrapper {
 	
 	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent event) {
+		if (Keyboard.isKeyDown(Keyboard.KEY_MINUS) && mc.currentScreen == null) {
+			mc.displayGuiScreen(new EthiusGuiScreen());
+		}
 		ModuleManager.getAllModules().forEach(mod -> {
 			if (Keyboard.isKeyDown(mod.getKey()) && !Keyboard.isKeyDown(Keyboard.KEY_NONE)) {
 				mod.toggle();

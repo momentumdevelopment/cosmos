@@ -53,8 +53,8 @@ public class ImageAWT implements Wrapper {
         });
     }
 
-    public int getHeight() {
-        return (fontHeight - 8) / 2;
+    public float getHeight() {
+        return (fontHeight - 8f) / 2f;
     }
 
     public void drawString(String text, double x, double y, int color) {
@@ -216,10 +216,12 @@ public class ImageAWT implements Wrapper {
             CharLocation fontChar;
             int index = ch < charLocations.length ? ch : 3;
 
-            if (charLocations.length <= index || (fontChar = charLocations[index]) == null)
+            if (charLocations.length <= index || (fontChar = charLocations[index]) == null) {
+                width += mc.fontRenderer.getStringWidth(String.valueOf(ch)) / 4.0;
                 continue;
+            }
 
-            width += fontChar.width - 8;
+            width += fontChar.width - 8.0;
         }
 
         return width / 2;
