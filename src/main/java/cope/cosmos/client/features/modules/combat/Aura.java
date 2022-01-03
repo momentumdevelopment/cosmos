@@ -15,7 +15,6 @@ import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.combat.EnemyUtil;
-import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
@@ -215,10 +214,10 @@ public class Aura extends Module {
                 // calculate priority (minimize)
                 double heuristic = 0;
                 switch (target.getValue()) {
-                    case LOWESTHEALTH:
+                    case LOWEST_HEALTH:
                         heuristic = EnemyUtil.getHealth(entity);
                         break;
-                    case LOWESTARMOR:
+                    case LOWEST_ARMOR:
                         heuristic = EnemyUtil.getArmor(entity);
                         break;
                     case CLOSEST:
@@ -679,5 +678,23 @@ public class Aura extends Module {
          * Does not swing
          */
         NONE
+    }
+
+    public enum Target {
+
+        /**
+         * Finds the closest entity to the player
+         */
+        CLOSEST,
+
+        /**
+         * Finds the entity with the lowest health
+         */
+        LOWEST_HEALTH,
+
+        /**
+         * Finds the entity with the lowest armor durability
+         */
+        LOWEST_ARMOR
     }
 }

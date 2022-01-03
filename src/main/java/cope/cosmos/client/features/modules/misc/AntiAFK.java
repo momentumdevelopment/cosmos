@@ -20,7 +20,6 @@ import java.util.Random;
  * @author linustouchtips
  * @since 12/16/2021
  */
-@SuppressWarnings("unused")
 public class AntiAFK extends Module {
     public static AntiAFK INSTANCE;
 
@@ -116,7 +115,7 @@ public class AntiAFK extends Module {
                 if (chatMessage[1].equals("whispers:")) {
 
                     // send chat message
-                    mc.player.connection.sendPacket(new CPacketChatMessage("/r [Cosmos] I am currently AFK. Please try messaging me later."));
+                    getCosmos().getChatManager().sendChatMessage("/r [Cosmos] I am currently AFK. Please try messaging me later.");
                 }
             }
         }

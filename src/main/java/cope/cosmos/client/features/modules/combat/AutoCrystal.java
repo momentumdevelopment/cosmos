@@ -13,7 +13,6 @@ import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
-import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.PlayerUtil;
@@ -556,7 +555,7 @@ public class AutoCrystal extends Module {
                     }
 
                     // critical armor
-                    if (EnemyUtil.getArmor(idealCrystal.getExplodeTarget(), overrideArmor.getValue())) {
+                    if (EnemyUtil.getLowestArmor(idealCrystal.getExplodeTarget()) <= overrideArmor.getValue()) {
                         requiredDamage = 0.5;
                     }
                 }
@@ -664,7 +663,7 @@ public class AutoCrystal extends Module {
                     }
 
                     // critical armor
-                    if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
+                    if (EnemyUtil.getLowestArmor(idealPosition.getPlaceTarget()) <= overrideArmor.getValue()) {
                         requiredDamage = 0.5;
                     }
                 }
@@ -1368,6 +1367,24 @@ public class AutoCrystal extends Module {
          * Doesn't limit yaw
          */
         NONE
+    }
+
+    public enum Target {
+
+        /**
+         * Finds the closest entity to the player
+         */
+        CLOSEST,
+
+        /**
+         * Finds the entity with the lowest health
+         */
+        LOWEST_HEALTH,
+
+        /**
+         * Finds the entity with the lowest armor durability
+         */
+        LOWEST_ARMOR
     }
 
     public static class CrystalPosition {

@@ -16,14 +16,14 @@ public class Preset extends Command {
                             switch (StringArgumentType.getString(context, "action")) {
                                 case "save":
                                     Cosmos.INSTANCE.getPresetManager().createPreset(StringArgumentType.getString(context, "name"));
-                                    ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Saved current prefix");
+                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Saved current prefix");
                                 case "load":
                                     Cosmos.INSTANCE.getPresetManager().setPreset(StringArgumentType.getString(context, "name"));
-                                    ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Loaded current preset");
+                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Loaded current preset");
                                     break;
                                 case "remove":
                                     Cosmos.INSTANCE.getPresetManager().removePreset(StringArgumentType.getString(context, "name"));
-                                    ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed preset with name " + StringArgumentType.getString(context, "name"));
+                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed preset with name " + StringArgumentType.getString(context, "name"));
                                     break;
                             }
 
@@ -32,12 +32,12 @@ public class Preset extends Command {
                 )
 
                 .executes(context -> {
-                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the name of the preset!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the name of the preset!");
                     return 1;
                 }))
 
                 .executes(context -> {
-                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting save, remove, or load!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting save, remove, or load!");
                     return 1;
                 })
         );
