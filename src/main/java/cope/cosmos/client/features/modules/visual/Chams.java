@@ -130,6 +130,7 @@ public class Chams extends Module {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
                 case SHADER:
+                    glEnable(GL_POLYGON_OFFSET_FILL);
                     getShader().startShader();
                     break;
             }
@@ -296,6 +297,7 @@ public class Chams extends Module {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
                 case SHADER:
+                    glEnable(GL_POLYGON_OFFSET_FILL);
                     getShader().startShader();
                     break;
             }
