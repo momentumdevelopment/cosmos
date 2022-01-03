@@ -166,7 +166,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> renderWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription( "Line width for the visual").setVisible(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE)).setParent(render);
 
     // crystal info
-    private Crystal explodeCrystal = new Crystal(null, 0, 0);
+    private Crystal explodeCrystal = new Crystal(null, null, 0, 0);
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
     private final Map<Integer, Integer> attemptedExplosions = new ConcurrentHashMap<>();
@@ -533,7 +533,7 @@ public class AutoCrystal extends Module {
                     }
 
                     // add it to our list of viable crystals
-                    crystalMap.put(damageHeuristic, new Crystal((EntityEnderCrystal) calculatedCrystal, targetDamage, localDamage));
+                    crystalMap.put(damageHeuristic, new Crystal((EntityEnderCrystal) calculatedCrystal, calculatedTarget, targetDamage, localDamage));
                 }
             }
 
@@ -541,8 +541,28 @@ public class AutoCrystal extends Module {
                 // in the map, the best crystal will be the last entry
                 Crystal idealCrystal = crystalMap.lastEntry().getValue();
 
+                // required damage for the crystal to be continued
+                double requiredDamage = explodeDamage.getValue();
+
+                // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
+                if (override.getValue()) {
+                    if (idealCrystal.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealCrystal.getExplodeTarget())) {
+                        requiredDamage = 0.5;
+                    }
+
+                    // critical health
+                    if (EnemyUtil.getHealth(idealCrystal.getExplodeTarget()) < overrideHealth.getValue()) {
+                        requiredDamage = 0.5;
+                    }
+
+                    // critical armor
+                    if (EnemyUtil.getArmor(idealCrystal.getExplodeTarget(), overrideArmor.getValue())) {
+                        requiredDamage = 0.5;
+                    }
+                }
+
                 // verify if the ideal crystal meets our requirements, if it doesn't it automatically rules out all other crystals
-                if (idealCrystal.getTargetDamage() >= explodeDamage.getValue()) {
+                if (idealCrystal.getTargetDamage() >= requiredDamage) {
                     return idealCrystal;
                 }
             }
@@ -574,7 +594,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallPlacement = !RaytraceUtil.isVisible(calculatedPosition, placeRaytrace.getValue().getOffset());
+                boolean wallPlacement = RaytraceUtil.isNotVisible(calculatedPosition, placeRaytrace.getValue().getOffset());
 
                 // position to calculate distances to
                 Vec3d distancePosition = new Vec3d(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5);
@@ -632,20 +652,20 @@ public class AutoCrystal extends Module {
                 // required damage for it the placement to be continued
                 double requiredDamage = placeDamage.getValue();
 
-                // find out if we need to override our min dmg, 2 sounds like a good number for face placing but might need to be lower
+                // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
                 if (override.getValue()) {
                     if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget())) {
                         requiredDamage = 0.5;
                     }
 
-                    if (getCosmos().getHoleManager().isInHole(idealPosition.getPlaceTarget())) {
-                        if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
-                            requiredDamage = 0.5;
-                        }
+                    // critical health
+                    if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
+                        requiredDamage = 0.5;
+                    }
 
-                        if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
-                            requiredDamage = 0.5;
-                        }
+                    // critical armor
+                    if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
+                        requiredDamage = 0.5;
                     }
                 }
 
@@ -808,7 +828,7 @@ public class AutoCrystal extends Module {
 
             if ((timing.getValue().equals(Timing.LINEAR) || timing.getValue().equals(Timing.UNIFORM)) && explode.getValue()) {
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallLinear = !RaytraceUtil.isVisible(linearPosition, placeRaytrace.getValue().getOffset());
+                boolean wallLinear = RaytraceUtil.isNotVisible(linearPosition, placeRaytrace.getValue().getOffset());
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
@@ -1115,7 +1135,7 @@ public class AutoCrystal extends Module {
      * Reset all variables, timers, and lists
      */
     public void resetProcess() {
-        explodeCrystal = new Crystal(null, 0, 0);
+        explodeCrystal = new Crystal(null, null, 0, 0);
         placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
         interactVector = Vec3d.ZERO;
         yawLimit = false;
@@ -1404,13 +1424,15 @@ public class AutoCrystal extends Module {
 
         // crystal info
         private final EntityEnderCrystal crystal;
+        private final EntityPlayer explodeTarget;
 
         // damage info
         private final double targetDamage;
         private final double localDamage;
 
-        public Crystal(EntityEnderCrystal crystal, double targetDamage, double localDamage) {
+        public Crystal(EntityEnderCrystal crystal, EntityPlayer explodeTarget, double targetDamage, double localDamage) {
             this.crystal = crystal;
+            this.explodeTarget = explodeTarget;
             this.targetDamage = targetDamage;
             this.localDamage = localDamage;
         }
@@ -1421,6 +1443,14 @@ public class AutoCrystal extends Module {
          */
         public EntityEnderCrystal getCrystal() {
             return crystal;
+        }
+
+        /**
+         * Gets the target of a explosion
+         * @return The {@link EntityPlayer} target of the explosion
+         */
+        public EntityPlayer getExplodeTarget() {
+            return explodeTarget;
         }
 
         /**

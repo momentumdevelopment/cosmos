@@ -17,12 +17,12 @@ public class RaytraceUtil implements Wrapper {
      * @param offset The NCP range bypass offset
      * @return The visibility to the block
      */
-    public static boolean isVisible(BlockPos blockPos, double offset) {
+    public static boolean isNotVisible(BlockPos blockPos, double offset) {
         if (offset > 50 || offset < 50) {
             return true;
         }
 
-        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + offset, blockPos.getZ() + 0.5), false, true, false) == null;
+        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + offset, blockPos.getZ() + 0.5), false, true, false) != null;
     }
 
     /**
@@ -31,11 +31,11 @@ public class RaytraceUtil implements Wrapper {
      * @param offset The NCP range bypass offset
      * @return The visibility to the entity
      */
-    public static boolean isVisible(Entity entity, double offset) {
+    public static boolean isNotVisible(Entity entity, double offset) {
         if (offset > 50 || offset < 50) {
             return true;
         }
 
-        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(entity.posX, entity.posY + offset, entity.posZ), false, true, false) == null;
+        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(entity.posX, entity.posY + offset, entity.posZ), false, true, false) != null;
     }
 }
