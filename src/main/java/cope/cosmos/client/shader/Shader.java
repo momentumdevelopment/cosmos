@@ -18,6 +18,9 @@ import static org.lwjgl.opengl.GL20.*;
  */
 public class Shader implements Wrapper {
 
+    // time
+    public float time = 0.0f;
+
     // the current program id
     private int program;
 
@@ -161,5 +164,9 @@ public class Shader implements Wrapper {
      */
     public int getConfigurations(String configurationName) {
         return configurationMap.get(configurationName);
+    }
+
+    public void update(float speed){
+        time += speed;
     }
 }

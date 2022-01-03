@@ -5,6 +5,8 @@ import cope.cosmos.client.events.RenderLivingEntityEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.shader.Shader;
+import cope.cosmos.client.shader.shaders.*;
 import cope.cosmos.util.world.EntityUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -13,10 +15,12 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
  * @author linustouchtips, Gopro336
@@ -32,6 +36,10 @@ public class Chams extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
+
+    public static Setting<ChamsShader> shaderMode = new Setting<>("Shader", ChamsShader.COSMOS).setDescription("Shader for Chams");
+
+    public static Setting<Float> shaderSpeed = new Setting<>("ShaderSpeed", 0.001f, 0.005f, 0.08f, 2);
 
     // entity highlights
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
@@ -60,9 +68,21 @@ public class Chams extends Module {
     // texture for enchantment glint
     private final ResourceLocation GLINT_TEXTURE = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
+    private final SmokeShader smokeShader = new SmokeShader();
+    private final CosmosShader cosmosShader = new CosmosShader();
+    private final LightsShader lightsShader = new LightsShader();
+
+    @SubscribeEvent
+    public void onTick(TickEvent event) {
+        getShader().update(shaderSpeed.getValue());
+    }
+
     @SubscribeEvent
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
+
+            if (mode.getValue().equals(Mode.SHADER))
+
             // cancel the vanilla rendering
             event.setCanceled(!texture.getValue());
 
@@ -108,6 +128,9 @@ public class Chams extends Module {
                 case MODEL:
                 case SHINE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                    break;
+                case SHADER:
+                    getShader().startShader();
                     break;
             }
 
@@ -172,6 +195,13 @@ public class Chams extends Module {
                 }
 
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            }
+
+            if (mode.getValue().equals(Mode.SHADER)) {
+                glDisable(GL_POLYGON_OFFSET_FILL);
+
+                // unbind here
+                glUseProgram(0);
             }
 
             // reset depth
@@ -265,6 +295,9 @@ public class Chams extends Module {
                 case SHINE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
+                case SHADER:
+                    getShader().startShader();
+                    break;
             }
 
             // anti-alias
@@ -343,6 +376,13 @@ public class Chams extends Module {
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             }
 
+            if (mode.getValue().equals(Mode.SHADER)) {
+                glDisable(GL_POLYGON_OFFSET_FILL);
+
+                // unbind here
+                glUseProgram(0);
+            }
+
             // change to outline polygon mode for wire and model
             if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL)) {
                 glEnable(GL_DEPTH_TEST);
@@ -385,6 +425,24 @@ public class Chams extends Module {
         return entity instanceof EntityOtherPlayerMP && players.getValue() || (entity instanceof EntityPlayerSP && local.getValue()) || (EntityUtil.isPassiveMob(entity) || EntityUtil.isNeutralMob(entity)) && mobs.getValue() || EntityUtil.isHostileMob(entity) && monsters.getValue();
     }
 
+    public enum ChamsShader {
+        SMOKE,
+        COSMOS,
+        LIGHTS
+    }
+
+    public Shader getShader() {
+        switch (shaderMode.getValue()){
+            case COSMOS:
+                return cosmosShader;
+            case SMOKE:
+                return smokeShader;
+            case LIGHTS:
+                return lightsShader;
+        }
+        return null;
+    }
+
     public enum Mode {
 
         /**
@@ -405,6 +463,11 @@ public class Chams extends Module {
         /**
          * Adds the enchantment glint to the model
          */
-        SHINE
+        SHINE,
+
+        /**
+         * Renders a shader on the entity
+         */
+        SHADER
     }
 }
