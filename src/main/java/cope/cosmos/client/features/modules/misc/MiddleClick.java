@@ -43,7 +43,7 @@ public class MiddleClick extends Module {
                             getCosmos().getSocialManager().removeSocial(mc.objectMouseOver.entityHit.getName());
 
                             // tell the user in chat
-                            ChatUtil.sendMessage("Removed friend with name " + mc.objectMouseOver.entityHit.getName());
+                            getCosmos().getChatManager().sendClientMessage("Removed friend with name " + mc.objectMouseOver.entityHit.getName());
                         }
 
                         else {
@@ -51,7 +51,7 @@ public class MiddleClick extends Module {
                             getCosmos().getSocialManager().addSocial(mc.objectMouseOver.entityHit.getName(), Relationship.FRIEND);
 
                             // tell the user in chat
-                            ChatUtil.sendMessage("Added friend with name " + mc.objectMouseOver.entityHit.getName());
+                            getCosmos().getChatManager().sendClientMessage("Added friend with name " + mc.objectMouseOver.entityHit.getName());
 
                             // tell the player we just friended
                             mc.player.connection.sendPacket(new CPacketChatMessage("/w " + mc.objectMouseOver.entityHit.getName() + " I just added you as a friend on Cosmos!"));

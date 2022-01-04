@@ -35,7 +35,7 @@ public class ColorUtil {
 	}
 
 	public static Color getPrimaryAlphaColor(int alpha) {
-		return new Color(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), alpha);
+		return new Color(getPrimaryColor().getRed(), getPrimaryColor().getGreen(), getPrimaryColor().getBlue(), alpha);
 	}
 
 	public static Color alphaCycle(Color color, int count) {

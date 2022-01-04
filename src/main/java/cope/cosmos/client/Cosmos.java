@@ -72,6 +72,7 @@ public class Cosmos {
     private InventoryManager inventoryManager;
     private ChangelogManager changelogManager;
     private SoundManager soundManager;
+    private ChatManager chatManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -87,7 +88,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 17);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 18);
 
         EVENT_BUS.register(EventManager.INSTANCE);
 
@@ -105,74 +106,79 @@ public class Cosmos {
         managers.add(tickManager);
         progressManager.step("Setting up Tick Manager");
 
-        // set's up the rotation manager
+        // sets up the rotation manager
         rotationManager = new RotationManager();
         managers.add(rotationManager);
         progressManager.step("Setting up Rotation Manager");
 
-        // set's up the social manager
+        // sets up the social manager
         socialManager = new SocialManager();
         managers.add(socialManager);
         progressManager.step("Setting up Social Manager");
 
-        // set's up the preset manager
+        // sets up the preset manager
         presetManager = new PresetManager();
         managers.add(presetManager);
         progressManager.step("Setting up Config Manager");
 
-        // set's up the GUI
+        // sets up the GUI
         windowGUI = new WindowGUI();
         progressManager.step("Setting up GUI's");
 
-        // set's up the reload manager
+        // sets up the reload manager
         reloadManager = new ReloadManager();
         managers.add(reloadManager);
         progressManager.step("Setting up Reload Manager");
 
-        // set's up the notification manager
+        // sets up the notification manager
         notificationManager = new NotificationManager();
         managers.add(notificationManager);
         progressManager.step("Setting up Notification Manager");
 
-        // set's up the patch manager
+        // sets up the patch manager
         patchManager = new PatchManager();
         managers.add(patchManager);
         progressManager.step("Setting up Patch Helper");
 
-        // set's up the pop manager
+        // sets up the pop manager
         popManager = new PopManager();
         managers.add(popManager);
         progressManager.step("Setting up Pop Manager");
 
-        // set's up the thread manager
+        // sets up the thread manager
         threadManager = new ThreadManager();
         managers.add(threadManager);
         progressManager.step("Setting up Threads");
 
-        // set's up the hole manager
+        // sets up the hole manager
         holeManager = new HoleManager();
         managers.add(holeManager);
         progressManager.step("Setting up Hole Manager");
 
-        // set's up the interaction manager
+        // sets up the interaction manager
         interactionManager = new InteractionManager();
         managers.add(interactionManager);
         progressManager.step("Setting up Interaction Manager");
 
-        // set's up the inventory manager
+        // sets up the inventory manager
         inventoryManager = new InventoryManager();
         managers.add(inventoryManager);
         progressManager.step("Setting up Inventory Manager");
 
-        // set's up the changelog manager
+        // sets up the changelog manager
         changelogManager = new ChangelogManager();
         managers.add(changelogManager);
         progressManager.step("Setting up Changelog Manager");
 
-        // set's up the sound manager
+        // sets up the sound manager
         soundManager = new SoundManager();
         managers.add(soundManager);
         progressManager.step("Setting up Sound System");
+
+        // sets up the sound manager
+        chatManager = new ChatManager();
+        managers.add(chatManager);
+        progressManager.step("Setting up Chat Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -247,6 +253,10 @@ public class Cosmos {
 
     public SoundManager getSoundManager() {
         return soundManager;
+    }
+
+    public ChatManager getChatManager() {
+        return chatManager;
     }
 
     public NotificationManager getNotificationManager() {
