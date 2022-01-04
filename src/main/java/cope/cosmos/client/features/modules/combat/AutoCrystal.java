@@ -1121,7 +1121,7 @@ public class AutoCrystal extends Module {
         int unsafeEntities = 0;
         for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(nativePosition))) {
             // if the entity is crystal, check it's on the same position
-            if (entity instanceof EntityEnderCrystal && entity.getPosition().equals(nativePosition)) {
+            if (entity instanceof EntityEnderCrystal && entity.getPosition().equals(nativePosition) || attemptedExplosions.containsKey(entity.getEntityId())) {
                 continue;
             }
 

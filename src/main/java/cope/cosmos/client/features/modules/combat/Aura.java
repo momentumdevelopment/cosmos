@@ -24,10 +24,14 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.world.EntityUtil;
 import cope.cosmos.util.world.InterpolationUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityExpBottle;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -171,6 +175,16 @@ public class Aura extends Module {
                     continue;
                 }
 
+                // should not be attacking items
+                if (entity instanceof EntityItem || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb) {
+                    continue;
+                }
+
+                // verify target
+                if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                    continue;
+                }
+
                 // distance to the entity
                 double distance = mc.player.getDistance(entity);
 
@@ -204,6 +218,13 @@ public class Aura extends Module {
                 // make sure the target has existed in the world for at least a certain number of ticks
                 if (entity.ticksExisted < delayTicksExisted.getValue()) {
                     continue;
+                }
+
+                // check hurt resistance time
+                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                    if (entity.hurtResistantTime > 0) {
+                        continue;
+                    }
                 }
 
                 // there is at least one player that is attackable
@@ -394,12 +415,11 @@ public class Aura extends Module {
 
                 // if we are cleared to attack, then attack
                 if (attackCleared) {
-
                     // make sure our switch timer has cleared it's time, attacking right after switching flags Updated NCP
                     if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.MILLISECONDS)) {
 
                         // if we passed our critical time, then we can attempt a critical attack
-                        if (criticalTimer.passedTime(300, Format.MILLISECONDS) && timing.getValue().equals(Timing.SEQUENTIAL)) {
+                        if (criticalTimer.passedTime(300, Format.MILLISECONDS)) {
 
                             // spoof our fall state to simulate a critical attack
                             mc.player.fallDistance = 0.1F;
@@ -430,10 +450,8 @@ public class Aura extends Module {
                         }
 
                         // reset fall state
-                        if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                            mc.player.fallDistance = fallDistance;
-                            mc.player.onGround = onGround;
-                        }
+                        mc.player.fallDistance = fallDistance;
+                        mc.player.onGround = onGround;
                     }
 
                     // reset sneak state
