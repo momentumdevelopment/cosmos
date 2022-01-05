@@ -39,7 +39,7 @@ public class Chams extends Module {
 
     public static Setting<ChamsShader> shaderMode = new Setting<>("Shader", ChamsShader.COSMOS).setDescription("Shader for Chams");
 
-    public static Setting<Float> shaderSpeed = new Setting<>("ShaderSpeed", 0.001f, 0.005f, 0.08f, 0).setVisible(() -> mode.getValue().equals(Mode.SHADER));
+    public static Setting<Float> shaderSpeed = new Setting<>("ShaderSpeed", 0.001f, 0.005f, 0.08f, 4).setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
     // entity highlights
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
