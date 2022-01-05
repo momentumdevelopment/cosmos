@@ -80,9 +80,6 @@ public class Chams extends Module {
     @SubscribeEvent
     public void onRenderLivingEntity(RenderLivingEntityEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
-
-            if (mode.getValue().equals(Mode.SHADER))
-
             // cancel the vanilla rendering
             event.setCanceled(!texture.getValue());
 
