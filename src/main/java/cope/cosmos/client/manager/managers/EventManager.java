@@ -5,7 +5,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -157,7 +156,7 @@ public class EventManager extends Manager implements Wrapper {
 				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
 			} catch (Exception exception) {
 				// exception.printStackTrace();
-				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
+				getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
 			}
 		}
 	}

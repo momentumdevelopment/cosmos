@@ -6,7 +6,6 @@ import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.misc.Notifier;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -39,7 +38,7 @@ public class PopManager extends Manager implements Wrapper {
         if (totemPops.containsKey(event.getEntity())) {
             // notify the player if necessary
             if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
-                ChatUtil.sendMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + totemPops.get(event.getEntity()) + " totems!");
+                getCosmos().getChatManager().sendClientMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + totemPops.get(event.getEntity()) + " totems!");
             }
 
             // remove the totem info associated with the entity

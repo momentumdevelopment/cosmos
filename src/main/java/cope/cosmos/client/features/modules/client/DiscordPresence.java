@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.client;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.managers.PresenceManager;
-import cope.cosmos.util.client.ChatUtil;
 
 public class DiscordPresence extends Module {
     public static DiscordPresence INSTANCE;
@@ -20,13 +19,13 @@ public class DiscordPresence extends Module {
     public void onEnable() {
         super.onEnable();
         PresenceManager.startPresence();
-        ChatUtil.sendMessage("Starting Discord Presence!");
+        getCosmos().getChatManager().sendClientMessage("Starting Discord Presence!");
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
         PresenceManager.interruptPresence();
-        ChatUtil.sendMessage("Shutting down Discord Presence!");
+        getCosmos().getChatManager().sendClientMessage("Shutting down Discord Presence!");
     }
 }

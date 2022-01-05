@@ -1,12 +1,10 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.ModuleToggleEvent;
 import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -35,7 +33,7 @@ public class Notifier extends Module {
                 String popMessage = TextFormatting.DARK_PURPLE + event.getPopEntity().getName() + TextFormatting.RESET + " has popped " + getCosmos().getPopManager().getTotemPops(event.getPopEntity()) + " totems!";
 
                 // send notification
-                ChatUtil.sendMessageWithOptionalDeletion(TextFormatting.DARK_PURPLE + "[Cosmos] " + TextFormatting.RESET + popMessage, 101);
+                getCosmos().getChatManager().sendMessage(TextFormatting.DARK_PURPLE + "[Cosmos] " + TextFormatting.RESET + popMessage);
             }
         }
     }
@@ -47,7 +45,7 @@ public class Notifier extends Module {
             if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
 
                 // send an enable notification
-                ChatUtil.sendModuleEnableMessage(event.getModule());
+                getCosmos().getChatManager().sendClientMessage(event.getModule());
             }
         }
     }
@@ -59,7 +57,7 @@ public class Notifier extends Module {
             if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
 
                 // send an disable notification
-                ChatUtil.sendModuleDisableMessage(event.getModule());
+                getCosmos().getChatManager().sendClientMessage(event.getModule());
             }
         }
     }

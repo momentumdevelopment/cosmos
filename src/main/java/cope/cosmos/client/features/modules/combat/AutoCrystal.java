@@ -13,7 +13,6 @@ import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
-import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.PlayerUtil;
@@ -547,17 +546,17 @@ public class AutoCrystal extends Module {
                 // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
                 if (override.getValue()) {
                     if (idealCrystal.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealCrystal.getExplodeTarget())) {
-                        requiredDamage = 0.5;
+                        requiredDamage = idealCrystal.getTargetDamage();
                     }
 
                     // critical health
                     if (EnemyUtil.getHealth(idealCrystal.getExplodeTarget()) < overrideHealth.getValue()) {
-                        requiredDamage = 0.5;
+                        requiredDamage = 1.5;
                     }
 
                     // critical armor
-                    if (EnemyUtil.getArmor(idealCrystal.getExplodeTarget(), overrideArmor.getValue())) {
-                        requiredDamage = 0.5;
+                    if (EnemyUtil.getLowestArmor(idealCrystal.getExplodeTarget()) <= overrideArmor.getValue()) {
+                        requiredDamage = 1.5;
                     }
                 }
 
@@ -581,7 +580,7 @@ public class AutoCrystal extends Module {
             // map of viable positions
             TreeMap<Float, CrystalPosition> positionMap = new TreeMap<>();
 
-            for (BlockPos calculatedPosition : BlockUtil.getSurroundingBlocks(mc.player, placeRange.getValue(), false)) {
+            for (BlockPos calculatedPosition : BlockUtil.getSurroundingBlocks(mc.player, placeRange.getValue() + 1, false)) {
                 // make sure it's actually a viable position
                 if (!canPlaceCrystal(calculatedPosition)) {
                     continue;
@@ -604,10 +603,17 @@ public class AutoCrystal extends Module {
                     distancePosition = new Vec3d(calculatedPosition.getX() + 0.5, calculatedPosition.getY(), calculatedPosition.getZ() + 0.5);
                 }
 
-                // if it is a wall placement, use our wall ranges
+                // verify distance
                 double distance = mc.player.getDistance(distancePosition.x, distancePosition.y, distancePosition.z);
-                if (distance > placeWall.getValue() && wallPlacement) {
+                if (distance > placeRange.getValue()) {
                     continue;
+                }
+
+                // if it is a wall placement, use our wall ranges
+                if (wallPlacement) {
+                   if (distance > placeWall.getValue()) {
+                       continue;
+                   }
                 }
 
                 for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
@@ -655,22 +661,22 @@ public class AutoCrystal extends Module {
                 // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
                 if (override.getValue()) {
                     if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget())) {
-                        requiredDamage = 0.5;
+                        requiredDamage = idealPosition.getTargetDamage();
                     }
 
                     // critical health
                     if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
-                        requiredDamage = 0.5;
+                        requiredDamage = 1.5;
                     }
 
                     // critical armor
-                    if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
-                        requiredDamage = 0.5;
+                    if (EnemyUtil.getLowestArmor(idealPosition.getPlaceTarget()) <= overrideArmor.getValue()) {
+                        requiredDamage = 1.5;
                     }
                 }
 
                 // verify if the ideal position meets our requirements, if it doesn't it automatically rules out all other placements
-                if (idealPosition.getTargetDamage() > requiredDamage) {
+                if (idealPosition.getTargetDamage() >= requiredDamage) {
                     return idealPosition;
                 }
             }
@@ -1368,6 +1374,24 @@ public class AutoCrystal extends Module {
          * Doesn't limit yaw
          */
         NONE
+    }
+
+    public enum Target {
+
+        /**
+         * Finds the closest entity to the player
+         */
+        CLOSEST,
+
+        /**
+         * Finds the entity with the lowest health
+         */
+        LOWEST_HEALTH,
+
+        /**
+         * Finds the entity with the lowest armor durability
+         */
+        LOWEST_ARMOR
     }
 
     public static class CrystalPosition {

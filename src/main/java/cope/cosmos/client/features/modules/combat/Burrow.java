@@ -16,7 +16,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author bon55, linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class Burrow extends Module {
 	public static Burrow INSTANCE;
 

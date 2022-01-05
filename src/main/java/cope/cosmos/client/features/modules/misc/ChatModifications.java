@@ -47,15 +47,25 @@ public class ChatModifications extends Module {
         // packet for chat messages
         if (event.getPacket() instanceof CPacketChatMessage) {
             // make sure the message is not a command
-            if (((CPacketChatMessage) event.getPacket()).getMessage().startsWith("/") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("!") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("$") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith("?") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(".") || ((CPacketChatMessage) event.getPacket()).getMessage().startsWith(",")) {
-                return;
+            if (!((CPacketChatMessage) event.getPacket()).getMessage().startsWith("/") && !((CPacketChatMessage) event.getPacket()).getMessage().startsWith("!") && !((CPacketChatMessage) event.getPacket()).getMessage().startsWith("$") && !((CPacketChatMessage) event.getPacket()).getMessage().startsWith("?") && !((CPacketChatMessage) event.getPacket()).getMessage().startsWith(".") && !((CPacketChatMessage) event.getPacket()).getMessage().startsWith(",")) {
+                // reformat messaged
+                StringBuilder formattedMessage = new StringBuilder();
+
+                // colors messages green
+                if (colored.getValue()) {
+                    formattedMessage.append("> ");
+                }
+
+                formattedMessage.append(((CPacketChatMessage) event.getPacket()).getMessage());
+
+                // suffix
+                if (suffix.getValue()) {
+                    formattedMessage.append(" \u23d0 ").append(toUnicode(Cosmos.NAME));
+                }
+
+                // update the message
+                ((ICPacketChatMessage) event.getPacket()).setMessage(formattedMessage.toString());
             }
-
-            // reformat message
-            String formattedMessage = (colored.getValue() ? "> " : "") + ((CPacketChatMessage) event.getPacket()).getMessage() + (suffix.getValue() ? " \u23d0 " + ChatUtil.toUnicode(Cosmos.NAME) : "");
-
-            // update the message
-            ((ICPacketChatMessage) event.getPacket()).setMessage(formattedMessage);
         }
     }
 
@@ -66,6 +76,7 @@ public class ChatModifications extends Module {
 
             // get the text
             if (((SPacketChat) event.getPacket()).getChatComponent() instanceof TextComponentString && !((SPacketChat) event.getPacket()).getType().equals(ChatType.GAME_INFO)) {
+
                 // the chat message
                 TextComponentString component = (TextComponentString) ((SPacketChat) event.getPacket()).getChatComponent();
 
@@ -82,7 +93,19 @@ public class ChatModifications extends Module {
 
                 if (component.getText() != null) {
                     // timestamp formatted
-                    String formattedText = (!time.getValue().equals(Time.NONE) ? TextFormatting.GRAY + "[" + formattedTime + "] " + TextFormatting.RESET : "") + (prefix.getValue() ? ChatUtil.getPrefix() : "") + component.getText();
+                    StringBuilder formattedText = new StringBuilder();
+
+                    // add a prefix before the message
+                    if (prefix.getValue()) {
+                        formattedText.append(ChatUtil.getPrefix());
+                    }
+
+                    // add a timestamp before the message
+                    if (!time.getValue().equals(Time.NONE)) {
+                        formattedText.append(TextFormatting.GRAY).append("[").append(formattedTime).append("] ").append(TextFormatting.RESET);
+                    }
+
+                    formattedText.append(component.getText());
 
                     /*
                     if (highlight.getValue()) {
@@ -95,10 +118,45 @@ public class ChatModifications extends Module {
                      */
 
                     // replace the chat message
-                    ((ITextComponentString) component).setText(formattedText);
+                    ((ITextComponentString) component).setText(formattedText.toString());
                 }
             }
         }
+    }
+
+    /**
+     * Converts a String into unicode characters
+     * @param message The String
+     * @return The converted String
+     */
+    public String toUnicode(String message) {
+        return message.toLowerCase()
+                .replace("a", "\u1d00")
+                .replace("b", "\u0299")
+                .replace("c", "\u1d04")
+                .replace("d", "\u1d05")
+                .replace("e", "\u1d07")
+                .replace("f", "\ua730")
+                .replace("g", "\u0262")
+                .replace("h", "\u029c")
+                .replace("i", "\u026a")
+                .replace("j", "\u1d0a")
+                .replace("k", "\u1d0b")
+                .replace("l", "\u029f")
+                .replace("m", "\u1d0d")
+                .replace("n", "\u0274")
+                .replace("o", "\u1d0f")
+                .replace("p", "\u1d18")
+                .replace("q", "\u01eb")
+                .replace("r", "\u0280")
+                .replace("s", "\ua731")
+                .replace("t", "\u1d1b")
+                .replace("u", "\u1d1c")
+                .replace("v", "\u1d20")
+                .replace("w", "\u1d21")
+                .replace("x", "\u02e3")
+                .replace("y", "\u028f")
+                .replace("z", "\u1d22");
     }
 
     public enum Time {

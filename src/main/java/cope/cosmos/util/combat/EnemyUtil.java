@@ -7,50 +7,88 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
+/**
+ * @author linustouchtips
+ * @since 05/05/2021
+ */
 public class EnemyUtil implements Wrapper {
 
+    /**
+     * Gets the health of an entity
+     * @param entity The entity to get the health for
+     * @return The health of the entity
+     */
     public static float getHealth(Entity entity) {
+        // player
         if (entity instanceof EntityPlayer) {
             return ((EntityPlayer) entity).getHealth() + ((EntityPlayer) entity).getAbsorptionAmount();
         }
 
+        // living
         else if (entity instanceof EntityLivingBase) {
-            return ((EntityLivingBase) entity).getHealth();
+            return ((EntityLivingBase) entity).getHealth() + ((EntityLivingBase) entity).getAbsorptionAmount();
         }
 
         return 0;
     }
 
+    /**
+     * Gets the armor durability of all the armor of a player
+     * @param target The player to check armor durability for
+     * @return The armor durability of all the armor of the player
+     */
     public static float getArmor(Entity target) {
-        if (!(target instanceof EntityPlayer))
-            return 0;
+        if (target instanceof EntityPlayer) {
+            // total durability
+            float armorDurability = 0;
 
-        float armorDurability = 0;
-        for (ItemStack stack : target.getArmorInventoryList()) {
-            if (stack == null || stack.getItem() == Items.AIR)
-                continue;
+            // check durability for each piece of armor
+            for (ItemStack armor : target.getArmorInventoryList()) {
+                if (armor != null && !armor.getItem().equals(Items.AIR)) {
+                    armorDurability += (armor.getMaxDamage() - armor.getItemDamage() / (float) armor.getMaxDamage()) * 100;
+                }
+            }
 
-            armorDurability += ((float) (stack.getMaxDamage() - stack.getItemDamage()) / (float) stack.getMaxDamage()) * 100.0f;
+            return armorDurability;
         }
 
-        return armorDurability;
+        return 0;
     }
 
-    public static boolean getArmor(Entity target, double durability) {
-        if (!(target instanceof EntityPlayer))
-            return false;
+    /**
+     * Gets the lowest armor durability for an entity's armor
+     * @param target The entity
+     * @return The lowest armor durability for the entity's armor
+     */
+    public static float getLowestArmor(Entity target) {
+        if (target instanceof EntityPlayer) {
+            // total durability
+            float lowestDurability = 100;
 
-        for (ItemStack stack : target.getArmorInventoryList()) {
-            if (stack == null || stack.getItem() == Items.AIR)
-                return true;
+            // check durability for each piece of armor
+            for (ItemStack armor : target.getArmorInventoryList()) {
+                if (armor != null && !armor.getItem().equals(Items.AIR)) {
+                    // durability of the armor
+                    float armorDurability = (armor.getMaxDamage() - armor.getItemDamage() / (float) armor.getMaxDamage()) * 100;
 
-            if (durability >= ((float) (stack.getMaxDamage() - stack.getItemDamage()) / (float) stack.getMaxDamage()) * 100.0f)
-                return true;
+                    // find lowest durability
+                    if (armorDurability < lowestDurability) {
+                        lowestDurability = armorDurability;
+                    }
+                }
+            }
+
+            return lowestDurability;
         }
 
-        return false;
+        return 0;
     }
 
+    /**
+     * Checks if an entity is dead
+     * @param entity The entity to check
+     * @return Whether the entity is dead
+     */
     public static boolean isDead(Entity entity) {
         return getHealth(entity) <= 0 || entity.isDead;
     }

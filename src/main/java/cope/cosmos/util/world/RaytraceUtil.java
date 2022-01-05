@@ -18,8 +18,8 @@ public class RaytraceUtil implements Wrapper {
      * @return The visibility to the block
      */
     public static boolean isNotVisible(BlockPos blockPos, double offset) {
-        if (offset > 50 || offset < 50) {
-            return true;
+        if (offset > 50 || offset < -50) {
+            return false;
         }
 
         return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + offset, blockPos.getZ() + 0.5), false, true, false) != null;
@@ -32,8 +32,8 @@ public class RaytraceUtil implements Wrapper {
      * @return The visibility to the entity
      */
     public static boolean isNotVisible(Entity entity, double offset) {
-        if (offset > 50 || offset < 50) {
-            return true;
+        if (offset > 50 || offset < -50) {
+            return false;
         }
 
         return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(entity.posX, entity.posY + offset, entity.posZ), false, true, false) != null;
