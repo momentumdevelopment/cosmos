@@ -32,7 +32,7 @@ public class Help extends Command {
      * @param page The page you'd like to view
      */
     private static void sendHelpList(int page) {
-        List<Command> commands = CommandManager.getAllCommands();
+        List<Command> commands = Cosmos.INSTANCE.getCommandManager().getAllCommands();
 
         // we'll have a max of 5 commands per "page"
         int maxLength = 5;

@@ -2,19 +2,19 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.RenderRotationsEvent;
 import cope.cosmos.client.events.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
@@ -26,6 +26,7 @@ import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
+import cope.cosmos.util.world.EntityUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.entity.Entity;
@@ -58,7 +59,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author linustouchtips
  * @since 12/04/2021
  */
-@SuppressWarnings("unused")
 public class AutoCrystal extends Module {
     public static AutoCrystal INSTANCE;
 
@@ -199,7 +199,7 @@ public class AutoCrystal extends Module {
         }
 
         else {
-            // explode our searched crystal and place on our search position
+            // explode our searched crystal and place on our search position, do both these processes on on tick
             explodeCrystal();
             placeCrystal();
         }
@@ -501,9 +501,14 @@ public class AutoCrystal extends Module {
                     }
                 }
 
-                for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
+                for (Entity calculatedTarget : mc.world.loadedEntityList) {
                     // make sure the target is not dead, a friend, or the local player
-                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || getCosmos().getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
+                        continue;
+                    }
+
+                    // verify target
+                    if (calculatedTarget instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(calculatedTarget) && !targetPassives.getValue() || EntityUtil.isNeutralMob(calculatedTarget) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(calculatedTarget) && !targetHostiles.getValue()) {
                         continue;
                     }
 
@@ -616,9 +621,14 @@ public class AutoCrystal extends Module {
                    }
                 }
 
-                for (EntityPlayer calculatedTarget : mc.world.playerEntities) {
+                for (Entity calculatedTarget : mc.world.loadedEntityList) {
                     // make sure the target is not dead, a friend, or the local player
-                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || Cosmos.INSTANCE.getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
+                    if (calculatedTarget.equals(mc.player) || EnemyUtil.isDead(calculatedTarget) || getCosmos().getSocialManager().getSocial(calculatedTarget.getName()).equals(Relationship.FRIEND)) {
+                        continue;
+                    }
+
+                    // verify target
+                    if (calculatedTarget instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(calculatedTarget) && !targetPassives.getValue() || EntityUtil.isNeutralMob(calculatedTarget) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(calculatedTarget) && !targetHostiles.getValue()) {
                         continue;
                     }
 
@@ -1398,13 +1408,13 @@ public class AutoCrystal extends Module {
 
         // place info
         private final BlockPos blockPos;
-        private final EntityPlayer placeTarget;
+        private final Entity placeTarget;
 
         // damage info
         private final double targetDamage;
         private final double localDamage;
 
-        public CrystalPosition(BlockPos blockPos, EntityPlayer placeTarget, double targetDamage, double localDamage) {
+        public CrystalPosition(BlockPos blockPos, Entity placeTarget, double targetDamage, double localDamage) {
             this.blockPos = blockPos;
             this.placeTarget = placeTarget;
             this.targetDamage = targetDamage;
@@ -1421,9 +1431,9 @@ public class AutoCrystal extends Module {
 
         /**
          * Gets the target of a placement
-         * @return The {@link EntityPlayer} target of the placement
+         * @return The {@link Entity} target of the placement
          */
-        public EntityPlayer getPlaceTarget() {
+        public Entity getPlaceTarget() {
             return placeTarget;
         }
 
@@ -1448,13 +1458,13 @@ public class AutoCrystal extends Module {
 
         // crystal info
         private final EntityEnderCrystal crystal;
-        private final EntityPlayer explodeTarget;
+        private final Entity explodeTarget;
 
         // damage info
         private final double targetDamage;
         private final double localDamage;
 
-        public Crystal(EntityEnderCrystal crystal, EntityPlayer explodeTarget, double targetDamage, double localDamage) {
+        public Crystal(EntityEnderCrystal crystal, Entity explodeTarget, double targetDamage, double localDamage) {
             this.crystal = crystal;
             this.explodeTarget = explodeTarget;
             this.targetDamage = targetDamage;
@@ -1471,9 +1481,9 @@ public class AutoCrystal extends Module {
 
         /**
          * Gets the target of a explosion
-         * @return The {@link EntityPlayer} target of the explosion
+         * @return The {@link Entity} target of the explosion
          */
-        public EntityPlayer getExplodeTarget() {
+        public Entity getExplodeTarget() {
             return explodeTarget;
         }
 

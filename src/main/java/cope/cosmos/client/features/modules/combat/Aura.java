@@ -220,13 +220,6 @@ public class Aura extends Module {
                     continue;
                 }
 
-                // check hurt resistance time
-                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                    if (entity.hurtResistantTime > 0) {
-                        continue;
-                    }
-                }
-
                 // there is at least one player that is attackable
                 if (!playerBias && entity instanceof EntityPlayer) {
                     playerBias = true;
@@ -411,6 +404,13 @@ public class Aura extends Module {
                     case TICK:
                         attackCleared = auraTimer.passedTime(delayTicks.getValue().longValue() + randomFactor, Format.TICKS);
                         break;
+                }
+
+                // check hurt resistance time
+                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                    if (auraTarget.hurtResistantTime > 0) {
+                        return;
+                    }
                 }
 
                 // if we are cleared to attack, then attack

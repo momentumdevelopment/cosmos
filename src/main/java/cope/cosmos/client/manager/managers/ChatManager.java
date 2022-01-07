@@ -29,7 +29,7 @@ public class ChatManager extends Manager {
         super("ChatManager", "Manages client chat messages");
 
         // assign each module has a unique message id
-        ModuleManager.getAllModules().forEach(mod -> messageMap.put(mod, ThreadLocalRandom.current().nextInt(32767)));
+        getCosmos().getModuleManager().getAllModules().forEach(mod -> messageMap.put(mod, ThreadLocalRandom.current().nextInt(32767)));
     }
 
     /**

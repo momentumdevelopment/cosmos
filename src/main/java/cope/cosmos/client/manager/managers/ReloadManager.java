@@ -24,10 +24,10 @@ public class ReloadManager extends Manager implements Wrapper {
         // on spawn
         if (event.getEntity().equals(mc.player)) {
             // previously enabled modules
-            List<Module> enabledModules = ModuleManager.getModules(Module::isEnabled);
+            List<Module> enabledModules = getCosmos().getModuleManager().getModules(Module::isEnabled);
 
             // disable all modules (exempt property prevents modules from being reloaded)
-            ModuleManager.getAllModules().forEach(module -> {
+            getCosmos().getModuleManager().getAllModules().forEach(module -> {
                 if (!module.isExempt()) {
                     module.disable();
                 }
