@@ -37,7 +37,7 @@ public class Chams extends Module {
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
 
-    public static Setting<ChamsShader> shaderMode = new Setting<>("Shader", ChamsShader.COSMOS).setDescription("Shader for Chams");
+    public static Setting<ChamsShader> shaderMode = new Setting<>("Shader", ChamsShader.SMOKE).setDescription("Shader for Chams");
 
     public static Setting<Float> shaderSpeed = new Setting<>("ShaderSpeed", 0.001f, 0.005f, 0.08f, 4).setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
@@ -421,14 +421,14 @@ public class Chams extends Module {
 
     public enum ChamsShader {
         SMOKE,
-        COSMOS,
+//        COSMOS,
         LIGHTS
     }
 
     public Shader getShader() {
         switch (shaderMode.getValue()){
-            case COSMOS:
-                return cosmosShader;
+//            case COSMOS:
+//                return cosmosShader;
             case SMOKE:
                 return smokeShader;
             case LIGHTS:
