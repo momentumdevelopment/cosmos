@@ -7,6 +7,8 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import java.util.Arrays;
+
 /**
  * @author linustouchtips
  * @since 05/06/2021
@@ -29,6 +31,24 @@ public class InventoryUtil implements Wrapper {
      */
     public static boolean isHolding(Block block) {
         return mc.player.getHeldItemMainhand().getItem().equals(Item.getItemFromBlock(block)) || mc.player.getHeldItemOffhand().getItem().equals(Item.getItemFromBlock(block));
+    }
+
+    /**
+     * Checks if the player is holding any item in a specified list of items
+     * @param items The specified item list
+     * @return Whether the player is holding any item in a specified list of items
+     */
+    public static boolean isHolding(Item[] items) {
+        return Arrays.stream(items).anyMatch(inventoryItem -> inventoryItem.equals(mc.player.getHeldItemMainhand().getItem())) || Arrays.stream(items).anyMatch(inventoryItem -> inventoryItem.equals(mc.player.getHeldItemOffhand().getItem()));
+    }
+
+    /**
+     * Checks if the player is holding any block in a specified list of blocks
+     * @param blocks The specified block list
+     * @return Whether the player is holding any block in a specified list of blocks
+     */
+    public static boolean isHolding(Block[] blocks) {
+        return Arrays.stream(blocks).anyMatch(inventoryItem -> Item.getItemFromBlock(inventoryItem).equals(mc.player.getHeldItemMainhand().getItem())) || Arrays.stream(blocks).anyMatch(inventoryItem -> Item.getItemFromBlock(inventoryItem).equals(mc.player.getHeldItemOffhand().getItem()));
     }
 
     /**

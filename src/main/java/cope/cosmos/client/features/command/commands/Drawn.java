@@ -7,15 +7,13 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.manager.managers.ModuleManager;
-import cope.cosmos.util.client.ChatUtil;
 
 public class Drawn extends Command {
     public Drawn() {
         super("Drawn", "Hides or shows a module on the arraylist", LiteralArgumentBuilder.literal("drawn")
                 .then(RequiredArgumentBuilder.argument("module", StringArgumentType.string())
                         .executes(context -> {
-                            Module drawnModule = ModuleManager.getModule(module -> module.getName().equals(StringArgumentType.getString(context, "module")));
+                            Module drawnModule = Cosmos.INSTANCE.getModuleManager().getModule(module -> module.getName().equals(StringArgumentType.getString(context, "module")));
                             Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", StringArgumentType.getString(context, "name") + " has been " + (drawnModule.isDrawn() ? "hidden!" : "drawn!"));
                             drawnModule.setDrawn(!drawnModule.isDrawn());
 

@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.MotionEvent;
@@ -13,6 +14,7 @@ import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.MathUtil;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
@@ -22,7 +24,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips, aesthetical
  * @since 11/27/2021
  */
-@SuppressWarnings("unused")
 public class Speed extends Module {
     public static Speed INSTANCE;
 
@@ -49,8 +50,9 @@ public class Speed extends Module {
     public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
     public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
-    // current strafe stage
+    // current stage
     private StrafeStage strafeStage = StrafeStage.SPEED;
+    private GroundStage groundStage = GroundStage.CHECK_SPACE;
 
     // the move speed for the current mode
     private double moveSpeed;
@@ -61,6 +63,9 @@ public class Speed extends Module {
     private int strictTicks;
     private int timerTicks;
     private int boostTicks;
+
+    // packet manipulation
+    boolean offsetPackets;
 
     @Override
     public void onDisable() {
@@ -97,35 +102,6 @@ public class Speed extends Module {
         // cancel vanilla movement, we'll send our own movements
         event.setCanceled(true);
 
-        // start sprinting
-        if (strictSprint.getValue() && (!mc.player.isSprinting() || !((IEntityPlayerSP) mc.player).getServerSprintState())) {
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-        }
-
-        // timer
-        if (timer.getValue()) {
-            // update the timer ticks
-            timerTicks++;
-
-            // reset the timer every 5 ticks
-            if (timerTicks >= 5) {
-                getCosmos().getTickManager().setClientTicks(1);
-                timerTicks = 0;
-            }
-
-            // set the timer if the player is moving
-            else if (MotionUtil.isMoving()) {
-                getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
-                event.setX(event.getX() * 1.02);
-                event.setZ(event.getZ() * 1.02);
-            }
-        }
-
-        else {
-            // compatibility with Timer module
-            getCosmos().getTickManager().setClientTicks(1);
-        }
-
         // base move speed
         double baseSpeed = 0.2873;
 
@@ -135,218 +111,323 @@ public class Speed extends Module {
             baseSpeed *= 1 + (0.2 * (amplifier + 1));
         }
 
-        // we are ready to start strafing
-        if (MotionUtil.isMoving()) {
-            if (mc.player.onGround) {
-                strafeStage = StrafeStage.START;
-            }
-
-            if (mode.getValue().equals(Mode.STRAFE)) {
-                // boost speed
-                moveSpeed = baseSpeed * 1.38;
-            }
+        // start sprinting
+        if (strictSprint.getValue() && (!mc.player.isSprinting() || !((IEntityPlayerSP) mc.player).getServerSprintState())) {
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
         }
 
-        // we are falling
-        if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
-            // check whether or not we are falling
-            double yDifference = mc.player.posY - Math.floor(mc.player.posY);
+        /*
+         * OnGround, the idea behind this is that you are simulating a fake jump by modifying packets instead
+         * of actually jumping (i.e. Strafe), this allows you to gain lots of Speed on NCP servers without
+         * actually jumping
+         */
+        if (mode.getValue().equals(Mode.ON_GROUND)) {
+            if (mc.player.onGround && MotionUtil.isMoving()) {
+                // fake jump by offsetting packets
+                if (groundStage.equals(GroundStage.FAKE_JUMP)) {
+                    // offset our y-packets to simulate a jump
+                    offsetPackets = true;
 
-            if (MathUtil.roundDouble(yDifference, 3) == MathUtil.roundDouble(0.138, 3)) {
-                strafeStage = StrafeStage.FALL;
+                    // acceleration jump factor
+                    double acceleration = 2.149;
 
-                // falling motion
-                mc.player.motionY -= 0.08;
+                    // since we just jumped, we can now move faster
+                    moveSpeed *= acceleration;
 
-                // our pos should be slightly lower
-                event.setY(event.getY() - 0.09316090325960147);
-                mc.player.posY -= 0.09316090325960147;
-            }
-        }
-
-        if (!strafeStage.equals(StrafeStage.COLLISION) || !MotionUtil.isMoving()) {
-            // start jumping
-            if (strafeStage.equals(StrafeStage.START)) {
-                strafeStage = StrafeStage.JUMP;
-
-                // the jump height
-                double jumpSpeed = 0.3999999463558197;
-
-                // jump slightly higher (i.e. slower)
-                if (strictJump.getValue()) {
-                    jumpSpeed = 0.42;
+                    // we can start speeding
+                    groundStage = GroundStage.SPEED;
                 }
 
-                if (mode.getValue().equals(Mode.STRAFE_LOW)) {
-                    jumpSpeed = 0.27;
+                else if (groundStage.equals(GroundStage.SPEED)) {
+                    // take into account our last tick's move speed
+                    double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
+
+                    // scale the move speed
+                    moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+
+                    // we need to "jump" again now
+                    groundStage = GroundStage.FAKE_JUMP;
                 }
 
-                // scale jump speed if Jump Boost potion effect is active
-                if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
-                    jumpSpeed += (mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier() + 1) * 0.1;
-                }
+                // we will not be able to jump
+                if (mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, 0.21, 0)).size() > 0 || mc.player.collidedVertically) {
+                    groundStage = GroundStage.FAKE_JUMP;
 
-                // jump
-                mc.player.motionY = jumpSpeed;
-                event.setY(jumpSpeed);
+                    double collisionSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
 
-                // acceleration jump factor
-                double acceleration = 2.149;
-
-                // since we just jumped, we can now move faster
-                moveSpeed *= acceleration;
-            }
-
-            // final stage, we can now start speeding
-            else if (strafeStage.equals(StrafeStage.JUMP)) {
-                strafeStage = StrafeStage.SPEED;
-
-                // take into account our last tick's move speed
-                double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
-
-                // scale the move speed
-                moveSpeed = latestMoveSpeed - scaledMoveSpeed;
-            }
-
-            else {
-                // if we collided then reset our stage
-                if (mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, mc.player.motionY, 0)).size() > 0 || mc.player.collidedVertically) {
-                    strafeStage = StrafeStage.COLLISION;
-
-                    // restart, disregard slowdown
-                    if (retain.getValue()) {
-                        strafeStage = StrafeStage.START;
+                    // reset to base speed
+                    if (strictCollision.getValue()) {
+                        collisionSpeed = baseSpeed;
+                        latestMoveSpeed = 0;
                     }
+
+                    // reset our move speed
+                    moveSpeed = collisionSpeed;
                 }
-
-                double collisionSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
-
-                // reset to base speed
-                if (strictCollision.getValue()) {
-                    collisionSpeed = baseSpeed;
-                    latestMoveSpeed = 0;
-                }
-
-                // reset our move speed
-                moveSpeed = collisionSpeed;
-            }
-        }
-
-        // reset momentum
-        else if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
-            if (mc.player.onGround) {
-                strafeStage = StrafeStage.START;
             }
 
-            // final move speed
-            moveSpeed = baseSpeed * 1.38;
-        }
-
-        // the final move speed, finds the higher speed
-        moveSpeed = Math.max(moveSpeed, baseSpeed);
-
-        if (mode.getValue().equals(Mode.STRAFE)) {
-            moveSpeed = Math.min(moveSpeed, 0.551);
-        }
-
-        // boost the move speed for 10 ticks
-        if (boost.getValue() && boostTicks <= 10) {
-            moveSpeed = Math.max(moveSpeed, boostSpeed);
-        }
-
-        if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
-            // clamp the value based on the number of ticks passed
-            moveSpeed = Math.min(moveSpeed, strictTicks > 25 ? 0.465 : 0.44);
-        }
-
-        // update & reset our tick count
-        strictTicks++;
-
-        // update boost ticks
-        if (moveSpeed >= boostSpeed && boostSpeed > 0) {
-            boostTicks++;
-        }
-
-        // reset strict ticks every 50 ticks
-        if (strictTicks > 50) {
-            strictTicks = 0;
-        }
-
-        // the current movement input values of the user
-        float forward = mc.player.movementInput.moveForward;
-        float strafe = mc.player.movementInput.moveStrafe;
-        float yaw = mc.player.rotationYaw;
-
-        // find the rotations and inputs based on our current movements
-        if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+            // the current movement input values of the user
+            float forward = mc.player.movementInput.moveForward;
+            float strafe = mc.player.movementInput.moveStrafe;
+            float yaw = mc.player.rotationYaw;
 
             // if we're not inputting any movements, then we shouldn't be adding any motion
-            if (!MotionUtil.isMoving()) {
+            if (MotionUtil.isMoving()) {
                 event.setX(0);
                 event.setZ(0);
             }
 
-            else if (forward != 0) {
-                if (strafe >= 1) {
-                    yaw += (forward > 0 ? -45 : 45);
-                    strafe = 0;
-                }
+            // our facing values, according to movement not rotations
+            double cos = Math.cos(Math.toRadians(yaw + 90));
+            double sin = Math.sin(Math.toRadians(yaw + 90));
 
-                else if (strafe <= -1) {
-                    yaw += (forward > 0 ? 45 : -45);
-                    strafe = 0;
-                }
-
-                if (forward > 0) {
-                    forward = 1;
-                }
-
-                else if (forward < 0) {
-                    forward = -1;
-                }
-            }
+            // update the movements
+            event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * -sin));
+            event.setZ((forward * moveSpeed * -sin) - (strafe * moveSpeed * cos));
         }
 
         else {
+            // timer
+            if (timer.getValue()) {
+                // update the timer ticks
+                timerTicks++;
+
+                // reset the timer every 5 ticks
+                if (timerTicks >= 5) {
+                    getCosmos().getTickManager().setClientTicks(1);
+                    timerTicks = 0;
+                }
+
+                // set the timer if the player is moving
+                else if (MotionUtil.isMoving()) {
+                    getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
+                    event.setX(event.getX() * 1.02);
+                    event.setZ(event.getZ() * 1.02);
+                }
+            }
+
+            else {
+                // compatibility with Timer module
+                getCosmos().getTickManager().setClientTicks(1);
+            }
+
+            // we are ready to start strafing
+            if (MotionUtil.isMoving()) {
+                if (mc.player.onGround) {
+                    strafeStage = StrafeStage.START;
+                }
+
+                if (mode.getValue().equals(Mode.STRAFE) || mode.getValue().equals(Mode.STRAFE_LOW)) {
+                    // check if we are inside a burrow
+                    if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                        // boost speed
+                        moveSpeed = baseSpeed * 1.38;
+                    }
+                }
+            }
+
+            // we are falling
+            if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+                // check whether or not we are falling
+                double yDifference = mc.player.posY - Math.floor(mc.player.posY);
+
+                if (MathUtil.roundDouble(yDifference, 3) == MathUtil.roundDouble(0.138, 3)) {
+                    strafeStage = StrafeStage.FALL;
+
+                    // falling motion
+                    mc.player.motionY -= 0.08;
+
+                    // our pos should be slightly lower
+                    event.setY(event.getY() - 0.09316090325960147);
+                    mc.player.posY -= 0.09316090325960147;
+                }
+            }
+
+            if (!strafeStage.equals(StrafeStage.COLLISION) || !MotionUtil.isMoving()) {
+                // start jumping
+                if (strafeStage.equals(StrafeStage.START)) {
+                    strafeStage = StrafeStage.JUMP;
+
+                    // the jump height
+                    double jumpSpeed = 0.3999999463558197;
+
+                    // jump slightly higher (i.e. slower)
+                    if (strictJump.getValue()) {
+                        jumpSpeed = 0.42;
+                    }
+
+                    if (mode.getValue().equals(Mode.STRAFE_LOW)) {
+                        jumpSpeed = 0.27;
+                    }
+
+                    // scale jump speed if Jump Boost potion effect is active
+                    if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
+                        jumpSpeed += (mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier() + 1) * 0.1;
+                    }
+
+                    // jump
+                    mc.player.motionY = jumpSpeed;
+                    event.setY(jumpSpeed);
+
+                    // acceleration jump factor
+                    double acceleration = 2.149;
+
+                    // since we just jumped, we can now move faster
+                    moveSpeed *= acceleration;
+                }
+
+                // final stage, we can now start speeding
+                else if (strafeStage.equals(StrafeStage.JUMP)) {
+                    strafeStage = StrafeStage.SPEED;
+
+                    // take into account our last tick's move speed
+                    double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
+
+                    // scale the move speed
+                    moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+                }
+
+                else {
+                    // if we collided then reset our stage
+                    if (mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, mc.player.motionY, 0)).size() > 0 || mc.player.collidedVertically) {
+                        strafeStage = StrafeStage.COLLISION;
+
+                        // restart, disregard slowdown
+                        if (retain.getValue()) {
+                            strafeStage = StrafeStage.START;
+                        }
+                    }
+
+                    double collisionSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
+
+                    // reset to base speed
+                    if (strictCollision.getValue()) {
+                        collisionSpeed = baseSpeed;
+                        latestMoveSpeed = 0;
+                    }
+
+                    // reset our move speed
+                    moveSpeed = collisionSpeed;
+                }
+            }
+
+            // reset momentum
+            else if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+                if (mc.player.onGround) {
+                    strafeStage = StrafeStage.START;
+                }
+
+                // check if we are inside a burrow
+                if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                    // final move speed
+                    moveSpeed = baseSpeed * 1.38;
+                }
+            }
+
+            // the final move speed, finds the higher speed
+            moveSpeed = Math.max(moveSpeed, baseSpeed);
+
+            if (mode.getValue().equals(Mode.STRAFE) || mode.getValue().equals(Mode.STRAFE_LOW)) {
+                moveSpeed = Math.min(moveSpeed, 0.551);
+            }
+
+            // boost the move speed for 10 ticks
+            if (boost.getValue() && boostTicks <= 10) {
+                moveSpeed = Math.max(moveSpeed, boostSpeed);
+            }
+
+            if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+                // clamp the value based on the number of ticks passed
+                moveSpeed = Math.min(moveSpeed, strictTicks > 25 ? 0.465 : 0.44);
+            }
+
+            // update & reset our tick count
+            strictTicks++;
+
+            // update boost ticks
+            if (moveSpeed >= boostSpeed && boostSpeed > 0) {
+                boostTicks++;
+            }
+
+            // reset strict ticks every 50 ticks
+            if (strictTicks > 50) {
+                strictTicks = 0;
+            }
+
+            // the current movement input values of the user
+            float forward = mc.player.movementInput.moveForward;
+            float strafe = mc.player.movementInput.moveStrafe;
+            float yaw = mc.player.rotationYaw;
+
+            // find the rotations and inputs based on our current movements
+            if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+
+                // if we're not inputting any movements, then we shouldn't be adding any motion
+                if (!MotionUtil.isMoving()) {
+                    event.setX(0);
+                    event.setZ(0);
+                }
+
+                else if (forward != 0) {
+                    if (strafe >= 1) {
+                        yaw += (forward > 0 ? -45 : 45);
+                        strafe = 0;
+                    }
+
+                    else if (strafe <= -1) {
+                        yaw += (forward > 0 ? 45 : -45);
+                        strafe = 0;
+                    }
+
+                    if (forward > 0) {
+                        forward = 1;
+                    }
+
+                    else if (forward < 0) {
+                        forward = -1;
+                    }
+                }
+            } else {
+                // if we're not inputting any movements, then we shouldn't be adding any motion
+                if (!MotionUtil.isMoving()) {
+                    event.setX(0);
+                    event.setZ(0);
+                }
+
+                else if (forward != 0) {
+                    if (strafe > 0) {
+                        yaw += forward > 0 ? -45 : 45;
+                    }
+
+                    else if (strafe < 0) {
+                        yaw += forward > 0 ? 45 : -45;
+                    }
+
+                    strafe = 0;
+
+                    if (forward > 0) {
+                        forward = 1;
+                    }
+
+                    else if (forward < 0) {
+                        forward = -1;
+                    }
+                }
+            }
+
+            // our facing values, according to movement not rotations
+            double cos = Math.cos(Math.toRadians(yaw + 90));
+            double sin = Math.sin(Math.toRadians(yaw + 90));
+
+            // update the movements
+            event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * sin));
+            event.setZ((forward * moveSpeed * sin) - (strafe * moveSpeed * cos));
+
             // if we're not inputting any movements, then we shouldn't be adding any motion
             if (!MotionUtil.isMoving()) {
                 event.setX(0);
                 event.setZ(0);
             }
-
-            else if (forward != 0) {
-                if (strafe > 0) {
-                    yaw += forward > 0 ? -45 : 45;
-                } 
-                
-                else if (strafe < 0) {
-                    yaw += forward > 0 ? 45 : -45;
-                }
-
-                strafe = 0;
-
-                if (forward > 0) {
-                    forward = 1;
-                } 
-                
-                else if (forward < 0) {
-                    forward = -1;
-                }
-            }
-        }
-
-        // our facing values, according to movement not rotations
-        double cos = Math.cos(Math.toRadians(yaw + 90));
-        double sin = Math.sin(Math.toRadians(yaw + 90));
-
-        // update the movements
-        event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * sin));
-        event.setZ((forward * moveSpeed * sin) - (strafe * moveSpeed * cos));
-
-        // if we're not inputting any movements, then we shouldn't be adding any motion
-        if (!MotionUtil.isMoving()) {
-            event.setX(0);
-            event.setZ(0);
         }
     }
 
@@ -360,6 +441,14 @@ public class Speed extends Module {
                 if (strictSprint.getValue()) {
                     event.setCanceled(true);
                 }
+            }
+        }
+
+        if (event.getPacket() instanceof CPacketPlayer) {
+            if (((ICPacketPlayer) event.getPacket()).isMoving() && offsetPackets) {
+                // offset packets
+                ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(0) + 4);
+                offsetPackets = false;
             }
         }
     }
@@ -405,6 +494,7 @@ public class Speed extends Module {
      */
     public void resetProcess() {
         strafeStage = StrafeStage.COLLISION;
+        groundStage = GroundStage.CHECK_SPACE;
         moveSpeed = 0;
         latestMoveSpeed = 0;
         boostSpeed = 0;
@@ -428,7 +518,17 @@ public class Speed extends Module {
         /**
          * Strafe with a lower jump height
          */
-        STRAFE_LOW
+        STRAFE_LOW,
+
+        /**
+         * Speeds your movement while on the ground
+         */
+        STRAFE_GROUND,
+
+        /**
+         * Speeds your movement while on the ground, spoofs jump state
+         */
+        ON_GROUND
     }
 
     public enum StrafeStage {
@@ -457,5 +557,23 @@ public class Speed extends Module {
          * Stage when the player is speeding up
          */
         SPEED
+    }
+
+    public enum GroundStage {
+
+        /**
+         * Stage when the player is speeding up
+         */
+        SPEED,
+
+        /**
+         * Stage when the player is fake jumping
+         */
+        FAKE_JUMP,
+
+        /**
+         * Stage when the player has collided into a block or entity
+         */
+        CHECK_SPACE
     }
 }

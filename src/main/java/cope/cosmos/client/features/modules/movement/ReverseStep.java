@@ -40,7 +40,7 @@ public class ReverseStep extends Module {
                     break;
                 case TICK_SHIFT:
                     // shift ticks
-                    getCosmos().getTickManager().shiftServerTicks(tickShift.getValue().intValue());
+                    // getCosmos().getTickManager().shiftServerTicks(tickShift.getValue().intValue());
                     mc.player.motionY = -speed.getValue();
                     break;
                 case TIMER:

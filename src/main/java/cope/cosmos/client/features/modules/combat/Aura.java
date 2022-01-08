@@ -220,13 +220,6 @@ public class Aura extends Module {
                     continue;
                 }
 
-                // check hurt resistance time
-                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                    if (entity.hurtResistantTime > 0) {
-                        continue;
-                    }
-                }
-
                 // there is at least one player that is attackable
                 if (!playerBias && entity instanceof EntityPlayer) {
                     playerBias = true;
@@ -292,8 +285,10 @@ public class Aura extends Module {
                         break;
                 }
 
-                // check our distance to the entity as it could have changed since we last calculated our target
-                // we also check if the Aura target is dead, which will also make the target invalid
+                /*
+                 * check our distance to the entity as it could have changed since we last calculated our target
+                 * we also check if the Aura target is dead, which will also make the target invalid
+                 */
                 boolean wallAttack = RaytraceUtil.isNotVisible(auraTarget, traceOffset) && raytrace.getValue();
                 if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     auraTarget = null; // set our target to null, as it is now invalid
@@ -411,6 +406,13 @@ public class Aura extends Module {
                     case TICK:
                         attackCleared = auraTimer.passedTime(delayTicks.getValue().longValue() + randomFactor, Format.TICKS);
                         break;
+                }
+
+                // check hurt resistance time
+                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                    if (auraTarget.hurtResistantTime > 0) {
+                        return;
+                    }
                 }
 
                 // if we are cleared to attack, then attack

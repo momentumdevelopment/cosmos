@@ -2,7 +2,7 @@ package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.modules.client.DiscordPresence;
 import cope.cosmos.client.features.modules.client.Font;
@@ -57,6 +57,9 @@ public class Cosmos {
     private final List<Manager> managers = new ArrayList<>();
 
     // all client managers
+    private ModuleManager moduleManager;
+    private CommandManager commandManager;
+    private EventManager eventManager;
     private TickManager tickManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
@@ -88,17 +91,22 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 18);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 19);
 
-        EVENT_BUS.register(EventManager.INSTANCE);
+        // load the modules
+        moduleManager = new ModuleManager();
+        managers.add(moduleManager);
+        progressManager.step("Loading Modules");
 
         // Register the event manager
-        MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
+        eventManager = new EventManager();
+        managers.add(eventManager);
         progressManager.step("Registering Events");
 
         // load the commands (Mojang's Brigadier )
         commandDispatcher = new CommandDispatcher<>();
-        CommandManager.registerCommands();
+        commandManager = new CommandManager();
+        managers.add(commandManager);
         progressManager.step("Loading Commands");
 
         // sets up the tick manager
@@ -191,83 +199,187 @@ public class Cosmos {
         PresenceManager.startPresence();
     }
 
+    /**
+     * Gets all client managers
+     * @return List of client managers
+     */
     public List<Manager> getManagers() {
         return managers;
     }
-    
+
+    /**
+     * Gets the Window GUI screen
+     * @return The Window GUI screen
+     */
     public WindowGUI getWindowGUI() {
         return windowGUI;
     }
 
+    /**
+     * Gets the client module manager
+     * @return The client module manager
+     */
+    public ModuleManager getModuleManager() {
+        return moduleManager;
+    }
+
+    /**
+     * Gets the client command manager
+     * @return The client command manager
+     */
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
+
+    /**
+     * Gets the client event manager
+     * @return The client event manager
+     */
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    /**
+     * Gets the client command dispatcher
+     * @return The client command dispatcher
+     */
+    public CommandDispatcher<Object> getCommandDispatcher() {
+        return commandDispatcher;
+    }
+
+    /**
+     * Gets the client tick manager
+     * @return The client tick manager
+     */
     public TickManager getTickManager() {
         return tickManager;
     }
 
+    /**
+     * Gets the client social manager
+     * @return The client social manager
+     */
     public SocialManager getSocialManager() {
         return socialManager;
     }
 
+    /**
+     * Gets the client configuration manager
+     * @return The client configuration manager
+     */
     public PresetManager getPresetManager() {
         return presetManager;
     }
 
+    /**
+     * Gets the client font manager
+     * @return The client font manager
+     */
     public FontManager getFontManager() {
         return fontManager;
     }
 
+    /**
+     * Gets the client rotation manager
+     * @return The client rotation manager
+     */
     public RotationManager getRotationManager() {
         return rotationManager;
     }
 
+    /**
+     * Gets the client thread manager
+     * @return The client thread manager
+     */
     public ThreadManager getThreadManager() {
         return threadManager;
     }
 
+    /**
+     * Gets the client hole manager
+     * @return The client hole manager
+     */
     public HoleManager getHoleManager() {
         return holeManager;
     }
 
+    /**
+     * Gets the client reload manager
+     * @return The client reload manager
+     */
     public ReloadManager getReloadManager() {
         return reloadManager;
     }
 
+    /**
+     * Gets the client patch manager
+     * @return The client patch manager
+     */
     public PatchManager getPatchManager() {
         return patchManager;
     }
 
+    /**
+     * Gets the client pop manager
+     * @return The client pop manager
+     */
     public PopManager getPopManager() {
         return popManager;
     }
 
+    /**
+     * Gets the client interaction manager
+     * @return The client interaction manager
+     */
     public InteractionManager getInteractionManager() {
         return interactionManager;
     }
 
+    /**
+     * Gets the client inventory manager
+     * @return The client inventory manager
+     */
     public InventoryManager getInventoryManager() {
         return inventoryManager;
     }
 
+    /**
+     * Gets the client changelog manager
+     * @return The client changelog manager
+     */
     public ChangelogManager getChangelogManager() {
         return changelogManager;
     }
 
+    /**
+     * Gets the client sound manager
+     * @return The client sound manager
+     */
     public SoundManager getSoundManager() {
         return soundManager;
     }
 
+    /**
+     * Gets the client chat manager
+     * @return The client chat manager
+     */
     public ChatManager getChatManager() {
         return chatManager;
     }
 
+    /**
+     * Gets the client notification manager
+     * @return The client notification manager
+     */
     public NotificationManager getNotificationManager() {
         return notificationManager;
     }
 
-    public CommandDispatcher<Object> getCommandDispatcher() {
-        return commandDispatcher;
-    }
-    
-    public List<Module> getNullSafeMods() {
+    /**
+     * Gets a list of features that are safe to run while the world is null
+     * @return List of features that are safe to run while the world is null
+     */
+    public List<Feature> getNullSafeFeatures() {
     	return Arrays.asList(
                 DiscordPresence.INSTANCE,
                 Colors.INSTANCE,

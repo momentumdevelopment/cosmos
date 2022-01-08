@@ -39,7 +39,7 @@ public class ThreadManager extends Manager {
                         continue;
                     }
 
-                    ModuleManager.getAllModules().forEach(module -> {
+                    getCosmos().getModuleManager().getAllModules().forEach(module -> {
                         try {
                             // run and remove the latest service
                             if (clientProcesses.size() > 0) {

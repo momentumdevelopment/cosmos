@@ -25,22 +25,21 @@ import java.awt.*;
  * @since 05/05/2021
  */
 public class EventManager extends Manager implements Wrapper {
-
-	// event manager instance
-	public static final EventManager INSTANCE = new EventManager();
-
 	public EventManager() {
 		super("EventManager", "Manages Forge events");
+
+		// register to event bus
+		Cosmos.EVENT_BUS.register(this);
 	}
 
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
 		// runs on the entity update method
 		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
-			ModuleManager.getAllModules().forEach(mod -> {
-				if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
+			getCosmos().getModuleManager().getAllModules().forEach(module -> {
+				if ((nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) && module.isEnabled()) {
 					try {
-						mod.onUpdate();
+						module.onUpdate();
 					} catch (Exception exception) {
 						exception.printStackTrace();
 					}
@@ -66,10 +65,10 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
-		ModuleManager.getAllModules().forEach(mod -> {
-			if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if ((nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) && module.isEnabled()) {
 				try {
-					mod.onTick();
+					module.onTick();
 				} catch (Exception exception) {
 					exception.printStackTrace();
 				}
@@ -89,10 +88,10 @@ public class EventManager extends Manager implements Wrapper {
 	
 	@SubscribeEvent
 	public void onRender2d(RenderGameOverlayEvent.Text event) {
-		ModuleManager.getAllModules().forEach(mod -> {
-			if (nullCheck() && mod.isEnabled()) {
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if (nullCheck() && module.isEnabled()) {
 				try {
-					mod.onRender2D();
+					module.onRender2D();
 				} catch (Exception exception) {
 					exception.printStackTrace();
 				}
@@ -114,10 +113,10 @@ public class EventManager extends Manager implements Wrapper {
 	public void onRender3D(RenderWorldLastEvent event) {
 		mc.mcProfiler.startSection("cosmos-render");
 
-		ModuleManager.getAllModules().forEach(mod -> {
-			if (nullCheck() && mod.isEnabled()) {
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if (nullCheck() && module.isEnabled()) {
 				try {
-					mod.onRender3D();
+					module.onRender3D();
 				} catch (Exception exception) {
 					exception.printStackTrace();
 				}
@@ -139,11 +138,17 @@ public class EventManager extends Manager implements Wrapper {
 	
 	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent event) {
-		ModuleManager.getAllModules().forEach(mod -> {
-			if (Keyboard.isKeyDown(mod.getKey()) && !Keyboard.isKeyDown(Keyboard.KEY_NONE)) {
-				mod.toggle();
-			}
-		});
+		// pressed key
+		int key = Keyboard.getEventKey();
+
+		// toggle
+		if (key != 0 && Keyboard.getEventKeyState()) {
+			getCosmos().getModuleManager().getAllModules().forEach(moduleule -> {
+				if (moduleule.getKey() == key) {
+					moduleule.toggle();
+				}
+			});
+		}
 	}
 
 	@SubscribeEvent
@@ -180,7 +185,7 @@ public class EventManager extends Manager implements Wrapper {
 		CriticalModifierEvent criticalModifierEvent = new CriticalModifierEvent();
 		Cosmos.EVENT_BUS.post(criticalModifierEvent);
 
-		// update damage modifier
+		// update damage moduleifier
 		event.setDamageModifier(criticalModifierEvent.getDamageModifier());
 	}
 

@@ -318,7 +318,7 @@ public class ConfigurationWindow extends TabbedWindow {
         AtomicBoolean left = new AtomicBoolean(true);
 
         if (page.equals(Page.MODULE)) {
-            ModuleManager.getModules(module -> module.getCategory().equals(getTab().getObject())).forEach(module -> {
+            getCosmos().getModuleManager().getModules(module -> module.getCategory().equals(getTab().getObject())).forEach(module -> {
                 if (left.get()) {
                     leftColumn.add(new ModuleComponent(this, module));
                 }
