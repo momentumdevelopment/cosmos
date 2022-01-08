@@ -2,7 +2,7 @@ package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.modules.client.DiscordPresence;
 import cope.cosmos.client.features.modules.client.Font;
@@ -376,10 +376,10 @@ public class Cosmos {
     }
 
     /**
-     * Gets a list of modules that are safe to run while the world is null
-     * @return List of modules that are safe to run while the world is null
+     * Gets a list of features that are safe to run while the world is null
+     * @return List of features that are safe to run while the world is null
      */
-    public List<Module> getNullSafeMods() {
+    public List<Feature> getNullSafeFeatures() {
     	return Arrays.asList(
                 DiscordPresence.INSTANCE,
                 Colors.INSTANCE,

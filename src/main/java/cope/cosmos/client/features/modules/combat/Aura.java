@@ -285,8 +285,10 @@ public class Aura extends Module {
                         break;
                 }
 
-                // check our distance to the entity as it could have changed since we last calculated our target
-                // we also check if the Aura target is dead, which will also make the target invalid
+                /*
+                 * check our distance to the entity as it could have changed since we last calculated our target
+                 * we also check if the Aura target is dead, which will also make the target invalid
+                 */
                 boolean wallAttack = RaytraceUtil.isNotVisible(auraTarget, traceOffset) && raytrace.getValue();
                 if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     auraTarget = null; // set our target to null, as it is now invalid

@@ -853,7 +853,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // make sure it doesn't do too much dmg to us or kill us
-                float localDamage = ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
+                float localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5, mc.player, ignoreTerrain.getValue(), false);
                 if (localDamage > explodeLocal.getValue() || (localDamage + 1 > PlayerUtil.getHealth() && pauseSafety.getValue())) {
                     return;
                 }

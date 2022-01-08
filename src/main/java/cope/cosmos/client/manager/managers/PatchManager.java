@@ -107,7 +107,7 @@ public class PatchManager extends Manager implements Wrapper {
     public void pushPatchSafety(String message) {
         if (mc.currentScreen == null) {
             Notification patchError = new Notification(message, Type.WARNING);
-            Cosmos.INSTANCE.getNotificationManager().pushNotification(patchError);
+            Cosmos.INSTANCE.getNotificationManager().addNotification(patchError);
         }
 
         else if (mc.currentScreen.equals(Cosmos.INSTANCE.getWindowGUI())) {

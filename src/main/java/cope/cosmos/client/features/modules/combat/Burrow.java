@@ -4,6 +4,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.Rotation.Rotate;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -57,7 +58,9 @@ public class Burrow extends Module {
 		getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
 
 		// place at our previous position
-		getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
+		if (InventoryUtil.isHolding(mode.getValue().getBlocks())) {
+			getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
+		}
 
 		// reset our position, since we've already placed
 		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
