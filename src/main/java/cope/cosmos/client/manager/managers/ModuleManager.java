@@ -63,6 +63,7 @@ public class ModuleManager extends Manager {
 
 				// movement
 				new ElytraFlight(),
+				new Jesus(),
 				new LongJump(),
 				new NoSlow(),
 				new PacketFlight(),
