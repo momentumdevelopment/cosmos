@@ -11,9 +11,12 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import javax.annotation.Nullable;
 
 @SuppressWarnings("unused")
 @Mixin(BlockLiquid.class)
@@ -30,18 +33,16 @@ public class MixinBlockLiquid implements Wrapper {
         }
     }
 
-    @Inject(method = "getCollisionBoundingBox", at = @At("HEAD"), cancellable = true)
-    public void getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos, CallbackInfoReturnable<AxisAlignedBB> cir) {
-        if(!nullCheck())
-            return;
-
-        if(Jesus.INSTANCE.isEnabled() && Jesus.mode.getValue() == Jesus.Mode.SOLID && !mc.player.isInWater() && !mc.gameSettings.keyBindSneak.isKeyDown()) {
-            cir.cancel();
-            cir.setReturnValue(BlockLiquid.FULL_BLOCK_AABB);
-        } else {
-            cir.cancel();
-            cir.setReturnValue(BlockLiquid.NULL_AABB);
-        }
+    /**
+     * @author Wolfsurge
+     */
+    @Overwrite
+    @Nullable
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
+        try {
+            return nullCheck() && Jesus.INSTANCE.isEnabled() && Jesus.mode.getValue() == Jesus.Mode.SOLID && !mc.player.isInWater() && !mc.gameSettings.keyBindSneak.isKeyDown() ?
+                    BlockLiquid.FULL_BLOCK_AABB : BlockLiquid.NULL_AABB;
+        } catch (NullPointerException ignored) {return BlockLiquid.NULL_AABB;} // produces an error for some reason, this was the easiest fix i found
     }
 
 }
