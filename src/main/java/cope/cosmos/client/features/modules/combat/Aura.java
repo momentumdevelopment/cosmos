@@ -67,9 +67,9 @@ public class Aura extends Module {
 
     // timing category
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA).setDescription("Mode for timing attacks");
-    public static Setting<Delay> delayMode = new Setting<>("Mode", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
+    public static Setting<Delay> delayMode = new Setting<>("Delay", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
     public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2).setDescription("Vanilla attack factor").setVisible(() -> delayMode.getValue().equals(Delay.SWING)).setParent(timing);
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
+    public static Setting<Double> delayMilliseconds = new Setting<>("Milliseconds", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
     public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0).setDescription("Attack Delay in ticks").setVisible(() -> delayMode.getValue().equals(Delay.TICK)).setParent(timing);
     public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE).setDescription("Sync attack timing to server ticks").setVisible(() -> delayMode.getValue().equals(Delay.TPS)).setParent(timing);
     public static Setting<Double> delaySwitch = new Setting<>("Switch", 0.0, 0.0, 500.0, 0).setDescription("Time to delay attacks after switching items").setParent(timing);
@@ -401,10 +401,13 @@ public class Aura extends Module {
                         attackCleared = mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - getCosmos().getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue() + randomFactor;
                         break;
                     case MILLISECONDS:
-                        attackCleared = auraTimer.passedTime(delay.getValue().longValue() + randomFactor, Format.MILLISECONDS);
+                        attackCleared = auraTimer.passedTime(delayMilliseconds.getValue().longValue() + randomFactor, Format.MILLISECONDS);
                         break;
                     case TICK:
                         attackCleared = auraTimer.passedTime(delayTicks.getValue().longValue() + randomFactor, Format.TICKS);
+                        break;
+                    case NONE:
+                        attackCleared = true;
                         break;
                 }
 
@@ -593,7 +596,12 @@ public class Aura extends Module {
         /**
          * Times attacks based on server TPS
          */
-        TPS
+        TPS,
+
+        /**
+         * No delay between attacks
+         */
+        NONE
     }
 
     public enum Timing {
