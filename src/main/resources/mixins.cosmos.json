@@ -36,6 +36,8 @@
       "MixinTileEntityRenderDispatcher",
       "MixinMinecraft",
       "MixinStateImplementation",
+      "MixinEntityLivingBase",
+      "MixinRenderEntityItem",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",

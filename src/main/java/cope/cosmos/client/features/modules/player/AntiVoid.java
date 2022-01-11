@@ -4,14 +4,12 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 
 /**
  * @author aesthetical, linustouchtips
  * @since 11/21/2021
  */
-@SuppressWarnings("unused")
 public class AntiVoid extends Module {
     public static AntiVoid INSTANCE;
 
