@@ -2,7 +2,7 @@ package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.clickgui.windowed.WindowGUI;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.modules.client.DiscordPresence;
 import cope.cosmos.client.features.modules.client.Font;
@@ -57,6 +57,9 @@ public class Cosmos {
     private final List<Manager> managers = new ArrayList<>();
 
     // all client managers
+    private ModuleManager moduleManager;
+    private CommandManager commandManager;
+    private EventManager eventManager;
     private TickManager tickManager;
     private SocialManager socialManager;
     private PresetManager presetManager;
@@ -72,6 +75,7 @@ public class Cosmos {
     private InventoryManager inventoryManager;
     private ChangelogManager changelogManager;
     private SoundManager soundManager;
+    private ChatManager chatManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -87,17 +91,22 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 17);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 19);
 
-        EVENT_BUS.register(EventManager.INSTANCE);
+        // load the modules
+        moduleManager = new ModuleManager();
+        managers.add(moduleManager);
+        progressManager.step("Loading Modules");
 
         // Register the event manager
-        MinecraftForge.EVENT_BUS.register(EventManager.INSTANCE);
+        eventManager = new EventManager();
+        managers.add(eventManager);
         progressManager.step("Registering Events");
 
         // load the commands (Mojang's Brigadier )
         commandDispatcher = new CommandDispatcher<>();
-        CommandManager.registerCommands();
+        commandManager = new CommandManager();
+        managers.add(commandManager);
         progressManager.step("Loading Commands");
 
         // sets up the tick manager
@@ -105,74 +114,79 @@ public class Cosmos {
         managers.add(tickManager);
         progressManager.step("Setting up Tick Manager");
 
-        // set's up the rotation manager
+        // sets up the rotation manager
         rotationManager = new RotationManager();
         managers.add(rotationManager);
         progressManager.step("Setting up Rotation Manager");
 
-        // set's up the social manager
+        // sets up the social manager
         socialManager = new SocialManager();
         managers.add(socialManager);
         progressManager.step("Setting up Social Manager");
 
-        // set's up the preset manager
+        // sets up the preset manager
         presetManager = new PresetManager();
         managers.add(presetManager);
         progressManager.step("Setting up Config Manager");
 
-        // set's up the GUI
+        // sets up the GUI
         windowGUI = new WindowGUI();
         progressManager.step("Setting up GUI's");
 
-        // set's up the reload manager
+        // sets up the reload manager
         reloadManager = new ReloadManager();
         managers.add(reloadManager);
         progressManager.step("Setting up Reload Manager");
 
-        // set's up the notification manager
+        // sets up the notification manager
         notificationManager = new NotificationManager();
         managers.add(notificationManager);
         progressManager.step("Setting up Notification Manager");
 
-        // set's up the patch manager
+        // sets up the patch manager
         patchManager = new PatchManager();
         managers.add(patchManager);
         progressManager.step("Setting up Patch Helper");
 
-        // set's up the pop manager
+        // sets up the pop manager
         popManager = new PopManager();
         managers.add(popManager);
         progressManager.step("Setting up Pop Manager");
 
-        // set's up the thread manager
+        // sets up the thread manager
         threadManager = new ThreadManager();
         managers.add(threadManager);
         progressManager.step("Setting up Threads");
 
-        // set's up the hole manager
+        // sets up the hole manager
         holeManager = new HoleManager();
         managers.add(holeManager);
         progressManager.step("Setting up Hole Manager");
 
-        // set's up the interaction manager
+        // sets up the interaction manager
         interactionManager = new InteractionManager();
         managers.add(interactionManager);
         progressManager.step("Setting up Interaction Manager");
 
-        // set's up the inventory manager
+        // sets up the inventory manager
         inventoryManager = new InventoryManager();
         managers.add(inventoryManager);
         progressManager.step("Setting up Inventory Manager");
 
-        // set's up the changelog manager
+        // sets up the changelog manager
         changelogManager = new ChangelogManager();
         managers.add(changelogManager);
         progressManager.step("Setting up Changelog Manager");
 
-        // set's up the sound manager
+        // sets up the sound manager
         soundManager = new SoundManager();
         managers.add(soundManager);
         progressManager.step("Setting up Sound System");
+
+        // sets up the sound manager
+        chatManager = new ChatManager();
+        managers.add(chatManager);
+        progressManager.step("Setting up Chat Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -185,79 +199,187 @@ public class Cosmos {
         PresenceManager.startPresence();
     }
 
+    /**
+     * Gets all client managers
+     * @return List of client managers
+     */
     public List<Manager> getManagers() {
         return managers;
     }
-    
+
+    /**
+     * Gets the Window GUI screen
+     * @return The Window GUI screen
+     */
     public WindowGUI getWindowGUI() {
         return windowGUI;
     }
 
+    /**
+     * Gets the client module manager
+     * @return The client module manager
+     */
+    public ModuleManager getModuleManager() {
+        return moduleManager;
+    }
+
+    /**
+     * Gets the client command manager
+     * @return The client command manager
+     */
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
+
+    /**
+     * Gets the client event manager
+     * @return The client event manager
+     */
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    /**
+     * Gets the client command dispatcher
+     * @return The client command dispatcher
+     */
+    public CommandDispatcher<Object> getCommandDispatcher() {
+        return commandDispatcher;
+    }
+
+    /**
+     * Gets the client tick manager
+     * @return The client tick manager
+     */
     public TickManager getTickManager() {
         return tickManager;
     }
 
+    /**
+     * Gets the client social manager
+     * @return The client social manager
+     */
     public SocialManager getSocialManager() {
         return socialManager;
     }
 
+    /**
+     * Gets the client configuration manager
+     * @return The client configuration manager
+     */
     public PresetManager getPresetManager() {
         return presetManager;
     }
 
+    /**
+     * Gets the client font manager
+     * @return The client font manager
+     */
     public FontManager getFontManager() {
         return fontManager;
     }
 
+    /**
+     * Gets the client rotation manager
+     * @return The client rotation manager
+     */
     public RotationManager getRotationManager() {
         return rotationManager;
     }
 
+    /**
+     * Gets the client thread manager
+     * @return The client thread manager
+     */
     public ThreadManager getThreadManager() {
         return threadManager;
     }
 
+    /**
+     * Gets the client hole manager
+     * @return The client hole manager
+     */
     public HoleManager getHoleManager() {
         return holeManager;
     }
 
+    /**
+     * Gets the client reload manager
+     * @return The client reload manager
+     */
     public ReloadManager getReloadManager() {
         return reloadManager;
     }
 
+    /**
+     * Gets the client patch manager
+     * @return The client patch manager
+     */
     public PatchManager getPatchManager() {
         return patchManager;
     }
 
+    /**
+     * Gets the client pop manager
+     * @return The client pop manager
+     */
     public PopManager getPopManager() {
         return popManager;
     }
 
+    /**
+     * Gets the client interaction manager
+     * @return The client interaction manager
+     */
     public InteractionManager getInteractionManager() {
         return interactionManager;
     }
 
+    /**
+     * Gets the client inventory manager
+     * @return The client inventory manager
+     */
     public InventoryManager getInventoryManager() {
         return inventoryManager;
     }
 
+    /**
+     * Gets the client changelog manager
+     * @return The client changelog manager
+     */
     public ChangelogManager getChangelogManager() {
         return changelogManager;
     }
 
+    /**
+     * Gets the client sound manager
+     * @return The client sound manager
+     */
     public SoundManager getSoundManager() {
         return soundManager;
     }
 
+    /**
+     * Gets the client chat manager
+     * @return The client chat manager
+     */
+    public ChatManager getChatManager() {
+        return chatManager;
+    }
+
+    /**
+     * Gets the client notification manager
+     * @return The client notification manager
+     */
     public NotificationManager getNotificationManager() {
         return notificationManager;
     }
 
-    public CommandDispatcher<Object> getCommandDispatcher() {
-        return commandDispatcher;
-    }
-    
-    public List<Module> getNullSafeMods() {
+    /**
+     * Gets a list of features that are safe to run while the world is null
+     * @return List of features that are safe to run while the world is null
+     */
+    public List<Feature> getNullSafeFeatures() {
     	return Arrays.asList(
                 DiscordPresence.INSTANCE,
                 Colors.INSTANCE,

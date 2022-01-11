@@ -146,7 +146,7 @@ public class PresetManager extends Manager {
             // the output string
             StringBuilder outputTOML = new StringBuilder();
 
-            for (Module module: ModuleManager.getAllModules()) {
+            getCosmos().getModuleManager().getAllModules().forEach(module -> {
                 if (module != null) {
                     try {
                         // writes the enabled state, drawn state, and bind
@@ -218,7 +218,7 @@ public class PresetManager extends Manager {
             Toml inputTOML = new Toml().read(inputStream);
 
             if (inputTOML != null) {
-                for (Module module: ModuleManager.getAllModules()) {
+                getCosmos().getModuleManager().getAllModules().forEach(module -> {
                     if (module != null) {
                         try {
                             // set the enabled state

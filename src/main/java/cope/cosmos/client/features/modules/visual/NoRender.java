@@ -5,10 +5,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketAnimation;
-import net.minecraft.network.play.server.SPacketParticles;
 import net.minecraftforge.client.event.RenderBlockOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -16,7 +14,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class NoRender extends Module {
     public static NoRender INSTANCE;
 
@@ -48,25 +45,24 @@ public class NoRender extends Module {
     public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
     public static Setting<Boolean> swing = new Setting<>("Swing", false).setDescription("Prevents other player's swing animations from rendering");
 
-    @Override
-    public void onUpdate() {
+    @SubscribeEvent
+    public void onRenderItem(RenderItemEvent event) {
+        // prevent dropped items from rendering
         if (items.getValue()) {
-            // remove all items from world
-            mc.world.loadedEntityList.forEach(entity -> {
-                if (entity instanceof EntityItem) {
-                    mc.world.removeEntity(entity);
-                }
-            });
+            event.setCanceled(true);
         }
+    }
 
+    @SubscribeEvent
+    public void onPotion(PotionEvent event) {
         // remove blinding potion effects
         if (potion.getValue()) {
-            if (mc.player.isPotionActive(MobEffects.BLINDNESS)) {
+            if (event.getPotionEffect().getPotion().equals(MobEffects.BLINDNESS) && mc.player.isPotionActive(MobEffects.BLINDNESS)) {
                 mc.player.removePotionEffect(MobEffects.BLINDNESS);
             }
 
             // nausea blurs screen
-            if (mc.player.isPotionActive(MobEffects.NAUSEA)) {
+            if (event.getPotionEffect().getPotion().equals(MobEffects.NAUSEA) && mc.player.isPotionActive(MobEffects.NAUSEA)) {
                 mc.player.removePotionEffect(MobEffects.NAUSEA);
             }
         }

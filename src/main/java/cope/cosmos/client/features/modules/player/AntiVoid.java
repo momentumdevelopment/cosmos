@@ -4,14 +4,12 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ChatUtil;
 import net.minecraft.network.play.client.CPacketPlayer;
 
 /**
  * @author aesthetical, linustouchtips
  * @since 11/21/2021
  */
-@SuppressWarnings("unused")
 public class AntiVoid extends Module {
     public static AntiVoid INSTANCE;
 
@@ -31,7 +29,7 @@ public class AntiVoid extends Module {
         // if we are in the void, aka below y-pos 0
         if (mc.player.posY <= 0.5) {
             // notify the player that we are attempting to get out of the void
-            ChatUtil.sendMessageWithOptionalDeletion(ChatFormatting.DARK_RED + "Attempting to get player out of void!", 100);
+            getCosmos().getChatManager().sendChatMessage(ChatFormatting.DARK_RED + "Attempting to get player out of void!");
 
             switch (mode.getValue()) {
                 case SUSPEND:

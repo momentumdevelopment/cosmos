@@ -22,13 +22,13 @@ public class Friend extends Command {
                     .executes(context -> {
                         if (StringArgumentType.getString(context, "action").equals("add")) {
                             Cosmos.INSTANCE.getSocialManager().addSocial(StringArgumentType.getString(context, "name"), Relationship.FRIEND);
-                            ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Added friend with name " + StringArgumentType.getString(context, "name"));
-                            mc.player.connection.sendPacket(new CPacketChatMessage("/w " + StringArgumentType.getString(context, "name") + " I just added you as a friend on Cosmos!"));
+                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Added friend with name " + StringArgumentType.getString(context, "name"));
+                            Cosmos.INSTANCE.getChatManager().sendChatMessage("/w " + StringArgumentType.getString(context, "name") + " I just added you as a friend on Cosmos!");
                         }
 
                         else if (StringArgumentType.getString(context, "action").equals("remove")) {
                             Cosmos.INSTANCE.getSocialManager().removeSocial(StringArgumentType.getString(context, "name"));
-                            ChatUtil.sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed friend with name " + StringArgumentType.getString(context, "name"));
+                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed friend with name " + StringArgumentType.getString(context, "name"));
                         }
 
                         return 1;
@@ -36,12 +36,12 @@ public class Friend extends Command {
                 )
 
                 .executes(context -> {
-                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the name of the person to friend!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the name of the person to friend!");
                     return 1;
                 }))
 
                 .executes(context -> {
-                    ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting add or remove!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting add or remove!");
                     return 1;
                 })
         );

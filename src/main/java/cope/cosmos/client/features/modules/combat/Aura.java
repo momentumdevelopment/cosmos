@@ -15,7 +15,6 @@ import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
 import cope.cosmos.util.combat.EnemyUtil;
-import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
@@ -25,10 +24,14 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.world.EntityUtil;
 import cope.cosmos.util.world.InterpolationUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityExpBottle;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -64,9 +67,9 @@ public class Aura extends Module {
 
     // timing category
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA).setDescription("Mode for timing attacks");
-    public static Setting<Delay> delayMode = new Setting<>("Mode", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
+    public static Setting<Delay> delayMode = new Setting<>("Delay", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
     public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2).setDescription("Vanilla attack factor").setVisible(() -> delayMode.getValue().equals(Delay.SWING)).setParent(timing);
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
+    public static Setting<Double> delayMilliseconds = new Setting<>("Milliseconds", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
     public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0).setDescription("Attack Delay in ticks").setVisible(() -> delayMode.getValue().equals(Delay.TICK)).setParent(timing);
     public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE).setDescription("Sync attack timing to server ticks").setVisible(() -> delayMode.getValue().equals(Delay.TPS)).setParent(timing);
     public static Setting<Double> delaySwitch = new Setting<>("Switch", 0.0, 0.0, 500.0, 0).setDescription("Time to delay attacks after switching items").setParent(timing);
@@ -172,6 +175,16 @@ public class Aura extends Module {
                     continue;
                 }
 
+                // should not be attacking items
+                if (entity instanceof EntityItem || entity instanceof EntityExpBottle || entity instanceof EntityXPOrb) {
+                    continue;
+                }
+
+                // verify target
+                if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                    continue;
+                }
+
                 // distance to the entity
                 double distance = mc.player.getDistance(entity);
 
@@ -215,10 +228,10 @@ public class Aura extends Module {
                 // calculate priority (minimize)
                 double heuristic = 0;
                 switch (target.getValue()) {
-                    case LOWESTHEALTH:
+                    case LOWEST_HEALTH:
                         heuristic = EnemyUtil.getHealth(entity);
                         break;
-                    case LOWESTARMOR:
+                    case LOWEST_ARMOR:
                         heuristic = EnemyUtil.getArmor(entity);
                         break;
                     case CLOSEST:
@@ -272,8 +285,10 @@ public class Aura extends Module {
                         break;
                 }
 
-                // check our distance to the entity as it could have changed since we last calculated our target
-                // we also check if the Aura target is dead, which will also make the target invalid
+                /*
+                 * check our distance to the entity as it could have changed since we last calculated our target
+                 * we also check if the Aura target is dead, which will also make the target invalid
+                 */
                 boolean wallAttack = RaytraceUtil.isNotVisible(auraTarget, traceOffset) && raytrace.getValue();
                 if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     auraTarget = null; // set our target to null, as it is now invalid
@@ -386,21 +401,30 @@ public class Aura extends Module {
                         attackCleared = mc.player.getCooledAttackStrength(delayTPS.getValue().equals(TPS.NONE) ? 0 : 20 - getCosmos().getTickManager().getTPS(delayTPS.getValue())) >= delayFactor.getValue() + randomFactor;
                         break;
                     case MILLISECONDS:
-                        attackCleared = auraTimer.passedTime(delay.getValue().longValue() + randomFactor, Format.MILLISECONDS);
+                        attackCleared = auraTimer.passedTime(delayMilliseconds.getValue().longValue() + randomFactor, Format.MILLISECONDS);
                         break;
                     case TICK:
                         attackCleared = auraTimer.passedTime(delayTicks.getValue().longValue() + randomFactor, Format.TICKS);
                         break;
+                    case NONE:
+                        attackCleared = true;
+                        break;
+                }
+
+                // check hurt resistance time
+                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                    if (auraTarget.hurtResistantTime > 0) {
+                        return;
+                    }
                 }
 
                 // if we are cleared to attack, then attack
                 if (attackCleared) {
-
                     // make sure our switch timer has cleared it's time, attacking right after switching flags Updated NCP
                     if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.MILLISECONDS)) {
 
                         // if we passed our critical time, then we can attempt a critical attack
-                        if (criticalTimer.passedTime(300, Format.MILLISECONDS) && timing.getValue().equals(Timing.SEQUENTIAL)) {
+                        if (criticalTimer.passedTime(300, Format.MILLISECONDS)) {
 
                             // spoof our fall state to simulate a critical attack
                             mc.player.fallDistance = 0.1F;
@@ -431,10 +455,8 @@ public class Aura extends Module {
                         }
 
                         // reset fall state
-                        if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                            mc.player.fallDistance = fallDistance;
-                            mc.player.onGround = onGround;
-                        }
+                        mc.player.fallDistance = fallDistance;
+                        mc.player.onGround = onGround;
                     }
 
                     // reset sneak state
@@ -574,7 +596,12 @@ public class Aura extends Module {
         /**
          * Times attacks based on server TPS
          */
-        TPS
+        TPS,
+
+        /**
+         * No delay between attacks
+         */
+        NONE
     }
 
     public enum Timing {
@@ -679,5 +706,23 @@ public class Aura extends Module {
          * Does not swing
          */
         NONE
+    }
+
+    public enum Target {
+
+        /**
+         * Finds the closest entity to the player
+         */
+        CLOSEST,
+
+        /**
+         * Finds the entity with the lowest health
+         */
+        LOWEST_HEALTH,
+
+        /**
+         * Finds the entity with the lowest armor durability
+         */
+        LOWEST_ARMOR
     }
 }

@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 05/06/2021
  */
-@SuppressWarnings("unused")
 public class Timer implements Wrapper {
 
     // time
@@ -25,6 +24,7 @@ public class Timer implements Wrapper {
         Cosmos.EVENT_BUS.register(this);
     }
 
+    @SuppressWarnings("unused")
     @SubscribeEvent
     public void onUpdate(LivingEvent.LivingUpdateEvent event) {
         // update ticks

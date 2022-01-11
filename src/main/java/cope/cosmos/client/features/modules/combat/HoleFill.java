@@ -7,7 +7,6 @@ import cope.cosmos.client.manager.managers.HoleManager.Hole;
 import cope.cosmos.client.manager.managers.HoleManager.Type;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -220,5 +219,23 @@ public class HoleFill extends Module {
         public Block getBlock() {
             return block;
         }
+    }
+
+    public enum Target {
+
+        /**
+         * Finds the closest entity to the player
+         */
+        CLOSEST,
+
+        /**
+         * Finds the entity with the lowest health
+         */
+        LOWEST_HEALTH,
+
+        /**
+         * Finds the entity with the lowest armor durability
+         */
+        LOWEST_ARMOR
     }
 }

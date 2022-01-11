@@ -126,7 +126,7 @@ public class AntiCrash extends Module {
     public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
         if (event.getEntity() instanceof EntityFireworkRocket) {
             // prevent firework rocket entities from spawning
-            if (fireworks.getValue()) {
+            if (fireworks.getValue() && !((EntityFireworkRocket) event.getEntity()).isAttachedToEntity()) {
                 event.setCanceled(true);
             }
         }
@@ -143,7 +143,7 @@ public class AntiCrash extends Module {
     public void onEntityUpdate(EntityWorldEvent.EntityUpdateEvent event) {
         if (event.getEntity() instanceof EntityFireworkRocket) {
             // prevent firework rocket entities from updating
-            if (fireworks.getValue()) {
+            if (fireworks.getValue() && !((EntityFireworkRocket) event.getEntity()).isAttachedToEntity()) {
                 event.setCanceled(true);
             }
         }
