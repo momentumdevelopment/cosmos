@@ -195,7 +195,7 @@ public class PresetManager extends Manager {
                         exception.printStackTrace();
                     }
                 }
-            }
+            });
 
             moduleOutputStreamWriter.write(outputTOML.toString());
             moduleOutputStreamWriter.close();
@@ -301,7 +301,7 @@ public class PresetManager extends Manager {
                             exception.printStackTrace();
                         }
                     }
-                }
+                });
             }
         } catch (IOException exception) {
             exception.printStackTrace();
