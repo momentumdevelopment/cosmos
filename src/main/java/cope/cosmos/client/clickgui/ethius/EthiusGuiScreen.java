@@ -8,6 +8,8 @@ import cope.cosmos.client.clickgui.ethius.window.Window;
 import cope.cosmos.client.clickgui.util.MousePosition;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
 import org.lwjgl.input.Mouse;
@@ -30,14 +32,17 @@ public class EthiusGuiScreen extends GuiScreen implements Wrapper {
 
     public void reset() {
         listElements.clear();
-        listElements.add(new Window(50, 50, 500, 300, "Cosmos", new TabbedWindowFeature("Cosmos", 499, 299, Arrays.stream(Category.values()).map(i -> new CategoryWindowFeature(0, 0, i)).toArray(CategoryWindowFeature[]::new))));
+        listElements.add(new Window(50, 50, 500, 300, "Cosmos", this, new TabbedWindowFeature("Cosmos", 499, 299, Arrays.stream(Category.values()).filter(i -> !i.toString().equalsIgnoreCase("hidden")).map(i -> new CategoryWindowFeature(0, 0, i)).toArray(CategoryWindowFeature[]::new))));
     }
 
     @Override public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        RenderUtil.drawGradientVerticalRect(0, 0, RenderUtil.displayWidth(), RenderUtil.displayHeight(), 0x00000000, ColorUtil.getPrimaryAlphaColor(0xaa).getRGB());
         MOUSE.setMousePosition(new Vec2f(mouseX, mouseY));
         taskbar.draw(mouseX, mouseY);
         for (Element w: listElements) {
-            w.draw(mouseX, mouseY);
+            if (w.isVisible()) {
+                w.draw(mouseX, mouseY);
+            }
         }
     }
 
@@ -96,6 +101,7 @@ public class EthiusGuiScreen extends GuiScreen implements Wrapper {
     }
 
     @Override public void mouseReleased(int mouseX, int mouseY, int mouseButton) {
+        if (taskbar.mouseClicked(mouseX, mouseY, mouseButton)) return;
         switch (mouseButton) {
             case 0: {
                 MOUSE.setLeftClick(false);
@@ -117,7 +123,7 @@ public class EthiusGuiScreen extends GuiScreen implements Wrapper {
     @Override public void handleMouseInput() throws IOException {
         super.handleMouseInput();
         if (Mouse.getEventDWheel() != 0 && !listElements.isEmpty()) {
-            listElements.get(9).mouseScrolled(MOUSE.getMousePosition().x, MOUSE.getMousePosition().y, Mouse.getEventDWheel());
+            listElements.get(0).mouseScrolled(MOUSE.getMousePosition().x, MOUSE.getMousePosition().y, Mouse.getEventDWheel());
         }
     }
 

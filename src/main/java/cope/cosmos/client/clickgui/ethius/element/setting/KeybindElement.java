@@ -47,7 +47,7 @@ public class KeybindElement extends SimpleElement {
             if (text == null) {
                 text = Keyboard.getKeyName(s.getModule().getKey());
             }
-            FontUtil.drawStringWithShadow(text, e.getX() + e.getWidth() - e.getTextOffset() - FontUtil.getStringWidth(text), e.getY() + e.getHeight() / 2 - FontUtil.getFontHeight() / 2f + 2f, 0xFFFFFF);
+            FontUtil.drawStringWithShadow(text, e.getX() + e.getWidth() - e.getTextOffset() - FontUtil.getStringWidth(text), e.getY() + e.getHeight() / 2 - e.getVOffset(TextAlignment.RIGHT), 0xFFFFFF);
         });
     }
 }

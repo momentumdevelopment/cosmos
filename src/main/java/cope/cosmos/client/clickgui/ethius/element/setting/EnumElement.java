@@ -23,13 +23,13 @@ public class EnumElement extends SimpleElement {
         this.withBackground(() -> 0xff17171D);
         this.withAdditionalRendering((e, f) -> {
             final String str = "Selected: " + s.getValue().toString();
-            FontUtil.drawStringWithShadow(str, this.x + this.width - FontUtil.getStringWidth(str) - e.getTextOffset(), this.y + this.height / 2f - FontUtil.getFontHeight() / 2f, 0xffffffff);
+            FontUtil.drawStringWithShadow(str, this.x + this.width - FontUtil.getStringWidth(str) - e.getTextOffset(), this.y + this.height / 2f - getVOffset(e.getTextAlignment()), 0xffffffff);
         });
         this.withOnClick((e, f) -> {
             final String str = "Selected: " + s.getValue().toString();
             final float x = f[0], y = f[1];
             final float txtStart = this.x + this.width - FontUtil.getStringWidth(str) - e.getTextOffset();
-            if (x > txtStart && x < txtStart + FontUtil.getStringWidth(str) && y > this.y + this.height / 2f - FontUtil.getFontHeight() / 2f && y < this.y + this.height / 2f + FontUtil.getFontHeight() / 2f) {
+            if (x > txtStart && x < txtStart + FontUtil.getStringWidth(str) && y > this.y + this.height / 2f - FontUtil.getFontHeight() / 2f && y < this.y + this.height / 2f + getVOffset(TextAlignment.RIGHT)) {
                 menuOpen = !menuOpen;
             }
         });

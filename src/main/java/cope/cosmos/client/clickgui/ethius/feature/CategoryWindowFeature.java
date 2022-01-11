@@ -1,6 +1,5 @@
 package cope.cosmos.client.clickgui.ethius.feature;
 
-import com.google.common.eventbus.Subscribe;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.clickgui.ethius.EthiusGuiScreen;
 import cope.cosmos.client.events.GuiScreenClosedEvent;
@@ -8,6 +7,7 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.ModuleManager;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class CategoryWindowFeature extends TabbedWindowFeature {
                 s.setDescription("Enable/Disable " + i.getName());
                 comps.add(new SettingWindowFeature(0, 0, s));
                 Cosmos.EVENT_BUS.register(new Object() {
-                    @Subscribe
+                    @SubscribeEvent
                     public void onSettingUpdate(SettingUpdateEvent e) {
                         if (e.getSetting() == s) {
                             if (s.getValue()) {
@@ -36,7 +36,7 @@ public class CategoryWindowFeature extends TabbedWindowFeature {
                         }
                     }
 
-                    @Subscribe
+                    @SubscribeEvent
                     public void onScreenClose(GuiScreenClosedEvent event) {
                         if (event.getCurrentScreen() instanceof EthiusGuiScreen) {
                             Cosmos.EVENT_BUS.unregister(this);
@@ -55,14 +55,14 @@ public class CategoryWindowFeature extends TabbedWindowFeature {
                 s.setModule(i);
                 s.setDescription("Allow " + i.getName() + " to be drawn");
                 Cosmos.EVENT_BUS.register(new Object() {
-                    @Subscribe
+                    @SubscribeEvent
                     public void onSettingChange(SettingUpdateEvent event) {
                         if (event.getSetting() == s) {
                             i.setDrawn(s.getValue());
                         }
                     }
 
-                    @Subscribe
+                    @SubscribeEvent
                     public void onScreenClose(GuiScreenClosedEvent event) {
                         if (event.getCurrentScreen() instanceof EthiusGuiScreen) {
                             Cosmos.EVENT_BUS.unregister(this);

@@ -1,5 +1,6 @@
 package cope.cosmos.util.render;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -11,6 +12,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
 
@@ -22,6 +25,16 @@ public class RenderUtil implements Wrapper {
 	public static Tessellator tessellator = Tessellator.getInstance();
 	public static BufferBuilder bufferbuilder = tessellator.getBuffer();
 	public static Frustum frustum = new Frustum();
+	private static ScaledResolution sc = new ScaledResolution(mc);
+
+	static {
+		Cosmos.EVENT_BUS.register(new Object() {
+			@SubscribeEvent
+			public void onHud(RenderGameOverlayEvent.Post event) {
+				RenderUtil.sc = event.getResolution();
+			}
+		});
+	}
 
 	// 3d
 
@@ -765,5 +778,13 @@ public class RenderUtil implements Wrapper {
 
 	public static void endScissor() {
 		glDisable(GL_SCISSOR_TEST);
+	}
+
+	public static float displayWidth() {
+		return (float) sc.getScaledWidth_double();
+	}
+
+	public static float displayHeight() {
+		return (float) sc.getScaledHeight_double();
 	}
 }

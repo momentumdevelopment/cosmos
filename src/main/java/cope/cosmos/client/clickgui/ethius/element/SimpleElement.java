@@ -92,19 +92,17 @@ public class SimpleElement extends Element implements Wrapper {
             }
             break;
         }
+        final float vOffset = getVOffset(textAlignment);
         switch (textAlignment) {
             case LEFT: {
-                final float vOffset = this.requestedHeight == -1 ? 0f : height / 2f - FontUtil.getFontHeight() / 2f + 2f;
                 FontUtil.drawStringWithShadow(text.get(), x + getTextOffset(), y + vOffset, textColor.get());
             }
             break;
             case CENTER: {
-                final float vOffset = this.requestedHeight == -1 ? FontUtil.getFontHeight() / 2f : height / 2f;
                 FontUtil.drawCenteredStringWithShadow(text.get(), x + width / 2f, y + vOffset, textColor.get());
             }
             break;
             case RIGHT: {
-                final float vOffset = this.requestedHeight == -1 ? 0f : height / 2f - FontUtil.getFontHeight() / 2f + 2f;
                 final String e = text.get();
                 FontUtil.drawStringWithShadow(e, x + width - getTextOffset() - FontUtil.getStringWidth(e), y + vOffset, textColor.get());
             }
@@ -142,6 +140,19 @@ public class SimpleElement extends Element implements Wrapper {
 
     public float getTextOffset() {
         return MathHelper.clamp(width * 0.05357f, 2, 10);
+    }
+
+    public float getVOffset(TextAlignment alignment) {
+        switch (alignment) {
+            case LEFT:
+            case RIGHT: {
+                return this.requestedHeight != -1 ? 3f : height / 2f - FontUtil.getFontHeight() / 2f + 2f;
+            }
+            case CENTER: {
+                return this.requestedHeight != -1 ? FontUtil.getFontHeight() / 2f : height / 2f;
+            }
+        }
+        return 0;
     }
 
     public SimpleElement withX(float x) {
@@ -218,6 +229,10 @@ public class SimpleElement extends Element implements Wrapper {
     public SimpleElement withBackgroundType(BackgroundType backgroundType) {
         this.backgroundType = backgroundType;
         return this;
+    }
+
+    public TextAlignment getTextAlignment() {
+        return textAlignment;
     }
 
     public enum TextAlignment {

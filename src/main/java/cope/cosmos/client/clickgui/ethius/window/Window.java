@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.ethius.window;
 
+import cope.cosmos.client.clickgui.ethius.EthiusGuiScreen;
 import cope.cosmos.client.clickgui.ethius.element.Element;
 import cope.cosmos.client.clickgui.ethius.feature.WindowFeature;
 import cope.cosmos.util.client.ColorUtil;
@@ -28,15 +29,17 @@ public class Window extends Element {
     public String info = "";
     public final String title;
     public final WindowAttributes attributes = new WindowAttributes(true, true);
+    private final EthiusGuiScreen mainScr;
 
     private final List<WindowFeature> windowFeatures = new ArrayList<>();
 
-    public Window(int x, int y, int width, int height, String title, WindowFeature... features) {
+    public Window(int x, int y, int width, int height, String title, EthiusGuiScreen mainScr, WindowFeature... features) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.title = title;
+        this.mainScr = mainScr;
         this.windowFeatures.addAll(Arrays.asList(features));
     }
 
@@ -108,6 +111,11 @@ public class Window extends Element {
                 this.resizing = true;
             }
             return true;
+        }
+        if (mouseX >= x + width - 10 && mouseX <= x + width - 4 && mouseY >= y + 4 && mouseY <= y + 10) {
+            if (this.attributes.isClosable()) {
+                mainScr.getListElements().remove(this);
+            }
         }
         for (WindowFeature feature: windowFeatures) {
             if (feature.mouseClicked(mouseX, mouseY, mouseButton)) {

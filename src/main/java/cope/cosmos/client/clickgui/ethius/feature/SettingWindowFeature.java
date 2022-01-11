@@ -56,13 +56,13 @@ public class SettingWindowFeature extends WindowFeature {
                 e.setX(x);
                 e.setY(y + yOffset);
                 e.setWidth(width);
-                e.setHeight(Math.min(17, e.requestedHeight));
+                e.setHeight(Math.max(17, e.requestedHeight));
                 e.draw(mouseX, mouseY);
                 if (e.isWithin(mouseX, mouseY) && hovered == null) {
                     hovered = e;
                 }
+                yOffset += e.getHeight();
             }
-            yOffset += 17;
         }
         if (hovered != null) {
             hovered.renderTooltip(window, mouseX, mouseY);

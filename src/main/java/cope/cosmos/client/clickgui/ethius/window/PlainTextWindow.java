@@ -1,5 +1,6 @@
 package cope.cosmos.client.clickgui.ethius.window;
 
+import cope.cosmos.client.clickgui.ethius.EthiusGuiScreen;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 
@@ -12,8 +13,8 @@ public class PlainTextWindow extends Window {
     private float lastWidth;
     private float scrollY;
 
-    public PlainTextWindow(String text, String name) {
-        super(0, 0, 0, 0, name);
+    public PlainTextWindow(String text, String name, EthiusGuiScreen mainScr) {
+        super(0, 0, 0, 0, name, mainScr);
         this.text = text;
     }
 

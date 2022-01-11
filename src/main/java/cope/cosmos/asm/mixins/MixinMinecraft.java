@@ -18,17 +18,6 @@ import javax.annotation.Nullable;
 public class MixinMinecraft implements Wrapper {
 
     @Shadow @Nullable public GuiScreen currentScreen;
-
-//    @Inject(method = "drawSplashScreen", at = @At("HEAD"), cancellable = true)
-//    public void drawSplashScreen(TextureManager textureManagerInstance, CallbackInfo info) {
-//        if (mc == null || mc.getLanguageManager() == null)
-//            return;
-//
-//        ProgressManager.drawSplash(textureManagerInstance);
-//        ProgressManager.setProgress();
-//        info.cancel();
-//    }
-
     @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true)
     public void displayGuiScreen(GuiScreen scr, CallbackInfo info) {
         if (scr == null) {
