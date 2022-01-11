@@ -1,146 +1,92 @@
 package cope.cosmos.util.player;
 
-import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.nbt.NBTTagCompound;
 
-import java.util.ArrayList;
-import java.util.Objects;
-
+/**
+ * @author linustouchtips
+ * @since 05/06/2021
+ */
 public class InventoryUtil implements Wrapper {
 
+    /**
+     * Checks if the player is holding a specified item
+     * @param item The specified item
+     * @return Whether the player is holding the specified item
+     */
     public static boolean isHolding(Item item) {
         return mc.player.getHeldItemMainhand().getItem().equals(item) || mc.player.getHeldItemOffhand().getItem().equals(item);
     }
 
+    /**
+     * Checks if the player is holding a specified block
+     * @param block The specified block
+     * @return Whether the player is holding the specified block
+     */
+    public static boolean isHolding(Block block) {
+        return mc.player.getHeldItemMainhand().getItem().equals(Item.getItemFromBlock(block)) || mc.player.getHeldItemOffhand().getItem().equals(Item.getItemFromBlock(block));
+    }
+
+    /**
+     * Checks if the player is holding a specified item
+     * @param clazz The specified item
+     * @return Whether the player is holding the specified item
+     */
     public static boolean isHolding(Class<? extends Item> clazz) {
         return clazz.isInstance(mc.player.getHeldItemMainhand().getItem()) || clazz.isInstance(mc.player.getHeldItemOffhand().getItem());
     }
 
-    public static void switchToSlot(int slot, Switch switchMode) {
-        if (slot != -1 && mc.player.inventory.currentItem != slot) {
-            switch (switchMode) {
-                case NORMAL:
-                    mc.player.inventory.currentItem = slot;
-                    mc.player.connection.sendPacket(new CPacketHeldItemChange(slot));
-                    break;
-                case PACKET:
-                    mc.player.connection.sendPacket(new CPacketHeldItemChange(slot));
-                    break;
-            }
-        }
+    /**
+     * Gets the highest enchantment level of the current held item
+     * @return The highest enchantment level of the current held item
+     */
+    public static int getHighestEnchantLevel() {
+        // highest enchantment lvl
+        int highestLvl = 0;
 
-        mc.playerController.updateController();
-        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
-    }
-
-    public static void switchToSlot(Item item, Switch switchMode) {
-        if (getItemSlot(item, Inventory.HOTBAR) != -1 && mc.player.inventory.currentItem != getItemSlot(item, Inventory.HOTBAR)) {
-            switchToSlot(getItemSlot(item, Inventory.HOTBAR), switchMode);
-        }
-
-        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
-    }
-
-    public static int getItemSlot(Item item, Inventory inventory) {
-        switch (inventory) {
-            case INVENTORY:
-                for (int i = 9; i <= 44; i++) {
-                    if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
-                        return i;
-                    }
-                }
-            case HOTBAR:
-                for (int i = 0; i < 9; i++) {
-                    if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
-                        return i;
-                    }
-                }
-        }
-
-        return -1;
-    }
-
-    public static int getItemSlot(Class<? extends Item> clazz, Inventory inventory) {
-        switch (inventory) {
-            case INVENTORY:
-                for (int i = 9; i <= 44; i++) {
-                    if (clazz.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
-                        return i;
-                    }
-                }
-            case HOTBAR:
-                for (int i = 0; i < 9; i++) {
-                    if (clazz.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
-                        return i;
-                    }
-                }
-        }
-
-        return -1;
-    }
-
-    public static int getBlockSlot(Block block, Inventory inventory) {
-        switch (inventory) {
-            case INVENTORY:
-                for (int i = 0; i <= 44; i++) {
-                    Item item = mc.player.inventory.getStackInSlot(i).getItem();
-
-                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {
-                        return i;
-                    }
-                }
-            case HOTBAR:
-                for (int i = 0; i <= 9; i++) {
-                    Item item = mc.player.inventory.getStackInSlot(i).getItem();
-
-                    if (item instanceof ItemBlock && ((ItemBlock) item).getBlock().equals(block)) {
-                        return i;
-                    }
-                }
-        }
-
-        return -1;
-    }
-
-    public static int getItemCount(Item item) {
-        return new ArrayList<>(mc.player.inventory.mainInventory).stream().filter(itemStack -> itemStack.getItem().equals(item)).mapToInt(ItemStack::getCount).sum() + new ArrayList<>(mc.player.inventory.offHandInventory).stream().filter(itemStack -> itemStack.getItem().equals(item)).mapToInt(ItemStack::getCount).sum() + new ArrayList<>(mc.player.inventory.armorInventory).stream().filter(itemStack -> itemStack.getItem().equals(item)).mapToInt(ItemStack::getCount).sum();
-    }
-
-    public static int getBlockCount(Block block) {
-        return new ArrayList<>(mc.player.inventory.mainInventory).stream().filter(itemStack -> itemStack.getItem().equals(Item.getItemFromBlock(block))).mapToInt(ItemStack::getCount).sum() + new ArrayList<>(mc.player.inventory.offHandInventory).stream().filter(itemStack -> itemStack.getItem().equals(Item.getItemFromBlock(block))).mapToInt(ItemStack::getCount).sum();
-    }
-
-    public static boolean isHolding32k() {
+        // check each enchantment lvl
         for (int i = 0; i < mc.player.getHeldItemMainhand().getEnchantmentTagList().tagCount(); i++) {
-            mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i);
-            if (Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getByte("id")) != null) {
-                if (Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("id")) != null) {
-                    if (Objects.requireNonNull(Enchantment.getEnchantmentByID(mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("id"))).isCurse()) {
-                        continue;
-                    }
+            // the enchantment
+            NBTTagCompound enchantment = mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i);
 
-                    if (mc.player.getHeldItemMainhand().getEnchantmentTagList().getCompoundTagAt(i).getShort("lvl") >= 1000) {
-                        return true;
-                    }
-                }
+            if (enchantment.getShort("lvl") > highestLvl) {
+                highestLvl = enchantment.getShort("lvl");
             }
         }
 
-        return false;
+        // 32k -> lvl greater than 1000
+        return highestLvl;
     }
 
-    public enum Switch {
-        NORMAL, PACKET, NONE
-    }
+    /**
+     * Gets the amount of the item the player has in their inventory
+     * @param item The item to count
+     * @return The amount of the item the player has in their inventory
+     */
+    public static int getItemCount(Item item) {
+        // armor inventory
+        if (item instanceof ItemArmor) {
+            return mc.player.inventory.armorInventory.stream()
+                    .filter(itemStack -> itemStack.getItem().equals(item))
+                    .mapToInt(ItemStack::getCount)
+                    .sum();
+        }
 
-    @SuppressWarnings("unused")
-    public enum Inventory {
-        INVENTORY, HOTBAR, CRAFTING
+        // main inventory
+        else {
+            return mc.player.inventory.mainInventory.stream()
+                    .filter(itemStack -> itemStack.getItem().equals(item))
+                    .mapToInt(ItemStack::getCount)
+                    .sum()
+
+                    + mc.player.inventory.offHandInventory.stream()
+                    .filter(itemStack -> itemStack.getItem().equals(item))
+                    .mapToInt(ItemStack::getCount)
+                    .sum();
+        }
     }
 }

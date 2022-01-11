@@ -91,7 +91,7 @@ public class Nametags extends Module {
                     double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
 
                     // interpolate the player's position. if we were to use static positions, the nametags above the player would jitter and would not look good.
-                    Vec3d interpolatedPosition = InterpolationUtil.getInterpolatedPos(player, mc.getRenderPartialTicks());
+                    Vec3d interpolatedPosition = InterpolationUtil.getInterpolatedPosition(player, mc.getRenderPartialTicks());
 
                     // width of the background
                     int width = FontUtil.getStringWidth(info);

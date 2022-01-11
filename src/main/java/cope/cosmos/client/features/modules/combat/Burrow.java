@@ -3,10 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.NotificationManager.*;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Inventory;
-import cope.cosmos.util.player.InventoryUtil.Switch;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.player.Rotation.Rotate;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -43,15 +40,7 @@ public class Burrow extends Module {
 		mc.player.connection.sendPacket(new CPacketPlayer(ThreadLocalRandom.current().nextBoolean()));
 
 		// save our current position
-		BlockPos previousPosition = mc.player.getPosition();
-
-		// check if we are able to burrow
-		if (!mc.world.getBlockState(previousPosition).getMaterial().isReplaceable() || !mc.world.getBlockState(previousPosition.add(0, offset.getValue(), 0)).getMaterial().isReplaceable()) {
-			getCosmos().getNotificationManager().pushNotification(new Notification("Unable to burrow!", Type.WARNING));
-			getCosmos().getTickManager().setClientTicks(2500);
-			disable();
-			return;
-		}
+		BlockPos previousPosition = new BlockPos(mc.player.getPositionVector());
 
 		// send fake jump packets
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
@@ -65,21 +54,8 @@ public class Burrow extends Module {
 		// save our previous slot
 		int previousSlot = mc.player.inventory.currentItem;
 
-		// find the item in our hotbar
-		int blockSlot = -1;
-		for (Block block : mode.getValue().getBlocks()) {
-			// get the slot of the current block
-			int potentialSlot = InventoryUtil.getBlockSlot(block, Inventory.HOTBAR);
-
-			// we found a potential block to switch to
-			if (potentialSlot != -1) {
-				blockSlot = potentialSlot;
-				break;
-			}
-		}
-
 		// switch to our block slot
-		InventoryUtil.switchToSlot(blockSlot, Switch.NORMAL);
+		getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
 
 		// place at our previous position
 		getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
@@ -88,7 +64,7 @@ public class Burrow extends Module {
 		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
 		// switch back to our previous slot
-		InventoryUtil.switchToSlot(previousSlot, Switch.NORMAL);
+		getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
 
 		// send an out of bounds packet, ideally NCP will rubberband us back and we will be inside the block position
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));
@@ -128,7 +104,12 @@ public class Burrow extends Module {
 		/**
 		 * Fences, Blocks with 0.2 width
 		 */
-		FENCE(Blocks.ACACIA_FENCE, Blocks.DARK_OAK_FENCE, Blocks.BIRCH_FENCE, Blocks.JUNGLE_FENCE, Blocks.OAK_FENCE, Blocks.NETHER_BRICK_FENCE, Blocks.SPRUCE_FENCE_GATE);
+		FENCE(Blocks.ACACIA_FENCE, Blocks.DARK_OAK_FENCE, Blocks.BIRCH_FENCE, Blocks.JUNGLE_FENCE, Blocks.OAK_FENCE, Blocks.NETHER_BRICK_FENCE, Blocks.SPRUCE_FENCE_GATE),
+
+		/**
+		 * Skulls, Blocks with 0.2 height
+		 */
+		SKULL(Blocks.SKULL);
 
 		private final Block[] blocks;
 

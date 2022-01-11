@@ -13,14 +13,17 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.TreeMap;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since 07/30/2021
+ */
 public class RotationManager extends Manager implements Wrapper {
 
     // all client rotations
     private final TreeMap<Integer, Rotation> rotationMap = new TreeMap<>();
 
     // the current server rotation
-    private final Rotation.MutableRotation serverRotation = new Rotation.MutableRotation(Float.NaN, Float.NaN);
+    private final Rotation serverRotation = new Rotation(Float.NaN, Float.NaN);
 
     public RotationManager() {
         super("RotationManager", "Keeps track of server rotations");
@@ -31,7 +34,10 @@ public class RotationManager extends Manager implements Wrapper {
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             CPacketPlayer packet = (CPacketPlayer) event.getPacket();
+
+            // check if the packet has rotations
             if (((ICPacketPlayer) packet).isRotating()) {
+                // update our server rotation
                 serverRotation.setYaw(packet.getYaw(0));
                 serverRotation.setPitch(packet.getPitch(0));
             }
@@ -62,11 +68,20 @@ public class RotationManager extends Manager implements Wrapper {
         }
     }
 
+    /**
+     * Queues a rotation to be sent on the next tick
+     * @param rotation The rotation to be sent on the next tick
+     * @param priority The priority, for compatability between multiple rotations
+     */
     public void addRotation(Rotation rotation, int priority) {
         rotationMap.put(priority, rotation);
     }
 
-    public Rotation.MutableRotation getServerRotation() {
+    /**
+     * Gets the current server rotations
+     * @return The current server rotations
+     */
+    public Rotation getServerRotation() {
         return serverRotation;
     }
 }

@@ -15,13 +15,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * @author bon55
+ * @since 05/05/2021
+ */
 public class ModuleManager extends Manager {
 	public ModuleManager() {
 		super("ModuleManager", "Manages all the client modules");
 	}
 
+	// list of all modules
 	private static final List<Module> modules = Arrays.asList(
-			//Client
+			// client
 			new ClickGUI(),
 			new Colors(),
 			new DiscordPresence(),
@@ -29,7 +34,7 @@ public class ModuleManager extends Manager {
 			new Social(),
 			new HUD(),
 
-			//Combat
+			// combat
 			new Aura(),
 			new AutoCrystal(),
 			// new AutoTrap(),
@@ -40,20 +45,23 @@ public class ModuleManager extends Manager {
 			new Offhand(),
 			new Surround(),
 			
-			//Misc
+			// misc
 			new AntiAFK(),
 			new AntiAim(),
 			new AntiCrash(),
 			new ChatModifications(),
 			new ExtraTab(),
 			new FakePlayer(),
+			new MiddleClick(),
+			new MultiTask(),
 			new Notifier(),
 			new Portal(),
 			new Timer(),
 			new XCarry(),
 			
-			//Movement
+			// movement
 			new ElytraFlight(),
+			new LongJump(),
 			new NoSlow(),
 			new PacketFlight(),
 			new ReverseStep(),
@@ -63,7 +71,7 @@ public class ModuleManager extends Manager {
 			new Step(),
 			new Velocity(),
 
-			//Player
+			// player
 			new AntiHunger(),
 			new AntiVoid(),
 			new Blink(),
@@ -72,9 +80,10 @@ public class ModuleManager extends Manager {
 			new NoFall(),
 			new NoRotate(),
 			new PingSpoof(),
+			new Reach(),
 			new SpeedMine(),
 
-			//Visual
+			// visual
 			new CameraClip(),
 			new Chams(),
 			new ESP(),
@@ -82,18 +91,38 @@ public class ModuleManager extends Manager {
 			new HoleESP(),
 			new Nametags(),
 			new NewChunks(),
-			new NoRender()
+			new NoRender(),
+			new SkyColor()
 	);
 
+	/**
+	 * Gets a list of all the client's modules
+	 * @return List of all the client's modules
+	 */
 	public static List<Module> getAllModules() {
-		return new CopyOnWriteArrayList<>(ModuleManager.modules);
+		return modules;
 	}
-	
+
+	/**
+	 * Gets a list of all the client's modules that fulfill a specified condition
+	 * @param predicate The specified condition
+	 * @return List of all the client's modules that fulfill the specified condition
+	 */
 	public static List<Module> getModules(Predicate<? super Module> predicate) {
-		return new CopyOnWriteArrayList<>(ModuleManager.modules).stream().filter(predicate).collect(Collectors.toList());
+		return modules.stream()
+				.filter(predicate)
+				.collect(Collectors.toList());
 	}
-	
+
+	/**
+	 * Gets the first module that fulfills a specified condition
+	 * @param predicate The specified condition
+	 * @return The first module that fulfills the specified condition
+	 */
 	public static Module getModule(Predicate<? super Module> predicate) {
-		return new CopyOnWriteArrayList<>(ModuleManager.modules).stream().filter(predicate).findFirst().orElse(null);
+		return modules.stream()
+				.filter(predicate)
+				.findFirst()
+				.orElse(null);
 	}
 }

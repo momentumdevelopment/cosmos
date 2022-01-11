@@ -6,9 +6,8 @@ import cope.cosmos.client.events.TravelEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.client.StringFormatter;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.Items;
@@ -107,7 +106,9 @@ public class ElytraFlight extends Module {
                 break;
         }
 
-        PlayerUtil.lockLimbs();
+        mc.player.prevLimbSwingAmount = 0;
+        mc.player.limbSwingAmount = 0;
+        mc.player.limbSwing = 0;
     }
 
     public void handleControl() {
@@ -136,7 +137,7 @@ public class ElytraFlight extends Module {
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketPlayerPosLook && !firework.getValue().equals(Switch.NONE)) {
             if (mc.player.isElytraFlying()) {
-                InventoryUtil.switchToSlot(Items.FIREWORKS, firework.getValue());
+                getCosmos().getInventoryManager().switchToItem(Items.FIREWORKS, firework.getValue());
                 mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
             }
         }

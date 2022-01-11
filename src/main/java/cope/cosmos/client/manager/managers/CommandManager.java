@@ -13,11 +13,16 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 public class CommandManager extends Manager {
 	public CommandManager() {
 		super("CommandManager", "Manages client commands");
 	}
 
+	// list of commands
 	private static final List<Command> commands = Arrays.asList(
 			new Friend(),
 			new Preset(),
@@ -25,22 +30,44 @@ public class CommandManager extends Manager {
 			new Drawn()
 	);
 
+	/**
+	 * Registers commands to the command dispatcher
+	 */
 	public static void registerCommands() {
-		for (Command command : getAllCommands()) {
+		getAllCommands().forEach(command -> {
 			Cosmos.INSTANCE.getCommandDispatcher().register(command.getCommand());
 			Cosmos.INSTANCE.getCommandDispatcher().register(Command.redirectBuilder(command.getName(), command.getCommand().build()));
-		}
+		});
 	}
-		
+
+	/**
+	 * Gets a list of all the client's commands
+	 * @return List of all the client's commands
+	 */
 	public static List<Command> getAllCommands() {
-		return CommandManager.commands;
+		return commands;
 	}
-		
+
+	/**
+	 * Gets a list of all the client's commands that fulfill a specified condition
+	 * @param predicate The specified condition
+	 * @return List of all the client's commands that fulfill the specified condition
+	 */
 	public static List<Command> getCommands(Predicate<? super Command> predicate) {
-		return CommandManager.commands.stream().filter(predicate).collect(Collectors.toList());
+		return commands.stream()
+				.filter(predicate)
+				.collect(Collectors.toList());
 	}
-		
+
+	/**
+	 * Gets the first command that fulfills a specified condition
+	 * @param predicate The specified condition
+	 * @return The first command that fulfills the specified condition
+	 */
 	public static Command getCommand(Predicate<? super Command> predicate) {
-		return CommandManager.commands.stream().filter(predicate).findFirst().orElse(null);
+		return commands.stream()
+				.filter(predicate)
+				.findFirst()
+				.orElse(null);
 	}
 }

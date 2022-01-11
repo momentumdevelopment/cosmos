@@ -15,8 +15,7 @@ import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.combat.TargetUtil.Target;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Inventory;
-import cope.cosmos.util.player.InventoryUtil.Switch;
+import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.player.Rotation.Rotate;
@@ -167,7 +166,7 @@ public class AutoCrystal extends Module {
     public static Setting<Double> renderWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription( "Line width for the visual").setVisible(() -> renderMode.getValue().equals(Box.BOTH) || renderMode.getValue().equals(Box.CLAW) || renderMode.getValue().equals(Box.OUTLINE)).setParent(render);
 
     // crystal info
-    private Crystal explodeCrystal = new Crystal(null, 0, 0);
+    private Crystal explodeCrystal = new Crystal(null, null, 0, 0);
     private final Timer explodeTimer = new Timer();
     private final Timer switchTimer = new Timer();
     private final Map<Integer, Integer> attemptedExplosions = new ConcurrentHashMap<>();
@@ -252,12 +251,12 @@ public class AutoCrystal extends Module {
                 interactVector = explodeCrystal.getCrystal().getPositionVector();
 
                 if (rotate.getValue().equals(Rotate.CLIENT)) {
-                    float[] explodeAngles = AngleUtil.calculateAngles(interactVector);
+                    Rotation explodeAngles = AngleUtil.calculateAngles(interactVector);
 
                     // update our players rotation
-                    mc.player.rotationYaw = explodeAngles[0];
-                    mc.player.rotationYawHead = explodeAngles[0];
-                    mc.player.rotationPitch = explodeAngles[1];
+                    mc.player.rotationYaw = explodeAngles.getYaw();
+                    mc.player.rotationYawHead = explodeAngles.getYaw();
+                    mc.player.rotationPitch = explodeAngles.getPitch();
                 }
             }
 
@@ -269,8 +268,8 @@ public class AutoCrystal extends Module {
                 // verify that we cannot break the crystal due to weakness
                 if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
                     // find the slots of our tools
-                    int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
-                    int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
+                    int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
+                    int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
 
                     if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
                         // log the previous slot
@@ -278,11 +277,11 @@ public class AutoCrystal extends Module {
 
                         // prefer the sword over a pickaxe
                         if (swordSlot != -1) {
-                            InventoryUtil.switchToSlot(swordSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
                         }
 
                         else if (pickSlot != -1) {
-                            InventoryUtil.switchToSlot(pickSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
                         }
                     }
                 }
@@ -305,7 +304,7 @@ public class AutoCrystal extends Module {
 
                 // switch to our previous slot
                 if (previousSlot != -1) {
-                    InventoryUtil.switchToSlot(previousSlot, explodeWeakness.getValue());
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                     // reset our previous slot
                     previousSlot = -1;
@@ -324,12 +323,12 @@ public class AutoCrystal extends Module {
                 interactVector = new Vec3d(placePosition.getPosition()).addVector(0.5, 0.5, 0.5);
 
                 if (rotate.getValue().equals(Rotate.CLIENT)) {
-                    float[] placeAngles = AngleUtil.calculateAngles(interactVector);
+                    Rotation placeAngles = AngleUtil.calculateAngles(interactVector);
 
                     // update our players rotation
-                    mc.player.rotationYaw = placeAngles[0];
-                    mc.player.rotationYawHead = placeAngles[0];
-                    mc.player.rotationPitch = placeAngles[1];
+                    mc.player.rotationYaw = placeAngles.getYaw();
+                    mc.player.rotationYawHead = placeAngles.getYaw();
+                    mc.player.rotationPitch = placeAngles.getPitch();
                 }
             }
 
@@ -343,7 +342,7 @@ public class AutoCrystal extends Module {
             }
 
             // switch to crystals if needed
-            InventoryUtil.switchToSlot(Items.END_CRYSTAL, placeSwitch.getValue());
+            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
@@ -355,10 +354,10 @@ public class AutoCrystal extends Module {
                 EnumFacing facingDirection = EnumFacing.UP;
 
                 // the angles to the last interaction
-                float[] vectorAngles = AngleUtil.calculateAngles(interactVector);
+                Rotation vectorAngles = AngleUtil.calculateAngles(interactVector);
 
                 // vector from the angles
-                Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles[0], vectorAngles[1]));
+                Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles.getYaw(), vectorAngles.getPitch()));
                 RayTraceResult vectorResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), mc.player.getPositionEyes(1).addVector(placeVector.x * placeRange.getValue(), placeVector.y * placeRange.getValue(), placeVector.z * placeRange.getValue()), false, false, true);
 
                 // make sure the direction we are facing is consistent with our rotations
@@ -441,7 +440,7 @@ public class AutoCrystal extends Module {
 
                 // switch back after placing, should only switch serverside
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
-                    InventoryUtil.switchToSlot(previousSlot, placeSwitch.getValue());
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, placeSwitch.getValue());
 
                     if (previousHand != null) {
                         mc.player.setActiveHand(previousHand);
@@ -534,7 +533,7 @@ public class AutoCrystal extends Module {
                     }
 
                     // add it to our list of viable crystals
-                    crystalMap.put(damageHeuristic, new Crystal((EntityEnderCrystal) calculatedCrystal, targetDamage, localDamage));
+                    crystalMap.put(damageHeuristic, new Crystal((EntityEnderCrystal) calculatedCrystal, calculatedTarget, targetDamage, localDamage));
                 }
             }
 
@@ -542,8 +541,28 @@ public class AutoCrystal extends Module {
                 // in the map, the best crystal will be the last entry
                 Crystal idealCrystal = crystalMap.lastEntry().getValue();
 
+                // required damage for the crystal to be continued
+                double requiredDamage = explodeDamage.getValue();
+
+                // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
+                if (override.getValue()) {
+                    if (idealCrystal.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealCrystal.getExplodeTarget())) {
+                        requiredDamage = 0.5;
+                    }
+
+                    // critical health
+                    if (EnemyUtil.getHealth(idealCrystal.getExplodeTarget()) < overrideHealth.getValue()) {
+                        requiredDamage = 0.5;
+                    }
+
+                    // critical armor
+                    if (EnemyUtil.getArmor(idealCrystal.getExplodeTarget(), overrideArmor.getValue())) {
+                        requiredDamage = 0.5;
+                    }
+                }
+
                 // verify if the ideal crystal meets our requirements, if it doesn't it automatically rules out all other crystals
-                if (idealCrystal.getTargetDamage() >= explodeDamage.getValue()) {
+                if (idealCrystal.getTargetDamage() >= requiredDamage) {
                     return idealCrystal;
                 }
             }
@@ -575,7 +594,7 @@ public class AutoCrystal extends Module {
                 }
 
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallPlacement = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(calculatedPosition, placeRaytrace.getValue());
+                boolean wallPlacement = RaytraceUtil.isNotVisible(calculatedPosition, placeRaytrace.getValue().getOffset());
 
                 // position to calculate distances to
                 Vec3d distancePosition = new Vec3d(calculatedPosition.getX() + 0.5, calculatedPosition.getY() + 1, calculatedPosition.getZ() + 0.5);
@@ -633,20 +652,20 @@ public class AutoCrystal extends Module {
                 // required damage for it the placement to be continued
                 double requiredDamage = placeDamage.getValue();
 
-                // find out if we need to override our min dmg, 2 sounds like a good number for face placing but might need to be lower
+                // find out if we need to override our min dmg, 0.5 sounds like a good number for face placing but might need to be lower
                 if (override.getValue()) {
                     if (idealPosition.getTargetDamage() * overrideThreshold.getValue() >= EnemyUtil.getHealth(idealPosition.getPlaceTarget())) {
                         requiredDamage = 0.5;
                     }
 
-                    if (getCosmos().getHoleManager().isInHole(idealPosition.getPlaceTarget())) {
-                        if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
-                            requiredDamage = 0.5;
-                        }
+                    // critical health
+                    if (EnemyUtil.getHealth(idealPosition.getPlaceTarget()) < overrideHealth.getValue()) {
+                        requiredDamage = 0.5;
+                    }
 
-                        if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
-                            requiredDamage = 0.5;
-                        }
+                    // critical armor
+                    if (EnemyUtil.getArmor(idealPosition.getPlaceTarget(), overrideArmor.getValue())) {
+                        requiredDamage = 0.5;
                     }
                 }
 
@@ -724,21 +743,21 @@ public class AutoCrystal extends Module {
             event.setCanceled(true);
 
             // angles to the interactVector
-            float[] packetAngles = AngleUtil.calculateAngles(interactVector);
+            Rotation packetAngles = AngleUtil.calculateAngles(interactVector);
 
             // add random values to our rotations to simulate vanilla rotations
             if (rotateRandom.getValue() > 0) {
                 Random randomAngle = new Random();
-                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
+                packetAngles.setYaw(packetAngles.getYaw() + (randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue().floatValue() : -rotateRandom.getValue().floatValue())));
             }
 
             if (!rotateLimit.getValue().equals(Limit.NONE)) {
                 // difference between the new yaw and the server yaw
-                float yawDifference = MathHelper.wrapDegrees(packetAngles[0] - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
+                float yawDifference = MathHelper.wrapDegrees(packetAngles.getYaw() - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
 
                 // if it's greater than 55, we need to limit our yaw and skip a tick
                 if (Math.abs(yawDifference) > 55 && !yawLimit) {
-                    packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw();
+                    packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw());
                     strictTicks++;
                     yawLimit = true;
                 }
@@ -747,7 +766,7 @@ public class AutoCrystal extends Module {
                 if (strictTicks <= 0) {
                     // if still need to limit our rotation, clamp them to the rotation limit
                     if (rotateLimit.getValue().equals(Limit.STRICT)) {
-                        packetAngles[0] = ((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55));
+                        packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55)));
                     }
 
                     yawLimit = false;
@@ -755,7 +774,7 @@ public class AutoCrystal extends Module {
             }
 
             // add our rotation to our client rotations
-            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles[0], packetAngles[1]), Integer.MAX_VALUE);
+            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles.getYaw(), packetAngles.getPitch()), Integer.MAX_VALUE);
         }
     }
 
@@ -766,15 +785,11 @@ public class AutoCrystal extends Module {
             event.setCanceled(true);
 
             // find the angles from our interaction
-            float[] packetAngles = AngleUtil.calculateAngles(interactVector);
-            if (rotateRandom.getValue() > 0) {
-                Random randomAngle = new Random();
-                packetAngles[0] += randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue() : -rotateRandom.getValue());
-            }
+            Rotation packetAngles = AngleUtil.calculateAngles(interactVector);
 
             // set our model angles; visual
-            event.setYaw(packetAngles[0]);
-            event.setPitch(packetAngles[1]);
+            event.setYaw(packetAngles.getYaw());
+            event.setPitch(packetAngles.getPitch());
         }
     }
 
@@ -813,7 +828,7 @@ public class AutoCrystal extends Module {
 
             if ((timing.getValue().equals(Timing.LINEAR) || timing.getValue().equals(Timing.UNIFORM)) && explode.getValue()) {
                 // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean wallLinear = !placeRaytrace.getValue().equals(Raytrace.NONE) && RaytraceUtil.raytraceBlock(linearPosition, placeRaytrace.getValue());
+                boolean wallLinear = RaytraceUtil.isNotVisible(linearPosition, placeRaytrace.getValue().getOffset());
 
                 // if it is a wall placement, use our wall ranges
                 double distance = mc.player.getDistance(linearPosition.getX() + 0.5, linearPosition.getY() + 1, linearPosition.getZ() + 0.5);
@@ -872,12 +887,12 @@ public class AutoCrystal extends Module {
                             interactVector = new Vec3d(linearPosition).addVector(0.5, 0.5, 0.5);
 
                             if (rotate.getValue().equals(Rotate.CLIENT)) {
-                                float[] linearAngles = AngleUtil.calculateAngles(interactVector);
+                                Rotation linearAngles = AngleUtil.calculateAngles(interactVector);
 
                                 // update our players rotation
-                                mc.player.rotationYaw = linearAngles[0];
-                                mc.player.rotationYawHead = linearAngles[0];
-                                mc.player.rotationPitch = linearAngles[1];
+                                mc.player.rotationYaw = linearAngles.getYaw();
+                                mc.player.rotationYawHead = linearAngles.getYaw();
+                                mc.player.rotationPitch = linearAngles.getPitch();
                             }
                         }
 
@@ -889,8 +904,8 @@ public class AutoCrystal extends Module {
                             // verify that we cannot break the crystal due to weakness
                             if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
                                 // find the slots of our tools
-                                int swordSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
-                                int pickSlot = InventoryUtil.getItemSlot(Items.DIAMOND_SWORD, Inventory.HOTBAR);
+                                int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
+                                int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.HOTBAR);
 
                                 if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
                                     // log the previous slot
@@ -898,11 +913,11 @@ public class AutoCrystal extends Module {
 
                                     // prefer the sword over a pickaxe
                                     if (swordSlot != -1) {
-                                        InventoryUtil.switchToSlot(swordSlot, explodeWeakness.getValue());
+                                        getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
                                     }
 
                                     else if (pickSlot != -1) {
-                                        InventoryUtil.switchToSlot(pickSlot, explodeWeakness.getValue());
+                                        getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
                                     }
                                 }
                             }
@@ -922,7 +937,7 @@ public class AutoCrystal extends Module {
 
                         // switch to our previous slot
                         if (previousSlot != -1) {
-                            InventoryUtil.switchToSlot(previousSlot, explodeWeakness.getValue());
+                            getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                             // reset our previous slot
                             previousSlot = -1;
@@ -1120,7 +1135,7 @@ public class AutoCrystal extends Module {
      * Reset all variables, timers, and lists
      */
     public void resetProcess() {
-        explodeCrystal = new Crystal(null, 0, 0);
+        explodeCrystal = new Crystal(null, null, 0, 0);
         placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
         interactVector = Vec3d.ZERO;
         yawLimit = false;
@@ -1320,7 +1335,7 @@ public class AutoCrystal extends Module {
         /**
          * No raytrace to the position
          */
-        NONE(-1);
+        NONE(-1000);
 
         private final double offset;
 
@@ -1409,13 +1424,15 @@ public class AutoCrystal extends Module {
 
         // crystal info
         private final EntityEnderCrystal crystal;
+        private final EntityPlayer explodeTarget;
 
         // damage info
         private final double targetDamage;
         private final double localDamage;
 
-        public Crystal(EntityEnderCrystal crystal, double targetDamage, double localDamage) {
+        public Crystal(EntityEnderCrystal crystal, EntityPlayer explodeTarget, double targetDamage, double localDamage) {
             this.crystal = crystal;
+            this.explodeTarget = explodeTarget;
             this.targetDamage = targetDamage;
             this.localDamage = localDamage;
         }
@@ -1426,6 +1443,14 @@ public class AutoCrystal extends Module {
          */
         public EntityEnderCrystal getCrystal() {
             return crystal;
+        }
+
+        /**
+         * Gets the target of a explosion
+         * @return The {@link EntityPlayer} target of the explosion
+         */
+        public EntityPlayer getExplodeTarget() {
+            return explodeTarget;
         }
 
         /**

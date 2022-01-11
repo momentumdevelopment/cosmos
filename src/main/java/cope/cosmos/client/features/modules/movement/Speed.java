@@ -39,11 +39,11 @@ public class Speed extends Module {
     public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
 
     // anticheat
-    public static Setting<Boolean> strictHeight = new Setting<>("StrictJumps", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
     public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
+    public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
     public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Keeps sprint");
-    public static Setting<Boolean> quickStart = new Setting<>("QuickStart", false).setDescription("Quickly restarts strafe after collision");
+    public static Setting<Boolean> retain = new Setting<>("Retain", false).setDescription("Quickly restarts strafe after collision");
 
     // pause
     public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
@@ -170,7 +170,12 @@ public class Speed extends Module {
                 strafeStage = StrafeStage.JUMP;
 
                 // the jump height
-                double jumpSpeed = strictHeight.getValue() ? .42 : 0.3999999463558197;
+                double jumpSpeed = 0.3999999463558197;
+
+                // jump slightly higher (i.e. slower)
+                if (strictJump.getValue()) {
+                    jumpSpeed = 0.42;
+                }
 
                 if (mode.getValue().equals(Mode.STRAFE_LOW)) {
                     jumpSpeed = 0.27;
@@ -209,7 +214,7 @@ public class Speed extends Module {
                     strafeStage = StrafeStage.COLLISION;
 
                     // restart, disregard slowdown
-                    if (quickStart.getValue()) {
+                    if (retain.getValue()) {
                         strafeStage = StrafeStage.START;
                     }
                 }

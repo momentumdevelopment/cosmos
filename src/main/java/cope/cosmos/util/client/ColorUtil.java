@@ -55,22 +55,4 @@ public class ColorUtil {
 		int blue = rgb & 255;
 		return new Color(red, green, blue, alpha);
 	}
-
-	public static int makeBrighter(int color) {
-		Color c = new Color(color, true);
-		return ColorUtil.toInt(c.brighter());
-	}
-	
-	public static int makeDarker(int color) {
-		Color c = new Color(color, true);
-		return ColorUtil.toInt(c.darker());
-	}
-	
-	public static int toInt(Color color) {
-		return (color.getRed() << 16) + (color.getGreen() << 8) + (color.getBlue()) + (color.getAlpha() << 24);
-	}
-
-	public static void setColor(Color color) {
-		GL11.glColor4d(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, color.getAlpha() / 255F);
-	}
 }

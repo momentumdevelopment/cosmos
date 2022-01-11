@@ -5,6 +5,10 @@ import cope.cosmos.util.Wrapper;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+/**
+ * @author linustouchtips
+ * @since 05/06/2021
+ */
 @SuppressWarnings("unused")
 public class Timer implements Wrapper {
 
@@ -95,6 +99,7 @@ public class Timer implements Wrapper {
     }
 
     public enum Format {
+
         /**
          * Time in milliseconds
          */

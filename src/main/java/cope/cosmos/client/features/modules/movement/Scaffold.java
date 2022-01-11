@@ -7,6 +7,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.Rotation;
 import cope.cosmos.util.render.RenderBuilder;
@@ -22,8 +23,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static cope.cosmos.util.player.InventoryUtil.Switch;
 
 public class Scaffold extends Module {
     public static Scaffold INSTANCE;
@@ -62,6 +61,7 @@ public class Scaffold extends Module {
 
     private int oldSlot = -1;
 
+    /*
     @Override
     public void onRender3D() {
         if (currentVector != null && render.getValue()) {
@@ -100,7 +100,7 @@ public class Scaffold extends Module {
         if (swap.getValue().equals(Swap.NONE) && !InventoryUtil.isHolding(ItemBlock.class)) {
             return;
         } else {
-            int slot = InventoryUtil.getItemSlot(ItemBlock.class, InventoryUtil.Inventory.HOTBAR);
+            int slot = getCosmos().getInventoryManager().searchSlot(ItemBlock.class, InventoryUtil.Inventory.HOTBAR);
             if (slot == -1) {
                 return;
             }
@@ -232,6 +232,8 @@ public class Scaffold extends Module {
         return null;
     }
 
+     */
+
     public enum Swap {
         /**
          * If to not swap to any block and rely on the player to swap to the block themselves
@@ -261,4 +263,5 @@ public class Scaffold extends Module {
             this.swap = swap;
         }
     }
+
 }

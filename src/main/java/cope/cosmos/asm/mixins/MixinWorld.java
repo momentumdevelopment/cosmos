@@ -2,9 +2,12 @@ package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityWorldEvent;
+import cope.cosmos.client.events.RenderSkyEvent;
 import cope.cosmos.client.events.RenderSkylightEvent;
+import cope.cosmos.util.client.ColorUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -57,6 +60,17 @@ public class MixinWorld {
 
         if (entityUpdateEvent.isCanceled()) {
             info.cancel();
+        }
+    }
+
+    @Inject(method = "getSkyColor", at = @At("HEAD"), cancellable = true)
+    public void getSkyColor(Entity entityIn, float partialTicks, CallbackInfoReturnable<Vec3d> info) {
+        RenderSkyEvent renderSkyEvent = new RenderSkyEvent();
+        Cosmos.EVENT_BUS.post(renderSkyEvent);
+
+        if (renderSkyEvent.isCanceled()) {
+            info.cancel();
+            info.setReturnValue(new Vec3d(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue()));
         }
     }
 }

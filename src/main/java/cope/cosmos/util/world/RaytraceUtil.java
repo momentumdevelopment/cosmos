@@ -1,18 +1,41 @@
 package cope.cosmos.util.world;
 
-import cope.cosmos.client.features.modules.combat.AutoCrystal.Raytrace;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
+/**
+ * @author linustouchtips
+ * @since 05/07/2021
+ */
 public class RaytraceUtil implements Wrapper {
 
-    public static boolean raytraceBlock(BlockPos blockPos, Raytrace raytrace) {
-        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + raytrace.getOffset(), blockPos.getZ() + 0.5), false, true, false) != null;
+    /**
+     * Finds the visibility to a block
+     * @param blockPos The block to check
+     * @param offset The NCP range bypass offset
+     * @return The visibility to the block
+     */
+    public static boolean isNotVisible(BlockPos blockPos, double offset) {
+        if (offset > 50 || offset < 50) {
+            return true;
+        }
+
+        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + offset, blockPos.getZ() + 0.5), false, true, false) != null;
     }
 
-    public static boolean raytraceEntity(Entity entity, double offset) {
-        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(entity.posX, entity.posY + offset, entity.posZ), false, true, false) == null;
+    /**
+     * Finds the visibility to an entity
+     * @param entity The entity to check
+     * @param offset The NCP range bypass offset
+     * @return The visibility to the entity
+     */
+    public static boolean isNotVisible(Entity entity, double offset) {
+        if (offset > 50 || offset < 50) {
+            return true;
+        }
+
+        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(entity.posX, entity.posY + offset, entity.posZ), false, true, false) != null;
     }
 }

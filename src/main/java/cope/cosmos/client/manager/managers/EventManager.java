@@ -20,9 +20,15 @@ import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-@SuppressWarnings("unused")
+import java.awt.*;
+
+/**
+ * @author bon55, linustouchtips
+ * @since 05/05/2021
+ */
 public class EventManager extends Manager implements Wrapper {
 
+	// event manager instance
 	public static final EventManager INSTANCE = new EventManager();
 
 	public EventManager() {
@@ -31,6 +37,7 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
+		// runs on the entity update method
 		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
 			ModuleManager.getAllModules().forEach(mod -> {
 				if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
@@ -62,7 +69,7 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
 		ModuleManager.getAllModules().forEach(mod -> {
-			if (nullCheck() || getCosmos().getNullSafeMods().contains(mod)) {
+			if ((nullCheck() || getCosmos().getNullSafeMods().contains(mod)) && mod.isEnabled()) {
 				try {
 					mod.onTick();
 				} catch (Exception exception) {
@@ -146,14 +153,15 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onChatInput(ClientChatEvent event) {
+		// event the user send a command
 		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
 			event.setCanceled(true);
 
 			try {
-				getCosmos().getCommandDispatcher().execute(Cosmos.INSTANCE.getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
+				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
 			} catch (Exception exception) {
 				// exception.printStackTrace();
-				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occured!", "No such command was found");
+				ChatUtil.sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
 			}
 		}
 	}
@@ -254,12 +262,20 @@ public class EventManager extends Manager implements Wrapper {
 		RenderFogEvent renderFogEvent = new RenderFogEvent(event.getDensity());
 		Cosmos.EVENT_BUS.post(renderFogEvent);
 
+		event.setDensity(renderFogEvent.getDensity());
+
 		if (renderFogEvent.isCanceled()) {
 			event.setCanceled(true);
 		}
+	}
 
-		else {
-			event.setDensity(renderFogEvent.getDensity());
-		}
+	@SubscribeEvent
+	public void onFogColor(EntityViewRenderEvent.FogColors event) {
+		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent(new Color(event.getRed(), event.getGreen(), event.getBlue()));
+		Cosmos.EVENT_BUS.post(fogColorEvent);
+
+		event.setRed(fogColorEvent.getColor().getRed());
+		event.setGreen(fogColorEvent.getColor().getGreen());
+		event.setBlue(fogColorEvent.getColor().getBlue());
 	}
 }

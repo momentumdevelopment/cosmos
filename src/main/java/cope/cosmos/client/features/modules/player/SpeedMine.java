@@ -7,11 +7,10 @@ import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.client.ColorUtil;
 import cope.cosmos.util.client.StringFormatter;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.InventoryUtil.Inventory;
-import cope.cosmos.util.player.InventoryUtil.Switch;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -47,7 +46,7 @@ public class SpeedMine extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for SpeedMine");
-    public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription( "Mode when switching to a pickaxe").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.PACKET).setDescription( "Mode when switching to a pickaxe").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1).setDescription("Instant block damage").setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Mines on the opposite face").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> swing = new Setting<>("NoSwing", false).setDescription("Cancels swinging packets").setVisible(() -> mode.getValue().equals(Mode.PACKET));
@@ -188,9 +187,8 @@ public class SpeedMine extends Module {
                         if (mineDamage >= 1) {
                             if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
                                 // switch to the most efficient item
-                                int switchSlot = InventoryUtil.getItemSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Inventory.HOTBAR);
-
-                                mc.player.connection.sendPacket(new CPacketHeldItemChange(switchSlot));
+                                int switchSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR);
+                                getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
 
                                 // break the block
                                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
@@ -232,9 +230,8 @@ public class SpeedMine extends Module {
 
                         if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
                             // switch to the most efficient item
-                            int switchSlot = InventoryUtil.getItemSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Inventory.HOTBAR);
-
-                            mc.player.connection.sendPacket(new CPacketHeldItemChange(switchSlot));
+                            int switchSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR);
+                            getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
                         }
                     }
                 }

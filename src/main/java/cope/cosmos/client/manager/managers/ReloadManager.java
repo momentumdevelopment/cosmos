@@ -9,7 +9,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since 06/08/2021
+ */
 public class ReloadManager extends Manager implements Wrapper {
     public ReloadManager() {
         super("ReloadManager", "Reloads all modules when loading a new world");
@@ -18,15 +21,19 @@ public class ReloadManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
+        // on spawn
         if (event.getEntity().equals(mc.player)) {
+            // previously enabled modules
             List<Module> enabledModules = ModuleManager.getModules(Module::isEnabled);
 
+            // disable all modules (exempt property prevents modules from being reloaded)
             ModuleManager.getAllModules().forEach(module -> {
                 if (!module.isExempt()) {
                     module.disable();
                 }
             });
 
+            // re-enable previously enabled modules
             enabledModules.forEach(module -> {
                 if (!module.isExempt()) {
                     module.enable();
