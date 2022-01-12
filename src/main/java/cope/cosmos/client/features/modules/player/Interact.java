@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayerTryUseItemOnBlock;
 import cope.cosmos.client.events.LiquidInteractEvent;
 import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.AutoCrystal;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class Interact extends Module {
     public static Interact INSTANCE;
 
@@ -49,11 +49,13 @@ public class Interact extends Module {
     public static Setting<Boolean> heightLimit = new Setting<>("HeightLimit", true).setDescription("Allows you to interact with blocks at height limit");
     public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", false).setDescription("Allows you to interact with blocks at the world border");
 
-    @Override
-    public void onUpdate() {
-        if (hand.getValue().equals(Hand.OFFHAND)) {
-            // update the player's swinging hand
-            mc.player.swingingHand = EnumHand.OFF_HAND;
+    @SubscribeEvent
+    public void onSettingUpdate(SettingUpdateEvent event) {
+        if (event.getSetting().equals(hand)) {
+            if (hand.getValue().equals(Hand.OFFHAND)) {
+                // update the player's swinging hand
+                mc.player.swingingHand = EnumHand.OFF_HAND;
+            }
         }
     }
 
