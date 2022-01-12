@@ -11,17 +11,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.awt.*;
 import java.util.Random;
 
-public class FontRenderer extends net.minecraft.client.gui.FontRenderer implements Wrapper {
+public class FontRenderer implements Wrapper {
     private final ImageAWT defaultFont;
+    public final int FONT_HEIGHT;
 
     public FontRenderer(Font font) {
-        super(mc.gameSettings, new ResourceLocation("textures/font/ascii.png"), null, false);
         defaultFont = new ImageAWT(font);
-        FONT_HEIGHT = getHeight();
+        FONT_HEIGHT = (int) getHeight();
     }
 
-    public int getHeight() {
-        return defaultFont.getHeight() / 2;
+    public float getHeight() {
+        return defaultFont.getHeight() / 2f;
     }
 
     public int getSize() {
@@ -29,12 +29,10 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer implemen
     }
 
     @ParametersAreNonnullByDefault
-    @Override
     public int drawStringWithShadow(String text, float x, float y, int color) {
         return drawString(text, x, y, color, true);
     }
 
-    @Override
     public int drawString(String text, float x, float y, int color, boolean dropShadow) {
         float currY = y - 3.0f;
         if (text.contains("\n")) {
@@ -43,7 +41,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer implemen
 
             for (String s : parts) {
                 drawText(s, x, currY + newY, color, dropShadow);
-                newY += (float) getHeight();
+                newY += getHeight();
             }
 
             return 0;
@@ -158,7 +156,6 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer implemen
         return ColorUtils.hexColors[FontRenderer.getColorIndex(charCode)];
     }
 
-    @Override
     public int getStringWidth(String text) {
         if (text.contains("§")) {
             String[] parts = text.split("§");

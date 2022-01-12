@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;

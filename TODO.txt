@@ -1,0 +1,8 @@
+[x] Add bind and drawn setting
+    [x] Middle click binds
+    [ ] Possible keybind manager screen
+[?] "Cool setting stuff"
+[x] Enum settings dropdown
+[x] Desc at bottom of gui
+[x] Plain text windows
+
