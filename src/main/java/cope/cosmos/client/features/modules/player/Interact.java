@@ -52,9 +52,14 @@ public class Interact extends Module {
     @SubscribeEvent
     public void onSettingUpdate(SettingUpdateEvent event) {
         if (event.getSetting().equals(hand)) {
-            if (hand.getValue().equals(Hand.OFFHAND)) {
+            switch (hand.getValue()) {
                 // update the player's swinging hand
-                mc.player.swingingHand = EnumHand.OFF_HAND;
+                case OFFHAND:
+                    mc.player.swingingHand = EnumHand.OFF_HAND;
+                    break;
+                case MAINHAND:
+                    mc.player.swingingHand = EnumHand.MAIN_HAND;
+                    break;
             }
         }
     }

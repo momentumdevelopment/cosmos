@@ -10,12 +10,15 @@ import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.system.Timer;
 import cope.cosmos.util.system.Timer.Format;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.RayTraceResult;
 import org.lwjgl.input.Mouse;
 
 /**
@@ -95,6 +98,20 @@ public class Offhand extends Module {
                     break;
                 case INTERACT:
                     if (InventoryUtil.isHolding(Items.DIAMOND_SWORD) && Mouse.isButtonDown(1)) {
+
+                        // block we are interacting with
+                        Block interactBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
+
+                        // check if it gets activated
+                        if (getCosmos().getInteractionManager().getSneakBlocks().contains(interactBlock)) {
+                            break;
+                        }
+
+                        // check if its a button/lever
+                        if (interactBlock.equals(Blocks.STONE_BUTTON) || interactBlock.equals(Blocks.WOODEN_BUTTON) || interactBlock.equals(Blocks.LEVER)) {
+                            break;
+                        }
+
                         switchItem = Items.GOLDEN_APPLE;
                     }
 

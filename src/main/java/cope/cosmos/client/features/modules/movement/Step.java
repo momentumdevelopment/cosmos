@@ -5,6 +5,11 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.client.StringFormatter;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.EntityHorse;
+import net.minecraft.entity.passive.EntityLlama;
+import net.minecraft.entity.passive.EntityMule;
+import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -26,9 +31,9 @@ public class Step extends Module {
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("Mode for how to step up blocks");
     public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The maximum height to step up blocks");
     public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false).setDescription("Allows you to step up blocks while riding entities");
-
-    // timer
+    
     private boolean timer;
+    private Entity entityRiding;
 
     @Override
     public void onDisable() {
@@ -37,8 +42,14 @@ public class Step extends Module {
         // reset our step heights
         mc.player.stepHeight = 0.5F;
 
-        if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
-            mc.player.getRidingEntity().stepHeight = 0.5F;
+        if (entityRiding != null) {
+            if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
+                entityRiding.stepHeight = 1;
+            }
+            
+            else {
+                entityRiding.stepHeight = 0.5F;
+            }
         }
     }
 
@@ -48,8 +59,10 @@ public class Step extends Module {
         mc.player.stepHeight = height.getValue().floatValue();
 
         if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+            entityRiding = mc.player.getRidingEntity();
+
+            // update our riding entity's step height
             if (entityStep.getValue()) {
-                // update our riding entity's step height
                 mc.player.getRidingEntity().stepHeight = height.getValue().floatValue();
             }
         }
