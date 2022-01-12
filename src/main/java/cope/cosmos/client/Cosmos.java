@@ -1,7 +1,6 @@
 package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
-import cope.cosmos.client.clickgui.windowed.WindowGUI;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.client.Colors;
 import cope.cosmos.client.features.modules.client.DiscordPresence;
@@ -9,6 +8,7 @@ import cope.cosmos.client.features.modules.client.Font;
 import cope.cosmos.client.features.modules.client.Social;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
+import cope.cosmos.client.ui.clickgui.ClickGuiScreen;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -51,7 +51,7 @@ public class Cosmos {
     public static Cosmos INSTANCE;
 
     // the client gui
-    private WindowGUI windowGUI;
+    private ClickGuiScreen clickGUI;
 
     // list of managers
     private final List<Manager> managers = new ArrayList<>();
@@ -130,7 +130,7 @@ public class Cosmos {
         progressManager.step("Setting up Config Manager");
 
         // sets up the GUI
-        windowGUI = new WindowGUI();
+        clickGUI = new ClickGuiScreen();
         progressManager.step("Setting up GUI's");
 
         // sets up the reload manager
@@ -211,8 +211,8 @@ public class Cosmos {
      * Gets the Window GUI screen
      * @return The Window GUI screen
      */
-    public WindowGUI getWindowGUI() {
-        return windowGUI;
+    public ClickGuiScreen getClickGUI() {
+        return clickGUI;
     }
 
     /**

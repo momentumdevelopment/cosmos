@@ -2,7 +2,6 @@ package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.GuiScreenClosedEvent;
-import cope.cosmos.util.Wrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,9 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
-@SuppressWarnings("unused")
 @Mixin(Minecraft.class)
-public class MixinMinecraft implements Wrapper {
+public class MixinMinecraft {
 
     @Shadow @Nullable public GuiScreen currentScreen;
     @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true)

@@ -28,8 +28,8 @@ public class ClickGUI extends Module {
 	public void onEnable() {
 		super.onEnable();
 
-		mc.displayGuiScreen(getCosmos().getWindowGUI());
-		Cosmos.EVENT_BUS.register(getCosmos().getWindowGUI());
+		mc.displayGuiScreen(getCosmos().getClickGUI());
+		Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
 
 		// blur shader for background
 		if (blur.getValue()) {

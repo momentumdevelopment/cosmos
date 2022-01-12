@@ -2,7 +2,6 @@ package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.clickgui.ethius.EthiusGuiScreen;
 import cope.cosmos.client.events.*;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
