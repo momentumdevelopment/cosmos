@@ -8,7 +8,7 @@
 Cosmos is a free, open-source, Minecraft 1.12.2 Forge PvP Client aimed at the anarchy community. The client is still in the development phase.
 
 ## ClickGUI:
-![clickgui](https://cdn.discordapp.com/attachments/869399835151835159/910633520223899718/unknown.png)
+![clickgui](https://user-images.githubusercontent.com/73380591/149223166-9e7602f4-4389-46f2-a326-f110f69b9bcc.png)
 
 ## Usage:
 - Download the .jar file from [releases](https://github.com/momentumdevelopment/cosmos/releases/)
