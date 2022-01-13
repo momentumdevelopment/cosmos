@@ -36,7 +36,7 @@ public class InteractionManager extends Manager implements Wrapper {
             Blocks.CHEST,
             Blocks.TRAPPED_CHEST,
             Blocks.CRAFTING_TABLE,
-            Blocks.ANVIL,
+            Blocks.ANVIL, // :troll:
             Blocks.BREWING_STAND,
             Blocks.HOPPER,
             Blocks.DROPPER,
@@ -58,7 +58,9 @@ public class InteractionManager extends Manager implements Wrapper {
             Blocks.BROWN_SHULKER_BOX,
             Blocks.GREEN_SHULKER_BOX,
             Blocks.RED_SHULKER_BOX,
-            Blocks.BLACK_SHULKER_BOX
+            Blocks.BLACK_SHULKER_BOX,
+            Blocks.COMMAND_BLOCK,
+            Blocks.CHAIN_COMMAND_BLOCK
     );
 
     /**
@@ -103,9 +105,12 @@ public class InteractionManager extends Manager implements Wrapper {
                 mc.player.setSneaking(true);
             }
 
+            // vector to the block
+            Vec3d interactVector = new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5));
+
             // rotate to block
             if (!rotate.equals(Rotate.NONE)) {
-                Rotation blockAngles = AngleUtil.calculateAngles(new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5)));
+                Rotation blockAngles = AngleUtil.calculateAngles(interactVector);
 
                 // rotate via packet, server should confirm instantly?
                 switch (rotate) {
@@ -123,7 +128,7 @@ public class InteractionManager extends Manager implements Wrapper {
             }
 
             // right click direction offset block
-            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5), EnumHand.MAIN_HAND);
+            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
 
             // reset sneak
             if (sneak) {

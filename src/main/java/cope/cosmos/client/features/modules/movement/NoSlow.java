@@ -25,7 +25,6 @@ import org.lwjgl.input.Keyboard;
  * @author linustouchtips, aesthetical
  * @since 07/21/2021
  */
-@SuppressWarnings("unused")
 public class NoSlow extends Module {
     public static NoSlow INSTANCE;
 

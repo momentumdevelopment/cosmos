@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.BlockResetEvent;
 import cope.cosmos.client.events.LeftClickBlockEvent;
+import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -25,6 +26,8 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
+import net.minecraft.network.play.server.SPacketBlockChange;
+import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -36,7 +39,6 @@ import java.awt.*;
  * @author linustouchtips
  * @since 12/02/2021
  */
-@SuppressWarnings({"unused", "deprecation"})
 public class SpeedMine extends Module {
     public static SpeedMine INSTANCE;
 
@@ -49,6 +51,8 @@ public class SpeedMine extends Module {
     public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.PACKET).setDescription( "Mode when switching to a pickaxe").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1).setDescription("Instant block damage").setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Mines on the opposite face").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Boolean> strictSwitch = new Setting<>("StrictSwitch", false).setDescription("Switches to a tool when mining first").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Boolean> strictReMine = new Setting<>("StrictReMine", true).setDescription("Limits re-mines").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> swing = new Setting<>("NoSwing", false).setDescription("Cancels swinging packets").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> reset = new Setting<>("Reset", false).setDescription("Doesn't allow block break progress to be reset");
 
@@ -61,6 +65,7 @@ public class SpeedMine extends Module {
 
     // mine damage
     private float mineDamage;
+    private int mineBreaks;
 
     // switch info
     private int previousSlot = -1;
@@ -72,6 +77,16 @@ public class SpeedMine extends Module {
     public void onUpdate() {
         // no reason to speedmine in creative mode, blocks break instantly
         if (!mc.player.capabilities.isCreativeMode) {
+            if (strictReMine.getValue()) {
+                // limit re-mines
+                if (mineBreaks > 3) {
+                    // reset our block info
+                    minePosition = null;
+                    mineFacing = null;
+                    mineDamage = 0;
+                    mineBreaks = 0;
+                }
+            }
 
             if (mode.getValue().equals(Mode.DAMAGE)) {
                 // if the damage is greater than our specified damage, set the block to full damage
@@ -142,6 +157,7 @@ public class SpeedMine extends Module {
         minePosition = null;
         mineFacing = null;
         mineDamage = 0;
+        mineBreaks = 0;
     }
 
     @Override
@@ -180,6 +196,11 @@ public class SpeedMine extends Module {
                 // save our current slot
                 previousSlot = mc.player.inventory.currentItem;
 
+                // switch before mine
+                if (strictSwitch.getValue()) {
+                    getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Switch.PACKET);
+                }
+
                 // re-click
                 if (event.getPos().equals(minePosition)) {
                     if (mode.getValue().equals(Mode.PACKET)) {
@@ -187,8 +208,7 @@ public class SpeedMine extends Module {
                         if (mineDamage >= 1) {
                             if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
                                 // switch to the most efficient item
-                                int switchSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR);
-                                getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
+                                getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
 
                                 // break the block
                                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
@@ -212,6 +232,7 @@ public class SpeedMine extends Module {
                     minePosition = event.getPos();
                     mineFacing = event.getFace();
                     mineDamage = 0;
+                    mineBreaks = 0;
 
                     if (minePosition != null && mineFacing != null) {
 
@@ -234,6 +255,26 @@ public class SpeedMine extends Module {
                             getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        if (event.getPacket() instanceof SPacketBlockChange) {
+            // broken block
+            if (((SPacketBlockChange) event.getPacket()).getBlockPosition().equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
+                mineBreaks++;
+            }
+        }
+
+        if (event.getPacket() instanceof SPacketMultiBlockChange) {
+            // check updated blocks
+            for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
+                // broken block
+                if (blockUpdateData.getPos().equals(minePosition) && blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
+                    mineBreaks++;
                 }
             }
         }
@@ -322,12 +363,12 @@ public class SpeedMine extends Module {
 
         // verify if the player can harvest the block
         if (!canHarvestBlock(state.getBlock(), position)) {
-            return getDigSpeed(state, position) / hardness / 100F;
+            return getDigSpeed(state) / hardness / 100F;
         }
 
         // find the dig speed if the player can't harvest the block
         else {
-            return getDigSpeed(state, position) / hardness / 30F;
+            return getDigSpeed(state) / hardness / 30F;
         }
     }
 
@@ -337,6 +378,7 @@ public class SpeedMine extends Module {
      * @param position The {@link BlockPos} position of the block to check
      * @return Whether or not the block can be harvested
      */
+    @SuppressWarnings("deprecation")
     public boolean canHarvestBlock(Block block, BlockPos position) {
         // get the state of the block
         IBlockState worldState = mc.world.getBlockState(position);
@@ -369,10 +411,9 @@ public class SpeedMine extends Module {
     /**
      * Finds the dig speed of a specified block
      * @param state {@link IBlockState} The block state of the specified block
-     * @param position {@link BlockPos} The position of the specified block
      * @return The dig speed of the specified block
      */
-    public float getDigSpeed(IBlockState state, BlockPos position) {
+    public float getDigSpeed(IBlockState state) {
         // base dig speed
         float digSpeed = getDestroySpeed(state);
 

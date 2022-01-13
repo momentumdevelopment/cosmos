@@ -18,22 +18,22 @@ import java.util.stream.Collectors;
  * @since 06/08/2021
  */
 public class CommandManager extends Manager {
-	public CommandManager() {
-		super("CommandManager", "Manages client commands");
-	}
 
 	// list of commands
-	private static final List<Command> commands = Arrays.asList(
-			new Friend(),
-			new Preset(),
-			new Help(),
-			new Drawn()
-	);
+	private final List<Command> commands;
 
-	/**
-	 * Registers commands to the command dispatcher
-	 */
-	public static void registerCommands() {
+	public CommandManager() {
+		super("CommandManager", "Manages client commands");
+
+		// add all commands
+		commands = Arrays.asList(
+				new Friend(),
+				new Preset(),
+				new Help(),
+				new Drawn()
+		);
+
+		// register commands to dispatcher
 		getAllCommands().forEach(command -> {
 			Cosmos.INSTANCE.getCommandDispatcher().register(command.getCommand());
 			Cosmos.INSTANCE.getCommandDispatcher().register(Command.redirectBuilder(command.getName(), command.getCommand().build()));
@@ -44,7 +44,7 @@ public class CommandManager extends Manager {
 	 * Gets a list of all the client's commands
 	 * @return List of all the client's commands
 	 */
-	public static List<Command> getAllCommands() {
+	public List<Command> getAllCommands() {
 		return commands;
 	}
 
@@ -53,7 +53,7 @@ public class CommandManager extends Manager {
 	 * @param predicate The specified condition
 	 * @return List of all the client's commands that fulfill the specified condition
 	 */
-	public static List<Command> getCommands(Predicate<? super Command> predicate) {
+	public List<Command> getCommands(Predicate<? super Command> predicate) {
 		return commands.stream()
 				.filter(predicate)
 				.collect(Collectors.toList());
@@ -64,7 +64,7 @@ public class CommandManager extends Manager {
 	 * @param predicate The specified condition
 	 * @return The first command that fulfills the specified condition
 	 */
-	public static Command getCommand(Predicate<? super Command> predicate) {
+	public Command getCommand(Predicate<? super Command> predicate) {
 		return commands.stream()
 				.filter(predicate)
 				.findFirst()

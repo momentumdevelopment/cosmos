@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("unused")
 @Mixin(EntityPlayerSP.class)
 public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
     public MixinEntityPlayerSP(World worldIn, GameProfile playerProfile) {
@@ -28,7 +27,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
     }
 
     @Shadow
-    private Minecraft mc;
+    protected Minecraft mc;
 
     @Shadow
     private boolean prevOnGround;

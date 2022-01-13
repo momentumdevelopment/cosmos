@@ -87,7 +87,7 @@ public class HUD extends Module {
             if (activeModules.getValue()) {
                 listOffset = 0;
 
-                ModuleManager.getModules(Module::isDrawn).stream().filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
+                getCosmos().getModuleManager().getModules(Module::isDrawn).stream().filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
 
                     // formatted string
                     StringBuilder moduleString = new StringBuilder(module.getName());

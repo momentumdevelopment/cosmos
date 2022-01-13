@@ -1,7 +1,6 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.clickgui.windowed.window.windows.ErrorWindow;
 import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.ModuleToggleEvent;
 import cope.cosmos.client.events.SettingUpdateEvent;
@@ -15,7 +14,6 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.NotificationManager.Notification;
 import cope.cosmos.client.manager.managers.NotificationManager.Type;
 import cope.cosmos.util.Wrapper;
-import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -107,13 +105,15 @@ public class PatchManager extends Manager implements Wrapper {
     public void pushPatchSafety(String message) {
         if (mc.currentScreen == null) {
             Notification patchError = new Notification(message, Type.WARNING);
-            Cosmos.INSTANCE.getNotificationManager().pushNotification(patchError);
+            Cosmos.INSTANCE.getNotificationManager().addNotification(patchError);
         }
 
+        /*
         else if (mc.currentScreen.equals(Cosmos.INSTANCE.getWindowGUI())) {
             ErrorWindow patchError = new ErrorWindow("Patch Safety", message, new Vec2f(100, 100));
             Cosmos.INSTANCE.getWindowGUI().getManager().createWindow(patchError);
         }
+         */
     }
 
     public enum PatchState {

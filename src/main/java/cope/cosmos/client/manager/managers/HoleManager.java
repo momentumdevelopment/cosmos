@@ -366,6 +366,27 @@ public class HoleManager extends Manager {
     }
 
     /**
+     * Checks whether or not a position is a hole
+     * @param in The position to check
+     * @return Whether or not a position is a hole
+     */
+    public boolean isHole(BlockPos in) {
+        // check each of the hole offsets
+        for (Vec3i holeOffset : HOLE) {
+
+            // the side we are checking
+            BlockPos holeSide = in.add(holeOffset);
+
+            // check the side's resistance
+            if (!BlockUtil.getResistance(holeSide).equals(Resistance.RESISTANT) && !BlockUtil.getResistance(holeSide).equals(Resistance.UNBREAKABLE)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Checks whether or not an entity is standing in a hole
      * @param in The entity to check
      * @return Whether or not the entity is standing in a hole

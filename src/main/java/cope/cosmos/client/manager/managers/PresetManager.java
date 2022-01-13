@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
@@ -145,7 +146,7 @@ public class PresetManager extends Manager {
             // the output string
             StringBuilder outputTOML = new StringBuilder();
 
-            ModuleManager.getAllModules().forEach(module -> {
+            getCosmos().getModuleManager().getAllModules().forEach(module -> {
                 if (module != null) {
                     try {
                         // writes the enabled state, drawn state, and bind
@@ -217,7 +218,7 @@ public class PresetManager extends Manager {
             Toml inputTOML = new Toml().read(inputStream);
 
             if (inputTOML != null) {
-                ModuleManager.getAllModules().forEach(module -> {
+                getCosmos().getModuleManager().getAllModules().forEach(module -> {
                     if (module != null) {
                         try {
                             // set the enabled state

@@ -33,7 +33,6 @@ public class LongJump extends Module {
     
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
-
         // make sure the player is not in a liquid
         if (PlayerUtil.isInLiquid()) {
             moveSpeed = 0;

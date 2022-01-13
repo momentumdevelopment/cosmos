@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -30,7 +29,7 @@ public class NoFall extends Module {
     @Override
     public void onUpdate() {
         // make sure our fall distance is past our minimum distance
-        if (mc.player.fallDistance >= distance.getValue()) {
+        if (mc.player.fallDistance >= distance.getValue() && !mc.player.isOverWater()) {
             switch (mode.getValue()) {
                 case PACKET:
                     // spoof on-ground state
@@ -79,6 +78,7 @@ public class NoFall extends Module {
     }
 
     public enum Mode {
+
         /**
          * Attempts to spoof our on-ground state
          */
