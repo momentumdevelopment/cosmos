@@ -1,6 +1,6 @@
 package cope.cosmos.asm.mixins;
 
-import cope.cosmos.client.alts.AltManagerGUI;
+import cope.cosmos.client.ui.altgui.AltManagerGUI;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.GuiScreen;
@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("unused")
 @Mixin(GuiMultiplayer.class)
 public class MixinGuiMultiplayer extends GuiScreen {
 

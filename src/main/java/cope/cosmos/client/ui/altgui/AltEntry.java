@@ -1,4 +1,4 @@
-package cope.cosmos.client.alts;
+package cope.cosmos.client.ui.altgui;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;

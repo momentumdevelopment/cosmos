@@ -34,40 +34,41 @@ public class ThreadManager extends Manager {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     // check if the mc world is running
-                    if (!nullCheck()) {
-                        Thread.yield();
-                        continue;
+                    if (nullCheck()) {
+                        getCosmos().getModuleManager().getAllModules().forEach(module -> {
+                            try {
+                                // run and remove the latest service
+                                if (!clientProcesses.isEmpty()) {
+                                    clientProcesses.poll().run();
+                                }
+
+                                if (module.isEnabled()) {
+                                    module.onThread();
+                                }
+                            } catch (Exception exception) {
+                                exception.printStackTrace();
+                            }
+                        });
+
+                        getCosmos().getManagers().forEach(manager -> {
+                            try {
+                                // run and remove the latest service
+                                if (!clientProcesses.isEmpty()) {
+                                    clientProcesses.poll().run();
+                                }
+
+                                manager.onThread();
+                            } catch (Exception exception) {
+                                exception.printStackTrace();
+                            }
+                        });
                     }
 
-                    getCosmos().getModuleManager().getAllModules().forEach(module -> {
-                        try {
-                            // run and remove the latest service
-                            if (clientProcesses.size() > 0) {
-                                clientProcesses.poll().run();
-                            }
-
-                            if (module.isEnabled()) {
-                                module.onThread();
-                            }
-                        } catch (Exception exception) {
-                            exception.printStackTrace();
-                        }
-                    });
-
-                    getCosmos().getManagers().forEach(manager -> {
-                        try {
-                            // run and remove the latest service
-                            if (clientProcesses.size() > 0) {
-                                clientProcesses.poll().run();
-                            }
-
-                            manager.onThread();
-                        } catch (Exception exception) {
-                            exception.printStackTrace();
-                        }
-                    });
-
-                } catch (Exception ignored) {
+                    // give up thread resources
+                    else {
+                        Thread.yield();
+                    }
+                } catch(Exception ignored) {
 
                 }
             }

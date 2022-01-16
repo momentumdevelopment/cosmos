@@ -5,6 +5,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.CameraClipEvent;
 import cope.cosmos.client.events.HitboxInteractEvent;
 import cope.cosmos.client.events.HurtCameraEvent;
+import cope.cosmos.client.events.RenderWorldEvent;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
@@ -19,9 +20,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
 @Mixin(EntityRenderer.class)
 public class MixinEntityRenderer {
+
+    @Inject(method = "renderWorld", at = @At("RETURN"))
+    private void renderWorldHook(CallbackInfo info) {
+        RenderWorldEvent renderWorldEvent = new RenderWorldEvent();
+        Cosmos.EVENT_BUS.post(renderWorldEvent);
+    }
 
     @Inject(method = "hurtCameraEffect", at = @At("HEAD"), cancellable = true)
     public void hurtCameraEffect(float ticks, CallbackInfo info) {

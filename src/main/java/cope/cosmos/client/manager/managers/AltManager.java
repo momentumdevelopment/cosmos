@@ -4,7 +4,7 @@ import com.mojang.authlib.Agent;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
-import cope.cosmos.client.alts.AltEntry;
+import cope.cosmos.client.ui.altgui.AltEntry;
 import cope.cosmos.client.manager.Manager;
 import net.minecraft.util.Session;
 

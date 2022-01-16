@@ -27,6 +27,9 @@ void main(void) {
     }
 
     else {
+        // closest radius distance
+        float closest = radius * 2.0F + 2.0F;
+
         // radius determines the width of the shader
         for (float x = -radius; x <= radius; x++) {
             for (float y = -radius; y <= radius; y++) {
@@ -36,9 +39,16 @@ void main(void) {
 
                 // gl_FragColor is the current color of the fragment, we'll update it according to our uniform (custom value)
                 if (currentColor.a > 0) {
-                    gl_FragColor = colorDot;
+                    float currentDist = sqrt(x * x + y * y);
+
+                    if (currentDist < closest) {
+                        closest = currentDist;
+                    }
                 }
             }
         }
+
+        // color the area
+        gl_FragColor = vec4(colorDot.x, colorDot.y, colorDot.z, max(0, (radius - (closest - 1)) / radius));;
     }
 }
