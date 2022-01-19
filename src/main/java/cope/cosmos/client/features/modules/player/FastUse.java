@@ -16,7 +16,6 @@ import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -24,7 +23,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class FastUse extends Module {
     public static FastUse INSTANCE;
 
@@ -57,9 +55,11 @@ public class FastUse extends Module {
     public void onUpdate() {
         // make sure we're holding a valid item
         if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
-            if (ghostFix.getValue() && mc.gameSettings.keyBindUseItem.isKeyDown()) {
-                // spam the use packet
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
+            if (ghostFix.getValue()) {
+                // spam the use packet, NCP flags for CPacketPlayerTryUseItemOnBlock too fast so we can use CPacketPlayerTryUseItem instead
+                if (mc.gameSettings.keyBindUseItem.isKeyDown()) {
+                    mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
+                }
             }
 
             else {
@@ -68,9 +68,11 @@ public class FastUse extends Module {
             }
         }
 
-        // spam the drop item packet
-        if (fastDrop.getValue() && mc.gameSettings.keyBindDrop.isKeyDown()) {
-            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+        if (fastDrop.getValue()) {
+            // spam the drop item packet
+            if (mc.gameSettings.keyBindDrop.isKeyDown()) {
+                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+            }
         }
 
         // fast bow, make sure we are holding a bow and shooting it
@@ -92,8 +94,10 @@ public class FastUse extends Module {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
 
             // cancel place on block packets
-            if (ghostFix.getValue() && InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE)) {
-                event.setCanceled(true);
+            if (ghostFix.getValue()) {
+                if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
+                    event.setCanceled(true);
+                }
             }
         }
     }
@@ -104,13 +108,12 @@ public class FastUse extends Module {
 
             // make sure we are holding eatable/drinkable items
             if (packetFood.getValue() && event.getItemStack().getItem() instanceof ItemFood || packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM)) {
-
                 // cancel eating animation and skip to the item finish state
                 event.setCanceled(true);
                 event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), mc.world, mc.player);
 
                 // skip ticks lolololol
-                for (int i = 0; i < ((4 - speed.getValue()) * 8); i++) {
+                for (int i = 0; i < speed.getValue() * 8; i++) {
                     mc.player.connection.sendPacket(new CPacketPlayer());
                 }
             }

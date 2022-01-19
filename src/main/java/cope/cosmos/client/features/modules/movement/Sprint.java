@@ -11,7 +11,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class Sprint extends Module {
     public static Sprint INSTANCE;
 

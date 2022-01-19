@@ -45,7 +45,6 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  * @author linustouchtips
  * @since 07/21/2021
  */
-@SuppressWarnings("unused")
 public class ESP extends Module {
     public static ESP INSTANCE;
 
@@ -171,7 +170,7 @@ public class ESP extends Module {
                 }
 
                 // bind our new framebuffer (i.e. set it as the current active buffer)
-                framebuffer.bindFramebuffer(true);
+                framebuffer.bindFramebuffer(false);
 
                 // prevent entity shadows from rendering
                 boolean previousShadows = mc.gameSettings.entityShadows;
@@ -206,6 +205,7 @@ public class ESP extends Module {
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
                 // rebind the mc framebuffer
+                framebuffer.unbindFramebuffer();
                 mc.getFramebuffer().bindFramebuffer(true);
 
                 // remove lighting
@@ -484,6 +484,7 @@ public class ESP extends Module {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     public void onRenderTileEntity(RenderTileEntityEvent event) {
         if (mode.getValue().equals(Mode.OUTLINE)) {
@@ -494,7 +495,6 @@ public class ESP extends Module {
 
                 // check if it's rendering in hotbar
                 if (!hotbarRender) {
-
                     if (TileEntityRendererDispatcher.instance.getRenderer(event.getTileEntity()) != null) {
 
                         // cancel rendering

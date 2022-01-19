@@ -34,25 +34,40 @@ void main(void) {
     }
 
     else {
+        // closest radius distance
+        float closest = radius * 2.0F + 2.0F;
+
+        // radius determines the width of the shader
         for (float x = -radius; x <= radius; x++) {
             for (float y = -radius; y <= radius; y++) {
+
+                // the current color of the fragment based on the texture of the entity, we'll overwrite this color
                 vec4 currentColor = texture2D(texture, gl_TexCoord[0].xy + vec2(texelSize.x * x, texelSize.y * y));
 
+                // gl_FragColor is the current color of the fragment, we'll update it according to our uniform (custom value)
                 if (currentColor.a > 0) {
-                    if (rainbowSpeed > -1.0) {
-                        vec2 coords = vec2(gl_FragCoord.xy * rainbowStrength);
-                        vec3 rainbowColor = vec3(clamp ((abs(((fract((vec3((float(mod (((coords.x + coords.y) + rainbowSpeed), 1.0)))) + vec3(1.0, 0.6666667, 0.3333333))) * 6.0) - vec3(3.0, 3.0, 3.0))) - vec3(1.0, 1.0, 1.0)), 0.0, 1.0));
-                        vec3 hsv = vec3(rgb2hsv(rainbowColor).xyz);
-                        hsv.y = saturation;
-                        vec3 finalColor = vec3(hsv2rgb(hsv).xyz);
-                        gl_FragColor = vec4(finalColor, currentColor.a);
-                    }
+                    float currentDist = sqrt(x * x + y * y);
 
-                    else {
-                        gl_FragColor = color;
+                    if (currentDist < closest) {
+                        closest = currentDist;
                     }
                 }
             }
+        }
+
+        // rainbow
+        if (rainbowSpeed > -1.0) {
+            vec2 coords = vec2(gl_FragCoord.xy * rainbowStrength);
+            vec3 rainbowColor = vec3(clamp ((abs(((fract((vec3((float(mod (((coords.x + coords.y) + rainbowSpeed), 1.0)))) + vec3(1.0, 0.6666667, 0.3333333))) * 6.0) - vec3(3.0, 3.0, 3.0))) - vec3(1.0, 1.0, 1.0)), 0.0, 1.0));
+            vec3 hsv = vec3(rgb2hsv(rainbowColor).xyz);
+            hsv.y = saturation;
+            vec3 finalColor = vec3(hsv2rgb(hsv).xyz);
+            gl_FragColor = vec4(finalColor.x, finalColor.y, finalColor.z, max(0, (radius - (closest - 1)) / radius));;
+        }
+
+        else {
+            // color the area
+            gl_FragColor = vec4(color.x, color.y, color.z, max(0, (radius - (closest - 1)) / radius));;
         }
     }
 }

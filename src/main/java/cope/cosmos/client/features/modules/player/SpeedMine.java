@@ -52,7 +52,7 @@ public class SpeedMine extends Module {
     public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1).setDescription("Instant block damage").setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Mines on the opposite face").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> strictSwitch = new Setting<>("StrictSwitch", false).setDescription("Switches to a tool when mining first").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Boolean> strictReMine = new Setting<>("StrictReMine", true).setDescription("Limits re-mines").setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Boolean> strictReMine = new Setting<>("StrictBreak", true).setDescription("Limits re-mines").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> swing = new Setting<>("NoSwing", false).setDescription("Cancels swinging packets").setVisible(() -> mode.getValue().equals(Mode.PACKET));
     public static Setting<Boolean> reset = new Setting<>("Reset", false).setDescription("Doesn't allow block break progress to be reset");
 

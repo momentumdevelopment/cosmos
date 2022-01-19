@@ -1,4 +1,4 @@
-package cope.cosmos.client.alts;
+package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.asm.mixins.accessor.ISession;
 import cope.cosmos.client.manager.managers.AltManager;
