@@ -65,7 +65,7 @@ public class Speed extends Module {
     private int boostTicks;
 
     // packet manipulation
-    boolean offsetPackets;
+    private boolean offsetPackets;
 
     @Override
     public void onDisable() {

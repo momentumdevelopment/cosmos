@@ -102,7 +102,8 @@ public class Module extends Feature implements Wrapper {
 			enabled = true;
 
 			Cosmos.EVENT_BUS.register(this);
-			if (nullCheck() || Cosmos.INSTANCE.getNullSafeFeatures().contains(this)) {
+
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
 				// runs onEnable callbacks
 				ModuleEnableEvent event = new ModuleEnableEvent(this);
 				Cosmos.EVENT_BUS.post(event);

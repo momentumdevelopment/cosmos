@@ -50,7 +50,6 @@ import java.util.TreeMap;
  * @author linustouchtips
  * @since 10/05/2021
  */
-@SuppressWarnings("unused")
 public class Aura extends Module {
     public static Aura INSTANCE;
 
@@ -166,7 +165,7 @@ public class Aura extends Module {
             for (Entity entity : mc.world.loadedEntityList) {
 
                 // make sure the entity is valid to attack
-                if (entity == null || entity == mc.player || entity.isDead || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 
