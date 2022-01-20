@@ -18,14 +18,14 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.network.play.client.CPacketCloseWindow;
+import net.minecraft.network.play.client.CPacketEntityAction;
 import org.lwjgl.input.Mouse;
 
 /**
  * @author linustouchtips
  * @since 11/20/2021
  */
-@SuppressWarnings("unused")
 public class Offhand extends Module {
     public static Offhand INSTANCE;
 
@@ -36,15 +36,14 @@ public class Offhand extends Module {
 
     public static Setting<OffhandItem> item = new Setting<>("Item", OffhandItem.CRYSTAL).setDescription("Item to use when not at critical health");
     public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", OffhandItem.GAPPLE).setDescription("Item to use if you don't have the chosen item");
-    public static Setting<Interact> interact = new Setting<>("Interact", Interact.NORMAL).setDescription("How to interact when switching");
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR).setDescription("How to timing when switching");
     public static Setting<Gapple> gapple = new Setting<>("Gapple", Gapple.SWORD).setDescription("When to dynamically switch to a golden apple");
-
+    public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE).setDescription("When to consider the situation unsafe");
+    
     public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 36.0D, 1).setDescription("Health considered as critical health");
     public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 0).setDescription("Delay when switching items");
 
-    public static Setting<Boolean> armorSafe = new Setting<>("ArmorSafe", false).setDescription("Swaps to a totem when you have armor slots empty, prevents totem fails");
-    public static Setting<Boolean> crystalSafe = new Setting<>("CrystalSafe", false).setDescription("Swaps to a totem when nearby crystals could potentially kill you");
-
+    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false).setDescription("Opens inventory serverside before switching");
     public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false).setDescription("Stops motion before switching");
     public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
 
@@ -100,15 +99,15 @@ public class Offhand extends Module {
                     if (InventoryUtil.isHolding(Items.DIAMOND_SWORD) && Mouse.isButtonDown(1)) {
 
                         // block we are interacting with
-                        Block interactBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
+                        Block timingBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
 
                         // check if it gets activated
-                        if (getCosmos().getInteractionManager().getSneakBlocks().contains(interactBlock)) {
+                        if (getCosmos().getInteractionManager().getSneakBlocks().contains(timingBlock)) {
                             break;
                         }
 
                         // check if its a button/lever
-                        if (interactBlock.equals(Blocks.STONE_BUTTON) || interactBlock.equals(Blocks.WOODEN_BUTTON) || interactBlock.equals(Blocks.LEVER)) {
+                        if (timingBlock.equals(Blocks.STONE_BUTTON) || timingBlock.equals(Blocks.WOODEN_BUTTON) || timingBlock.equals(Blocks.LEVER)) {
                             break;
                         }
 
@@ -132,37 +131,46 @@ public class Offhand extends Module {
                     switchItem = Items.TOTEM_OF_UNDYING;
                 }
             }
+            
+            // check possible unsafe situations
+            switch (safety.getValue()) {
+                case ARMOR:
+                    // make sure none of our armor pieces are missing
+                    for (ItemStack stack : mc.player.getArmorInventoryList()) {
 
-            // make sure none of our armor pieces are missing
-            if (armorSafe.getValue()) {
-                for (ItemStack stack : mc.player.getArmorInventoryList()) {
-
-                    // armor stack is empty
-                    if (stack == null || stack.getItem() == Items.AIR) {
-                        switchItem = Items.TOTEM_OF_UNDYING;
-                        break;
-                    }
-                }
-            }
-
-            // check nearby crystals
-            if (crystalSafe.getValue()) {
-                for (Entity entity : mc.world.loadedEntityList) {
-                    if (entity instanceof EntityEnderCrystal) {
-                        // damage from crystal
-                        double damage = ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
-
-                        // crystal will kill us
-                        if (PlayerUtil.getHealth() - damage <= 1) {
+                        // armor stack is empty
+                        if (stack == null || stack.getItem().equals(Items.AIR)) {
                             switchItem = Items.TOTEM_OF_UNDYING;
                             break;
                         }
                     }
-                }
+                    
+                    break;
+                case DAMAGE:
+                    // check nearby crystals
+                    for (Entity entity : mc.world.loadedEntityList) {
+                        if (mc.player.getDistance(entity) > 6) {
+                            continue;
+                        }
+
+                        if (entity instanceof EntityEnderCrystal) {
+                            // damage from crystal
+                            double damage = ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
+
+                            // crystal will kill us
+                            if (PlayerUtil.getHealth() - damage <= 1) {
+                                switchItem = Items.TOTEM_OF_UNDYING;
+                                break;
+                            }
+                        }
+                    }
+                case NONE:
+                default:
+                    break;
             }
 
             // some anticheats only have offhand patched if the player is holding a gapple, so this is a partial offhand bypass for those servers
-            if (interact.getValue().equals(Interact.BYPASS) && InventoryUtil.isHolding(Items.GOLDEN_APPLE)) {
+            if (timing.getValue().equals(Timing.DYNAMIC) && InventoryUtil.isHolding(Items.GOLDEN_APPLE)) {
                 switchItem = Items.TOTEM_OF_UNDYING;
             }
 
@@ -188,17 +196,21 @@ public class Offhand extends Module {
                 // stop player motion before moving items
                 if (motionStrict.getValue() && MotionUtil.hasMoved()) {
                     mc.player.motionX = 0;
-                    mc.player.motionY = 0;
                     mc.player.motionZ = 0;
-                    mc.player.setVelocity(0, 0, 0);
+                    mc.player.setVelocity(0, mc.player.motionY, 0);
                     return;
                 }
 
                 // pick up the item
                 if (itemSlot != -1) {
+                    // open inventory via packets
+                    if (inventoryStrict.getValue()) {
+                        mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.OPEN_INVENTORY));
+                    }
+
                     mc.playerController.windowClick(0, itemSlot, 0, ClickType.PICKUP, mc.player);
 
-                    if (!interact.getValue().equals(Interact.STRICT)) {
+                    if (!timing.getValue().equals(Timing.SEQUENTIAL)) {
                         // we are now moving the item to the offhand
                         stage = Stage.MOVE_TO_OFFHAND;
 
@@ -225,6 +237,12 @@ public class Offhand extends Module {
                         // move the item in the offhand to the return slot
                         if (returnSlot != -1) {
                             mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                            mc.playerController.updateController();
+
+                            // close window
+                            if (inventoryStrict.getValue() && mc.getConnection() != null) {
+                                mc.getConnection().getNetworkManager().sendPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId));
+                            }
                         }
 
                         offhandTimer.resetTime();
@@ -232,7 +250,7 @@ public class Offhand extends Module {
                 }
             }
 
-            if (interact.getValue().equals(Interact.STRICT)) {
+            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
                 if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.MILLISECONDS) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
                     // we are now moving the item to the offhand
                     stage = Stage.MOVE_TO_OFFHAND;
@@ -240,9 +258,8 @@ public class Offhand extends Module {
                     // stop player motion before moving items
                     if (motionStrict.getValue() && MotionUtil.hasMoved()) {
                         mc.player.motionX = 0;
-                        mc.player.motionY = 0;
                         mc.player.motionZ = 0;
-                        mc.player.setVelocity(0, 0, 0);
+                        mc.player.setVelocity(0, mc.player.motionY, 0);
                         return;
                     }
 
@@ -272,14 +289,19 @@ public class Offhand extends Module {
                         // stop player motion before moving items
                         if (motionStrict.getValue() && MotionUtil.hasMoved()) {
                             mc.player.motionX = 0;
-                            mc.player.motionY = 0;
                             mc.player.motionZ = 0;
-                            mc.player.setVelocity(0, 0, 0);
+                            mc.player.setVelocity(0, mc.player.motionY, 0);
                             return;
                         }
 
                         // move the item in the offhand to the return slot
                         mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                        mc.playerController.updateController();
+
+                        // close window
+                        if (inventoryStrict.getValue() && mc.getConnection() != null) {
+                            mc.getConnection().getNetworkManager().sendPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId));
+                        }
                     }
 
                     offhandTimer.resetTime();
@@ -343,22 +365,22 @@ public class Offhand extends Module {
         }
     }
 
-    public enum Interact {
+    public enum Timing {
 
         /**
          * Interacts at all times
          */
-        NORMAL,
+        LINEAR,
 
         /**
          * Interacts if each process has passed the delay
          */
-        STRICT,
+        SEQUENTIAL,
 
         /**
          * Interacts when holding certain items
          */
-        BYPASS
+        DYNAMIC
     }
 
     public enum Gapple {
@@ -375,6 +397,24 @@ public class Offhand extends Module {
 
         /**
          * Does not dynamically switch gapples to the offhand
+         */
+        NONE,
+    }
+    
+    public enum Safety {
+
+        /**
+         * Swaps when you're armor is missing or too low
+         */
+        ARMOR,
+
+        /**
+         * Swaps when the damage you would take is too high
+         */
+        DAMAGE,
+
+        /**
+         * No safety calculations
          */
         NONE,
     }
