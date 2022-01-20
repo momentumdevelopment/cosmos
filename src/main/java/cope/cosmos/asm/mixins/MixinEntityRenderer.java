@@ -24,7 +24,7 @@ import java.util.List;
 public class MixinEntityRenderer {
 
     @Inject(method = "renderWorld", at = @At("RETURN"))
-    private void renderWorldHook(CallbackInfo info) {
+    private void renderWorld(CallbackInfo info) {
         RenderWorldEvent renderWorldEvent = new RenderWorldEvent();
         Cosmos.EVENT_BUS.post(renderWorldEvent);
     }
@@ -34,8 +34,9 @@ public class MixinEntityRenderer {
         HurtCameraEvent hurtCameraEvent = new HurtCameraEvent();
         Cosmos.EVENT_BUS.post(hurtCameraEvent);
 
-        if (hurtCameraEvent.isCanceled())
+        if (hurtCameraEvent.isCanceled()) {
             info.cancel();
+        }
     }
 
     @Redirect(method = "getMouseOver", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;getEntitiesInAABBexcluding(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;Lcom/google/common/base/Predicate;)Ljava/util/List;"))

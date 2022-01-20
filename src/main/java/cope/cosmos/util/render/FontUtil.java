@@ -29,7 +29,9 @@ public class FontUtil implements Wrapper {
 	public static void drawCenteredStringWithShadow(String text, float x, float y, int color) {
 		if (Font.INSTANCE.isEnabled()) {
 			globalFont.drawStringWithShadow(text, x - globalFont.getStringWidth(text) / 2f + 0.75f, y - globalFont.getHeight() / 2f + 2f, color);
-		} else {
+		}
+
+		else {
 			mc.fontRenderer.drawStringWithShadow(text, x - mc.fontRenderer.getStringWidth(text) / 2f, y - ((float) mc.fontRenderer.FONT_HEIGHT) / 2f, color);
 		}
 	}
@@ -43,9 +45,6 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static float getFontHeight() {
-		if (Font.INSTANCE.isEnabled()) {
-			return globalFont.getHeight();
-		}
 		return mc.fontRenderer.FONT_HEIGHT;
 	}
 
