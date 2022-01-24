@@ -251,7 +251,7 @@ public class Speed extends Module {
                     // the jump height
                     double jumpSpeed = 0.3999999463558197;
 
-                    // jump slightly higher (i.e. slower)
+                    // jump slightly higher (i.e. slower, this uses vanilla jump height)
                     if (strictJump.getValue()) {
                         jumpSpeed = 0.42;
                     }

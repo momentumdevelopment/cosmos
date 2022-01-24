@@ -27,7 +27,6 @@ import java.awt.*;
  * @author linustouchtips
  * @since 12/08/2021
  */
-@SuppressWarnings("unused")
 public class Surround extends Module {
     public static Surround INSTANCE;
 
@@ -36,16 +35,17 @@ public class Surround extends Module {
         INSTANCE = this;
     }
 
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL).setDescription("When to place blocks");
     public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE).setDescription("Block positions for surround");
     public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN).setDescription("Block item to use for surround");
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR).setDescription("When to toggle surround");
     public static Setting<Center> center = new Setting<>("Center", Center.NONE).setDescription("Mode to center the player position");
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
+
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
 
+    // anti-cheat
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
-    public static Setting<Boolean> reactive = new Setting<>("Reactive", true).setDescription("Replaces surround blocks when they break");
-
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the surround");
@@ -108,7 +108,7 @@ public class Surround extends Module {
             }
 
             // pause if we are already in a hole
-            if (completion.getValue().equals(Completion.SURROUNDED) && !getCosmos().getHoleManager().isInHole(mc.player)) {
+            if (completion.getValue().equals(Completion.SURROUNDED) && !getCosmos().getHoleManager().isHole(mc.player.getPosition())) {
                 disable();
                 return;
             }
@@ -188,7 +188,7 @@ public class Surround extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && !getCosmos().getHoleManager().isInHole(mc.player);
+        return isEnabled() && !getCosmos().getHoleManager().isHole(mc.player.getPosition());
     }
 
     @SubscribeEvent
@@ -196,7 +196,7 @@ public class Surround extends Module {
         // packet for block changes
         if (event.getPacket() instanceof SPacketBlockChange) {
 
-            if (reactive.getValue()) {
+            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
                 // check if the block is now replaceable
                 if (((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
 
@@ -244,7 +244,7 @@ public class Surround extends Module {
 
         // packet for multiple block changes
         if (event.getPacket() instanceof SPacketMultiBlockChange) {
-            if (reactive.getValue()) {
+            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                 // check each of the updated blocks
                 for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
@@ -354,6 +354,19 @@ public class Surround extends Module {
         public Vec3i[] getVectors() {
             return vectors;
         }
+    }
+
+    public enum Timing {
+
+        /**
+         * Places on each update tick
+         */
+        TICK,
+
+        /**
+         * Places when recieving packets
+         */
+        SEQUENTIAL
     }
 
     public enum Center {

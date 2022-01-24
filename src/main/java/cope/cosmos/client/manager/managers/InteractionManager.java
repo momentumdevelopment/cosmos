@@ -58,9 +58,9 @@ public class InteractionManager extends Manager implements Wrapper {
             Blocks.BROWN_SHULKER_BOX,
             Blocks.GREEN_SHULKER_BOX,
             Blocks.RED_SHULKER_BOX,
-            Blocks.BLACK_SHULKER_BOX,
-            Blocks.COMMAND_BLOCK,
-            Blocks.CHAIN_COMMAND_BLOCK
+            Blocks.BLACK_SHULKER_BOX
+            // Blocks.COMMAND_BLOCK,
+            // Blocks.CHAIN_COMMAND_BLOCK
     );
 
     /**

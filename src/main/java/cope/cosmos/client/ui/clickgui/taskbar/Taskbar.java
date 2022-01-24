@@ -1,57 +1,139 @@
 package cope.cosmos.client.ui.clickgui.taskbar;
 
-import cope.cosmos.client.ui.clickgui.ClickGuiScreen;
-import cope.cosmos.client.ui.clickgui.element.Element;
-import cope.cosmos.client.ui.clickgui.element.SimpleElement;
+import cope.cosmos.client.ui.util.GUIUtil;
 import cope.cosmos.client.ui.clickgui.window.Window;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.Vec2f;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.awt.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Taskbar extends Element {
+import static org.lwjgl.opengl.GL11.*;
 
-    private final ClickGuiScreen mainScr;
-    private final HashMap<Window, SimpleElement> buttons = new HashMap<>();
-    private final SimpleElement bottomLeft = new SimpleElement().withText(() -> "R").withOnClick((e, f) -> getMainScr().reset());
+public class Taskbar implements Wrapper, GUIUtil {
 
-    public Taskbar(ClickGuiScreen mainScr) {
-        this.mainScr = mainScr;
+    private final List<Icon> icons = new CopyOnWriteArrayList<>();
+
+    private float offset;
+
+    public void drawTaskbar() {
+        // background
+        RenderUtil.drawRect(0, new ScaledResolution(mc).getScaledHeight() - 34, new ScaledResolution(mc).getScaledWidth(), 34, new Color(0, 0, 0, 90));
+        RenderUtil.drawRect(107, new ScaledResolution(mc).getScaledHeight() - 32, 2, 30, ColorUtil.getPrimaryAlphaColor(120));
+
+        // logo
+        glPushMatrix();
+        glColor4d(1, 1, 1, 1);
+        mc.getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/imgs/logotransparent.png"));
+        GuiScreen.drawModalRectWithCustomSizedTexture(2, new ScaledResolution(mc).getScaledHeight() - 31, 0, 0, 104, 28, 104, 28);
+        glPopMatrix();
+
+        // add all pinned windows
+        icons.clear();
+        getManager().getPinnedWindows().forEach(window -> {
+            icons.add(new Icon(window));
+        });
+
+        offset = 0;
+        icons.forEach(icon -> {
+            icon.drawIcon(new Vec2f(120 + offset, new ScaledResolution(mc).getScaledHeight() - 30));
+            offset += 38;
+        });
     }
 
-    @Override
-    public void draw(int mouseX, int mouseY) {
-        RenderUtil.drawRect(0, RenderUtil.displayHeight() - 22, RenderUtil.displayWidth(), 22, 0xFF23232C);
-        float xOffset = RenderUtil.displayWidth() / 2f - 13 * mainScr.getListElements().size();
-        bottomLeft.withBackground(() -> 0xff23232c).withX(0).withY(RenderUtil.displayHeight() - 22).withWidth(26).withHeight(22).draw(mouseX, mouseY);
-        Iterator<Element> j = mainScr.getListElements().stream().filter(e -> e instanceof Window).sorted((o1, o2) -> (int) (o1.getOpenTime() - o2.getOpenTime())).iterator();
-        while (j.hasNext()) {
-            Window e = (Window) j.next();
-            buttons.computeIfAbsent(e, w -> new SimpleElement().withText(() -> w.title.substring(0, 1)).withBackground(() -> mainScr.getListElements().indexOf(w) == 0 ? 0xff35353f : 0xff23232c));
-            buttons.get(e).withX(xOffset).withY(RenderUtil.displayHeight() - 22).withWidth(26).withHeight(22).draw(mouseX, mouseY);
-            xOffset += 26f;
-        }
+    public void handleLeftClick() {
+        icons.forEach(icon -> {
+            icon.handleLeftClick();
+        });
     }
 
-    @Override
-    public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if (bottomLeft.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return true;
+    public void handleRightClick() {
+        icons.forEach(icon -> {
+            icon.handleRightClick();
+        });
+    }
+
+    public static class Icon implements GUIUtil, Wrapper {
+
+        private final Window window;
+
+        private int hoverAnimation;
+
+        private Vec2f position;
+        private boolean open = false;
+
+        public Icon(Window window) {
+            this.window = window;
         }
-        buttons.forEach((w, e) -> {
-            if (mainScr.getListElements().contains(w)) {
-                if (e.isWithin(mouseX, mouseY)) {
-                    w.setOpenTime(System.currentTimeMillis());
-                    w.setVisible(!w.isVisible());
+
+        public void drawIcon(Vec2f position) {
+            setPosition(position);
+
+            RenderUtil.drawRect(position.x - 1, position.y - 2, 30, 28, getManager().getWindows().contains(window) ? ColorUtil.getPrimaryAlphaColor(120) : new Color(25, 25, 25, 90));
+
+            // hover animation
+            if (mouseOver(position.x, position.y, 28, 28)) {
+                if (hoverAnimation < 25) {
+                    hoverAnimation += 5;
+                }
+
+                if (!open) {
+                    String hoverText = window.getName();
+
+                    // hover text
+                    RenderUtil.drawBorderRect(position.x - (FontUtil.getStringWidth(hoverText) / 2F) + 12, position.y - 19, FontUtil.getStringWidth(hoverText) + 4, FontUtil.getFontHeight() + 3, new Color(0, 0, 0, 90), new Color(0, 0, 0, 120));
+                    FontUtil.drawStringWithShadow(hoverText, position.x - (FontUtil.getStringWidth(hoverText) / 2F) + 14, position.y - 17, -1);
                 }
             }
-        });
-        return buttons.values().stream().anyMatch(e -> e.isWithin(mouseX, mouseY));
-    }
 
-    private ClickGuiScreen getMainScr() {
-        return mainScr;
-    }
+            else if (!mouseOver(position.x, position.y, 28, 28) && hoverAnimation > 0)
+                hoverAnimation -= 5;
 
+            if (open) {
+                RenderUtil.drawRect(getPosition().x + 14, getPosition().y - (FontUtil.getFontHeight() * 2) - 44, FontUtil.getStringWidth("Close") + 4, (FontUtil.getFontHeight() * 2) + 4, new Color(0, 0, 0, 90));
+            }
+
+            // draws the icon
+            glPushMatrix();
+            glColor4d(1, 1, 1, 1);
+            mc.getTextureManager().bindTexture(getIcon());
+            GuiScreen.drawModalRectWithCustomSizedTexture((int) position.x, (int) position.y, 0, 0, 28, 28, 28, 28);
+            glPopMatrix();
+        }
+
+        public void handleLeftClick() {
+            if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
+                if (!getManager().getWindows().contains(window)) {
+                    getManager().createWindow(window);
+                    getCosmos().getSoundManager().playSound("click");
+                }
+            }
+        }
+
+        public void handleRightClick() {
+            if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
+                open = !open;
+                getCosmos().getSoundManager().playSound("click");
+            }
+        }
+
+        public void setPosition(Vec2f in) {
+            position = in;
+        }
+
+        public Vec2f getPosition() {
+            return position;
+        }
+
+        public ResourceLocation getIcon() {
+            return window.getIcon();
+        }
+    }
 }
