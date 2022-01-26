@@ -35,6 +35,7 @@ public class ModuleManager extends Manager {
 				new Font(),
 				new Social(),
 				new HUD(),
+				new StreamerMode(),
 
 				// combat
 				new Aura(),
