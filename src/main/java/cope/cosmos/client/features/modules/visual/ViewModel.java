@@ -24,7 +24,7 @@ public class ViewModel extends Module {
     public static final Setting<Double> itemAlpha = new Setting<>("ItemAlpha", 0.0, 255.0, 255.0, 1).setDescription("The held item alpha to use");
 
     public static final Setting<Boolean> modifyFov = new Setting<>("ModifyFOV", false).setDescription("If to modify the item FOV");
-    public static final Setting<Double> fov = new Setting<>("FOV", 70.0, 130.0, 200.0, 0).setDescription("The item FOV to use").setParent(modifyFov);
+    public static final Setting<Float> fov = new Setting<>("FOV", 70.0f, 130.0f, 200.0f, 0).setDescription("The item FOV to use").setParent(modifyFov);
 
     public static final Setting<Double> translateX = new Setting<>("TranslateX", -2.0, 0.0, 2.0, 1).setDescription("The x translation coordinate");
     public static final Setting<Double> translateY = new Setting<>("TranslateY", -2.0, 0.0, 2.0, 1).setDescription("The y translation coordinate");
@@ -52,7 +52,7 @@ public class ViewModel extends Module {
     @SubscribeEvent
     public void onItemRenderFov(EntityViewRenderEvent.FOVModifier event) {
         if (modifyFov.getValue()) {
-            event.setFOV(fov.getValue().floatValue());
+            event.setFOV(fov.getValue());
         }
     }
 
