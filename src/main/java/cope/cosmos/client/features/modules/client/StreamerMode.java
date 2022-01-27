@@ -11,9 +11,16 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+/**
+ * @author aesthetical
+ * @since 1/26/2022
+ */
 public class StreamerMode extends Module {
+    public static StreamerMode INSTANCE;
+
     public StreamerMode() {
         super("StreamerMode", Category.CLIENT, "Opens a separate window that shows your coords etc. Helpful for streaming");
+        INSTANCE = this;
     }
 
     private JFrame frame;
@@ -21,18 +28,20 @@ public class StreamerMode extends Module {
 
     @Override
     public void onEnable() {
-        if (!nullCheck()) {
-            toggle();
-            return;
-        }
+        super.onEnable();
 
         // god do i hate how this code looks
         frame = new JFrame("Cosmos Streamer Mode");
 
         frame.setSize(1000, 350);
+
+        // set everything to go vertical (y axis)
         frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
         frame.getContentPane().setBackground(Color.BLACK);
+
+        // add our text labels we'll be editing with the data
+        // we also set the font for all of these labels too
 
         facing = new JLabel("Facing: ");
         facing.setFont(new Font("Verdana", Font.PLAIN, 26));
@@ -43,10 +52,12 @@ public class StreamerMode extends Module {
         netherCoords = new JLabel("XYZ [Nether]: ");
         netherCoords.setFont(new Font("Verdana", Font.PLAIN, 26));
 
+        // add to frame
         frame.add(facing);
         frame.add(coords);
         frame.add(netherCoords);
 
+        // add a close listener for when the X is pressed. it'll toggle off the module.
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -54,12 +65,16 @@ public class StreamerMode extends Module {
             }
         });
 
+        // pack the elements, and set the frame to visble
         frame.pack();
         frame.setVisible(true);
     }
 
     @Override
     public void onDisable() {
+        super.onDisable();
+
+        // cleanup
         if (frame != null) {
             frame.setVisible(false);
             frame.dispose();
