@@ -1,9 +1,9 @@
 package cope.cosmos.client.ui.clickgui.taskbar;
 
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.clickgui.window.Window;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -17,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Taskbar implements Wrapper, GUIUtil {
+public class Taskbar implements Wrapper, InterfaceUtil {
 
     private final List<Icon> icons = new CopyOnWriteArrayList<>();
 
@@ -60,7 +60,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         });
     }
 
-    public static class Icon implements GUIUtil, Wrapper {
+    public static class Icon implements InterfaceUtil, Wrapper {
 
         private final Window window;
 
@@ -79,7 +79,7 @@ public class Taskbar implements Wrapper, GUIUtil {
             RenderUtil.drawRect(position.x - 1, position.y - 2, 30, 28, getManager().getWindows().contains(window) ? ColorUtil.getPrimaryAlphaColor(120) : new Color(25, 25, 25, 90));
 
             // hover animation
-            if (mouseOver(position.x, position.y, 28, 28)) {
+            if (isMouseOver(position.x, position.y, 28, 28)) {
                 if (hoverAnimation < 25) {
                     hoverAnimation += 5;
                 }
@@ -93,7 +93,7 @@ public class Taskbar implements Wrapper, GUIUtil {
                 }
             }
 
-            else if (!mouseOver(position.x, position.y, 28, 28) && hoverAnimation > 0)
+            else if (!isMouseOver(position.x, position.y, 28, 28) && hoverAnimation > 0)
                 hoverAnimation -= 5;
 
             if (open) {
@@ -109,7 +109,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         }
 
         public void handleLeftClick() {
-            if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
+            if (isMouseOver(getPosition().x, getPosition().y, 28, 28)) {
                 if (!getManager().getWindows().contains(window)) {
                     getManager().createWindow(window);
                     getCosmos().getSoundManager().playSound("click");
@@ -118,7 +118,7 @@ public class Taskbar implements Wrapper, GUIUtil {
         }
 
         public void handleRightClick() {
-            if (mouseOver(getPosition().x, getPosition().y, 28, 28)) {
+            if (isMouseOver(getPosition().x, getPosition().y, 28, 28)) {
                 open = !open;
                 getCosmos().getSoundManager().playSound("click");
             }

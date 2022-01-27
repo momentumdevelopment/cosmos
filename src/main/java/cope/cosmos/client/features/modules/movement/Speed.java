@@ -8,10 +8,10 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -76,7 +76,7 @@ public class Speed extends Module {
     @Override
     public void onUpdate() {
         // our latest move speed
-        latestMoveSpeed = Math.sqrt(Math.pow(mc.player.posX - mc.player.prevPosX, 2) + Math.pow(mc.player.posZ - mc.player.prevPosZ, 2));
+        latestMoveSpeed = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
     @SubscribeEvent
@@ -464,8 +464,8 @@ public class Speed extends Module {
         if (event.getPacket() instanceof SPacketExplosion) {
 
             // velocity from explosion
-            double boostMotionX = Math.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
-            double boostMotionZ = Math.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
+            double boostMotionX = StrictMath.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
+            double boostMotionZ = StrictMath.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
 
             // boost our speed
             boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
@@ -478,8 +478,8 @@ public class Speed extends Module {
         if (event.getPacket() instanceof SPacketEntityVelocity) {
 
             // velocity from knockback
-            double boostMotionX = Math.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
-            double boostMotionZ = Math.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
+            double boostMotionX = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
+            double boostMotionZ = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
 
             // boost our speed
             boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);

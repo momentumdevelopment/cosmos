@@ -1,4 +1,4 @@
-package cope.cosmos.util.player;
+package cope.cosmos.util.holder;
 
 import cope.cosmos.util.Wrapper;
 

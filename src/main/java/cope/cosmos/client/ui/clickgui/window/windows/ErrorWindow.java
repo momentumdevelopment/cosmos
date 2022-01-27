@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.clickgui.window.windows;
 
 import cope.cosmos.client.ui.clickgui.window.Window;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.ResourceLocation;
@@ -27,10 +27,10 @@ public class ErrorWindow extends Window {
         super.drawWindow();
 
         // hover animation
-        if (mouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14) && hoverAnimation < 25)
+        if (isMouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14) && hoverAnimation < 25)
             hoverAnimation += 5;
 
-        else if (!mouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14) && hoverAnimation > 0)
+        else if (!isMouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14) && hoverAnimation > 0)
             hoverAnimation -= 5;
 
         FontUtil.drawStringWithShadow(error, getPosition().x + 3, getPosition().y + getBar() + 3, -1);
@@ -41,12 +41,12 @@ public class ErrorWindow extends Window {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x + getWidth() - 14, getPosition().y, 14, 14)) {
+        if (isMouseOver(getPosition().x + getWidth() - 14, getPosition().y, 14, 14)) {
             getManager().removeWindow(this);
             getCosmos().getSoundManager().playSound("click");
         }
 
-        if (mouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14)) {
+        if (isMouseOver(getPosition().x + (getWidth() / 2) - 15, getPosition().y + getBar() + FontUtil.getFontHeight() + 6, 30, 14)) {
             getManager().removeWindow(this);
             getCosmos().getSoundManager().playSound("click");
         }

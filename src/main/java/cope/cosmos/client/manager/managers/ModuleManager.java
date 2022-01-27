@@ -33,8 +33,8 @@ public class ModuleManager extends Manager {
 				new Colors(),
 				new DiscordPresence(),
 				new Font(),
-				new Social(),
 				new HUD(),
+				new Social(),
 				new StreamerMode(),
 
 				// combat

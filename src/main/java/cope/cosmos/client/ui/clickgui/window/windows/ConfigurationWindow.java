@@ -7,8 +7,8 @@ import cope.cosmos.client.ui.clickgui.window.windows.configuration.ModuleCompone
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.events.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -74,11 +74,11 @@ public class ConfigurationWindow extends TabbedWindow {
     public void drawWindow() {
         super.drawWindow();
 
-        if (mouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, getTab().getHeight() - 2) && backAnimation < 25) {
+        if (isMouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, getTab().getHeight() - 2) && backAnimation < 25) {
             backAnimation += 5;
         }
 
-        else if (!mouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, getTab().getHeight() - 2) && backAnimation > 0) {
+        else if (!isMouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, getTab().getHeight() - 2) && backAnimation > 0) {
             backAnimation -= 5;
         }
 
@@ -141,11 +141,11 @@ public class ConfigurationWindow extends TabbedWindow {
             buttonHeight = FontUtil.getFontHeight() + (FontUtil.getFontHeight() * 0.6F) + (!lowerLine.toString().equals("") ? (FontUtil.getFontHeight() * 0.6F + 2) : 0) + 15;
             quarterWidth = (halfWidth / 2) - 5;
 
-            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation < 25) {
+            if (isMouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation < 25) {
                 bindAnimation += 5;
             }
 
-            else if (!mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation > 0) {
+            else if (!isMouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && bindAnimation > 0) {
                 bindAnimation -= 5;
             }
 
@@ -163,11 +163,11 @@ public class ConfigurationWindow extends TabbedWindow {
             // offset the buttons
             buttonOffset = quarterWidth + 5;
 
-            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25) {
+            if (isMouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation < 25) {
                 drawnAnimation += 5;
             }
 
-            else if (!mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation > 0) {
+            else if (!isMouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3) && drawnAnimation > 0) {
                 drawnAnimation -= 5;
             }
 
@@ -217,7 +217,7 @@ public class ConfigurationWindow extends TabbedWindow {
     public void handleLeftClick() {
         super.handleLeftClick();
 
-        if (mouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, 13)) {
+        if (isMouseOver(getPosition().x + 4, getPosition().y + getBar() + 4, 13, 13)) {
             switch (page) {
                 case MODULE:
                     break;
@@ -242,12 +242,12 @@ public class ConfigurationWindow extends TabbedWindow {
         });
 
         if (page.equals(Page.SETTING) && moduleComponent != null) {
-            if (mouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
+            if (isMouseOver(getPosition().x + 8, getPosition().y + getBar() + getTab().getHeight() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
                 binding = !binding;
                 getCosmos().getSoundManager().playSound("click");
             }
 
-            if (mouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
+            if (isMouseOver(getPosition().x + buttonOffset + 8, getPosition().y + getBar() + getTab().getHeight() - getScroll() + buttonHeight, quarterWidth, (FontUtil.getFontHeight() * 0.8F) + 3)) {
                 boolean previousDrawn = moduleComponent.getModule().isDrawn();
                 moduleComponent.getModule().setDrawn(!previousDrawn);
                 getCosmos().getSoundManager().playSound("click");

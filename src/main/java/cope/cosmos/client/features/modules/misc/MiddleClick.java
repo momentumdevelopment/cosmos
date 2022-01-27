@@ -4,7 +4,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.*;
-import cope.cosmos.util.client.ChatUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;

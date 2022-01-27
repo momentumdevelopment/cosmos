@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.util.client.ChatUtil;
 
 public class Preset extends Command {
     public Preset() {

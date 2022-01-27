@@ -4,7 +4,7 @@ import cope.cosmos.client.events.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityLlama;

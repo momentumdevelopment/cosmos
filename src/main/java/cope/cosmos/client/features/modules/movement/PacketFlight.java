@@ -9,7 +9,7 @@ import cope.cosmos.client.events.PushOutOfBlocksEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;

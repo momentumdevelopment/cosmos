@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
+import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.PacketEvent;
@@ -11,22 +12,22 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.player.Rotation;
-import cope.cosmos.util.player.Rotation.Rotate;
+import cope.cosmos.util.holder.Rotation;
+import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.system.MathUtil;
-import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.Format;
+import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.world.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.EntityUtil;
+import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.entity.Entity;
@@ -395,7 +396,7 @@ public class AutoCrystal extends Module {
                             Vec3d strictVector = new Vec3d(placePosition.getPosition());
 
                             // our nearest visible face
-                            double nearestFace = Double.MAX_VALUE;
+                            Pair<Double, EnumFacing> closestDirection = Pair.of(Double.MAX_VALUE, EnumFacing.UP);
 
                             // iterate through all points on the block
                             for (float x = 0; x <= 1; x += 0.05) {
@@ -410,17 +411,18 @@ public class AutoCrystal extends Module {
                                         // if our raytrace is a block, check distances
                                         if (strictResult != null && strictResult.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
                                             // distance to face
-                                            double faceDistance = mc.player.getDistance(traceVector.x, traceVector.y, traceVector.z);
+                                            double directionDistance = mc.player.getDistance(traceVector.x, traceVector.y, traceVector.z);
 
                                             // if the face is the closest to the player and trace distance is reasonably close, then we have found a new ideal visible side to place against
-                                            if (faceDistance < nearestFace) {
-                                                facingDirection = strictResult.sideHit;
-                                                nearestFace = faceDistance;
+                                            if (directionDistance < closestDirection.first()) {
+                                                closestDirection = Pair.of(directionDistance, strictResult.sideHit);
                                             }
                                         }
                                     }
                                 }
                             }
+
+                            facingDirection = closestDirection.second();
                         }
 
                         // find rotations based on the placement

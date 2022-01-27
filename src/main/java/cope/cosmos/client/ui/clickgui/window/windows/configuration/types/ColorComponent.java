@@ -4,6 +4,7 @@ import cope.cosmos.client.ui.clickgui.window.windows.configuration.SettingCompon
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
@@ -41,7 +42,7 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
         Vec2f centerPosition = new Vec2f(getPosition().x + 35, getPosition().y + (boundHeight / 2) + 34);
 
-        if (mouseOver(getPosition().x + 6, getPosition().y + (boundHeight / 2) + 2, 64, 64)) {
+        if (isMouseOver(getPosition().x + 6, getPosition().y + (boundHeight / 2) + 2, 64, 64)) {
             if (getGUI().getMouse().isLeftHeld()) {
                 // set the selected color as the radius and angle
                 if (isWithinCircle(centerPosition.x, centerPosition.y, 32, getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y)) {
@@ -61,14 +62,14 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
             }
         }
 
-        if (mouseOver(getPosition().x + 80, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
+        if (isMouseOver(getPosition().x + 80, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
             if (isWithinRect(getPosition().x + 80, getPosition().y + (boundHeight / 2) + 2, 64, getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y)) {
                 setBrightnessPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setBrightness(1 - ((brightnessPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
             }
         }
 
-        if (mouseOver(getPosition().x + 94, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
+        if (isMouseOver(getPosition().x + 94, getPosition().y + (boundHeight / 2) + 4, 3, 62) && getGUI().getMouse().isLeftHeld()) {
             if (isWithinRect(getPosition().x + 94, getPosition().y + (boundHeight / 2) + 2, 64, getGUI().getMouse().getMousePosition().x, getGUI().getMouse().getMousePosition().y)) {
                 setTransparencyPosition(getGUI().getMouse().getMousePosition().y);
                 selectedColor.setTransparency(1 - ((transparencyPosition - (getPosition().y + (boundHeight / 2) + 4)) / 64));
@@ -101,15 +102,15 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x + 6, getPosition().y + getBoundHeight() + 2, 64, 64)) {
+        if (isMouseOver(getPosition().x + 6, getPosition().y + getBoundHeight() + 2, 64, 64)) {
             getCosmos().getSoundManager().playSound("click");
         }
 
-        if (mouseOver(getPosition().x + 80, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
+        if (isMouseOver(getPosition().x + 80, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
             getCosmos().getSoundManager().playSound("click");
         }
 
-        if (mouseOver(getPosition().x + 94, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
+        if (isMouseOver(getPosition().x + 94, getPosition().y + (getBoundHeight() / 2) + 4, 3, 62)) {
             getCosmos().getSoundManager().playSound("click");
         }
     }
@@ -217,7 +218,7 @@ public class ColorComponent extends TypeComponent<Color> implements Wrapper {
     }
 
     private boolean isWithinCircle(double x, double y, double radius, float mouseX, float mouseY) {
-        return Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2)) <= radius;
+        return Math.sqrt(StrictMath.pow(mouseX - x, 2) + StrictMath.pow(mouseY - y, 2)) <= radius;
     }
 
     private boolean isWithinRect(float x, float y, float height, float mouseX, float mouseY) {

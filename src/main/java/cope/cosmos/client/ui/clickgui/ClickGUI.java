@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.clickgui;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.clickgui.taskbar.Taskbar;
 import cope.cosmos.client.ui.clickgui.window.ScrollableWindow;
@@ -15,7 +15,7 @@ import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 
-public class ClickGUI extends GuiScreen implements GUIUtil {
+public class ClickGUI extends GuiScreen implements InterfaceUtil {
 
     private final WindowManager windowManager = new WindowManager();
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
@@ -34,7 +34,7 @@ public class ClickGUI extends GuiScreen implements GUIUtil {
             window.drawWindow();
 
             if (window.isInteractable()) {
-                if (mouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
+                if (isMouseOver(window.getPosition().x, window.getPosition().y + window.getBar(), window.getWidth(), window.getHeight()) && Mouse.hasWheel()) {
                     window.handleScroll(Mouse.getDWheel());
                 }
             }

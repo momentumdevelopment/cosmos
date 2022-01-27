@@ -1,7 +1,7 @@
 package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.player.Rotation;
+import cope.cosmos.util.holder.Rotation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 

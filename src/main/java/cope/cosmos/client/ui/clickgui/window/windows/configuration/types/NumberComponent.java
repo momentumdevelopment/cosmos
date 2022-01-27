@@ -4,10 +4,10 @@ import cope.cosmos.client.ui.clickgui.window.windows.configuration.SettingCompon
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.util.math.MathUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 
@@ -32,7 +32,7 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
         FontUtil.drawStringWithShadow(value, position.x + width - FontUtil.getStringWidth(value) - 2, position.y + 3, -1);
 
         // TODO: Check if not expanding window
-        if (mouseOver(getPosition().x, getPosition().y + 20, width, 4)) {
+        if (isMouseOver(getPosition().x, getPosition().y + 20, width, 4)) {
             // make sure user is holding the left mouse
             if (getGUI().getMouse().isLeftHeld()) {
                 lastDraggingMouseX = getGUI().getMouse().getMousePosition().x;
@@ -49,7 +49,7 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
 
                     // exclude number
                     if (getSetting().isExclusion(valueSlid)) {
-                        getSetting().setValue(valueSlid + Math.pow(1, -getSetting().getRoundingScale()));
+                        getSetting().setValue(valueSlid + StrictMath.pow(1, -getSetting().getRoundingScale()));
                     }
 
                     else {
@@ -62,7 +62,7 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
 
                     // exclude number
                     if (getSetting().isExclusion(valueSlid)) {
-                        getSetting().setValue(valueSlid + Math.pow(1, -getSetting().getRoundingScale()));
+                        getSetting().setValue(valueSlid + StrictMath.pow(1, -getSetting().getRoundingScale()));
                     }
 
                     else {
@@ -75,14 +75,14 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
         float pixAdd = lastDraggingMouseX == 0 ? (((getPosition().x + (width - 6)) - getPosition().x) * (getSetting().getValue().floatValue() - getSetting().getMin().floatValue()) / (getSetting().getMax().floatValue() - getSetting().getMin().floatValue())) : (lastDraggingMouseX - getPosition().x);
 
         // if less than min, setting is min
-        if (mouseOver(getPosition().x, getPosition().y + 20, 5, 4)) {
+        if (isMouseOver(getPosition().x, getPosition().y + 20, 5, 4)) {
             if (getGUI().getMouse().isLeftHeld()) {
                 getSetting().setValue(getSetting().getMin());
             }
         }
 
         // if greater than max, setting is max
-        if (mouseOver(getPosition().x + (width - 6), getPosition().y + 20, 5, 4)) {
+        if (isMouseOver(getPosition().x + (width - 6), getPosition().y + 20, 5, 4)) {
             if (getGUI().getMouse().isLeftHeld()) {
                 getSetting().setValue(getSetting().getMax());
             }
@@ -105,7 +105,7 @@ public class NumberComponent extends TypeComponent<Number> implements Wrapper {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x, getPosition().y + 20, getWidth(), 4)) {
+        if (isMouseOver(getPosition().x, getPosition().y + 20, getWidth(), 4)) {
             getCosmos().getSoundManager().playSound("click");
         }
     }

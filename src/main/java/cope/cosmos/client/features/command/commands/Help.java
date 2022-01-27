@@ -6,8 +6,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.client.manager.managers.CommandManager;
-import cope.cosmos.util.client.ChatUtil;
 
 import java.util.List;
 

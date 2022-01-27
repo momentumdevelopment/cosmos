@@ -12,8 +12,9 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.shader.shaders.DotShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.world.EntityUtil;
+import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.entity.EntityUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -364,7 +365,7 @@ public class ESP extends Module {
                 // calculate model rotations
                 float rotation = event.getEntityEnderCrystal().innerRotation + event.getPartialTicks();
                 float rotationMoved = MathHelper.sin(rotation * 0.2F) / 2 + 0.5F;
-                rotationMoved += Math.pow(rotationMoved, 2);
+                rotationMoved += StrictMath.pow(rotationMoved, 2);
 
                 glPushMatrix();
                 

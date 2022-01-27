@@ -1,7 +1,6 @@
-package cope.cosmos.util.client;
+package cope.cosmos.util.string;
 
 import cope.cosmos.client.features.modules.client.Colors;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 

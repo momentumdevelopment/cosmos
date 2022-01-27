@@ -8,12 +8,11 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.movement.Speed;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.ModuleManager;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.render.FontUtil;
-import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.util.math.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -144,7 +143,7 @@ public class HUD extends Module {
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;
 
                 // speed in kmh
-                float speed = MathUtil.roundFloat(((MathHelper.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceZ, 2)) / 1000) / (0.05F / 3600) * (50 / getCosmos().getTickManager().getTickLength())), 1);
+                float speed = MathUtil.roundFloat(((MathHelper.sqrt(StrictMath.pow(distanceX, 2) + StrictMath.pow(distanceZ, 2)) / 1000) / (0.05F / 3600) * (50 / getCosmos().getTickManager().getTickLength())), 1);
 
                 // future moment
                 if (MotionUtil.isMoving() && Speed.INSTANCE.isEnabled()) {

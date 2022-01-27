@@ -1,12 +1,12 @@
 package cope.cosmos.client.ui.clickgui.window.windows.configuration.types;
 
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.SettingComponent;
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
@@ -49,10 +49,10 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         setBoundHeight(boundHeight);
 
         // hover animation
-        if (mouseOver(position.x + 3, position.y + boundHeight - 17, width - 6, 13) && hoverAnimation < 25)
+        if (isMouseOver(position.x + 3, position.y + boundHeight - 17, width - 6, 13) && hoverAnimation < 25)
             hoverAnimation += 5;
 
-        else if (!mouseOver(position.x + 3, position.y + boundHeight - 17, width - 6, 13) && hoverAnimation > 0)
+        else if (!isMouseOver(position.x + 3, position.y + boundHeight - 17, width - 6, 13) && hoverAnimation > 0)
             hoverAnimation -= 5;
 
         RenderUtil.drawBorderRect(position.x + 3, position.y + boundHeight - 19, width - 6, 13, new Color(hoverAnimation, hoverAnimation, hoverAnimation, 65), new Color(0, 0, 0, 100));
@@ -79,7 +79,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x + 3, getPosition().y + getBoundHeight() - 17, getWidth() - 6, 13)) {
+        if (isMouseOver(getPosition().x + 3, getPosition().y + getBoundHeight() - 17, getWidth() - 6, 13)) {
             open = !open;
             getCosmos().getSoundManager().playSound("click");
         }
@@ -113,7 +113,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
         return open;
     }
 
-    public static class ModeComponent implements GUIUtil, Wrapper {
+    public static class ModeComponent implements InterfaceUtil, Wrapper {
 
         private final EnumComponent component;
         private final Setting<Enum<?>> setting;
@@ -136,11 +136,11 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
             setWidth(width);
 
             // hover animation
-            if (mouseOver(position.x, position.y, width, 13) && hoverAnimation < 25) {
+            if (isMouseOver(position.x, position.y, width, 13) && hoverAnimation < 25) {
                 hoverAnimation += 5;
             }
 
-            else if (!mouseOver(position.x, position.y, width, 13) && hoverAnimation > 0) {
+            else if (!isMouseOver(position.x, position.y, width, 13) && hoverAnimation > 0) {
                 hoverAnimation -= 5;
             }
 
@@ -179,7 +179,7 @@ public class EnumComponent extends TypeComponent<Enum<?>> implements Wrapper {
 
         @SuppressWarnings("unchecked")
         public void handleLeftClick() {
-            if (mouseOver(position.x, position.y, width, 13)) {
+            if (isMouseOver(position.x, position.y, width, 13)) {
                 setting.setValue(Enum.valueOf(setting.getValue().getClass(), mode));
                 component.setOpen(false);
                 getCosmos().getSoundManager().playSound("click");

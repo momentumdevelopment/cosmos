@@ -1,7 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.util.system.Timer;
+import cope.cosmos.util.math.Timer;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.List;

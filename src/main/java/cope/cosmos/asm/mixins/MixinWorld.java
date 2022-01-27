@@ -4,7 +4,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.RenderSkyEvent;
 import cope.cosmos.client.events.RenderSkylightEvent;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;

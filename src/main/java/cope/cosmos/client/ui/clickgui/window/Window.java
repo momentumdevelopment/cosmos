@@ -1,10 +1,10 @@
 package cope.cosmos.client.ui.clickgui.window;
 
 import cope.cosmos.asm.mixins.accessor.IShaderGroup;
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.features.modules.client.ClickGUI;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.Gui;
@@ -22,7 +22,7 @@ import java.awt.*;
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
-public class Window implements GUIUtil, Wrapper {
+public class Window implements InterfaceUtil, Wrapper {
 
     private final String name;
     private final ResourceLocation icon;
@@ -74,7 +74,7 @@ public class Window implements GUIUtil, Wrapper {
 
     public void drawWindow() {
         // check if we are dragging our window and update position accordingly
-        if (mouseOver(position.x, position.y, width, bar) && getGUI().getMouse().isLeftHeld()) {
+        if (isMouseOver(position.x, position.y, width, bar) && getGUI().getMouse().isLeftHeld()) {
             setDragging(true);
         }
 
@@ -83,7 +83,7 @@ public class Window implements GUIUtil, Wrapper {
         }
 
         // check if we are expanding our window and update our dimensions accordingly
-        if (mouseOver(position.x + width - 10, position.y + height - 10, 10, 10) && getGUI().getMouse().isLeftHeld()) {
+        if (isMouseOver(position.x + width - 10, position.y + height - 10, 10, 10) && getGUI().getMouse().isLeftHeld()) {
             setExpanding(true);
         }
 
@@ -112,7 +112,7 @@ public class Window implements GUIUtil, Wrapper {
         Gui.drawModalRectWithCustomSizedTexture((int) (position.x + width - 14), (int) position.y + 1, 0, 0, 14, 14, 14, 14);
         glPopMatrix();
 
-        if (mouseOver(position.x + width - 16, position.y, 14, 14)) {
+        if (isMouseOver(position.x + width - 16, position.y, 14, 14)) {
             RenderUtil.drawRect(position.x + width - 14, position.y, 14, 14, new Color(25, 25, 25, 60));
         }
 
@@ -127,16 +127,16 @@ public class Window implements GUIUtil, Wrapper {
     }
 
     public void handleLeftClick() {
-        if (mouseOver(position.x + width - 14, position.y, 14, 14)) {
+        if (isMouseOver(position.x + width - 14, position.y, 14, 14)) {
             getManager().removeWindow(this);
             getCosmos().getSoundManager().playSound("click");
         }
 
-        if (mouseOver(position.x, position.y, width, bar)) {
+        if (isMouseOver(position.x, position.y, width, bar)) {
             getCosmos().getSoundManager().playSound("click");
         }
 
-        if (mouseOver(position.x + width - 10, position.y + height - 10, 10, 10)) {
+        if (isMouseOver(position.x + width - 10, position.y + height - 10, 10, 10)) {
             getCosmos().getSoundManager().playSound("click");
         }
     }

@@ -1,6 +1,7 @@
 package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.math.MathUtil;
 import net.minecraft.entity.Entity;
 
 public class MotionUtil implements Wrapper {
@@ -99,6 +100,6 @@ public class MotionUtil implements Wrapper {
     }
 
     public static boolean hasMoved() {
-        return Math.pow(mc.player.motionX, 2) + Math.pow(mc.player.motionY, 2) + Math.pow(mc.player.motionZ, 2) >= 9.0E-4;
+        return StrictMath.pow(mc.player.motionX, 2) + StrictMath.pow(mc.player.motionY, 2) + StrictMath.pow(mc.player.motionZ, 2) >= 9.0E-4;
     }
 }

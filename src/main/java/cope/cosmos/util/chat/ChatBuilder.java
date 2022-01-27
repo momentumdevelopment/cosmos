@@ -1,4 +1,4 @@
-package cope.cosmos.util.client;
+package cope.cosmos.util.chat;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.util.text.ITextComponent;

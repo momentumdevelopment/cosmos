@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.clickgui.window;
 
 import cope.cosmos.client.features.modules.client.ClickGUI;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
@@ -60,7 +60,7 @@ public class ScrollableWindow extends Window {
         scaledY = MathHelper.clamp(unboundScroll / boundDifference, 0, 1) * (upperBound - 3 - scaledHeight);
 
         // check if we are dragging bar
-        if (mouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight) && getGUI().getMouse().isLeftHeld()) {
+        if (isMouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight) && getGUI().getMouse().isLeftHeld()) {
             setManualScroll(true);
             setExpandable(false);
         }
@@ -92,7 +92,7 @@ public class ScrollableWindow extends Window {
     public void handleLeftClick() {
         super.handleLeftClick();
 
-        if (mouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight)) {
+        if (isMouseOver(getPosition().x + getWidth() - 12, getPosition().y + getBar() + 3 + scaledY, 9, scaledHeight)) {
             getCosmos().getSoundManager().playSound("click");
         }
     }

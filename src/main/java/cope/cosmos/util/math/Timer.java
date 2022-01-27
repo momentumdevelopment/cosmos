@@ -1,4 +1,4 @@
-package cope.cosmos.util.system;
+package cope.cosmos.util.math;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;

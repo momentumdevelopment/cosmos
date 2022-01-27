@@ -5,10 +5,10 @@ import cope.cosmos.client.events.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.player.Rotation;
-import cope.cosmos.util.player.Rotation.Rotate;
-import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.*;
+import cope.cosmos.util.holder.Rotation;
+import cope.cosmos.util.holder.Rotation.Rotate;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.*;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 

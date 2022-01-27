@@ -5,7 +5,7 @@ import cope.cosmos.client.events.RenderSkyEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**

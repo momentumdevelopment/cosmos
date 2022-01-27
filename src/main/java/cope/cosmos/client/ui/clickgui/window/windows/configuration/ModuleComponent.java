@@ -1,11 +1,11 @@
 package cope.cosmos.client.ui.clickgui.window.windows.configuration;
 
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.clickgui.window.windows.ConfigurationWindow;
 import cope.cosmos.client.ui.clickgui.window.windows.ConfigurationWindow.Page;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class ModuleComponent extends Component implements GUIUtil, Wrapper {
+public class ModuleComponent extends Component implements InterfaceUtil, Wrapper {
 
     private final ConfigurationWindow window;
     private final Module module;
@@ -46,10 +46,10 @@ public class ModuleComponent extends Component implements GUIUtil, Wrapper {
         glPushMatrix();
 
         // hover animation
-        if (mouseOver(position.x, position.y, width, getHeight()) && hoverAnimation < 25)
+        if (isMouseOver(position.x, position.y, width, getHeight()) && hoverAnimation < 25)
             hoverAnimation += 5;
 
-        else if (!mouseOver(position.x, position.y, width, getHeight()) && hoverAnimation > 0)
+        else if (!isMouseOver(position.x, position.y, width, getHeight()) && hoverAnimation > 0)
             hoverAnimation -= 5;
 
         // split the description into two lines
@@ -99,7 +99,7 @@ public class ModuleComponent extends Component implements GUIUtil, Wrapper {
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
+        if (isMouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
             module.toggle();
             getCosmos().getSoundManager().playSound("click");
         }
@@ -107,7 +107,7 @@ public class ModuleComponent extends Component implements GUIUtil, Wrapper {
 
     @Override
     public void handleRightClick() {
-        if (mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
+        if (isMouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
             window.setModuleComponent(this);
             window.setPage(Page.SETTING);
             window.updateColumns();

@@ -1,10 +1,10 @@
 package cope.cosmos.client.ui.clickgui.window.windows.configuration;
 
-import cope.cosmos.client.ui.util.GUIUtil;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.math.Vec2f;
 
-public abstract class TypeComponent<T> implements GUIUtil {
+public abstract class TypeComponent<T> implements InterfaceUtil {
 
     private final SettingComponent settingComponent;
 

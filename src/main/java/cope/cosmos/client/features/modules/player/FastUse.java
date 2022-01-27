@@ -10,6 +10,7 @@ import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemFood;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
@@ -55,7 +56,7 @@ public class FastUse extends Module {
     @Override
     public void onUpdate() {
         // make sure we're holding a valid item
-        if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
+        if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue()) {
             if (ghostFix.getValue()) {
                 // spam the use packet, NCP flags for CPacketPlayerTryUseItemOnBlock too fast so we can use CPacketPlayerTryUseItem instead
                 if (mc.gameSettings.keyBindUseItem.isKeyDown()) {

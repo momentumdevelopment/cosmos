@@ -3,7 +3,7 @@ package cope.cosmos.asm.mixins;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.RenderFontEvent;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraft.client.gui.FontRenderer;
 import org.spongepowered.asm.mixin.Mixin;

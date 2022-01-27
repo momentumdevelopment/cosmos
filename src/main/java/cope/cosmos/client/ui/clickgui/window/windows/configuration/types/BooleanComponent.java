@@ -4,7 +4,7 @@ import cope.cosmos.client.ui.clickgui.window.windows.configuration.SettingCompon
 import cope.cosmos.client.ui.clickgui.window.windows.configuration.TypeComponent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.math.Vec2f;
 
@@ -27,7 +27,7 @@ public class BooleanComponent extends TypeComponent<Boolean> implements Wrapper 
 
     @Override
     public void handleLeftClick() {
-        if (mouseOver(getPosition().x + getWidth() - 19, getPosition().y + 2, 17, 17)) {
+        if (isMouseOver(getPosition().x + getWidth() - 19, getPosition().y + 2, 17, 17)) {
             boolean previousValue = getSetting().getValue();
 
             // check for exclusion

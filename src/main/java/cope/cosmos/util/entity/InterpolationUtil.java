@@ -1,4 +1,4 @@
-package cope.cosmos.util.world;
+package cope.cosmos.util.entity;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
@@ -17,6 +17,9 @@ public class InterpolationUtil implements Wrapper {
      * @return The interpolated vector of an entity
      */
     public static Vec3d getInterpolatedPosition(Entity entity, float ticks) {
-        return new Vec3d(entity.lastTickPosX, entity.lastTickPosY, entity.lastTickPosZ).add(new Vec3d((entity.posX - entity.lastTickPosX) * ticks, (entity.posY - entity.lastTickPosY) * ticks, (entity.posZ - entity.lastTickPosZ) * ticks));
+        return new Vec3d(entity.lastTickPosX, entity.lastTickPosY, entity.lastTickPosZ)
+                .add(new Vec3d(entity.posX - entity.lastTickPosX, entity.posY - entity.lastTickPosY, entity.posZ - entity.lastTickPosZ)
+                        .scale(ticks)
+                );
     }
 }

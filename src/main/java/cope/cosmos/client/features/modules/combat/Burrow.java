@@ -5,7 +5,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.Rotation.Rotate;
+import cope.cosmos.util.holder.Rotation.Rotate;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketPlayer;

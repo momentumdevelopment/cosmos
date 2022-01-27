@@ -5,7 +5,8 @@ import cope.cosmos.client.events.RenderLivingEntityEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.world.EntityUtil;
+import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.math.MathUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
@@ -224,7 +225,7 @@ public class Chams extends Module {
             // model rotations
             float rotation = event.getEntityEnderCrystal().innerRotation + event.getPartialTicks();
             float rotationMoved = MathHelper.sin(rotation * 0.2F) / 2 + 0.5F;
-            rotationMoved += Math.pow(rotationMoved, 2);
+            rotationMoved += StrictMath.pow(rotationMoved, 2);
 
             // scale and translate the model
             glTranslated(event.getX(), event.getY(), event.getZ());

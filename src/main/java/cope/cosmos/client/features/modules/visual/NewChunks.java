@@ -4,7 +4,7 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -80,12 +80,12 @@ public class NewChunks extends Module {
      * @param chunk The chunk to get the distance to
      * @return The player's distance to the chunk
      */
-    public int getDistance(Vec2f chunk) {
+    public double getDistance(Vec2f chunk) {
         // x and z distance to the chunk
         double xDistance = Math.abs(mc.player.posX - chunk.x);
         double zDistance = Math.abs(mc.player.posZ - chunk.y);
 
         // pythag divided by 16 (size of one chunk)
-        return (int) (Math.sqrt(Math.pow(xDistance, 2) + Math.pow(zDistance, 2)) / 16);
+        return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(zDistance, 2)) / 16;
     }
 }

@@ -1,26 +1,15 @@
 package cope.cosmos.client.features.modules.movement;
 
-import cope.cosmos.client.events.RenderRotationsEvent;
-import cope.cosmos.client.events.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.player.MotionUtil;
-import cope.cosmos.util.player.Rotation;
+import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderUtil;
-import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.world.AngleUtil;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.util.EnumFacing;
+import cope.cosmos.util.math.Timer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 

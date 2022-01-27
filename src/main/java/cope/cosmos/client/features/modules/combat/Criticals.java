@@ -7,12 +7,12 @@ import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.system.Timer;
-import cope.cosmos.util.system.Timer.Format;
-import cope.cosmos.util.world.EntityUtil;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.entity.EntityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.init.MobEffects;
@@ -25,7 +25,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 12/04/2021
  */
-@SuppressWarnings("unused")
 public class Criticals extends Module {
     public static Criticals INSTANCE;
 
@@ -63,7 +62,7 @@ public class Criticals extends Module {
     }
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for attempting criticals");
-    public static Setting<Double> motion = new Setting<>("Motion", 0.0D, 0.4D, 1.0D, 2).setDescription("Vertical motion").setVisible(() -> mode.getValue().equals(Mode.MOTION));
+    public static Setting<Double> motion = new Setting<>("Motion", 0.0D, 0.42D, 1.0D, 2).setDescription("Vertical motion").setVisible(() -> mode.getValue().equals(Mode.MOTION));
 
     public static Setting<Double> modifier = new Setting<>("Modifier", 0.0D, 1.5D, 10.0D, 2).setDescription("Modifies the damage done by a critical attack");
     public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 200.0D, 2000.0D, 0).setDescription("Delay between attacks to attempt criticals");
@@ -146,6 +145,11 @@ public class Criticals extends Module {
 
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
                         if (criticalTimer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
+                            if (mode.getValue().equals(Mode.PACKET_STRICT)) {
+                                // cancel the attack, we'll resend it after packets
+                                event.setCanceled(true);
+                            }
+
                             if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
@@ -155,6 +159,13 @@ public class Criticals extends Module {
 
                                 // set our attacked entity
                                 criticalEntity = attackEntity;
+                            }
+
+                            // resend attack packet
+                            if (mode.getValue().equals(Mode.PACKET_STRICT)) {
+                                if (mc.getConnection() != null) {
+                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
+                                }
                             }
                         }
 

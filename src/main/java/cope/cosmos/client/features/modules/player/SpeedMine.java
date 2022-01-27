@@ -10,8 +10,9 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.client.ColorUtil;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -326,7 +327,7 @@ public class SpeedMine extends Module {
                 if (breakSpeed > 1) {
                     // scale by efficiency enchantment
                     if (EnchantmentHelper.getEnchantmentLevel(Enchantments.EFFICIENCY, mc.player.inventory.getStackInSlot(i)) > 0) {
-                        breakSpeed += Math.pow(EnchantmentHelper.getEnchantmentLevel(Enchantments.EFFICIENCY, mc.player.inventory.getStackInSlot(i)), 2) + 1;
+                        breakSpeed += StrictMath.pow(EnchantmentHelper.getEnchantmentLevel(Enchantments.EFFICIENCY, mc.player.inventory.getStackInSlot(i)), 2) + 1;
                     }
 
                     // if it's greater than our best break speed, mc.player our new most efficient item
@@ -425,7 +426,7 @@ public class SpeedMine extends Module {
 
             // scale by efficiency level
             if (efficiencyModifier > 0 && !itemstack.isEmpty()) {
-                digSpeed += Math.pow(efficiencyModifier, 2) + 1;
+                digSpeed += StrictMath.pow(efficiencyModifier, 2) + 1;
             }
         }
 

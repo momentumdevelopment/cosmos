@@ -1,7 +1,7 @@
 package cope.cosmos.client.shader.shaders;
 
 import cope.cosmos.client.shader.Shader;
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.glUniform1f;

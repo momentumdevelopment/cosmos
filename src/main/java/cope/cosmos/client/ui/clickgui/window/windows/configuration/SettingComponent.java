@@ -72,10 +72,10 @@ public class SettingComponent extends Component implements Wrapper {
         glPushMatrix();
 
         // hover animation
-        if (mouseOver(position.x, position.y, width, getHeight()) && hoverAnimation < 25)
+        if (isMouseOver(position.x, position.y, width, getHeight()) && hoverAnimation < 25)
             hoverAnimation += 5;
 
-        else if (!mouseOver(position.x, position.y, width, getHeight()) && hoverAnimation > 0)
+        else if (!isMouseOver(position.x, position.y, width, getHeight()) && hoverAnimation > 0)
             hoverAnimation -= 5;
 
         // split the description into two lines
@@ -156,7 +156,7 @@ public class SettingComponent extends Component implements Wrapper {
 
     @Override
     public void handleRightClick() {
-        if (window != null && mouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
+        if (window != null && isMouseOver(getPosition().x, getPosition().y, getWidth(), getHeight())) {
             if (hasSubSettings()) {
                 window.setSettingComponent(this);
                 window.setPage(Page.SUBSETTING);

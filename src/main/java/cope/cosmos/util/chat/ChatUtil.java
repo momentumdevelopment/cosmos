@@ -1,4 +1,4 @@
-package cope.cosmos.util.client;
+package cope.cosmos.util.chat;
 
 /**
  * @author bon55

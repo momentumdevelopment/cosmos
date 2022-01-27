@@ -133,7 +133,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                 }
 
                 if (isCurrentViewEntity()) {
-                    boolean movementUpdate = Math.pow(motionUpdateEvent.getX() - lastReportedPosX, 2) + Math.pow(motionUpdateEvent.getY() - lastReportedPosY, 2) + Math.pow(motionUpdateEvent.getZ() - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
+                    boolean movementUpdate = StrictMath.pow(motionUpdateEvent.getX() - lastReportedPosX, 2) + StrictMath.pow(motionUpdateEvent.getY() - lastReportedPosY, 2) + StrictMath.pow(motionUpdateEvent.getZ() - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
                     boolean rotationUpdate = motionUpdateEvent.getYaw() - lastReportedYaw != 0.0D || motionUpdateEvent.getPitch() - lastReportedPitch != 0.0D;
 
                     if (isRiding()) {

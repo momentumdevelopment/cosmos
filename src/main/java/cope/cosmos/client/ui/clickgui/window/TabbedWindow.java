@@ -1,6 +1,6 @@
 package cope.cosmos.client.ui.clickgui.window;
 
-import cope.cosmos.util.client.ColorUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.util.ResourceLocation;
@@ -54,7 +54,7 @@ public class TabbedWindow extends ScrollableWindow {
 
         // update the current tab
         tabs.forEach(tabComponent -> {
-            if (mouseOver(tabComponent.getPosition().x, tabComponent.getPosition().y, tabComponent.getWidth(), tabComponent.getHeight())) {
+            if (isMouseOver(tabComponent.getPosition().x, tabComponent.getPosition().y, tabComponent.getWidth(), tabComponent.getHeight())) {
                 setTab(tabComponent);
                 handleTabChange();
                 getCosmos().getSoundManager().playSound("click");

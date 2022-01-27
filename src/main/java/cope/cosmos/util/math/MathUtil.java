@@ -1,4 +1,4 @@
-package cope.cosmos.util.system;
+package cope.cosmos.util.math;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.objects.Object2FloatFunction;
@@ -40,6 +40,45 @@ public class MathUtil {
         // round
         bigDecimal = bigDecimal.setScale(scale, RoundingMode.FLOOR);
         return bigDecimal.floatValue();
+    }
+
+    /**
+     * Takes a number to an exponent (around 6.96x faster than {@link Math} Math.pow())
+     * @param num The number to take to an exponent
+     * @param exponent The exponent
+     * @return The number to an exponent
+     */
+    public static double toExponent(double num, int exponent) {
+        double result = 1;
+
+        // abs, inverse
+        if (exponent < 0) {
+            int exponentAbs = Math.abs(exponent);
+
+            while (exponentAbs > 0) {
+                if ((exponentAbs & 1) != 0) {
+                    result *= num;
+                }
+
+                exponentAbs >>= 1;
+                num *= num;
+            }
+
+            return 1 / result;
+        }
+
+        else {
+            while (exponent > 0) {
+                if ((exponent & 1) != 0) { // 1.5% faster
+                    result *= num;
+                }
+
+                exponent >>= 1; // bitshift fuckery
+                num *= num;
+            }
+
+            return result;
+        }
     }
 
     public static <T> int sumOfInt(Collection<T> objs, Object2IntFunction<T> function) {

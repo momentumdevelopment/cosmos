@@ -13,16 +13,16 @@ public class RaytraceUtil implements Wrapper {
 
     /**
      * Finds the visibility to a block
-     * @param blockPos The block to check
+     * @param position The block to check
      * @param offset The NCP range bypass offset
      * @return The visibility to the block
      */
-    public static boolean isNotVisible(BlockPos blockPos, double offset) {
+    public static boolean isNotVisible(BlockPos position, double offset) {
         if (offset > 50 || offset < -50) {
             return false;
         }
 
-        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + offset, blockPos.getZ() + 0.5), false, true, false) != null;
+        return mc.world.rayTraceBlocks(new Vec3d(mc.player.posX, mc.player.posY + mc.player.getEyeHeight(), mc.player.posZ), new Vec3d(position.getX() + 0.5, position.getY() + offset, position.getZ() + 0.5), false, true, false) != null;
     }
 
     /**

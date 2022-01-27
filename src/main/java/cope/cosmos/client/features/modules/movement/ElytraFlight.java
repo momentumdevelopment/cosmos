@@ -7,7 +7,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.client.StringFormatter;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.Items;

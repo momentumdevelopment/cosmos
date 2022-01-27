@@ -1,4 +1,4 @@
-package cope.cosmos.util.client;
+package cope.cosmos.util.string;
 
 /**
  * @author linustouchtips

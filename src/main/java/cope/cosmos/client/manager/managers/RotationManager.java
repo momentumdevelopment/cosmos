@@ -6,7 +6,7 @@ import cope.cosmos.client.events.MotionUpdateEvent;
 import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.player.Rotation;
+import cope.cosmos.util.holder.Rotation;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;

@@ -2,7 +2,8 @@ package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.util.system.MathUtil;
+import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.util.EnumFacing;
 
 import javax.swing.*;
@@ -19,7 +20,7 @@ public class StreamerMode extends Module {
     public static StreamerMode INSTANCE;
 
     public StreamerMode() {
-        super("StreamerMode", Category.CLIENT, "Opens a separate window that shows your coords etc. Helpful for streaming");
+        super("StreamerMode", Category.CLIENT, "Opens a separate window that shows your coordinates");
         INSTANCE = this;
     }
 
@@ -65,7 +66,7 @@ public class StreamerMode extends Module {
             }
         });
 
-        // pack the elements, and set the frame to visble
+        // pack the elements, and set the frame to visible
         frame.pack();
         frame.setVisible(true);
     }
@@ -92,7 +93,7 @@ public class StreamerMode extends Module {
         EnumFacing direction = mc.player.getHorizontalFacing();
         EnumFacing.AxisDirection axisDirection = direction.getAxisDirection();
 
-        facing.setText("Facing: " + direction + " (" + direction.getAxis().name() + (axisDirection.equals(EnumFacing.AxisDirection.POSITIVE) ? "+" : "-") + ")");
+        facing.setText("Facing: " + direction + " (" + StringFormatter.formatEnum(direction.getAxis()) + (axisDirection.equals(EnumFacing.AxisDirection.POSITIVE) ? "+" : "-") + ")");
 
         // coordinates
         String overWorldCoordinates = mc.player.dimension != -1 ? "XYZ " + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY * 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);

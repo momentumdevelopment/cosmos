@@ -8,7 +8,7 @@ import cope.cosmos.client.manager.managers.HoleManager.Type;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.Rotation.Rotate;
+import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.block.Block;

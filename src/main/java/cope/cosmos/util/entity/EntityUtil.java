@@ -1,4 +1,4 @@
-package cope.cosmos.util.world;
+package cope.cosmos.util.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAgeable;
