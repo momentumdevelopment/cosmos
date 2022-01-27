@@ -38,6 +38,7 @@
       "MixinStateImplementation",
       "MixinEntityLivingBase",
       "MixinRenderEntityItem",
+      "MixinRenderItem",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",

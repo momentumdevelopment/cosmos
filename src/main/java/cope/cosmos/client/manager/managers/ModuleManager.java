@@ -96,7 +96,8 @@ public class ModuleManager extends Manager {
 				new Nametags(),
 				new NewChunks(),
 				new NoRender(),
-				new SkyColor()
+				new SkyColor(),
+				new ViewModel()
 		);
 	}
 
