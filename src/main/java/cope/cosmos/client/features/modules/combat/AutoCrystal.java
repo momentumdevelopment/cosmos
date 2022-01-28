@@ -25,7 +25,7 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
-import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.world.RaytraceUtil;

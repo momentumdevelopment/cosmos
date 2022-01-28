@@ -34,21 +34,21 @@ public class Speed extends Module {
 
     // mode
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE).setDescription("Mode for Speed");
+    public static Setting<BaseSpeed> speed = new Setting<>("Speed", BaseSpeed.NORMAL).setDescription("Base speed when moving");
+    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST).setDescription("Friction for moving through objects");
+
+    // anticheat
+    public static Setting<Boolean> velocityFactor = new Setting<>("VelocityFactor", false).setDescription("Boosts speed when taking knockback");
+    public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true).setDescription("Applies potions effects to speed");
+    public static Setting<Boolean> retain = new Setting<>("Retain", false).setDescription("Quickly restarts strafe after collision");
+    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false).setDescription("Quickly restarts strafe after collision");
+    public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
+    public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
+    public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Maintains sprint while moving");
 
     // timer
     public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
     public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
-
-    // anticheat
-    public static Setting<Boolean> boost = new Setting<>("Boost", false).setDescription("Boosts speed when taking knockback");
-    public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
-    public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
-    public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Keeps sprint");
-    public static Setting<Boolean> retain = new Setting<>("Retain", false).setDescription("Quickly restarts strafe after collision");
-
-    // pause
-    public static Setting<Boolean> liquid = new Setting<>("Liquid", false).setDescription("Allows speed to function in liquids");
-    public static Setting<Boolean> webs = new Setting<>("Web", false).setDescription("Allows speed to function in webs");
 
     // current stage
     private StrafeStage strafeStage = StrafeStage.SPEED;
@@ -81,16 +81,18 @@ public class Speed extends Module {
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
-        // make sure the player is not in a liquid
-        if (PlayerUtil.isInLiquid() && !liquid.getValue()) {
-            resetProcess();
-            return;
-        }
+        if (friction.getValue().equals(Friction.STRICT)) {
+            // make sure the player is not in a liquid
+            if (PlayerUtil.isInLiquid()) {
+                resetProcess();
+                return;
+            }
 
-        // make sure the player is not in a web
-        if (((IEntity) mc.player).getInWeb() && !webs.getValue()) {
-            resetProcess();
-            return;
+            // make sure the player is not in a web
+            if (((IEntity) mc.player).getInWeb()) {
+                resetProcess();
+                return;
+            }
         }
 
         // make sure the player can have speed applied
@@ -105,15 +107,28 @@ public class Speed extends Module {
         // base move speed
         double baseSpeed = 0.2873;
 
-        // scale move speed if Speed potion effect is active
-        if (mc.player.isPotionActive(MobEffects.SPEED)) {
-            double amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
-            baseSpeed *= 1 + (0.2 * (amplifier + 1));
+        if (speed.getValue().equals(BaseSpeed.VANILLA)) {
+            baseSpeed = 0.272;
+        }
+
+        // scale move speed if Speed or Slowness potion effect is active
+        if (potionFactor.getValue()) {
+            if (mc.player.isPotionActive(MobEffects.SPEED)) {
+                double amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
+                baseSpeed *= 1 + (0.2 * (amplifier + 1));
+            }
+
+            if (mc.player.isPotionActive(MobEffects.SLOWNESS)) {
+                double amplifier = mc.player.getActivePotionEffect(MobEffects.SLOWNESS).getAmplifier();
+                baseSpeed /= 1 + (0.2 * (amplifier + 1));
+            }
         }
 
         // start sprinting
         if (strictSprint.getValue() && (!mc.player.isSprinting() || !((IEntityPlayerSP) mc.player).getServerSprintState())) {
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            if (mc.getConnection() != null) {
+                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            }
         }
 
         /*
@@ -164,6 +179,11 @@ public class Speed extends Module {
                     // reset our move speed
                     moveSpeed = collisionSpeed;
                 }
+            }
+
+            // allow speed boost in air
+            if (airStrafe.getValue()) {
+                mc.player.jumpMovementFactor = 0.029F;
             }
 
             // the current movement input values of the user
@@ -256,12 +276,22 @@ public class Speed extends Module {
                         jumpSpeed = 0.42;
                     }
 
-                    if (mode.getValue().equals(Mode.STRAFE_LOW)) {
+                    if (speed.getValue().equals(BaseSpeed.VANILLA)) {
+                        if (mode.getValue().equals(Mode.STRAFE_LOW)) {
+                            jumpSpeed = 0.31;
+                        }
+
+                        else {
+                            jumpSpeed = 0.42;
+                        }
+                    }
+
+                    else if (mode.getValue().equals(Mode.STRAFE_LOW)) {
                         jumpSpeed = 0.27;
                     }
 
                     // scale jump speed if Jump Boost potion effect is active
-                    if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
+                    if (potionFactor.getValue() && mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
                         jumpSpeed += (mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier() + 1) * 0.1;
                     }
 
@@ -332,7 +362,7 @@ public class Speed extends Module {
             }
 
             // boost the move speed for 10 ticks
-            if (boost.getValue() && boostTicks <= 10) {
+            if (velocityFactor.getValue() && boostTicks <= 10) {
                 moveSpeed = Math.max(moveSpeed, boostSpeed);
             }
 
@@ -352,6 +382,21 @@ public class Speed extends Module {
             // reset strict ticks every 50 ticks
             if (strictTicks > 50) {
                 strictTicks = 0;
+            }
+
+            // bypass friction check
+            if (friction.getValue().equals(Friction.FACTOR)) {
+                float friction = 1;
+
+                if (mc.player.isInWater()) {
+                    friction = 0.89F;
+                }
+
+                else if (mc.player.isInLava()) {
+                    friction = 0.535F;
+                }
+
+                moveSpeed *= friction;
             }
 
             // the current movement input values of the user
@@ -529,6 +574,37 @@ public class Speed extends Module {
          * Speeds your movement while on the ground, spoofs jump state
          */
         ON_GROUND
+    }
+
+    public enum BaseSpeed {
+
+        /**
+         * Base speed for NCP
+         */
+        NORMAL,
+
+        /**
+         * Base speed for Vanilla
+         */
+        VANILLA
+    }
+
+    public enum Friction {
+
+        /**
+         * Factors in material friction but otherwise retains all functionality
+         */
+        FACTOR,
+
+        /**
+         * Ignores friction
+         */
+        FAST,
+
+        /**
+         * Stop all speed when experiencing friction
+         */
+        STRICT
     }
 
     public enum StrafeStage {

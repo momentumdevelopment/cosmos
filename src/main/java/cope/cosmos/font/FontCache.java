@@ -1,4 +1,4 @@
-package cope.cosmos.client.font;
+package cope.cosmos.font;
 
 import org.lwjgl.opengl.GL11;
 

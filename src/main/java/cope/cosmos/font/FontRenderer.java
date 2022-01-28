@@ -1,4 +1,4 @@
-package cope.cosmos.client.font;
+package cope.cosmos.font;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.renderer.GlStateManager;

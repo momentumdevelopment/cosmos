@@ -143,9 +143,9 @@ public class EventManager extends Manager implements Wrapper {
 
 		// toggle
 		if (key != 0 && Keyboard.getEventKeyState()) {
-			getCosmos().getModuleManager().getAllModules().forEach(moduleule -> {
-				if (moduleule.getKey() == key) {
-					moduleule.toggle();
+			getCosmos().getModuleManager().getAllModules().forEach(module -> {
+				if (module.getKey() == key) {
+					module.toggle();
 				}
 			});
 		}

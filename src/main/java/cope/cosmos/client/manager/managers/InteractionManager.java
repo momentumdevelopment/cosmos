@@ -5,7 +5,7 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
-import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.player.AngleUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;

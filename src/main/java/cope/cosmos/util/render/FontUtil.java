@@ -1,7 +1,7 @@
 package cope.cosmos.util.render;
 
 import cope.cosmos.client.features.modules.client.Font;
-import cope.cosmos.client.font.FontRenderer;
+import cope.cosmos.font.FontRenderer;
 import cope.cosmos.util.Wrapper;
 
 import java.io.InputStream;

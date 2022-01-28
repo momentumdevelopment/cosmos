@@ -1,4 +1,4 @@
-package cope.cosmos.util.world;
+package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;

@@ -204,7 +204,6 @@ public class Jesus extends Module {
 
                     // update y offset
                     ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) - floatOffset);
-                    getCosmos().getChatManager().sendClientMessage("" + ((CPacketPlayer) event.getPacket()).getY(0));
                 }
 
                 else {

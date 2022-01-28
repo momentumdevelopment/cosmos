@@ -23,7 +23,7 @@ import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
-import cope.cosmos.util.world.AngleUtil;
+import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.entity.InterpolationUtil;
 import cope.cosmos.util.world.RaytraceUtil;
