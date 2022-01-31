@@ -47,11 +47,11 @@ public class MousePosition {
         rightHeld = in;
     }
 
-    public void setMousePosition(Vec2f in) {
+    public void setPosition(Vec2f in) {
         mousePosition = in;
     }
 
-    public Vec2f getMousePosition() {
+    public Vec2f getPosition() {
         return mousePosition;
     }
 }

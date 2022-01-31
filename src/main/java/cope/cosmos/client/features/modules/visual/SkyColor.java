@@ -8,6 +8,8 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.awt.*;
+
 /**
  * @author linustouchtips
  * @since 12/28/2021
@@ -28,7 +30,7 @@ public class SkyColor extends Module {
         if (sky.getValue()) {
             // override sky color
             event.setCanceled(true);
-            event.setColor(ColorUtil.getPrimaryColor());
+            event.setColor(new Color(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F));
         }
     }
 
@@ -36,7 +38,7 @@ public class SkyColor extends Module {
     public void onRenderFogColor(RenderFogColorEvent event) {
         if (fog.getValue()) {
             // override fog color
-            event.setColor(ColorUtil.getPrimaryColor());
+            event.setColor(new Color(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F));
         }
     }
 }

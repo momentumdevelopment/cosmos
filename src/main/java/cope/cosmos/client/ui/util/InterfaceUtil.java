@@ -1,8 +1,7 @@
 package cope.cosmos.client.ui.util;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.ui.clickgui.ClickGUI;
-import cope.cosmos.client.ui.clickgui.window.WindowManager;
+import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
 
 /**
  * @author linustouchtips
@@ -19,22 +18,30 @@ public interface InterfaceUtil {
      * @return Whether the mouse is over the given region
      */
     default boolean isMouseOver(float x, float y, float width, float height) {
-        return !Float.isNaN(getGUI().getMouse().getMousePosition().x) && !Float.isNaN(getGUI().getMouse().getMousePosition().y) && getGUI().getMouse().getMousePosition().x >= x && getGUI().getMouse().getMousePosition().y >= y && getGUI().getMouse().getMousePosition().x <= (x + width) && getGUI().getMouse().getMousePosition().y <= (y + height);
+        return getMouse().getPosition().x >= x && getMouse().getPosition().y >= y && getMouse().getPosition().x <= (x + width) && getMouse().getPosition().y <= (y + height);
     }
 
     /**
-     * Gets the Click Gui window manager
-     * @return the Click Gui window manager
+     * Gets the mouse
+     * @return The mouse
      */
-    default WindowManager getManager() {
-        return getGUI().getManager();
+    default MousePosition getMouse() {
+        return getGUI().getMouse();
+    }
+
+    /**
+     * Gets the scissor stack
+     * @return The scissor stack
+     */
+    default ScissorStack getScissorStack() {
+        return getGUI().getScissorStack();
     }
 
     /**
      * Gets the Click Gui screen
      * @return The Click Gui screen
      */
-    default ClickGUI getGUI() {
+    default ClickGUIScreen getGUI() {
         return Cosmos.INSTANCE.getClickGUI();
     }
 }

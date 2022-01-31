@@ -5,7 +5,7 @@ import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.AnimationManager;
+import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.Wrapper;
 import org.lwjgl.input.Keyboard;
 
@@ -39,7 +39,7 @@ public class Module extends Feature implements Wrapper {
 	private Supplier<String> info;
 
 	// the module two-way animation manager
-	private final AnimationManager animation;
+	private final Animation animation;
 
 	// all the module's settings
 	private final List<Setting<?>> settings = new ArrayList<>();
@@ -70,7 +70,7 @@ public class Module extends Feature implements Wrapper {
 		// default module state
 		drawn = true;
 		key = Keyboard.KEY_NONE;
-		animation = new AnimationManager(150, enabled);
+		animation = new Animation(150, enabled);
 	}
 
 	public Module(String name, Category category, String description, Supplier<String> info) {
@@ -275,7 +275,7 @@ public class Module extends Feature implements Wrapper {
 	 * Gets the two-way animation
 	 * @return The two-way animation
 	 */
-	public AnimationManager getAnimation() {
+	public Animation getAnimation() {
 		return animation;
 	}
 

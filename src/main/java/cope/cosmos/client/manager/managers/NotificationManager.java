@@ -1,6 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
+import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.math.Timer;
 import net.minecraft.util.ResourceLocation;
 
@@ -83,7 +84,7 @@ public class NotificationManager extends Manager {
         private final Type type;
 
         // animation
-        private final AnimationManager animation = new AnimationManager(200, false);
+        private final Animation animation = new Animation(200, false);
         private final Timer timer = new Timer();
 
         public Notification(String message, Type type) {
@@ -111,7 +112,7 @@ public class NotificationManager extends Manager {
          * Gets the notification animation
          * @return The notification animation
          */
-        public AnimationManager getAnimation() {
+        public Animation getAnimation() {
             return animation;
         }
 

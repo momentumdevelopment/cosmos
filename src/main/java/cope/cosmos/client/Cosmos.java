@@ -8,7 +8,7 @@ import cope.cosmos.client.features.modules.client.Font;
 import cope.cosmos.client.features.modules.client.Social;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
-import cope.cosmos.client.ui.clickgui.ClickGUI;
+import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -51,7 +51,7 @@ public class Cosmos {
     public static Cosmos INSTANCE;
 
     // the client gui
-    private ClickGUI clickGUI;
+    private ClickGUIScreen clickGUI;
 
     // list of managers
     private final List<Manager> managers = new ArrayList<>();
@@ -130,7 +130,7 @@ public class Cosmos {
         progressManager.step("Setting up Config Manager");
 
         // sets up the GUI
-        clickGUI = new ClickGUI();
+        clickGUI = new ClickGUIScreen();
         progressManager.step("Setting up GUI's");
 
         // sets up the reload manager
@@ -211,7 +211,7 @@ public class Cosmos {
      * Gets the Window GUI screen
      * @return The Window GUI screen
      */
-    public ClickGUI getClickGUI() {
+    public ClickGUIScreen getClickGUI() {
         return clickGUI;
     }
 

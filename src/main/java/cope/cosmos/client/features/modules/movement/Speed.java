@@ -41,7 +41,7 @@ public class Speed extends Module {
     public static Setting<Boolean> velocityFactor = new Setting<>("VelocityFactor", false).setDescription("Boosts speed when taking knockback");
     public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true).setDescription("Applies potions effects to speed");
     public static Setting<Boolean> retain = new Setting<>("Retain", false).setDescription("Quickly restarts strafe after collision");
-    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false).setDescription("Quickly restarts strafe after collision");
+    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false).setDescription("Allows you to boost your speed and control movement in the air");
     public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
     public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Maintains sprint while moving");

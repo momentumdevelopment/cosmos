@@ -25,7 +25,7 @@ public class StreamerMode extends Module {
     }
 
     private JFrame frame;
-    private JLabel facing, coords, netherCoords;
+    private JLabel facing, coordinates, netherCoordinates;
 
     @Override
     public void onEnable() {
@@ -47,22 +47,23 @@ public class StreamerMode extends Module {
         facing = new JLabel("Facing: ");
         facing.setFont(new Font("Verdana", Font.PLAIN, 26));
 
-        coords = new JLabel("XYZ: ");
-        coords.setFont(new Font("Verdana", Font.PLAIN, 26));
+        coordinates = new JLabel("XYZ: ");
+        coordinates.setFont(new Font("Verdana", Font.PLAIN, 26));
 
-        netherCoords = new JLabel("XYZ [Nether]: ");
-        netherCoords.setFont(new Font("Verdana", Font.PLAIN, 26));
+        netherCoordinates = new JLabel("XYZ [Nether]: ");
+        netherCoordinates.setFont(new Font("Verdana", Font.PLAIN, 26));
 
         // add to frame
         frame.add(facing);
-        frame.add(coords);
-        frame.add(netherCoords);
+        frame.add(coordinates);
+        frame.add(netherCoordinates);
 
         // add a close listener for when the X is pressed. it'll toggle off the module.
         frame.addWindowListener(new WindowAdapter() {
+
             @Override
-            public void windowClosing(WindowEvent e) {
-                toggle();
+            public void windowClosing(WindowEvent event) {
+                disable();
             }
         });
 
@@ -81,8 +82,8 @@ public class StreamerMode extends Module {
             frame.dispose();
 
             facing = null;
-            coords = null;
-            netherCoords = null;
+            coordinates = null;
+            netherCoordinates = null;
             frame = null;
         }
     }
@@ -96,10 +97,10 @@ public class StreamerMode extends Module {
         facing.setText("Facing: " + direction + " (" + StringFormatter.formatEnum(direction.getAxis()) + (axisDirection.equals(EnumFacing.AxisDirection.POSITIVE) ? "+" : "-") + ")");
 
         // coordinates
-        String overWorldCoordinates = mc.player.dimension != -1 ? "XYZ " + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY * 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);
-        String netherCoordinates = mc.player.dimension == -1 ? "XYZ " + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + MathUtil.roundFloat(mc.player.posX / 8, 1) + " " + MathUtil.roundFloat(mc.player.posY / 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ / 8, 1);
+        String overWorldCoordinate = mc.player.dimension != -1 ? "XYZ " + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY * 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);
+        String netherCoordinate = mc.player.dimension == -1 ? "XYZ " + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + MathUtil.roundFloat(mc.player.posX / 8, 1) + " " + MathUtil.roundFloat(mc.player.posY / 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ / 8, 1);
 
-        coords.setText(overWorldCoordinates);
-        netherCoords.setText("[Nether] " + netherCoordinates);
+        coordinates.setText(overWorldCoordinate);
+        netherCoordinates.setText("[Nether] " + netherCoordinate);
     }
 }
