@@ -24,7 +24,5 @@ run
 # Forge.
 forge*changelog.txt
 
+# Mac
 *.DS_Store
-
-# Useless
-src/main/java/you/are/ratted/
