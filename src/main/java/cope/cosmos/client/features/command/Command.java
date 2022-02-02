@@ -15,6 +15,7 @@ import java.util.function.Predicate;
  */
 public class Command extends Feature implements Wrapper {
 
+	// command to be executed
 	private final LiteralArgumentBuilder<Object> command;
 	
 	public Command(String name, String description, LiteralArgumentBuilder<Object> command) {

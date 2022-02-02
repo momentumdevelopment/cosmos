@@ -37,7 +37,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     private boolean expand;
 
     // offset between features
-    private int featureOffset;
+    private double featureOffset;
 
     // animation
     private int hoverAnimation;
@@ -55,6 +55,11 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
                 moduleFeatures.add(new ModuleFeature(this, module));
             }
         });
+
+        // filler features
+        for (int i = 0; i < 100; i++) {
+            moduleFeatures.add(new ModuleFeature(this, null));
+        }
     }
 
     @Override
@@ -207,7 +212,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
      * Gets the feature offset
      * @return The feature offset
      */
-    public int getFeatureOffset() {
+    public double getFeatureOffset() {
         return featureOffset;
     }
 
@@ -215,7 +220,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
      * Adds a specified amount to the feature offset
      * @param in Amount to add to the feature offset
      */
-    public void addFeatureOffset(int in) {
+    public void addFeatureOffset(double in) {
         featureOffset += in;
     }
 }

@@ -6,9 +6,13 @@ import org.spongepowered.asm.mixin.Mixins;
 
 import java.util.Map;
 
+/**
+ * @author bon55
+ * @since 05/05/2021
+ */
+@IFMLLoadingPlugin.Name("Cosmos")
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-public class MixinLoader implements IFMLLoadingPlugin
-{
+public class MixinLoader implements IFMLLoadingPlugin {
 	public MixinLoader() {
 		MixinBootstrap.init();
 		Mixins.addConfiguration("mixins.cosmos.json");
