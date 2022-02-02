@@ -13,11 +13,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@SuppressWarnings("unused")
 @Mixin(PlayerControllerMP.class)
 public class MixinPlayerControllerMP implements Wrapper {
 
-    @Inject(method = "onPlayerDestroyBlock", at = @At("RETURN"))
+    @Inject(method = "onPlayerDestroyBlock", at = @At("RETURN"), cancellable = true)
     private void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> info) {
         BlockBreakEvent blockBreakEvent = new BlockBreakEvent(pos);
         Cosmos.EVENT_BUS.post(blockBreakEvent);

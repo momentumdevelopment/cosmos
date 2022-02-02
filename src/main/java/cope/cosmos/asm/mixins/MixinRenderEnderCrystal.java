@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("unused")
 @Mixin(value = RenderEnderCrystal.class, priority = Integer.MAX_VALUE - 1)
 public class MixinRenderEnderCrystal {
 

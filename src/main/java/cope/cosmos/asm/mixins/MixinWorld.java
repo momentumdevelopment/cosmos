@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.events.RenderSkyEvent;
 import cope.cosmos.client.events.RenderSkylightEvent;
-import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -16,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@SuppressWarnings("unused")
 @Mixin(World.class)
 public class MixinWorld {
 
@@ -70,7 +68,7 @@ public class MixinWorld {
 
         if (renderSkyEvent.isCanceled()) {
             info.cancel();
-            info.setReturnValue(new Vec3d(ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue()));
+            info.setReturnValue(new Vec3d(renderSkyEvent.getColor().getRed() / 255D, renderSkyEvent.getColor().getGreen() / 255D, renderSkyEvent.getColor().getBlue() / 255D));
         }
     }
 }
