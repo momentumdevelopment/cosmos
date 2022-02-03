@@ -5,9 +5,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.feature.ClickType;
 import cope.cosmos.client.ui.clickgui.feature.DrawableFeature;
 import cope.cosmos.client.ui.clickgui.feature.features.category.CategoryFrameFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.setting.BooleanFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.setting.EnumFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.setting.SettingFeature;
+import cope.cosmos.client.ui.clickgui.feature.features.setting.*;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -16,6 +14,8 @@ import cope.cosmos.util.string.ColorUtil;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.opengl.GL11.glScaled;
 
@@ -64,7 +64,19 @@ public class ModuleFeature extends DrawableFeature {
                 else if (setting.getValue() instanceof Enum<?>) {
                     settingFeatures.add(new EnumFeature(this, (Setting<Enum<?>>) setting));
                 }
+
+                else if (setting.getValue() instanceof AtomicInteger) {
+                    settingFeatures.add(new BindFeature(this, (Setting<AtomicInteger>) setting));
+                }
+
+                else if (setting.getValue() instanceof AtomicBoolean) {
+                    settingFeatures.add(new DrawnFeature(this, (Setting<AtomicBoolean>) setting));
+                }
             });
+
+            // all module features have a bind and drawn feature
+            settingFeatures.add(new DrawnFeature(this, new Setting<>("Drawn", new AtomicBoolean(true))));
+            settingFeatures.add(new BindFeature(this, new Setting<>("Bind", new AtomicInteger(0))));
         }
     }
 
@@ -165,7 +177,7 @@ public class ModuleFeature extends DrawableFeature {
     }
 
     @Override
-    public void onType(char in) {
+    public void onType(int in) {
         if (module != null) {
             if (open) {
                 settingFeatures.forEach(settingFeature -> {

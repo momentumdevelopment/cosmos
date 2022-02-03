@@ -121,7 +121,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         super.keyTyped(typedChar, keyCode);
 
         categoryFrameFeatures.forEach(categoryFrameFeature -> {
-            categoryFrameFeature.onType(typedChar);
+            categoryFrameFeature.onType(keyCode);
         });
     }
 

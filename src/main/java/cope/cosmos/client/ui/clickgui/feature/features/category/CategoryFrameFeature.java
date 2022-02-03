@@ -167,7 +167,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     }
 
     @Override
-    public void onType(char in) {
+    public void onType(int in) {
         super.onType(in);
 
         moduleFeatures.forEach(moduleFeature -> {

@@ -67,7 +67,7 @@ public class FrameFeature<T> extends DrawableFeature {
     }
 
     @Override
-    public void onType(char in) {
+    public void onType(int in) {
 
     }
 
