@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.client.events.DeathEvent;
+import cope.cosmos.client.events.DisconnectEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -13,7 +14,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class FakePlayer extends Module {
 	public static FakePlayer INSTANCE;
 	
@@ -80,5 +80,15 @@ public class FakePlayer extends Module {
             // disable module
             disable();
         }
+    }
+
+    @SubscribeEvent
+    public void onDisconnect(DisconnectEvent event) {
+        // remove fake player from world
+        mc.world.removeEntityFromWorld(id);
+        id = -1;
+
+        // disable module
+        disable();
     }
 }

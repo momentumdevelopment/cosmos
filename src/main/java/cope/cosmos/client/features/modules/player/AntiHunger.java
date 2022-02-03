@@ -30,18 +30,18 @@ public class AntiHunger extends Module {
 
     @Override
     public void onEnable() {
-        super.onEnable();
-
         // if we are sprinting, we need to stop sprinting
         if (mc.player.isSprinting() || ((IEntityPlayerSP) (mc.player)).getServerSprintState()) {
             previousSprint = true;
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
         }
+
+        super.onEnable();
     }
 
     @Override
     public void onDisable() {
-        super.onEnable();
+        super.onDisable();
 
         // reset our sprint state
         if (previousSprint) {
