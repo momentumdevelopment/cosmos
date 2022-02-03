@@ -30,7 +30,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     private final List<ModuleFeature> moduleFeatures = new ArrayList<>();
 
     // height of the frame
-    private float height = 96;
+    private float height = 196;
 
     // expanding state
     private boolean open = true;
@@ -38,6 +38,9 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
 
     // offset between features
     private double featureOffset;
+
+    // scroll length
+    private float scroll;
 
     // animation
     private int hoverAnimation;
@@ -76,6 +79,10 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
         }
 
         super.drawFeature();
+
+        // make sure the scroll doesn't go farther than our bounds
+        double scaledFeatureOffset = getFeatureOffset() - 1400;
+        scroll = (float) MathHelper.clamp(scroll, -Math.max(0, scaledFeatureOffset - height), 0);
 
         // window title
         glScaled(1.05, 1.05, 1.05); {
@@ -166,6 +173,27 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
         moduleFeatures.forEach(moduleFeature -> {
             moduleFeature.onType(in);
         });
+    }
+
+
+    @Override
+    public void onScroll(int in) {
+        super.onScroll(in);
+
+        // update scroll offset
+        scroll += in * 0.05;
+
+        moduleFeatures.forEach(moduleFeature -> {
+            moduleFeature.onScroll(in);
+        });
+    }
+
+    /**
+     * Gets the scroll length of the frame
+     * @return The scroll length of the frame
+     */
+    public float getScroll() {
+        return scroll;
     }
 
     /**

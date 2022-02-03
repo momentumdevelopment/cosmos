@@ -13,6 +13,7 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -29,9 +30,6 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     private final LinkedList<CategoryFrameFeature> categoryFrameFeatures = new LinkedList<>();
     private final ScissorStack scissorStack = new ScissorStack();
 
-    // focused window
-    private CategoryFrameFeature focusedFrameFeature;
-
     public ClickGUIScreen() {
         // add all categories
         int frameSpace = 0;
@@ -41,8 +39,6 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
                 frameSpace += 110;
             }
         }
-
-        Cosmos.EVENT_BUS.register(this);
     }
 
     @Override
@@ -52,16 +48,23 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         // draws the default dark background
         drawDefaultBackground();
 
-        // find the frame we are focused on
-        focusedFrameFeature = categoryFrameFeatures
-                .stream()
-                .filter(categoryFrameFeature -> isMouseOver(categoryFrameFeature.getPosition().x, categoryFrameFeature.getPosition().y, categoryFrameFeature.getWidth(), categoryFrameFeature.getHeight()))
-                .findFirst()
-                .orElse(categoryFrameFeatures.get(0));
-
         categoryFrameFeatures.forEach(categoryFrameFeature -> {
             categoryFrameFeature.drawFeature();
         });
+
+        // find the frame we are focused on
+        CategoryFrameFeature focusedFrameFeature = categoryFrameFeatures
+                .stream()
+                .filter(categoryFrameFeature -> isMouseOver(categoryFrameFeature.getPosition().x, categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle(), categoryFrameFeature.getWidth(), categoryFrameFeature.getHeight()))
+                .findFirst()
+                .orElse(null);
+
+        if (focusedFrameFeature != null && Mouse.hasWheel()) {
+
+            // scroll length
+            int scroll = Mouse.getDWheel();
+            focusedFrameFeature.onScroll(scroll);
+        }
 
         mouse.setLeftClick(false);
         mouse.setRightClick(false);
@@ -126,12 +129,17 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     public void onGuiClosed() {
         super.onGuiClosed();
 
+        Cosmos.EVENT_BUS.unregister(this);
+
         // disable the GUI modules, keeps the toggle state consistent with open/close
         ClickGUI.INSTANCE.disable();
-        Cosmos.EVENT_BUS.register(this);
 
         // save our configs when exiting the GUI
         Cosmos.INSTANCE.getPresetManager().save();
+
+        if (mc.entityRenderer.isShaderActive()) {
+            mc.entityRenderer.getShaderGroup().deleteShaderGroup();
+        }
     }
 
     @Override

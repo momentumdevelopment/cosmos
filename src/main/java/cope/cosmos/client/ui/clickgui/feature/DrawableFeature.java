@@ -25,4 +25,10 @@ public abstract class DrawableFeature implements InterfaceUtil, Wrapper {
      * @param in The key that was typed
      */
     public abstract void onType(char in);
+
+    /**
+     * Runs when the mouse wheel is scrolled
+     * @param in The scroll length
+     */
+    public abstract void onScroll(int in);
 }

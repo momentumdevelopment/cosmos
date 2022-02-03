@@ -39,6 +39,11 @@ public class SettingFeature<T> extends DrawableFeature {
 
     }
 
+    @Override
+    public void onScroll(int in) {
+
+    }
+
     /**
      * Sets the feature height
      * @param in The new feature height

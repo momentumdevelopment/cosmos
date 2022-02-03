@@ -3,10 +3,10 @@ package cope.cosmos.client.ui.clickgui.feature.features.setting;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.feature.ClickType;
 import cope.cosmos.client.ui.clickgui.feature.features.module.ModuleFeature;
-import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 
 import java.awt.*;
 
@@ -14,18 +14,17 @@ import static org.lwjgl.opengl.GL11.glScaled;
 
 /**
  * @author linustouchtips
- * @since 01/31/2022
+ * @since 02/01/2022
  */
-public class BooleanFeature extends SettingFeature<Boolean> {
+public class EnumFeature extends SettingFeature<Enum<?>> {
 
     // feature offset
     private float featureHeight;
 
     // animation
-    private final Animation animation = new Animation(100, getSetting().getValue());
     private int hoverAnimation;
 
-    public BooleanFeature(ModuleFeature moduleFeature, Setting<Boolean> setting) {
+    public EnumFeature(ModuleFeature moduleFeature, Setting<Enum<?>> setting) {
         super(moduleFeature, setting);
     }
 
@@ -49,18 +48,16 @@ public class BooleanFeature extends SettingFeature<Boolean> {
         RenderUtil.drawRect(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT, new Color(12 + hoverAnimation, 12 + hoverAnimation, 17 + hoverAnimation, 255));
         RenderUtil.drawRect(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, 2, HEIGHT, ColorUtil.getPrimaryColor());
 
-        // checkbox background
-        RenderUtil.drawRoundedRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 12, featureHeight + 2, 10, 10, 2, new Color(22 + hoverAnimation, 22 + hoverAnimation, 28 + hoverAnimation));
-
-        if (animation.getAnimationFactor() > 0) {
-            RenderUtil.drawRoundedRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 7 - (5 * animation.getAnimationFactor()), featureHeight + 7 - (5 * animation.getAnimationFactor()), 10 * animation.getAnimationFactor(), 10 * animation.getAnimationFactor(), 2, ColorUtil.getPrimaryColor());
-        }
-
-        // setting name
         glScaled(0.55, 0.55, 0.55); {
             float scaledX = (getModuleFeature().getCategoryFrameFeature().getPosition().x + 6) * 1.81818181F;
             float scaledY = (featureHeight + 5) * 1.81818181F;
+            float scaledWidth = (getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - (FontUtil.getStringWidth(StringFormatter.formatEnum(getSetting().getValue())) * 0.55F) - 3) * 1.81818181F;
+
+            // setting name
             FontUtil.drawStringWithShadow(getSetting().getName(), scaledX, scaledY, -1);
+
+            // setting value
+            FontUtil.drawStringWithShadow(StringFormatter.formatEnum(getSetting().getValue()), scaledWidth, scaledY, -1);
         }
 
         glScaled(1.81818181, 1.81818181, 1.81818181);
@@ -77,11 +74,10 @@ public class BooleanFeature extends SettingFeature<Boolean> {
 
             // check if it's able to be interacted with
             if (highestPoint >= getModuleFeature().getCategoryFrameFeature().getPosition().y + getModuleFeature().getCategoryFrameFeature().getTitle() + 2 && lowestPoint <= getModuleFeature().getCategoryFrameFeature().getPosition().y + getModuleFeature().getCategoryFrameFeature().getTitle() + getModuleFeature().getCategoryFrameFeature().getHeight() + 2) {
-                boolean previousValue = getSetting().getValue();
+                Enum<?> nextValue = getSetting().getNextMode();
 
                 // update values
-                animation.setState(!previousValue);
-                getSetting().setValue(!previousValue);
+                getSetting().setValue(nextValue);
             }
 
             // play a sound to make the user happy :)

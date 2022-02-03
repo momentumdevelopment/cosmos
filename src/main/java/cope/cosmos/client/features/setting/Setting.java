@@ -29,6 +29,7 @@ public class Setting<T> extends Feature implements Wrapper {
 
 	// the number scale (i.e. decimal places) for number settings setting
 	private int scale;
+	private int index;
 
 	// the parent module to this setting
 	private Module module;
@@ -110,6 +111,26 @@ public class Setting<T> extends Feature implements Wrapper {
 	 */
 	public void setMax(T in) {
 		max = in;
+	}
+
+	/**
+	 * Gets the next value in an Enum setting
+	 * @return The next value in an Enum setting
+	 */
+	@SuppressWarnings("unchecked")
+	public T getNextMode() {
+		if (value instanceof Enum<?>) {
+			Enum<?> enumVal = (Enum<?>) value;
+
+			// search all values
+			String[] values = Arrays.stream(enumVal.getClass().getEnumConstants()).map(Enum::name).toArray(String[]::new);
+			index = index + 1 > values.length - 1 ? 0 : index + 1;
+
+			// use value index
+			return (T) Enum.valueOf(enumVal.getClass(), values[index]);
+		}
+
+		return null;
 	}
 
 	/**

@@ -71,6 +71,11 @@ public class FrameFeature<T> extends DrawableFeature {
 
     }
 
+    @Override
+    public void onScroll(int in) {
+
+    }
+
     public int getWidth() {
         return WIDTH;
     }

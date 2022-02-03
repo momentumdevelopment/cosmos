@@ -6,6 +6,7 @@ import cope.cosmos.client.ui.clickgui.feature.ClickType;
 import cope.cosmos.client.ui.clickgui.feature.DrawableFeature;
 import cope.cosmos.client.ui.clickgui.feature.features.category.CategoryFrameFeature;
 import cope.cosmos.client.ui.clickgui.feature.features.setting.BooleanFeature;
+import cope.cosmos.client.ui.clickgui.feature.features.setting.EnumFeature;
 import cope.cosmos.client.ui.clickgui.feature.features.setting.SettingFeature;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.render.FontUtil;
@@ -59,6 +60,10 @@ public class ModuleFeature extends DrawableFeature {
                 if (setting.getValue() instanceof Boolean) {
                     settingFeatures.add(new BooleanFeature(this, (Setting<Boolean>) setting));
                 }
+
+                else if (setting.getValue() instanceof Enum<?>) {
+                    settingFeatures.add(new EnumFeature(this, (Setting<Enum<?>>) setting));
+                }
             });
         }
     }
@@ -66,7 +71,7 @@ public class ModuleFeature extends DrawableFeature {
     @Override
     public void drawFeature() {
         // feature height
-        featureHeight = (float) (categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + categoryFrameFeature.getFeatureOffset() + 2);
+        featureHeight = (float) (categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + categoryFrameFeature.getFeatureOffset() + categoryFrameFeature.getScroll() + 2);
 
         if (module != null) {
 
@@ -80,27 +85,10 @@ public class ModuleFeature extends DrawableFeature {
             }
         }
 
-        // module background
-        RenderUtil.drawRect(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
+        // offset to account for this feature
+        categoryFrameFeature.addFeatureOffset(HEIGHT);
 
         if (module != null) {
-
-            // module name
-            glScaled(0.8, 0.8, 0.8); {
-
-                // scaled position
-                float scaledX = (categoryFrameFeature.getPosition().x + 4) * 1.25F;
-                float scaledY = (float) ((categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + categoryFrameFeature.getFeatureOffset() + 6.5F) * 1.25F);
-                float scaledWidth = (categoryFrameFeature.getPosition().x + categoryFrameFeature.getWidth() - (FontUtil.getStringWidth("...") * 0.8F) - 3) * 1.25F;
-
-                FontUtil.drawStringWithShadow(getModule().getName(), scaledX, scaledY, getModule().isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : Color.WHITE.getRGB());
-                FontUtil.drawStringWithShadow("...", scaledWidth, scaledY, new Color(255, 255, 255).getRGB());
-            }
-
-            glScaled(1.25, 1.25, 1.25);
-
-            // offset to account for this feature
-            categoryFrameFeature.addFeatureOffset(HEIGHT);
 
             // draw all setting features
             if (animation.getAnimationFactor() > 0) {
@@ -114,7 +102,30 @@ public class ModuleFeature extends DrawableFeature {
                         categoryFrameFeature.addFeatureOffset(settingFeature.getHeight() * animation.getAnimationFactor());
                     }
                 });
+
+                // side bar
+                // RenderUtil.drawRect(categoryFrameFeature.getPosition().x, categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + (float) categoryFrameFeature.getFeatureOffset() + 2, 2, settingFeatureOffset - (float) categoryFrameFeature.getFeatureOffset(), ColorUtil.getPrimaryColor());
             }
+        }
+
+        // module background
+        RenderUtil.drawRect(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
+
+        if (module != null) {
+
+            // module name
+            glScaled(0.8, 0.8, 0.8); {
+
+                // scaled position
+                float scaledX = (categoryFrameFeature.getPosition().x + 4) * 1.25F;
+                float scaledY = (featureHeight + 4.5F) * 1.25F;
+                float scaledWidth = (categoryFrameFeature.getPosition().x + categoryFrameFeature.getWidth() - (FontUtil.getStringWidth("...") * 0.8F) - 3) * 1.25F;
+
+                FontUtil.drawStringWithShadow(getModule().getName(), scaledX, scaledY, getModule().isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : Color.WHITE.getRGB());
+                FontUtil.drawStringWithShadow("...", scaledWidth, scaledY, new Color(255, 255, 255).getRGB());
+            }
+
+            glScaled(1.25, 1.25, 1.25);
         }
     }
 
@@ -159,6 +170,17 @@ public class ModuleFeature extends DrawableFeature {
             if (open) {
                 settingFeatures.forEach(settingFeature -> {
                     settingFeature.onType(in);
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onScroll(int in) {
+        if (module != null) {
+            if (open) {
+                settingFeatures.forEach(settingFeature -> {
+                    settingFeature.onScroll(in);
                 });
             }
         }
