@@ -97,6 +97,7 @@ public class ModuleManager extends Manager {
 				new NewChunks(),
 				new NoRender(),
 				new SkyColor(),
+				new Tracers(),
 				new ViewModel()
 		);
 	}
