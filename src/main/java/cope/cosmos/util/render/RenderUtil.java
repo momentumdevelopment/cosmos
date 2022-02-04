@@ -2,8 +2,6 @@ package cope.cosmos.util.render;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;
-import cope.cosmos.util.entity.EntityUtil;
-import cope.cosmos.util.entity.InterpolationUtil;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -11,17 +9,13 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
-
 import java.awt.*;
-
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
