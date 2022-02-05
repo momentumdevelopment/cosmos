@@ -6,7 +6,6 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderSpecificHandEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -23,9 +22,6 @@ public class ViewModel extends Module {
     }
 
     public static Setting<Double> itemAlpha = new Setting<>("ItemAlpha", 0.0, 255.0, 255.0, 1).setDescription("The held item alpha to use");
-
-    public static Setting<Boolean> modifyFov = new Setting<>("ModifyFOV", false).setDescription("If to modify the item FOV");
-    public static Setting<Float> fov = new Setting<>("FOV", 70.0F, 130.0F, 200.0F, 0).setDescription("The item FOV to use").setParent(modifyFov);
 
     public static Setting<Double> translateX = new Setting<>("TranslateX", -2.0, 0.0, 2.0, 1).setDescription("The x translation coordinate");
     public static Setting<Double> translateY = new Setting<>("TranslateY", -2.0, 0.0, 2.0, 1).setDescription("The y translation coordinate");
@@ -53,13 +49,6 @@ public class ViewModel extends Module {
         GlStateManager.rotate(rotateX.getValue(), 1, 0, 0);
         GlStateManager.rotate(rotateY.getValue(), 0, 1, 0);
         GlStateManager.rotate(rotateZ.getValue(), 0, 0, 1);
-    }
-
-    @SubscribeEvent
-    public void onItemRenderFov(EntityViewRenderEvent.FOVModifier event) {
-        if (modifyFov.getValue()) {
-            event.setFOV(fov.getValue());
-        }
     }
 
     @SubscribeEvent
