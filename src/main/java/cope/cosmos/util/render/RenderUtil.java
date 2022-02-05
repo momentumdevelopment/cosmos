@@ -2,6 +2,7 @@ package cope.cosmos.util.render;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -14,9 +15,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
-
 import static org.lwjgl.opengl.GL11.*;
 
 @SuppressWarnings("unused")
@@ -275,6 +276,56 @@ public class RenderUtil implements Wrapper {
 		GlStateManager.scale(-scale, -scale, scale);
 	}
 
+	public static void drawLine3D(Vec3d from, Vec3d to, Color color, boolean disableDepth, double lineWidth) {
+		// Enable render 3D
+		if (disableDepth) {
+			glDepthMask(false);
+			glDisable(GL_DEPTH_TEST);
+		}
+		glDisable(GL_ALPHA_TEST);
+		glEnable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glLineWidth(0.1F);
+
+		// Colour line
+		GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+
+		// Set line width
+		glLineWidth((float) lineWidth);
+		glBegin(GL_CURRENT_BIT);
+
+		// Draw line
+		glVertex3d(from.x, from.y, from.z);
+		glVertex3d(to.x, to.y, to.z);
+
+		glEnd();
+
+		// Disable render 3D
+		if (disableDepth) {
+			glDepthMask(true);
+			glEnable(GL_DEPTH_TEST);
+		}
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+		glEnable(GL_ALPHA_TEST);
+		glDisable(GL_LINE_SMOOTH);
+
+		// Reset colour
+		glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+	}
+
+	public static void drawTracer(Vec3d vecTo, float lineWidth, Color lineColor) {
+		Vec3d eyes = new Vec3d(0.0D, 0, 1.0D).
+				rotatePitch(-((float) Math.toRadians(mc.player.rotationPitch))). // Rotate pitch
+				rotateYaw(-((float) Math.toRadians(mc.player.rotationYaw))). // Rotate yaw
+				addVector(0, mc.player.getEyeHeight(), 0); // Add player's eye height
+
+		drawLine3D(eyes, vecTo, lineColor, true, lineWidth); // Draw line
+	}
+
 	// 2d
 
 	public static void drawLine2d(final float x1, final float y1, final float x2, final float y2, final float width, final Color color) {
@@ -292,7 +343,6 @@ public class RenderUtil implements Wrapper {
 		tessellator.draw();
 		GlStateManager.enableTexture2D();
 		GlStateManager.glLineWidth(1);
-
 	}
 
 	public static void drawShadowedOutlineRectRB(final float x,
