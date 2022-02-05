@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.visual;
 
 import cope.cosmos.client.events.RenderHeldItemAlphaEvent;
+import cope.cosmos.client.events.RenderHeldItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -41,9 +42,14 @@ public class ViewModel extends Module {
     @SubscribeEvent
     public void onRenderHand(RenderSpecificHandEvent event) {
         GlStateManager.translate(translateX.getValue(), translateY.getValue(), translateZ.getValue());
+    }
+
+    @SubscribeEvent
+    public void onHeldItemRender(RenderHeldItemEvent event) {
+        // scale items
         GlStateManager.scale(scaleX.getValue(), scaleY.getValue(), scaleZ.getValue());
 
-        // rotations
+        // rotate items
         GlStateManager.rotate(rotateX.getValue(), 1, 0, 0);
         GlStateManager.rotate(rotateY.getValue(), 0, 1, 0);
         GlStateManager.rotate(rotateZ.getValue(), 0, 0, 1);

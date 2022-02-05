@@ -39,6 +39,7 @@
       "MixinEntityLivingBase",
       "MixinRenderEntityItem",
       "MixinRenderItem",
+      "MixinItemRenderer",
       "accessor.ICPacketChatMessage",
       "accessor.ICPacketCloseWindow",
       "accessor.ICPacketPlayer",
