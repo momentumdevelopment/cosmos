@@ -39,6 +39,7 @@ public class ModuleManager extends Manager {
 
 				// combat
 				new Aura(),
+				new AutoArmor(),
 				new AutoCrystal(),
 				// new AutoTrap(),
 				new Burrow(),
