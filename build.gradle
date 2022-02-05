@@ -84,6 +84,8 @@ configurations {
 }
 
 dependencies {
+    implementation 'org.jetbrains:annotations:19.0.0'
+
     // Upgrading to 0.8+ can possibly break compatibility with other clients like Future/RusherHack.
     embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         // Excludes unneeded stuff.

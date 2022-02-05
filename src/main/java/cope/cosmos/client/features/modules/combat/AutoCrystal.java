@@ -30,6 +30,7 @@ import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import io.netty.util.internal.ConcurrentSet;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -1114,24 +1115,25 @@ public class AutoCrystal extends Module {
         }
 
         // the relative positions to check for air or fire, crystals can be placed on fire
-        BlockPos nativePosition = position.add(0, 1, 0);
-        BlockPos updatedPosition = position.add(0, 2, 0);
+        BlockPos nativePosition = position.up();
+        BlockPos updatedPosition = nativePosition.up();
 
         // check if the native position is air or fire
-        if (!mc.world.isAirBlock(nativePosition) && !mc.world.getBlockState(nativePosition).getBlock().equals(Blocks.FIRE)) {
+        if (!mc.world.isAirBlock(nativePosition) && !mc.world.getBlockState(nativePosition).getMaterial().isReplaceable() && !mc.world.getBlockState(nativePosition).getMaterial().equals(Material.FIRE)) {
             return false;
         }
 
         // check if the updated position is air or fire
         if (placements.getValue().equals(Placements.NATIVE)) {
-            if (!mc.world.isAirBlock(updatedPosition) && !mc.world.getBlockState(updatedPosition).getBlock().equals(Blocks.FIRE)) {
+            if (!mc.world.isAirBlock(updatedPosition) && !mc.world.getBlockState(updatedPosition).getMaterial().isReplaceable() && !mc.world.getBlockState(updatedPosition).getMaterial().equals(Material.FIRE)) {
                 return false;
             }
         }
 
         // check for any unsafe entities in the position
         int unsafeEntities = 0;
-        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(nativePosition))) {
+        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(nativePosition.getX(), position.getY(), nativePosition.getZ(), nativePosition.getX() + 1, nativePosition.getY() + 2, nativePosition.getZ() + 1))) {
+
             // if the entity is crystal, check it's on the same position
             if (entity instanceof EntityEnderCrystal && entity.getPosition().equals(nativePosition) || attemptedExplosions.containsKey(entity.getEntityId()) && entity.ticksExisted < 20) {
                 continue;

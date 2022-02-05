@@ -69,6 +69,12 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     public void drawFeature() {
         // expand height
         if (open) {
+            long interactingWindows = getGUI().getCategoryFrameFeatures()
+                    .stream()
+                    .filter(categoryFrameFeature -> categoryFrameFeature.equals(this))
+                    .filter(categoryFrameFeature -> categoryFrameFeature.isExpanding() || categoryFrameFeature.isDragging())
+                    .count();
+
             if (isMouseOver(getPosition().x, getPosition().y + TITLE + height + 2, WIDTH, 4) && getMouse().isLeftHeld()) {
                 setExpanding(true);
             }

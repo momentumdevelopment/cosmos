@@ -156,6 +156,14 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     }
 
     /**
+     * Gets the category frame features in the GUI
+     * @return The category frame features in the GUI
+     */
+    public LinkedList<CategoryFrameFeature> getCategoryFrameFeatures() {
+        return categoryFrameFeatures;
+    }
+
+    /**
      * Gets the scissor stack
      * @return The scissor stack
      */

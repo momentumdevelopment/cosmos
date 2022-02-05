@@ -65,7 +65,7 @@ public class DrawnFeature extends SettingFeature<AtomicBoolean> {
 
     @Override
     public void onClick(ClickType in) {
-        // toggle the boolean if clicked
+        // toggle the drawn state if clicked
         if (in.equals(ClickType.LEFT) && isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT)) {
 
             // module feature bounds
