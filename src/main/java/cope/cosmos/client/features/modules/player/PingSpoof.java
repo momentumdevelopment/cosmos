@@ -6,6 +6,8 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.CPacketConfirmTransaction;
 import net.minecraft.network.play.client.CPacketKeepAlive;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -24,10 +26,11 @@ public class PingSpoof extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1).setDescription("The delay in seconds to hold off sending keep alive packets");
+    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1).setDescription("The delay in seconds to hold off sending packets");
+    public static Setting<Boolean> transactions = new Setting<>("Transactions", false).setDescription("If to cancel confirm transaction packets as well");
 
     // list of queued packets
-    private final List<CPacketKeepAlive> packets = new CopyOnWriteArrayList<>();
+    private final List<Packet<?>> packets = new CopyOnWriteArrayList<>();
 
     // timer for packet delay
     private final Timer packetTimer = new Timer();
@@ -78,14 +81,15 @@ public class PingSpoof extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         // packet that tells the server to keep the connection alive
-        if (event.getPacket() instanceof CPacketKeepAlive) {
+        // we can also cancel CPacketConfirmTransaction packets if the user specified they want to cancel transaction packets
+        if (event.getPacket() instanceof CPacketKeepAlive || (transactions.getValue() && event.getPacket() instanceof CPacketConfirmTransaction)) {
 
             // make sure it's not one of our packets
-            if (!packets.contains((CPacketKeepAlive) event.getPacket())) {
+            if (!packets.contains(event.getPacket())) {
 
                 // cancel the packet, queue the packet to be sent later
                 event.setCanceled(true);
-                packets.add((CPacketKeepAlive) event.getPacket());
+                packets.add(event.getPacket());
             }
         }
     }
