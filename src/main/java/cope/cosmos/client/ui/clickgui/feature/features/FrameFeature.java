@@ -37,6 +37,12 @@ public class FrameFeature<T> extends DrawableFeature {
 
     @Override
     public void drawFeature() {
+        long interactingWindows = getGUI().getCategoryFrameFeatures()
+                .stream()
+                .filter(categoryFrameFeature -> categoryFrameFeature.equals(this))
+                .filter(categoryFrameFeature -> categoryFrameFeature.isExpanding() || categoryFrameFeature.isDragging())
+                .count();
+
         // dragging
         if (isMouseOver(position.x, position.y, WIDTH, TITLE) && getMouse().isLeftHeld()) {
             setDragging(true);

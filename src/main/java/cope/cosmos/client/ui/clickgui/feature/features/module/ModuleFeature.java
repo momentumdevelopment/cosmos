@@ -39,7 +39,7 @@ public class ModuleFeature extends DrawableFeature {
     private final List<SettingFeature<?>> settingFeatures = new ArrayList<>();
 
     // offset for setting features (don't have the animation applied to them)
-    private int settingFeatureOffset;
+    private float settingFeatureOffset;
 
     // hover animation
     private final Animation animation = new Animation(200, false);
@@ -71,6 +71,18 @@ public class ModuleFeature extends DrawableFeature {
 
                 else if (setting.getValue() instanceof AtomicBoolean) {
                     settingFeatures.add(new DrawnFeature(this, (Setting<AtomicBoolean>) setting));
+                }
+
+                else if (setting.getValue() instanceof Float) {
+                    settingFeatures.add(new NumberFeature(this, (Setting<Number>) setting));
+                }
+
+                else if (setting.getValue() instanceof Double) {
+                    settingFeatures.add(new NumberFeature(this, (Setting<Number>) setting));
+                }
+
+                else if (setting.getValue() instanceof Color) {
+                    // settingFeatures.add(new ColorFeature(this, (Setting<Color>) setting));
                 }
             });
 
@@ -215,10 +227,18 @@ public class ModuleFeature extends DrawableFeature {
     }
 
     /**
+     * Adds a specified amount to the setting feature offset
+     * @param in Amount to add to the setting feature offset
+     */
+    public void addSettingFeatureOffset(float in) {
+        settingFeatureOffset += in;
+    }
+
+    /**
      * Gets the offset for setting features
      * @return The offset for setting features
      */
-    public int getSettingFeatureOffset() {
+    public float getSettingFeatureOffset() {
         return settingFeatureOffset;
     }
 }

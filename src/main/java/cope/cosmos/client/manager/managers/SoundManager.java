@@ -48,7 +48,7 @@ public class SoundManager extends Manager {
             @Nonnull
             @Override
             public SoundCategory getCategory() {
-                return SoundCategory.VOICE;
+                return SoundCategory.PLAYERS;
             }
 
             @Override

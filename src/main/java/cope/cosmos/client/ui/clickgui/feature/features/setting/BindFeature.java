@@ -69,7 +69,7 @@ public class BindFeature extends SettingFeature<AtomicInteger> {
 
     @Override
     public void onClick(ClickType in) {
-        // toggle the boolean if clicked
+        // toggle the binding state if clicked
         if (in.equals(ClickType.LEFT) && isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT)) {
 
             // module feature bounds
@@ -92,7 +92,7 @@ public class BindFeature extends SettingFeature<AtomicInteger> {
             if (in != -1 && in != Keyboard.KEY_ESCAPE) {
 
                 // backspace -> no bind
-                if (in == Keyboard.KEY_DELETE) {
+                if (in == Keyboard.KEY_BACK || in == Keyboard.KEY_DELETE) {
                     getModuleFeature().getModule().setKey(Keyboard.KEY_NONE);
                 }
 

@@ -65,7 +65,7 @@ public class EnumFeature extends SettingFeature<Enum<?>> {
 
     @Override
     public void onClick(ClickType in) {
-        // toggle the boolean if clicked
+        // move to the next mode if clicked
         if (in.equals(ClickType.LEFT) && isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT)) {
 
             // module feature bounds
