@@ -15,6 +15,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.GL11;
+
 import java.awt.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -289,7 +291,8 @@ public class RenderUtil implements Wrapper {
 		glLineWidth(0.1F);
 
 		// Colour line
-		ColorUtil.glColor(color);
+		GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+
 		// Set line width
 		glLineWidth((float) lineWidth);
 		glBegin(GL_CURRENT_BIT);

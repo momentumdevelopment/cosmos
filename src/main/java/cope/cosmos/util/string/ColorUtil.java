@@ -55,12 +55,4 @@ public class ColorUtil {
 		int blue = rgb & 255;
 		return new Color(red, green, blue, alpha);
 	}
-
-	/**
-	 * Sets the color
-	 * @param color The color to set
-	 */
-	public static void glColor(Color color) {
-		GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
-	}
 }
