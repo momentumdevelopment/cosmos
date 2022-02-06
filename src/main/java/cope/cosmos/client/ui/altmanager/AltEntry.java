@@ -25,8 +25,8 @@ public class AltEntry implements InterfaceUtil {
     public boolean isSelected;
 
     public AltEntry(Alt alt, float offset) {
-        setAlt(alt);
-        setOffset(offset);
+        this.alt = alt;
+        this.offset = offset;
     }
 
     /**
@@ -41,6 +41,7 @@ public class AltEntry implements InterfaceUtil {
         // Background
         RenderUtil.drawRect((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, 0x95000000);
 
+        // Draw border if the mouse is over the button
         if(isMouseOverButton(mouseX, mouseY))
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor().darker().darker());
 
@@ -48,15 +49,28 @@ public class AltEntry implements InterfaceUtil {
         if(isSelected)
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor());
 
-        // Rotate arrow
+        // Rotate and draw arrow. Could do with just having it pre-rotated, but I don't want to mess anything else up.
         if(getAlt().getAltSession() != null) {
             GL11.glPushMatrix();
-            GL11.glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 147) + 10, getOffset() + 17, 1);
+
+            // Rotate
+            GL11.glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 149) + 10, getOffset() + 18, 1);
             GL11.glRotatef(-90, 0, 0, 1);
-            GL11.glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 147) + 10), -(getOffset() + 17), 1);
+            GL11.glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 149) + 10), -(getOffset() + 18), 1);
+
+            // Colour it white
             GL11.glColor4f(255, 255, 255, 255);
+
+            // Colour the arrow if we are logged in as that alt
+            if(Minecraft.getMinecraft().getSession().getPlayerID().equalsIgnoreCase(getAlt().getAltSession().getPlayerID()))
+                GL11.glColor3f(ColorUtil.getPrimaryColor().getRed() / 255f, ColorUtil.getPrimaryColor().getGreen() / 255f, ColorUtil.getPrimaryColor().getBlue() / 255f);
+
+            // Bind texture
             Minecraft.getMinecraft().getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/dropdown.png"));
-            Gui.drawModalRectWithCustomSizedTexture((scaledResolution.getScaledWidth() / 2) - 147, (int) (getOffset() + 10), 0, 0, 25, 25, 25, 25);
+
+            // Draw arrow
+            Gui.drawModalRectWithCustomSizedTexture((scaledResolution.getScaledWidth() / 2) - 149, (int) (getOffset() + 10), 0, 0, 25, 25, 25, 25);
+
             GL11.glPopMatrix();
         }
 
@@ -80,7 +94,7 @@ public class AltEntry implements InterfaceUtil {
             FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
 
         // Alt Type
-        FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]", (scaledResolution.getScaledWidth() / 2f) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[-]")), getOffset() + 11, 0xFFFFFF);
+        FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]", (scaledResolution.getScaledWidth() / 2f) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]")), getOffset() + 11, 0xFFFFFF);
     }
 
     /**
@@ -94,11 +108,8 @@ public class AltEntry implements InterfaceUtil {
 
     /**
      * Called when the button is clicked
-     * @param mouseX The mouse's X
-     * @param mouseY The mouse's Y
-     * @param mouseButton The button that is pressed
      */
-    public void whenClicked(int mouseX, int mouseY, int mouseButton) {
+    public void whenClicked() {
         // Login if the session isn't null, and if the entry is already selected
         if(getAlt().getAltSession() != null) {
             ((IMinecraft) Minecraft.getMinecraft()).setSession(getAlt().getAltSession());
@@ -111,14 +122,6 @@ public class AltEntry implements InterfaceUtil {
      */
     public Alt getAlt() {
         return alt;
-    }
-
-    /**
-     * Sets the alt
-     * @param alt The new alt
-     */
-    public void setAlt(Alt alt) {
-        this.alt = alt;
     }
 
     /**

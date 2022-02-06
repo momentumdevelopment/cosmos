@@ -9,6 +9,7 @@ import fr.litarvan.openauth.microsoft.MicrosoftAuthenticationException;
 import fr.litarvan.openauth.microsoft.MicrosoftAuthenticator;
 import net.minecraft.util.Session;
 import java.net.Proxy;
+import java.util.Random;
 
 /**
  * @author Wolfsurge
@@ -16,21 +17,21 @@ import java.net.Proxy;
 public class Alt {
 
     // The type of alt
-    private AltType altType;
+    private final AltType altType;
     // The email or username of the alt. Called login because it looks better than emailUsername etc
-    private String login;
+    private final String login;
     // The password of the alt
-    private String password;
+    private final String password;
     // The alt session, for quick login
-    private Session altSession;
+    private final Session altSession;
 
     // Creates a new alt
-    public Alt(String altEmail, String altPassword, AltType altType) {
-        setLogin(altEmail);
-        setPassword(altPassword);
-        setAltType(altType);
+    public Alt(String altLogin, String altPassword, AltType altType) {
+        this.login = altLogin;
+        this.password = altPassword;
+        this.altType = altType;
         // Create a new session when, and only when, the alt is created
-        setAltSession(createSession());
+        this.altSession = createSession();
     }
 
     /**
@@ -76,7 +77,10 @@ public class Alt {
         // Cracked
         else if (getAltType() == AltType.Cracked) {
             // Returns a session without proper auth.
-            return new Session(getLogin(), "", "", "legacy");
+            Random random = new Random();
+            // Generating a random player ID so the coloured arrow doesn't show for every cracked account
+            int playerID = random.nextInt(Integer.MAX_VALUE);
+            return new Session(getLogin(), String.valueOf(playerID), "", "legacy");
         }
 
         return null;
@@ -109,27 +113,11 @@ public class Alt {
     }
 
     /**
-     * Sets the alt type
-     * @param altType The new alt type
-     */
-    public void setAltType(AltType altType) {
-        this.altType = altType;
-    }
-
-    /**
      * Gets the email of the alt
      * @return The email of the alt
      */
     public String getLogin() {
         return login;
-    }
-
-    /**
-     * Sets the email of the alt
-     * @param login The new email
-     */
-    public void setLogin(String login) {
-        this.login = login;
     }
 
     /**
@@ -141,26 +129,10 @@ public class Alt {
     }
 
     /**
-     * Sets the password of the alt
-     * @param password The new password
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    /**
      * Gets the alt's session
      * @return The alt's session
      */
     public Session getAltSession() {
         return altSession;
-    }
-
-    /**
-     * Sets the alt's session
-     * @param altSession The new session
-     */
-    public void setAltSession(Session altSession) {
-        this.altSession = altSession;
     }
 }

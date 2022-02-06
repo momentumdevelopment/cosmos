@@ -15,7 +15,6 @@ public class AddAltGUI extends GuiScreen {
 
     // The last screen (which will always be AltManagerGUI) for easy switching back
     private final GuiScreen lastScreen;
-
     // The email text box
     private GuiTextField loginField;
     // The password text box
@@ -29,6 +28,8 @@ public class AddAltGUI extends GuiScreen {
 
     @Override
     public void initGui() {
+        ScaledResolution scaledResolution = new ScaledResolution(mc);
+
         // Email and password
         this.loginField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 100, 200, 15);
         this.passwordField = new GuiTextField(2, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 80, 200, 15);
@@ -36,8 +37,6 @@ public class AddAltGUI extends GuiScreen {
         // Add and cancel
         this.buttonList.add(new GuiButton(3, this.width / 2 - 51, this.height / 2 - 60, 50, 20, "Add"));
         this.buttonList.add(new GuiButton(4, this.width / 2 + 1, this.height / 2 - 60, 50, 20, "Cancel"));
-
-        ScaledResolution scaledResolution = new ScaledResolution(mc);
 
         // Alt type
         this.buttonList.add(new GuiButton(5, 3, scaledResolution.getScaledHeight() / 2 - 30, 100, 20, "Use Microsoft"));
@@ -48,7 +47,7 @@ public class AddAltGUI extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         ScaledResolution scaledResolution = new ScaledResolution(mc);
-        // Draw dirt background
+        // Draw background
         drawDefaultBackground();
 
         // Title
@@ -66,7 +65,6 @@ public class AddAltGUI extends GuiScreen {
 
         FontUtil.drawStringWithShadow("Current: " + TextFormatting.GRAY + currentType.name(), 3, scaledResolution.getScaledHeight() / 2f + 35, 0xFFFFFF);
 
-        // Draw buttons
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
@@ -78,25 +76,34 @@ public class AddAltGUI extends GuiScreen {
             case 3:
                 // Add new alt
                 if(!(loginField.getText().isEmpty())) {
+                    // Add alt
                     AltManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
+                    // Increase offset
                     AltManagerGUI.altEntryOffset += 32;
+                    // Display alt manager
                     mc.displayGuiScreen(lastScreen);
                 }
                 break;
 
-            case 4: mc.displayGuiScreen(lastScreen); break;
+            case 4:
+                // Display Alt Manager GUI
+                mc.displayGuiScreen(lastScreen);
+                break;
 
             case 5:
+                // Set type to Microsoft
                 currentType = Alt.AltType.Microsoft;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(true);
                 break;
             case 6:
+                // Set type to Mojang
                 currentType = Alt.AltType.Mojang;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(true);
                 break;
             case 7:
+                // Set type to Cracked
                 currentType = Alt.AltType.Cracked;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(false);
@@ -108,6 +115,7 @@ public class AddAltGUI extends GuiScreen {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
+        // Text field clicked
         loginField.mouseClicked(mouseX, mouseY, mouseButton);
         passwordField.mouseClicked(mouseX, mouseY, mouseButton);
     }
@@ -120,14 +128,17 @@ public class AddAltGUI extends GuiScreen {
      */
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        // Display the alt manager if we press escape
         if(keyCode == Keyboard.KEY_ESCAPE) {
             mc.displayGuiScreen(lastScreen);
             return;
         }
 
+        // Text fields
         loginField.textboxKeyTyped(typedChar, keyCode);
         passwordField.textboxKeyTyped(typedChar, keyCode);
 
+        // Set unfocused if we press enter / return
         if(keyCode == Keyboard.KEY_RETURN) {
             this.loginField.setFocused(false);
             this.passwordField.setFocused(false);

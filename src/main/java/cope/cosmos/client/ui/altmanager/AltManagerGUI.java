@@ -1,6 +1,7 @@
 package cope.cosmos.client.ui.altmanager;
 
 import cope.cosmos.client.manager.managers.AltManager;
+import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -15,13 +16,10 @@ import java.io.IOException;
 /**
  * @author Wolfsurge
  */
-public class AltManagerGUI extends GuiScreen {
+public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
 
     // Last GUI screen
     private final GuiScreen lastScreen;
-
-    // List of alt entries
-    // public static final List<AltEntry> altEntries = new ArrayList<>();
 
     // Offset of the entries
     public static float altEntryOffset = 41;
@@ -38,6 +36,10 @@ public class AltManagerGUI extends GuiScreen {
         this.buttonList.add(new GuiButton(0, scaledResolution.getScaledWidth() / 2 - 150, scaledResolution.getScaledHeight() - 23, 100, 20, "Add Alt"));
         this.buttonList.add(new GuiButton(1, scaledResolution.getScaledWidth() / 2 - 50, scaledResolution.getScaledHeight() - 23, 100, 20, "Delete Selected"));
         this.buttonList.add(new GuiButton(2, scaledResolution.getScaledWidth() / 2 + 50, scaledResolution.getScaledHeight() - 23, 100, 20, "Back"));
+
+        altEntryOffset = 41;
+        if(!AltManager.getAltEntries().isEmpty())
+            getFirstAlt().setOffset(altEntryOffset);
     }
 
     @Override
@@ -89,20 +91,20 @@ public class AltManagerGUI extends GuiScreen {
         refreshOffsets();
 
         // Check that the mouse is over the available area
-        if(mouseOver((scaledResolution.getScaledWidth() / 2f) - 151, 40, 302, scaledResolution.getScaledHeight() - 25, mouseX, mouseY)) {
+        if (mouseOver((scaledResolution.getScaledWidth() / 2f) - 151, 40, 302, scaledResolution.getScaledHeight() - 25, mouseX, mouseY)) {
             int scroll = Mouse.getDWheel();
-            if(scroll < 0) {
+            if (scroll < 0) {
                 // Cancel if the last alt is fully visible
-                if(getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) return;
+                if (getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) return;
 
                 for (AltEntry altEntry : AltManager.getAltEntries()) {
                     altEntry.setOffset(altEntry.getOffset() - 16);
                 }
             }
 
-            if(scroll > 0) {
+            else if (scroll > 0) {
                 // Cancel if the first alt is fully visible
-                if(getFirstAlt().getOffset() >= 41) return;
+                if (getFirstAlt().getOffset() >= 41) return;
 
                 for (AltEntry altEntry : AltManager.getAltEntries()) {
                     altEntry.setOffset(altEntry.getOffset() + 16);
@@ -117,27 +119,34 @@ public class AltManagerGUI extends GuiScreen {
 
         switch (button.id) {
             case 0:
+                // Display add alt gui
                 mc.displayGuiScreen(new AddAltGUI(this));
                 break;
             case 1:
+                // If there is a selected entry, remove it
                 if(getSelectedAltEntry() != null) {
+                    // Remove the entry
                     AltManager.getAltEntries().remove(getSelectedAltEntry());
+                    // Decrease the offset
                     altEntryOffset -= 32;
+                    // Refresh positions of all other alts
                     if(!AltManager.getAltEntries().isEmpty())
                         getFirstAlt().setOffset(41);
                 }
                 break;
             case 2:
+                // Display multiplayer gui
                 mc.displayGuiScreen(lastScreen);
                 break;
         }
     }
 
     /**
-     * Called when the GUI is closed. Save the alts when called.
+     * Called when the GUI is closed.
      */
     @Override
     public void onGuiClosed() {
+        // Save the alts to alts.toml
         AltManager.saveAlts();
     }
 
@@ -145,9 +154,13 @@ public class AltManagerGUI extends GuiScreen {
      * Refreshes the alt entries' offsets
      */
     private void refreshOffsets() {
+        // Get the first alt's offset
         float altOffset = getFirstAlt().getOffset();
+
         for(AltEntry altEntry : AltManager.getAltEntries()) {
+            // Set the offset to a new offset
             altEntry.setOffset(altOffset);
+            // Increase offset for next entry
             altOffset += 32;
         }
     }
@@ -162,6 +175,7 @@ public class AltManagerGUI extends GuiScreen {
 
     /**
      * There has got to be a better way of doing this...
+     * Gets the last alt in the list
      * @return The last alt
      */
     private AltEntry getLastAlt() {
@@ -174,6 +188,7 @@ public class AltManagerGUI extends GuiScreen {
      */
     private AltEntry getSelectedAltEntry() {
         for(AltEntry altEntry : AltManager.getAltEntries()) {
+            // If the alt is selected, return the entry
             if(altEntry.isSelected)
                 return altEntry;
         }
@@ -186,6 +201,7 @@ public class AltManagerGUI extends GuiScreen {
      * @param newSelected The new selected alt
      */
     private void setSelectedAltEntry(AltEntry newSelected) {
+        // Sets whether the alt is selected to whether it is the newSelected parameter
         for(AltEntry altEntry : AltManager.getAltEntries())
             altEntry.isSelected = altEntry == newSelected;
     }
@@ -198,6 +214,7 @@ public class AltManagerGUI extends GuiScreen {
      */
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        // Display multiplayer GUI if we press escape
         if(keyCode == Keyboard.KEY_ESCAPE) {
             mc.displayGuiScreen(lastScreen);
             return;
@@ -219,16 +236,18 @@ public class AltManagerGUI extends GuiScreen {
         // Set the selected alt
         for(AltEntry altEntry : AltManager.getAltEntries()) {
             if(altEntry.isMouseOverButton(mouseX, mouseY)) {
+                // Run only if it is already selected
                 if(altEntry.isSelected)
-                    altEntry.whenClicked(mouseX, mouseY, mouseButton);
+                    altEntry.whenClicked();
 
+                // Set it to be selected
                 setSelectedAltEntry(altEntry);
             }
         }
     }
 
     /**
-     * Linus, I don't know what you did with your isMouseOver method, but it doesn't work :/ (so I did this instead)
+     * Linus, I don't know what you did with your isMouseOver method, but it didn't work :/ (so I did this instead)
      * Checks if the mouse is over a region
      * @param x The lower x
      * @param y The lower y
