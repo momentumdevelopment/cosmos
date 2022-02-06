@@ -52,7 +52,6 @@ public class Alt {
             } catch (MicrosoftAuthenticationException e) { e.printStackTrace(); }
 
         }
-
         // Mojang Authentication
         else if (getAltType() == AltType.Mojang) {
             // Create auth variables
@@ -73,7 +72,6 @@ public class Alt {
                 localAuthenticationException.printStackTrace();
             }
         }
-
         // Cracked
         else if (getAltType() == AltType.Cracked) {
             // Returns a session without proper auth.

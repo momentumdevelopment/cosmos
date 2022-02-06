@@ -11,6 +11,9 @@ import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
 
+/**
+ * @author Wolfsurge
+ */
 public class AddAltGUI extends GuiScreen {
 
     // The last screen (which will always be AltManagerGUI) for easy switching back

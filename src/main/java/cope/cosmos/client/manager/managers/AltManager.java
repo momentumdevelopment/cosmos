@@ -24,10 +24,6 @@ public class AltManager {
     // The client directory
     private static final File mainDirectory = new File("cosmos");
 
-    public AltManager() {
-
-    }
-
     /**
      * Saves the alt accounts to alts.toml
      */
