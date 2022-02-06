@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.altmanager;
 
+import cope.cosmos.client.manager.managers.AlttManager;
 import cope.cosmos.util.render.FontUtil;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -17,7 +17,7 @@ public class AddAltGUI extends GuiScreen {
     private final GuiScreen lastScreen;
 
     // The email text box
-    private GuiTextField emailField;
+    private GuiTextField loginField;
     // The password text box
     private GuiTextField passwordField;
 
@@ -30,7 +30,7 @@ public class AddAltGUI extends GuiScreen {
     @Override
     public void initGui() {
         // Email and password
-        this.emailField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 100, 200, 15);
+        this.loginField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 100, 200, 15);
         this.passwordField = new GuiTextField(2, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 80, 200, 15);
 
         // Add and cancel
@@ -55,14 +55,14 @@ public class AddAltGUI extends GuiScreen {
         drawCenteredString(mc.fontRenderer, "Add Alt Account", scaledResolution.getScaledWidth() / 2, 10, 0xFFFFFF);
 
         // Draw email text box
-        emailField.drawTextBox();
-        if(emailField.getText().equals(""))
-            FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Email", emailField.x + 3, emailField.y + 3, -1);
+        loginField.drawTextBox();
+        if(loginField.getText().equals("") && !loginField.isFocused() && loginField.getVisible())
+            FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Login", loginField.x + 3, loginField.y + 3.5f, -1);
 
         // Draw password text box
         passwordField.drawTextBox();
-        if(passwordField.getText().equals(""))
-            FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Password", passwordField.x + 3, passwordField.y + 3, -1);
+        if(passwordField.getText().equals("") && !passwordField.isFocused() && passwordField.getVisible())
+            FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Password", passwordField.x + 3, passwordField.y + 3.5f, -1);
 
         FontUtil.drawStringWithShadow("Current: " + TextFormatting.GRAY + currentType.name(), 3, scaledResolution.getScaledHeight() / 2f + 35, 0xFFFFFF);
 
@@ -77,8 +77,8 @@ public class AddAltGUI extends GuiScreen {
         switch (button.id) {
             case 3:
                 // Add new alt
-                if(!(emailField.getText().isEmpty())) {
-                    AltManagerGUI.altEntries.add(new AltEntry(new Alt(emailField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
+                if(!(loginField.getText().isEmpty())) {
+                    AlttManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
                     AltManagerGUI.altEntryOffset += 32;
                     mc.displayGuiScreen(lastScreen);
                 }
@@ -86,9 +86,21 @@ public class AddAltGUI extends GuiScreen {
 
             case 4: mc.displayGuiScreen(lastScreen); break;
 
-            case 5: currentType = Alt.AltType.Microsoft; break;
-            case 6: currentType = Alt.AltType.Mojang; break;
-            case 7: currentType = Alt.AltType.Cracked; break;
+            case 5:
+                currentType = Alt.AltType.Microsoft;
+                this.loginField.setVisible(true);
+                this.passwordField.setVisible(true);
+                break;
+            case 6:
+                currentType = Alt.AltType.Mojang;
+                this.loginField.setVisible(true);
+                this.passwordField.setVisible(true);
+                break;
+            case 7:
+                currentType = Alt.AltType.Cracked;
+                this.loginField.setVisible(true);
+                this.passwordField.setVisible(false);
+                break;
         }
     }
 
@@ -96,7 +108,7 @@ public class AddAltGUI extends GuiScreen {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
-        emailField.mouseClicked(mouseX, mouseY, mouseButton);
+        loginField.mouseClicked(mouseX, mouseY, mouseButton);
         passwordField.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
@@ -113,11 +125,11 @@ public class AddAltGUI extends GuiScreen {
             return;
         }
 
-        emailField.textboxKeyTyped(typedChar, keyCode);
+        loginField.textboxKeyTyped(typedChar, keyCode);
         passwordField.textboxKeyTyped(typedChar, keyCode);
 
         if(keyCode == Keyboard.KEY_RETURN) {
-            this.emailField.setFocused(false);
+            this.loginField.setFocused(false);
             this.passwordField.setFocused(false);
         }
 

@@ -1,6 +1,5 @@
 package cope.cosmos.client.ui.altmanager;
 
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.util.render.FontUtil;
@@ -9,13 +8,9 @@ import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.opengl.GL11;
-
-import java.util.Map;
 
 /**
  * @author Wolfsurge
@@ -65,14 +60,24 @@ public class AltEntry implements InterfaceUtil {
             GL11.glPopMatrix();
         }
 
+        // Replace letters in between the first three letters and the '@' with asterisks
+        String loginString = "";
+        // Make sure that it contains the correct characters
+        if (getAlt().getLogin().contains("@") && getAlt().getLogin().length() > 4 && getAlt().getAltType() != Alt.AltType.Cracked)
+            loginString = getAlt().getLogin().substring(0, 3) + getAlt().getLogin().substring(3, getAlt().getLogin().indexOf('@')).replaceAll(".", "*") + getAlt().getLogin().substring(getAlt().getLogin().indexOf('@'));
+
+        else if (getAlt().getAltType() == Alt.AltType.Cracked)
+            loginString = getAlt().getLogin();
+
         // Email / Error Message
         if(getAlt().getAltSession() != null)
-            FontUtil.drawStringWithShadow(getAlt().getEmail(), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
+            FontUtil.drawStringWithShadow(loginString, (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
         else
             FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
 
         // Password
-        FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
+        if(getAlt().getAltType() != Alt.AltType.Cracked)
+            FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
 
         // Alt Type
         FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]", (scaledResolution.getScaledWidth() / 2f) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[-]")), getOffset() + 11, 0xFFFFFF);
@@ -94,7 +99,7 @@ public class AltEntry implements InterfaceUtil {
      * @param mouseButton The button that is pressed
      */
     public void whenClicked(int mouseX, int mouseY, int mouseButton) {
-        // Login if the session isn't null
+        // Login if the session isn't null, and if the entry is already selected
         if(getAlt().getAltSession() != null) {
             ((IMinecraft) Minecraft.getMinecraft()).setSession(getAlt().getAltSession());
         }
