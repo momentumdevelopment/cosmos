@@ -54,9 +54,9 @@ public class AltEntry implements InterfaceUtil {
             GL11.glPushMatrix();
 
             // Rotate
-            GL11.glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 149) + 10, getOffset() + 18, 1);
+            GL11.glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 148) + 10, getOffset() + 17, 1);
             GL11.glRotatef(-90, 0, 0, 1);
-            GL11.glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 149) + 10), -(getOffset() + 18), 1);
+            GL11.glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 148) + 10), -(getOffset() + 17), 1);
 
             // Colour it white
             GL11.glColor4f(255, 255, 255, 255);
@@ -69,7 +69,7 @@ public class AltEntry implements InterfaceUtil {
             Minecraft.getMinecraft().getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/dropdown.png"));
 
             // Draw arrow
-            Gui.drawModalRectWithCustomSizedTexture((scaledResolution.getScaledWidth() / 2) - 149, (int) (getOffset() + 10), 0, 0, 25, 25, 25, 25);
+            Gui.drawModalRectWithCustomSizedTexture((scaledResolution.getScaledWidth() / 2) - 148, (int) (getOffset() + 9), 0, 0, 25, 25, 25, 25);
 
             GL11.glPopMatrix();
         }

@@ -19,7 +19,7 @@ public class AddAltGUI extends GuiScreen {
     private GuiTextField loginField;
     // The password text box
     private GuiTextField passwordField;
-
+    // The current type that is selected (MS by default)
     private Alt.AltType currentType = Alt.AltType.Microsoft;
 
     public AddAltGUI(GuiScreen lastScreen) {
@@ -28,20 +28,18 @@ public class AddAltGUI extends GuiScreen {
 
     @Override
     public void initGui() {
-        ScaledResolution scaledResolution = new ScaledResolution(mc);
-
         // Email and password
-        this.loginField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 100, 200, 15);
-        this.passwordField = new GuiTextField(2, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 80, 200, 15);
+        this.loginField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 42, 200, 15);
+        this.passwordField = new GuiTextField(2, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 20, 200, 15);
 
         // Add and cancel
-        this.buttonList.add(new GuiButton(3, this.width / 2 - 51, this.height / 2 - 60, 50, 20, "Add"));
-        this.buttonList.add(new GuiButton(4, this.width / 2 + 1, this.height / 2 - 60, 50, 20, "Cancel"));
+        this.buttonList.add(new GuiButton(3, this.width / 2 - 51, this.height / 2 + 8, 50, 20, "Add"));
+        this.buttonList.add(new GuiButton(4, this.width / 2 + 1, this.height / 2 + 8, 50, 20, "Cancel"));
 
         // Alt type
-        this.buttonList.add(new GuiButton(5, 3, scaledResolution.getScaledHeight() / 2 - 30, 100, 20, "Use Microsoft"));
-        this.buttonList.add(new GuiButton(6, 3, scaledResolution.getScaledHeight() / 2 - 10, 100, 20, "Use Mojang"));
-        this.buttonList.add(new GuiButton(7, 3, scaledResolution.getScaledHeight() / 2 + 10, 100, 20, "Use Cracked"));
+        this.buttonList.add(new GuiButton(5, this.width / 2 - 210, this.height / 2 - 42, 100, 20, "Use Microsoft"));
+        this.buttonList.add(new GuiButton(6, this.width / 2 - 210, this.height / 2 - 21, 100, 20, "Use Mojang"));
+        this.buttonList.add(new GuiButton(7, this.width / 2 - 210, this.height / 2, 100, 20, "Use Cracked"));
     }
 
     @Override
@@ -62,8 +60,6 @@ public class AddAltGUI extends GuiScreen {
         passwordField.drawTextBox();
         if(passwordField.getText().equals("") && !passwordField.isFocused() && passwordField.getVisible())
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Password", passwordField.x + 3, passwordField.y + 3.5f, -1);
-
-        FontUtil.drawStringWithShadow("Current: " + TextFormatting.GRAY + currentType.name(), 3, scaledResolution.getScaledHeight() / 2f + 35, 0xFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
