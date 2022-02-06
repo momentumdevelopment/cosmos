@@ -74,6 +74,8 @@ repositories {
     mavenCentral()
     // The url to get the spongepowered dependencies from.
     maven { url 'https://repo.spongepowered.org/maven' }
+    // The url to get GitHub repositories from
+    maven { url 'https://jitpack.io' }
 }
 
 configurations {
@@ -107,6 +109,8 @@ dependencies {
         // Why include google gson.
         exclude module: 'gson'
     }
+    // Microsoft Authentication
+    embed 'com.github.litarvan:OpenAuth:1.1.2'
 }
 
 processResources {
