@@ -1,6 +1,6 @@
 package cope.cosmos.client.ui.altmanager;
 
-import cope.cosmos.client.manager.managers.AlttManager;
+import cope.cosmos.client.manager.managers.AltManager;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -11,8 +11,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Wolfsurge
@@ -59,14 +57,14 @@ public class AltManagerGUI extends GuiScreen {
         RenderUtil.scissor((scaledResolution.getScaledWidth() / 2f) - 151, 40, (scaledResolution.getScaledWidth() / 2f) + 151, scaledResolution.getScaledHeight() - 24);
 
         // Draw alt entries
-        for(AltEntry altEntry : AlttManager.getAltEntries())
+        for(AltEntry altEntry : AltManager.getAltEntries())
             altEntry.drawAltEntry(mouseX, mouseY);
 
         // Stop scissoring
         RenderUtil.endScissor();
 
         // Display 'No alts!' if there are no alt entries
-        if(AlttManager.getAltEntries().isEmpty())
+        if(AltManager.getAltEntries().isEmpty())
             FontUtil.drawCenteredStringWithShadow("No alts!", scaledResolution.getScaledWidth() / 2f, 50, 0xFFFFFF);
 
         // 'Currently logged in as' text
@@ -85,7 +83,7 @@ public class AltManagerGUI extends GuiScreen {
         ScaledResolution scaledResolution = new ScaledResolution(mc);
 
         // Cancel if there are no alts
-        if(AlttManager.getAltEntries().isEmpty()) return;
+        if(AltManager.getAltEntries().isEmpty()) return;
 
         // Refresh offsets before running the rest of the code
         refreshOffsets();
@@ -97,7 +95,7 @@ public class AltManagerGUI extends GuiScreen {
                 // Cancel if the last alt is fully visible
                 if(getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) return;
 
-                for (AltEntry altEntry : AlttManager.getAltEntries()) {
+                for (AltEntry altEntry : AltManager.getAltEntries()) {
                     altEntry.setOffset(altEntry.getOffset() - 16);
                 }
             }
@@ -106,7 +104,7 @@ public class AltManagerGUI extends GuiScreen {
                 // Cancel if the first alt is fully visible
                 if(getFirstAlt().getOffset() >= 41) return;
 
-                for (AltEntry altEntry : AlttManager.getAltEntries()) {
+                for (AltEntry altEntry : AltManager.getAltEntries()) {
                     altEntry.setOffset(altEntry.getOffset() + 16);
                 }
             }
@@ -123,9 +121,9 @@ public class AltManagerGUI extends GuiScreen {
                 break;
             case 1:
                 if(getSelectedAltEntry() != null) {
-                    AlttManager.getAltEntries().remove(getSelectedAltEntry());
+                    AltManager.getAltEntries().remove(getSelectedAltEntry());
                     altEntryOffset -= 32;
-                    if(!AlttManager.getAltEntries().isEmpty())
+                    if(!AltManager.getAltEntries().isEmpty())
                         getFirstAlt().setOffset(41);
                 }
                 break;
@@ -140,7 +138,7 @@ public class AltManagerGUI extends GuiScreen {
      */
     @Override
     public void onGuiClosed() {
-        AlttManager.saveAlts();
+        AltManager.saveAlts();
     }
 
     /**
@@ -148,7 +146,7 @@ public class AltManagerGUI extends GuiScreen {
      */
     private void refreshOffsets() {
         float altOffset = getFirstAlt().getOffset();
-        for(AltEntry altEntry : AlttManager.getAltEntries()) {
+        for(AltEntry altEntry : AltManager.getAltEntries()) {
             altEntry.setOffset(altOffset);
             altOffset += 32;
         }
@@ -159,7 +157,7 @@ public class AltManagerGUI extends GuiScreen {
      * @return The first alt
      */
     private AltEntry getFirstAlt() {
-        return AlttManager.getAltEntries().get(0);
+        return AltManager.getAltEntries().get(0);
     }
 
     /**
@@ -167,7 +165,7 @@ public class AltManagerGUI extends GuiScreen {
      * @return The last alt
      */
     private AltEntry getLastAlt() {
-        return AlttManager.getAltEntries().get(AlttManager.getAltEntries().size() - 1);
+        return AltManager.getAltEntries().get(AltManager.getAltEntries().size() - 1);
     }
 
     /**
@@ -175,7 +173,7 @@ public class AltManagerGUI extends GuiScreen {
      * @return The selected alt
      */
     private AltEntry getSelectedAltEntry() {
-        for(AltEntry altEntry : AlttManager.getAltEntries()) {
+        for(AltEntry altEntry : AltManager.getAltEntries()) {
             if(altEntry.isSelected)
                 return altEntry;
         }
@@ -188,7 +186,7 @@ public class AltManagerGUI extends GuiScreen {
      * @param newSelected The new selected alt
      */
     private void setSelectedAltEntry(AltEntry newSelected) {
-        for(AltEntry altEntry : AlttManager.getAltEntries())
+        for(AltEntry altEntry : AltManager.getAltEntries())
             altEntry.isSelected = altEntry == newSelected;
     }
 
@@ -219,7 +217,7 @@ public class AltManagerGUI extends GuiScreen {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
         // Set the selected alt
-        for(AltEntry altEntry : AlttManager.getAltEntries()) {
+        for(AltEntry altEntry : AltManager.getAltEntries()) {
             if(altEntry.isMouseOverButton(mouseX, mouseY)) {
                 if(altEntry.isSelected)
                     altEntry.whenClicked(mouseX, mouseY, mouseButton);

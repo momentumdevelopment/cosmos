@@ -1,6 +1,6 @@
 package cope.cosmos.client.ui.altmanager;
 
-import cope.cosmos.client.manager.managers.AlttManager;
+import cope.cosmos.client.manager.managers.AltManager;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -78,7 +78,7 @@ public class AddAltGUI extends GuiScreen {
             case 3:
                 // Add new alt
                 if(!(loginField.getText().isEmpty())) {
-                    AlttManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
+                    AltManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
                     AltManagerGUI.altEntryOffset += 32;
                     mc.displayGuiScreen(lastScreen);
                 }
