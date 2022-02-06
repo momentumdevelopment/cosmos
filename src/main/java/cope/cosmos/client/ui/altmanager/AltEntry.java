@@ -71,7 +71,7 @@ public class AltEntry implements InterfaceUtil {
 
         // Email / Error Message
         if(getAlt().getAltSession() != null)
-            FontUtil.drawStringWithShadow(loginString, (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
+            FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.Cracked ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
         else
             FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
 
