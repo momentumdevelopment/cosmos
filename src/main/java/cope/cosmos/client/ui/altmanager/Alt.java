@@ -9,7 +9,7 @@ import fr.litarvan.openauth.microsoft.MicrosoftAuthenticationException;
 import fr.litarvan.openauth.microsoft.MicrosoftAuthenticator;
 import net.minecraft.util.Session;
 import java.net.Proxy;
-import java.util.Random;
+import java.util.UUID;
 
 /**
  * @author Wolfsurge
@@ -39,46 +39,45 @@ public class Alt {
      * @return A new Minecraft session, if we were able to create one
      */
     private Session createSession() {
-        // Microsoft Authentication
-        if (getAltType() == AltType.Microsoft) {
-            // Create new authenticator
-            MicrosoftAuthenticator authenticator = new MicrosoftAuthenticator();
-            try {
-                // Create new result
-                MicrosoftAuthResult result = authenticator.loginWithCredentials(login, password);
+        switch (getAltType()) {
+            case Microsoft:
+                // Create new authenticator
+                MicrosoftAuthenticator authenticator = new MicrosoftAuthenticator();
+                try {
+                    // Create new result
+                    MicrosoftAuthResult result = authenticator.loginWithCredentials(login, password);
 
-                // Return created session
-                return new Session(result.getProfile().getName(), result.getProfile().getId(), result.getAccessToken(),"legacy");
-            } catch (MicrosoftAuthenticationException e) { e.printStackTrace(); }
+                    // Return created session
+                    return new Session(result.getProfile().getName(), result.getProfile().getId(), result.getAccessToken(), "legacy");
+                } catch (MicrosoftAuthenticationException e) { 
+                    e.printStackTrace();
+                }
+                
+                break;
+                
+            case Mojang:
+                // Create auth variables
+                YggdrasilAuthenticationService service = new YggdrasilAuthenticationService(Proxy.NO_PROXY, "");
+                YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication)service.createUserAuthentication(Agent.MINECRAFT);
 
-        }
-        // Mojang Authentication
-        else if (getAltType() == AltType.Mojang) {
-            // Create auth variables
-            YggdrasilAuthenticationService service = new YggdrasilAuthenticationService(Proxy.NO_PROXY, "");
-            YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication)service.createUserAuthentication(Agent.MINECRAFT);
+                // Set email and password
+                auth.setUsername(getLogin());
+                auth.setPassword(getPassword());
 
-            // Set email and password
-            auth.setUsername(getLogin());
-            auth.setPassword(getPassword());
+                // Attempt login
+                try {
+                    auth.logIn();
 
-            // Attempt login
-            try {
-                auth.logIn();
-
-                // Return created session
-                return new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
-            } catch (AuthenticationException localAuthenticationException) {
-                localAuthenticationException.printStackTrace();
-            }
-        }
-        // Cracked
-        else if (getAltType() == AltType.Cracked) {
-            // Returns a session without proper auth.
-            Random random = new Random();
-            // Generating a random player ID so the coloured arrow doesn't show for every cracked account
-            int playerID = random.nextInt(Integer.MAX_VALUE);
-            return new Session(getLogin(), String.valueOf(playerID), "", "legacy");
+                    // Return created session
+                    return new Session(auth.getSelectedProfile().getName(), auth.getSelectedProfile().getId().toString(), auth.getAuthenticatedToken(), "mojang");
+                } catch (AuthenticationException localAuthenticationException) {
+                    localAuthenticationException.printStackTrace();
+                }
+                
+                break;
+                
+            case Cracked:
+                return new Session(getLogin(), UUID.randomUUID().toString(), "", "legacy");
         }
 
         return null;
