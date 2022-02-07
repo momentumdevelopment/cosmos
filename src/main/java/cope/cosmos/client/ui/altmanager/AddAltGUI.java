@@ -32,17 +32,17 @@ public class AddAltGUI extends GuiScreen {
     @Override
     public void initGui() {
         // Email and password
-        this.loginField = new GuiTextField(1, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 42, 200, 15);
-        this.passwordField = new GuiTextField(2, mc.fontRenderer, this.width / 2 - 100, this.height / 2 - 20, 200, 15);
+        loginField = new GuiTextField(1, mc.fontRenderer, width / 2 - 100, height / 2 - 42, 200, 15);
+        passwordField = new GuiTextField(2, mc.fontRenderer, width / 2 - 100, height / 2 - 20, 200, 15);
 
         // Add and cancel
-        this.buttonList.add(new GuiButton(3, this.width / 2 - 51, this.height / 2 + 8, 50, 20, "Add"));
-        this.buttonList.add(new GuiButton(4, this.width / 2 + 1, this.height / 2 + 8, 50, 20, "Cancel"));
+        buttonList.add(new GuiButton(3, width / 2 - 51, height / 2 + 8, 50, 20, "Add"));
+        buttonList.add(new GuiButton(4, width / 2 + 1, height / 2 + 8, 50, 20, "Cancel"));
 
         // Alt type
-        this.buttonList.add(new GuiButton(5, this.width / 2 - 210, this.height / 2 - 42, 100, 20, "Use Microsoft"));
-        this.buttonList.add(new GuiButton(6, this.width / 2 - 210, this.height / 2 - 21, 100, 20, "Use Mojang"));
-        this.buttonList.add(new GuiButton(7, this.width / 2 - 210, this.height / 2, 100, 20, "Use Cracked"));
+        buttonList.add(new GuiButton(5, width / 2 - 210, height / 2 - 42, 100, 20, "Use Microsoft"));
+        buttonList.add(new GuiButton(6, width / 2 - 210, height / 2 - 21, 100, 20, "Use Mojang"));
+        buttonList.add(new GuiButton(7, width / 2 - 210, height / 2, 100, 20, "Use Cracked"));
     }
 
     @Override
@@ -56,12 +56,12 @@ public class AddAltGUI extends GuiScreen {
 
         // Draw email text box
         loginField.drawTextBox();
-        if(loginField.getText().equals("") && !loginField.isFocused() && loginField.getVisible())
+        if (loginField.getText().isEmpty() && !loginField.isFocused() && loginField.getVisible())
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Login", loginField.x + 3, loginField.y + 3.5f, -1);
 
         // Draw password text box
         passwordField.drawTextBox();
-        if(passwordField.getText().equals("") && !passwordField.isFocused() && passwordField.getVisible())
+        if (passwordField.getText().isEmpty() && !passwordField.isFocused() && passwordField.getVisible())
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Password", passwordField.x + 3, passwordField.y + 3.5f, -1);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -74,7 +74,7 @@ public class AddAltGUI extends GuiScreen {
         switch (button.id) {
             case 3:
                 // Add new alt
-                if(!(loginField.getText().isEmpty())) {
+                if (!(loginField.getText().isEmpty())) {
                     // Add alt
                     AltManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
                     // Increase offset
@@ -128,7 +128,7 @@ public class AddAltGUI extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         // Display the alt manager if we press escape
-        if(keyCode == Keyboard.KEY_ESCAPE) {
+        if (keyCode == Keyboard.KEY_ESCAPE) {
             mc.displayGuiScreen(lastScreen);
             return;
         }
@@ -138,9 +138,9 @@ public class AddAltGUI extends GuiScreen {
         passwordField.textboxKeyTyped(typedChar, keyCode);
 
         // Set unfocused if we press enter / return
-        if(keyCode == Keyboard.KEY_RETURN) {
-            this.loginField.setFocused(false);
-            this.passwordField.setFocused(false);
+        if (keyCode == Keyboard.KEY_RETURN) {
+            loginField.setFocused(false);
+            passwordField.setFocused(false);
         }
 
         super.keyTyped(typedChar, keyCode);
