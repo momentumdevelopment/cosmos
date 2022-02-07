@@ -100,7 +100,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                 if (getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) return;
 
                 AltManager.getAltEntries().forEach(entry -> {
-                    entry.setOffset(entry.getOffset - 16);
+                    entry.setOffset(entry.getOffset() - 16);
                 });
             }
 
@@ -109,7 +109,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                 if (getFirstAlt().getOffset() >= 41) return;
 
                 AltManager.getAltEntries().forEach(entry -> {
-                    entry.setOffset(entry.getOffset + 16);
+                    entry.setOffset(entry.getOffset() + 16);
                 });
             }
         }
