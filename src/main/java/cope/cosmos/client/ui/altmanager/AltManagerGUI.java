@@ -38,8 +38,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         buttonList.add(new GuiButton(2, scaledResolution.getScaledWidth() / 2 + 50, scaledResolution.getScaledHeight() - 23, 100, 20, "Back"));
 
         altEntryOffset = 41;
-        if (!AltManager.getAltEntries().isEmpty())
+        if (!AltManager.getAltEntries().isEmpty()) {
             getFirstAlt().setOffset(altEntryOffset);
+        }
     }
 
     @Override
@@ -67,8 +68,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         RenderUtil.endScissor();
 
         // Display 'No alts!' if there are no alt entries
-        if (AltManager.getAltEntries().isEmpty())
+        if (AltManager.getAltEntries().isEmpty()) {
             FontUtil.drawCenteredStringWithShadow("No alts!", scaledResolution.getScaledWidth() / 2f, 50, 0xFFFFFF);
+        }
 
         // 'Currently logged in as' text
         FontUtil.drawStringWithShadow("Currently logged in as " + TextFormatting.GRAY + mc.getSession().getUsername(), 3, 3, 0xFFFFFF);
@@ -86,8 +88,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         ScaledResolution scaledResolution = new ScaledResolution(mc);
 
         // Cancel if there are no alts
-        if (AltManager.getAltEntries().isEmpty()) 
+        if (AltManager.getAltEntries().isEmpty()) {
             return;
+        }
 
         // Refresh offsets before running the rest of the code
         refreshOffsets();
@@ -97,7 +100,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
             int scroll = Mouse.getDWheel();
             if (scroll < 0) {
                 // Cancel if the last alt is fully visible
-                if (getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) return;
+                if (getLastAlt().getOffset() - 1 < scaledResolution.getScaledHeight() - 49) {
+                    return;
+                }
 
                 AltManager.getAltEntries().forEach(entry -> {
                     entry.setOffset(entry.getOffset() - 16);
@@ -106,7 +111,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
 
             else if (scroll > 0) {
                 // Cancel if the first alt is fully visible
-                if (getFirstAlt().getOffset() >= 41) return;
+                if (getFirstAlt().getOffset() >= 41) {
+                    return;
+                }
 
                 AltManager.getAltEntries().forEach(entry -> {
                     entry.setOffset(entry.getOffset() + 16);
@@ -132,8 +139,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                     // Decrease the offset
                     altEntryOffset -= 32;
                     // Refresh positions of all other alts
-                    if (!AltManager.getAltEntries().isEmpty())
+                    if (!AltManager.getAltEntries().isEmpty()) {
                         getFirstAlt().setOffset(41);
+                    }
                 }
                 break;
             case 2:
@@ -191,8 +199,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
     private AltEntry getSelectedAltEntry() {
         for (AltEntry altEntry : AltManager.getAltEntries()) {
             // If the alt is selected, return the entry
-            if (altEntry.isSelected)
+            if (altEntry.isSelected) {
                 return altEntry;
+            }
         }
 
         return null;
@@ -204,8 +213,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
      */
     private void setSelectedAltEntry(AltEntry newSelected) {
         // Sets whether the alt is selected to whether it is the newSelected parameter
-        for (AltEntry altEntry : AltManager.getAltEntries())
+        for (AltEntry altEntry : AltManager.getAltEntries()) {
             altEntry.isSelected = altEntry == newSelected;
+        }
     }
 
     /**
@@ -239,8 +249,9 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         for (AltEntry altEntry : AltManager.getAltEntries()) {
             if (altEntry.isMouseOverButton(mouseX, mouseY)) {
                 // Run only if it is already selected
-                if (altEntry.isSelected)
+                if (altEntry.isSelected) {
                     altEntry.whenClicked();
+                }
 
                 // Set it to be selected
                 setSelectedAltEntry(altEntry);

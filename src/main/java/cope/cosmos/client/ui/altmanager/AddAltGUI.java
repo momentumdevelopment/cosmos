@@ -56,13 +56,15 @@ public class AddAltGUI extends GuiScreen {
 
         // Draw email text box
         loginField.drawTextBox();
-        if (loginField.getText().isEmpty() && !loginField.isFocused() && loginField.getVisible())
+        if (loginField.getText().isEmpty() && !loginField.isFocused() && loginField.getVisible()) {
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Login", loginField.x + 3, loginField.y + 3.5f, -1);
+        }
 
         // Draw password text box
         passwordField.drawTextBox();
-        if (passwordField.getText().isEmpty() && !passwordField.isFocused() && passwordField.getVisible())
+        if (passwordField.getText().isEmpty() && !passwordField.isFocused() && passwordField.getVisible()) {
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Password", passwordField.x + 3, passwordField.y + 3.5f, -1);
+        }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }

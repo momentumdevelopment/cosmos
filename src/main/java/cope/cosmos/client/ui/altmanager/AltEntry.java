@@ -42,12 +42,14 @@ public class AltEntry implements InterfaceUtil {
         RenderUtil.drawRect((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, 0x95000000);
 
         // Draw border if the mouse is over the button
-        if (isMouseOverButton(mouseX, mouseY))
+        if (isMouseOverButton(mouseX, mouseY)) {
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor().darker().darker());
+        }
 
         // Selected outline
-        if (isSelected)
+        if (isSelected) {
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor());
+        }
 
         // Rotate and draw arrow. Could do with just having it pre-rotated, but I don't want to mess anything else up.
         if (getAlt().getAltSession() != null) {
@@ -77,21 +79,25 @@ public class AltEntry implements InterfaceUtil {
         // Replace letters in between the first three letters and the '@' with asterisks
         String loginString = "";
         // Make sure that it contains the correct characters
-        if (getAlt().getLogin().contains("@") && getAlt().getLogin().length() > 4 && getAlt().getAltType() != Alt.AltType.CRACKED)
+        if (getAlt().getLogin().contains("@") && getAlt().getLogin().length() > 4 && getAlt().getAltType() != Alt.AltType.CRACKED) {
             loginString = getAlt().getLogin().substring(0, 3) + getAlt().getLogin().substring(3, getAlt().getLogin().indexOf('@')).replaceAll(".", "*") + getAlt().getLogin().substring(getAlt().getLogin().indexOf('@'));
-
-        else if (getAlt().getAltType() == Alt.AltType.CRACKED)
+        }
+        else if (getAlt().getAltType() == Alt.AltType.CRACKED) {
             loginString = getAlt().getLogin();
+        }
 
         // Email / Error Message
-        if (getAlt().getAltSession() != null)
+        if (getAlt().getAltSession() != null) {
             FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.CRACKED ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
-        else
+        }
+        else {
             FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
+        }
 
         // Password
-        if (getAlt().getAltType() != Alt.AltType.CRACKED)
+        if (getAlt().getAltType() != Alt.AltType.CRACKED) {
             FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
+        }
 
         // Alt Type
         FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]", (scaledResolution.getScaledWidth() / 2f) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]")), getOffset() + 11, 0xFFFFFF);
