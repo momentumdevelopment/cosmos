@@ -10,7 +10,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import org.lwjgl.opengl.GL11;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * @author Wolfsurge
@@ -42,28 +42,28 @@ public class AltEntry implements InterfaceUtil {
         RenderUtil.drawRect((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, 0x95000000);
 
         // Draw border if the mouse is over the button
-        if(isMouseOverButton(mouseX, mouseY))
+        if (isMouseOverButton(mouseX, mouseY))
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor().darker().darker());
 
         // Selected outline
-        if(isSelected)
+        if (isSelected)
             RenderUtil.drawBorder((scaledResolution.getScaledWidth() / 2f) - 150, getOffset(), 300, 30, ColorUtil.getPrimaryColor());
 
         // Rotate and draw arrow. Could do with just having it pre-rotated, but I don't want to mess anything else up.
-        if(getAlt().getAltSession() != null) {
-            GL11.glPushMatrix();
+        if (getAlt().getAltSession() != null) {
+            glPushMatrix();
 
             // Rotate
-            GL11.glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 148) + 10, getOffset() + 17, 1);
-            GL11.glRotatef(-90, 0, 0, 1);
-            GL11.glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 148) + 10), -(getOffset() + 17), 1);
+            glTranslatef(((scaledResolution.getScaledWidth() / 2f) - 148) + 10, getOffset() + 17, 1);
+            glRotatef(-90, 0, 0, 1);
+            glTranslatef(-(((scaledResolution.getScaledWidth() / 2f) - 148) + 10), -(getOffset() + 17), 1);
 
             // Colour it white
-            GL11.glColor4f(255, 255, 255, 255);
+            glColor4f(255, 255, 255, 255);
 
             // Colour the arrow if we are logged in as that alt
             if(Minecraft.getMinecraft().getSession().getPlayerID().equalsIgnoreCase(getAlt().getAltSession().getPlayerID()))
-                GL11.glColor3f(ColorUtil.getPrimaryColor().getRed() / 255f, ColorUtil.getPrimaryColor().getGreen() / 255f, ColorUtil.getPrimaryColor().getBlue() / 255f);
+                glColor3f(ColorUtil.getPrimaryColor().getRed() / 255f, ColorUtil.getPrimaryColor().getGreen() / 255f, ColorUtil.getPrimaryColor().getBlue() / 255f);
 
             // Bind texture
             Minecraft.getMinecraft().getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/icons/dropdown.png"));
@@ -71,7 +71,7 @@ public class AltEntry implements InterfaceUtil {
             // Draw arrow
             Gui.drawModalRectWithCustomSizedTexture((scaledResolution.getScaledWidth() / 2) - 148, (int) (getOffset() + 9), 0, 0, 25, 25, 25, 25);
 
-            GL11.glPopMatrix();
+            glPopMatrix();
         }
 
         // Replace letters in between the first three letters and the '@' with asterisks
@@ -84,13 +84,13 @@ public class AltEntry implements InterfaceUtil {
             loginString = getAlt().getLogin();
 
         // Email / Error Message
-        if(getAlt().getAltSession() != null)
+        if (getAlt().getAltSession() != null)
             FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.Cracked ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
         else
             FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
 
         // Password
-        if(getAlt().getAltType() != Alt.AltType.Cracked)
+        if (getAlt().getAltType() != Alt.AltType.Cracked)
             FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
 
         // Alt Type
@@ -111,7 +111,7 @@ public class AltEntry implements InterfaceUtil {
      */
     public void whenClicked() {
         // Login if the session isn't null, and if the entry is already selected
-        if(getAlt().getAltSession() != null) {
+        if (getAlt().getAltSession() != null) {
             ((IMinecraft) Minecraft.getMinecraft()).setSession(getAlt().getAltSession());
         }
     }
