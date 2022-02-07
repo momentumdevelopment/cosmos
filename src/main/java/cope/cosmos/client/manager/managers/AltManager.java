@@ -40,7 +40,7 @@ public class AltManager {
 
                 output.append("Alts").append(" = ").append("[");
                 // Add the alt's info, in the order: email:password:type
-                for(AltEntry altEntry : getAltEntries()) {
+                for (AltEntry altEntry : getAltEntries()) {
                     output.append('"').append(altEntry.getAlt().getLogin()).append(":").append(altEntry.getAlt().getPassword()).append(":").append(altEntry.getAlt().getAltType().name()).append('"').append(",");
                 }
                 output.append("]").append("\r\n");
@@ -68,23 +68,22 @@ public class AltManager {
             // Input TOML
             Toml input = new Toml().read(inputStream);
 
-            if(input != null) {
+            if (input != null) {
                 try {
-                    if(input.getList("Alts.Alts") != null) {
+                    if (input.getList("Alts.Alts") != null) {
                         input.getList("Alts.Alts").forEach(object -> {
                             // 0 = Email, 1 = Password, 2 = Type
                             String[] altInfo = ((String) object).split(":");
-
-                            Alt.AltType type = null;
-                            if(altInfo[2].equalsIgnoreCase("Microsoft")) type = Alt.AltType.Microsoft;
-                            else if(altInfo[2].equalsIgnoreCase("Mojang")) type = Alt.AltType.Mojang;
-                            else if(altInfo[2].equalsIgnoreCase("Cracked")) type = Alt.AltType.Cracked;
-
+                            
+                            // Get type based on text
+                            Alt.AltType type = Alt.AltType.valueOf(altInfo[2]);
+                            
                             // Loading alt
                             Alt alt = new Alt(altInfo[0], altInfo[1], type);
 
                             // Add alt to list
                             getAltEntries().add(new AltEntry(alt, AltManagerGUI.altEntryOffset));
+                            
                             // Add to offset
                             AltManagerGUI.altEntryOffset += 32;
                         });
