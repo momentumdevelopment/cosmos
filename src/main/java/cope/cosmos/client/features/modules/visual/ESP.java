@@ -50,7 +50,7 @@ public class ESP extends Module {
     public static ESP INSTANCE;
 
     public ESP() {
-        super("ESP", Category.VISUAL, "Allows you to see players through walls");
+        super("ESP", Category.VISUAL, "Allows you to see entities through walls");
         INSTANCE = this;
     }
 

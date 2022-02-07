@@ -121,6 +121,8 @@ public class Cosmos {
 
         // sets up the social manager
         socialManager = new SocialManager();
+        // Grouping this with socials, move it if it should be somewhere else
+        AltManager.loadAlts();
         managers.add(socialManager);
         progressManager.step("Setting up Social Manager");
 
