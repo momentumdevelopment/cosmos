@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Wolfsurge, linustouchtips
+ * @since 06/02/22 (British Date Format)
  */
 public class AltManager {
 
@@ -89,11 +90,13 @@ public class AltManager {
                         });
                     }
                 }
+
                 catch (Exception exception) {
                     exception.printStackTrace();
                 }
             }
         }
+
         catch (IOException exception) {
             exception.printStackTrace();
         }

@@ -60,7 +60,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
 
         // Draw alt entries
         AltManager.getAltEntries().forEach(entry -> {
-            entry.drawEntry(mouseX, mouseY);
+            entry.drawAltEntry(mouseX, mouseY);
         });
         
         // Stop scissoring

@@ -23,7 +23,7 @@ public class AddAltGUI extends GuiScreen {
     // The password text box
     private GuiTextField passwordField;
     // The current type that is selected (MS by default)
-    private Alt.AltType currentType = Alt.AltType.Microsoft;
+    private Alt.AltType currentType = Alt.AltType.MICROSOFT;
 
     public AddAltGUI(GuiScreen lastScreen) {
         this.lastScreen = lastScreen;
@@ -91,19 +91,19 @@ public class AddAltGUI extends GuiScreen {
 
             case 5:
                 // Set type to Microsoft
-                currentType = Alt.AltType.Microsoft;
+                currentType = Alt.AltType.MICROSOFT;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(true);
                 break;
             case 6:
                 // Set type to Mojang
-                currentType = Alt.AltType.Mojang;
+                currentType = Alt.AltType.MOJANG;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(true);
                 break;
             case 7:
                 // Set type to Cracked
-                currentType = Alt.AltType.Cracked;
+                currentType = Alt.AltType.CRACKED;
                 this.loginField.setVisible(true);
                 this.passwordField.setVisible(false);
                 break;

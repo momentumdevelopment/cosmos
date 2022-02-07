@@ -40,7 +40,7 @@ public class Alt {
      */
     private Session createSession() {
         switch (getAltType()) {
-            case Microsoft:
+            case MICROSOFT:
                 // Create new authenticator
                 MicrosoftAuthenticator authenticator = new MicrosoftAuthenticator();
                 try {
@@ -55,7 +55,7 @@ public class Alt {
                 
                 break;
                 
-            case Mojang:
+            case MOJANG:
                 // Create auth variables
                 YggdrasilAuthenticationService service = new YggdrasilAuthenticationService(Proxy.NO_PROXY, "");
                 YggdrasilUserAuthentication auth = (YggdrasilUserAuthentication)service.createUserAuthentication(Agent.MINECRAFT);
@@ -76,7 +76,7 @@ public class Alt {
                 
                 break;
                 
-            case Cracked:
+            case CRACKED:
                 return new Session(getLogin(), UUID.randomUUID().toString(), "", "legacy");
         }
 
@@ -90,15 +90,15 @@ public class Alt {
         /**
          * Premium Microsoft Account
          */
-        Microsoft,
+        MICROSOFT,
         /**
          * Premium Mojang Account
          */
-        Mojang,
+        MOJANG,
         /**
          * Unregistered account
          */
-        Cracked
+        CRACKED
     }
 
     /**

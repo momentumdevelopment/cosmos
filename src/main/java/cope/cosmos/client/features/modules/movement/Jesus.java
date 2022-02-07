@@ -89,7 +89,7 @@ public class Jesus extends Module {
 
         // floats up while in the water
         else if (mode.getValue().equals(Mode.DOLPHIN)) {
-            if(PlayerUtil.isInLiquid())
+            if (PlayerUtil.isInLiquid())
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
         }
     }

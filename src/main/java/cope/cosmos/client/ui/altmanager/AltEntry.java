@@ -77,20 +77,20 @@ public class AltEntry implements InterfaceUtil {
         // Replace letters in between the first three letters and the '@' with asterisks
         String loginString = "";
         // Make sure that it contains the correct characters
-        if (getAlt().getLogin().contains("@") && getAlt().getLogin().length() > 4 && getAlt().getAltType() != Alt.AltType.Cracked)
+        if (getAlt().getLogin().contains("@") && getAlt().getLogin().length() > 4 && getAlt().getAltType() != Alt.AltType.CRACKED)
             loginString = getAlt().getLogin().substring(0, 3) + getAlt().getLogin().substring(3, getAlt().getLogin().indexOf('@')).replaceAll(".", "*") + getAlt().getLogin().substring(getAlt().getLogin().indexOf('@'));
 
-        else if (getAlt().getAltType() == Alt.AltType.Cracked)
+        else if (getAlt().getAltType() == Alt.AltType.CRACKED)
             loginString = getAlt().getLogin();
 
         // Email / Error Message
         if (getAlt().getAltSession() != null)
-            FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.Cracked ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
+            FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.CRACKED ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
         else
             FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 5, 0xFFFFFF);
 
         // Password
-        if (getAlt().getAltType() != Alt.AltType.Cracked)
+        if (getAlt().getAltType() != Alt.AltType.CRACKED)
             FontUtil.drawStringWithShadow(getAlt().getPassword().replaceAll(".", "*"), (scaledResolution.getScaledWidth() / 2f) - 120, getOffset() + 17, 0xFFFFFF);
 
         // Alt Type
