@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.item;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderHeldItemAlphaEvent;
+import cope.cosmos.client.events.render.player.RenderHeldItemAlphaEvent;
 import net.minecraft.client.renderer.RenderItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

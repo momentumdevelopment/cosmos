@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.player;
 
-import cope.cosmos.client.events.EntityHitboxSizeEvent;
-import cope.cosmos.client.events.ReachEvent;
+import cope.cosmos.client.events.entity.hitbox.EntityHitboxSizeEvent;
+import cope.cosmos.client.events.entity.player.interact.ReachEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

@@ -1,9 +1,9 @@
 package cope.cosmos.asm.mixins.input;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.BlockBreakEvent;
-import cope.cosmos.client.events.BlockResetEvent;
-import cope.cosmos.client.events.ReachEvent;
+import cope.cosmos.client.events.block.BlockBreakEvent;
+import cope.cosmos.client.events.block.BlockResetEvent;
+import cope.cosmos.client.events.entity.player.interact.ReachEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.util.math.BlockPos;

@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.render.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.CrystalTextureEvent;
-import cope.cosmos.client.events.RenderCrystalEvent;
+import cope.cosmos.client.events.render.entity.CrystalTextureEvent;
+import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.RenderEnderCrystal;
 import net.minecraft.entity.Entity;

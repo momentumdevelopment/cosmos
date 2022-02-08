@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.visual;
 
 import cope.cosmos.asm.mixins.accessor.IRenderManager;
-import cope.cosmos.client.events.RenderNametagEvent;
+import cope.cosmos.client.events.render.entity.RenderNametagEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

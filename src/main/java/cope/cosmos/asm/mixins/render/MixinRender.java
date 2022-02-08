@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.ShaderColorEvent;
+import cope.cosmos.client.events.render.entity.ShaderColorEvent;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;

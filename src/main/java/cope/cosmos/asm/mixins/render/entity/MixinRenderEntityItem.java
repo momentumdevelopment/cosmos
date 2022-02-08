@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderItemEvent;
+import cope.cosmos.client.events.render.entity.RenderItemEvent;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
 import net.minecraft.entity.item.EntityItem;
 import org.spongepowered.asm.mixin.Mixin;

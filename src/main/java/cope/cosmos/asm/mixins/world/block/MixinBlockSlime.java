@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.world.block;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.SlimeEvent;
+import cope.cosmos.client.events.block.SlimeEvent;
 import net.minecraft.block.BlockSlime;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;

@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.tile;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderTileEntityEvent;
+import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.tileentity.TileEntity;

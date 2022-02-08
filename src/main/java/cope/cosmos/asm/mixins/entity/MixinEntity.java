@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.EntityHitboxSizeEvent;
-import cope.cosmos.client.events.StepEvent;
+import cope.cosmos.client.events.entity.hitbox.EntityHitboxSizeEvent;
+import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;

@@ -2,8 +2,8 @@ package cope.cosmos.client.features.modules.client;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderAdvancementEvent;
-import cope.cosmos.client.events.RenderPotionHUDEvent;
+import cope.cosmos.client.events.render.gui.RenderAdvancementEvent;
+import cope.cosmos.client.events.render.gui.RenderPotionHUDEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.movement.Speed;

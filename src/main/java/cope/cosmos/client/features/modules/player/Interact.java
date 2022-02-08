@@ -1,9 +1,9 @@
 package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayerTryUseItemOnBlock;
-import cope.cosmos.client.events.LiquidInteractEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.SettingUpdateEvent;
+import cope.cosmos.client.events.block.LiquidInteractEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.AutoCrystal;

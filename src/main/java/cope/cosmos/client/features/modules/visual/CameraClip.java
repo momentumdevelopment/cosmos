@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.CameraClipEvent;
+import cope.cosmos.client.events.render.other.CameraClipEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

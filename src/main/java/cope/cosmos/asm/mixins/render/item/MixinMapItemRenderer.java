@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.item;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderMapEvent;
+import cope.cosmos.client.events.render.other.RenderMapEvent;
 import net.minecraft.client.gui.MapItemRenderer;
 import net.minecraft.world.storage.MapData;
 import org.spongepowered.asm.mixin.Mixin;

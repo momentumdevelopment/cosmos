@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.events.TabListSizeEvent;
+import cope.cosmos.client.events.render.gui.TabListSizeEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;

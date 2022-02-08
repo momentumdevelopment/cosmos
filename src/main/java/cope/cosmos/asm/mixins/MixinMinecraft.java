@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.GuiScreenClosedEvent;
+import cope.cosmos.client.events.render.gui.GuiScreenClosedEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import org.spongepowered.asm.mixin.Mixin;

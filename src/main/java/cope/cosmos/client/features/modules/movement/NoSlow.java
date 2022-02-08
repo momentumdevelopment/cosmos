@@ -1,7 +1,12 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.*;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.entity.player.interact.EntityUseItemEvent;
+import cope.cosmos.client.events.entity.player.interact.ItemInputUpdateEvent;
+import cope.cosmos.client.events.entity.player.interact.KeyDownEvent;
+import cope.cosmos.client.events.block.SlimeEvent;
+import cope.cosmos.client.events.block.SoulSandEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

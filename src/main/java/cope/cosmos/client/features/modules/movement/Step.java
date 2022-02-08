@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
-import cope.cosmos.client.events.StepEvent;
+import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.tile;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderEnchantmentTableBookEvent;
+import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import net.minecraft.client.renderer.tileentity.TileEntityEnchantmentTableRenderer;
 import net.minecraft.tileentity.TileEntityEnchantmentTable;
 import org.spongepowered.asm.mixin.Mixin;

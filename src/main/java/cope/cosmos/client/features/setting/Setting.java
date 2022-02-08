@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.setting;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.SettingUpdateEvent;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.util.Wrapper;

@@ -1,7 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.EntityWorldEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;

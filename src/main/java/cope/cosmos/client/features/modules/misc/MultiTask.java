@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.events.DualInteractEvent;
+import cope.cosmos.client.events.entity.player.interact.DualInteractEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;

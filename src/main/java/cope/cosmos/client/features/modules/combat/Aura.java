@@ -2,10 +2,10 @@ package cope.cosmos.client.features.modules.combat;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.RenderRotationsEvent;
-import cope.cosmos.client.events.RotationUpdateEvent;
-import cope.cosmos.client.events.TotemPopEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

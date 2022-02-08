@@ -1,12 +1,11 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.RenderCrystalEvent;
-import cope.cosmos.client.events.RenderLivingEntityEvent;
+import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
+import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.entity.EntityUtil;
-import cope.cosmos.util.math.MathUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;

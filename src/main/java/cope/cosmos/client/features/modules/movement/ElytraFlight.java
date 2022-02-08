@@ -1,8 +1,8 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.TravelEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.motion.movement.TravelEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

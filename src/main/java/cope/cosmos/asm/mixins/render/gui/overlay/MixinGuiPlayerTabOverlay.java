@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.render.gui.overlay;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.TabListSizeEvent;
-import cope.cosmos.client.events.TabOverlayEvent;
+import cope.cosmos.client.events.render.gui.TabListSizeEvent;
+import cope.cosmos.client.events.render.gui.TabOverlayEvent;
 import net.minecraft.client.gui.GuiPlayerTabOverlay;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.scoreboard.ScorePlayerTeam;

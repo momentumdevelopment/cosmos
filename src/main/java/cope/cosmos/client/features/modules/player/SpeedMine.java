@@ -1,16 +1,15 @@
 package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
-import cope.cosmos.client.events.BlockResetEvent;
-import cope.cosmos.client.events.LeftClickBlockEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.SettingUpdateEvent;
+import cope.cosmos.client.events.block.BlockResetEvent;
+import cope.cosmos.client.events.block.LeftClickBlockEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.render.RenderBuilder;

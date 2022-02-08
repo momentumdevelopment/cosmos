@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.gui;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderPotionHUDEvent;
+import cope.cosmos.client.events.render.gui.RenderPotionHUDEvent;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import org.spongepowered.asm.mixin.Mixin;

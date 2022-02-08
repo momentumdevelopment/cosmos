@@ -2,8 +2,8 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.MotionUpdateEvent;
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;

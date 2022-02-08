@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.RenderHeldItemAlphaEvent;
-import cope.cosmos.client.events.RenderHeldItemEvent;
+import cope.cosmos.client.events.render.player.RenderHeldItemAlphaEvent;
+import cope.cosmos.client.events.render.player.RenderHeldItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
