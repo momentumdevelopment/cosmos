@@ -17,7 +17,7 @@
       "Gav06"
     ],
   
-    "credits": "Thanks to SpongePowered's Mixin, Moandjiezana's TOMLJ, Minnced's Discord RPC, Mojang's Brigadier",
+    "credits": "Thanks to SpongePowered's Mixin, Moandjiezana's TOMLJ, Minnced's Discord RPC, Mojang's Brigadier, Litarvan's OpenAuth",
     "logoFile": "/assets/cosmos/textures/imgs/logotransparentnotext.png",
     "screenshots": [],
     "dependencies": []
