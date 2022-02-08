@@ -5,7 +5,7 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.entity.LivingUpdateEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
-import cope.cosmos.client.events.entity.player.rotation.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;

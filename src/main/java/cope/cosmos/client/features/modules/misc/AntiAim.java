@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
-import cope.cosmos.client.events.entity.player.rotation.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

@@ -1,4 +1,4 @@
-package cope.cosmos.client.events.render.entity;
+package cope.cosmos.client.events.render.entity.tile;
 
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;

@@ -7,7 +7,7 @@ import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
-import cope.cosmos.client.events.render.entity.RenderTileEntityEvent;
+import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
 import cope.cosmos.client.events.render.entity.ShaderColorEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;

@@ -5,7 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
-import cope.cosmos.client.events.entity.player.rotation.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
