@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.gui.overlay;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderAdvancementEvent;
+import cope.cosmos.client.events.render.gui.RenderAdvancementEvent;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.toasts.GuiToast;
 import org.spongepowered.asm.mixin.Mixin;

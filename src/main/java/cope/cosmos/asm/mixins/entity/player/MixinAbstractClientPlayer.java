@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.entity.player;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.ModifyFOVEvent;
-import cope.cosmos.client.events.SkinLocationEvent;
+import cope.cosmos.client.events.render.player.ModifyFOVEvent;
+import cope.cosmos.client.events.render.other.SkinLocationEvent;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;

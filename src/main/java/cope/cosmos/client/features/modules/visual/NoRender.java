@@ -1,6 +1,18 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.*;
+import cope.cosmos.client.events.entity.PotionEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.LayerArmorEvent;
+import cope.cosmos.client.events.render.entity.RenderBeaconBeamEvent;
+import cope.cosmos.client.events.render.entity.RenderItemEvent;
+import cope.cosmos.client.events.render.entity.RenderWitherSkullEvent;
+import cope.cosmos.client.events.render.gui.BossOverlayEvent;
+import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
+import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
+import cope.cosmos.client.events.render.other.RenderMapEvent;
+import cope.cosmos.client.events.render.player.HurtCameraEvent;
+import cope.cosmos.client.events.render.player.ModifyFOVEvent;
+import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

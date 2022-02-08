@@ -2,7 +2,11 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ISPacketEntityVelocity;
 import cope.cosmos.asm.mixins.accessor.ISPacketExplosion;
-import cope.cosmos.client.events.*;
+import cope.cosmos.client.events.motion.collision.EntityCollisionEvent;
+import cope.cosmos.client.events.motion.movement.KnockBackEvent;
+import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.block.WaterCollisionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

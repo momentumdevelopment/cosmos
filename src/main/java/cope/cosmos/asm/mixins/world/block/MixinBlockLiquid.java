@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.world.block;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.LiquidInteractEvent;
+import cope.cosmos.client.events.block.LiquidInteractEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;

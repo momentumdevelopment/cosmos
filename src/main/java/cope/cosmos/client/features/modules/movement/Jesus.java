@@ -1,8 +1,8 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.CollisionBoundingBoxEvent;
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.motion.collision.CollisionBoundingBoxEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

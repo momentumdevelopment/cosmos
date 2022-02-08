@@ -1,9 +1,9 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.EntityWorldEvent;
-import cope.cosmos.client.events.ModuleToggleEvent;
-import cope.cosmos.client.events.SettingUpdateEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.client.ModuleToggleEvent;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.Burrow;
 import cope.cosmos.client.features.modules.combat.Surround;

@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.PotionEvent;
+import cope.cosmos.client.events.entity.PotionEvent;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.potion.PotionEffect;
 import org.spongepowered.asm.mixin.Mixin;

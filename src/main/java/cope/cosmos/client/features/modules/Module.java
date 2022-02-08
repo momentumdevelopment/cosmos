@@ -1,8 +1,8 @@
 package cope.cosmos.client.features.modules;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.ModuleToggleEvent.ModuleDisableEvent;
-import cope.cosmos.client.events.ModuleToggleEvent.ModuleEnableEvent;
+import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleDisableEvent;
+import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.Animation;

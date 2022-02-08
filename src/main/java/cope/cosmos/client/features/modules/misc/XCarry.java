@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketCloseWindow;
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import net.minecraft.network.play.client.CPacketCloseWindow;

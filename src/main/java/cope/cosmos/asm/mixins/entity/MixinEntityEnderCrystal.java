@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.CrystalAttackEvent;
+import cope.cosmos.client.events.combat.CrystalAttackEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.util.DamageSource;

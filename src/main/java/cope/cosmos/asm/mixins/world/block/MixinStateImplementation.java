@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.world.block;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.CollisionBoundingBoxEvent;
+import cope.cosmos.client.events.motion.collision.CollisionBoundingBoxEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.BlockStateContainer.StateImplementation;
 import net.minecraft.block.state.IBlockState;

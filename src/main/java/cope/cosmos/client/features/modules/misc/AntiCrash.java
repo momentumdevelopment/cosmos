@@ -1,10 +1,10 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
-import cope.cosmos.client.events.EntityWorldEvent;
-import cope.cosmos.client.events.ExceptionThrownEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.RenderSkylightEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.client.ExceptionThrownEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.world.RenderSkylightEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

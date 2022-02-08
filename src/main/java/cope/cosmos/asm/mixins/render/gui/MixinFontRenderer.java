@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.gui;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderFontEvent;
+import cope.cosmos.client.events.render.gui.RenderFontEvent;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraft.client.gui.FontRenderer;
 import org.spongepowered.asm.mixin.Mixin;

@@ -2,10 +2,10 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
-import cope.cosmos.client.events.MotionEvent;
-import cope.cosmos.client.events.MotionUpdateEvent;
-import cope.cosmos.client.events.PacketEvent;
-import cope.cosmos.client.events.PushOutOfBlocksEvent;
+import cope.cosmos.client.events.motion.movement.MotionEvent;
+import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
+import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

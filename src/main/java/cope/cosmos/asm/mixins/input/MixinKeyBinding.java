@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.input;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.KeyDownEvent;
+import cope.cosmos.client.events.entity.player.interact.KeyDownEvent;
 import net.minecraft.client.settings.KeyBinding;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

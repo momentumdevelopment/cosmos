@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.tile;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderBeaconBeamEvent;
+import cope.cosmos.client.events.render.entity.RenderBeaconBeamEvent;
 import net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer;
 import net.minecraft.tileentity.TileEntityBeacon;
 import org.spongepowered.asm.mixin.Mixin;

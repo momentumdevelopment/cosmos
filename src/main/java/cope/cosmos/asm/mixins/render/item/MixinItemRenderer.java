@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.item;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderHeldItemEvent;
+import cope.cosmos.client.events.render.player.RenderHeldItemEvent;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.util.EnumHandSide;
 import org.spongepowered.asm.mixin.Mixin;

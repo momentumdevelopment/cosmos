@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.render.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderNametagEvent;
-import cope.cosmos.client.events.RenderRotationsEvent;
+import cope.cosmos.client.events.render.entity.RenderNametagEvent;
+import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;

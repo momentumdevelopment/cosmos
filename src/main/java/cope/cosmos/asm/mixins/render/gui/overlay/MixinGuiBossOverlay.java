@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.gui.overlay;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.BossOverlayEvent;
+import cope.cosmos.client.events.render.gui.BossOverlayEvent;
 import net.minecraft.client.gui.GuiBossOverlay;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

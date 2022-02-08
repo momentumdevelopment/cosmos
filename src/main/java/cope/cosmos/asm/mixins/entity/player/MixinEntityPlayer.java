@@ -1,9 +1,9 @@
 package cope.cosmos.asm.mixins.entity.player;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.EntityCollisionEvent;
-import cope.cosmos.client.events.TravelEvent;
-import cope.cosmos.client.events.WaterCollisionEvent;
+import cope.cosmos.client.events.motion.collision.EntityCollisionEvent;
+import cope.cosmos.client.events.motion.movement.TravelEvent;
+import cope.cosmos.client.events.block.WaterCollisionEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.MoverType;

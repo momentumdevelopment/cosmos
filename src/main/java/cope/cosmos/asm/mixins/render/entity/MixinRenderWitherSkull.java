@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderWitherSkullEvent;
+import cope.cosmos.client.events.render.entity.RenderWitherSkullEvent;
 import net.minecraft.client.renderer.entity.RenderWitherSkull;
 import net.minecraft.entity.projectile.EntityWitherSkull;
 import org.spongepowered.asm.mixin.Mixin;

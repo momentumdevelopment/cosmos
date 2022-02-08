@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.events.ModuleToggleEvent;
-import cope.cosmos.client.events.TotemPopEvent;
+import cope.cosmos.client.events.client.ModuleToggleEvent;
+import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

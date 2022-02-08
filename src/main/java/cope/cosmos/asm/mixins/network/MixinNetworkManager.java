@@ -1,9 +1,9 @@
 package cope.cosmos.asm.mixins.network;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.DisconnectEvent;
-import cope.cosmos.client.events.ExceptionThrownEvent;
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.network.DisconnectEvent;
+import cope.cosmos.client.events.client.ExceptionThrownEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;

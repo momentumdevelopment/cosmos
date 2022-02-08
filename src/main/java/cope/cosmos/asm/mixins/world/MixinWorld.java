@@ -1,9 +1,9 @@
 package cope.cosmos.asm.mixins.world;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.EntityWorldEvent;
-import cope.cosmos.client.events.RenderSkyEvent;
-import cope.cosmos.client.events.RenderSkylightEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.render.world.RenderSkyEvent;
+import cope.cosmos.client.events.render.world.RenderSkylightEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;

@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.entity;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.RenderLivingEntityEvent;
+import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.entity.EntityLivingBase;

@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.world.block;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.SoulSandEvent;
+import cope.cosmos.client.events.block.SoulSandEvent;
 import net.minecraft.block.BlockSoulSand;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;

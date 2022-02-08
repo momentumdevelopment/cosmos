@@ -1,7 +1,7 @@
 package cope.cosmos.asm.mixins.render.item;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.LayerArmorEvent;
+import cope.cosmos.client.events.render.entity.LayerArmorEvent;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
 import net.minecraft.inventory.EntityEquipmentSlot;

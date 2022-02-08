@@ -2,10 +2,10 @@ package cope.cosmos.asm.mixins.render.entity;
 
 import com.google.common.base.Predicate;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.CameraClipEvent;
-import cope.cosmos.client.events.HitboxInteractEvent;
-import cope.cosmos.client.events.HurtCameraEvent;
-import cope.cosmos.client.events.RenderWorldEvent;
+import cope.cosmos.client.events.render.other.CameraClipEvent;
+import cope.cosmos.client.events.entity.hitbox.HitboxInteractEvent;
+import cope.cosmos.client.events.render.player.HurtCameraEvent;
+import cope.cosmos.client.events.render.world.RenderWorldEvent;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
