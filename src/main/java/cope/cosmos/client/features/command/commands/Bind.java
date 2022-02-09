@@ -9,7 +9,6 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.manager.managers.SocialManager;
 import org.lwjgl.input.Keyboard;
 
 import java.util.concurrent.CompletableFuture;
