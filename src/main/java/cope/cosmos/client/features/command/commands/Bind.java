@@ -15,7 +15,7 @@ import org.lwjgl.input.Keyboard;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @author Wolfsurge, whoever wrote the Friend command
+ * @author Wolfsurge
  */
 public class Bind extends Command {
 
