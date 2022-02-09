@@ -224,7 +224,7 @@ public class NoRender extends Module {
     @SubscribeEvent
     public void onCrosshairBob(CrosshairBobEvent event) {
         // Lets the hand bobbing animation run without the crosshair bobbing as well
-        if(crosshairBob.getValue()) {
+        if (crosshairBob.getValue()) {
             event.setCanceled(true);
         }
     }
