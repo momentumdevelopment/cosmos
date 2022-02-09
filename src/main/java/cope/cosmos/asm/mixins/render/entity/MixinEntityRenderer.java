@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.other.CameraClipEvent;
 import cope.cosmos.client.events.entity.hitbox.HitboxInteractEvent;
+import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
 import cope.cosmos.client.events.render.world.RenderWorldEvent;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -11,17 +12,17 @@ import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(EntityRenderer.class)
-public class MixinEntityRenderer {
+public abstract class MixinEntityRenderer {
 
     @Inject(method = "renderWorld", at = @At("RETURN"))
     private void renderWorld(CallbackInfo info) {
@@ -67,5 +68,19 @@ public class MixinEntityRenderer {
         Cosmos.EVENT_BUS.post(cameraClipEvent);
 
         return cameraClipEvent.getDistance();
+    }
+
+    @Shadow
+    protected abstract void applyBobbing(float partialTicks);
+
+    @Redirect(method = "setupCameraTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/EntityRenderer;applyBobbing(F)V", remap = false))
+    public void setupCameraTransform(EntityRenderer instance, float f) {
+        CrosshairBobEvent crosshairBobEvent = new CrosshairBobEvent();
+        Cosmos.EVENT_BUS.post(crosshairBobEvent);
+
+        // Apply bobbing if we haven't cancelled the event
+        if (!crosshairBobEvent.isCanceled()) {
+            applyBobbing(f);
+        }
     }
 }
