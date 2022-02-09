@@ -10,6 +10,7 @@ import cope.cosmos.client.events.render.gui.BossOverlayEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import cope.cosmos.client.events.render.other.RenderMapEvent;
+import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
 import cope.cosmos.client.events.render.player.ModifyFOVEvent;
 import cope.cosmos.client.events.render.world.RenderFogEvent;
@@ -56,6 +57,7 @@ public class NoRender extends Module {
     public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
     public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
     public static Setting<Boolean> swing = new Setting<>("Swing", false).setDescription("Prevents other player's swing animations from rendering");
+    public static Setting<Boolean> crosshairBob = new Setting<>("CrosshairBob", true).setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
 
     @SubscribeEvent
     public void onRenderItem(RenderItemEvent event) {
@@ -218,4 +220,13 @@ public class NoRender extends Module {
             event.setCanceled(true);
         }
     }
+
+    @SubscribeEvent
+    public void onCrosshairBob(CrosshairBobEvent event) {
+        // Lets the hand bobbing animation run without the crosshair bobbing as well
+        if(crosshairBob.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
 }
