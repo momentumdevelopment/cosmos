@@ -79,7 +79,7 @@ public abstract class MixinEntityRenderer {
         Cosmos.EVENT_BUS.post(crosshairBobEvent);
 
         // Apply bobbing if we haven't cancelled the event
-        if(!crosshairBobEvent.isCanceled()) {
+        if (!crosshairBobEvent.isCanceled()) {
             applyBobbing(f);
         }
     }
