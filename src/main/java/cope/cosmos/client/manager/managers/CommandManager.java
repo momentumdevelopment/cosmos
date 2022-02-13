@@ -2,10 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.client.features.command.commands.Drawn;
-import cope.cosmos.client.features.command.commands.Friend;
-import cope.cosmos.client.features.command.commands.Help;
-import cope.cosmos.client.features.command.commands.Preset;
+import cope.cosmos.client.features.command.commands.*;
 import cope.cosmos.client.manager.Manager;
 
 import java.util.Arrays;
@@ -30,7 +27,8 @@ public class CommandManager extends Manager {
 				new Friend(),
 				new Preset(),
 				new Help(),
-				new Drawn()
+				new Drawn(),
+				new Bind()
 		);
 
 		// register commands to dispatcher
