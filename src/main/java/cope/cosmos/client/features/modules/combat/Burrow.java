@@ -73,7 +73,7 @@ public class Burrow extends Module {
 
 		// update our timer
 		getCosmos().getTickManager().setClientTicks(2500);
-		disable();
+		disable(true);
 	}
 
 	@Override

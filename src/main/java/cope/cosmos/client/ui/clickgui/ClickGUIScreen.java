@@ -46,7 +46,9 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         // draws the default dark background
-        drawDefaultBackground();
+        if (!ClickGUI.blur.getValue()) {
+            drawDefaultBackground();
+        }
 
         categoryFrameFeatures.forEach(categoryFrameFeature -> {
             categoryFrameFeature.drawFeature();
@@ -132,7 +134,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         Cosmos.EVENT_BUS.unregister(this);
 
         // disable the GUI modules, keeps the toggle state consistent with open/close
-        ClickGUI.INSTANCE.disable();
+        ClickGUI.INSTANCE.disable(true);
 
         // save our configs when exiting the GUI
         Cosmos.INSTANCE.getPresetManager().save();
@@ -151,7 +153,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     public void onRenderHUD(RenderGameOverlayEvent.Pre event) {
         // prevents HUD overlays/elements from being rendered while in the GUI screen
         if (!event.getType().equals(ElementType.TEXT) && !event.getType().equals(ElementType.CHAT)) {
-            // event.setCanceled(true);
+            event.setCanceled(true);
         }
     }
 

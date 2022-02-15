@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.events.combat.DeathEvent;
-import cope.cosmos.client.events.network.DisconnectEvent;
+import cope.cosmos.client.events.DisconnectEvent;
+import cope.cosmos.client.events.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -71,24 +71,20 @@ public class FakePlayer extends Module {
     }
 
     @SubscribeEvent
-    public void onDeath(DeathEvent event) {
+    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
         if (event.getEntity().equals(mc.player)) {
             // remove fake player from world
             mc.world.removeEntityFromWorld(id);
             id = -1;
 
             // disable module
-            disable();
+            disable(true);
         }
     }
 
     @SubscribeEvent
     public void onDisconnect(DisconnectEvent event) {
-        // remove fake player from world
-        mc.world.removeEntityFromWorld(id);
-        id = -1;
-
         // disable module
-        disable();
+        disable(true);
     }
 }

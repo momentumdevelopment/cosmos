@@ -2,328 +2,488 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
-import cope.cosmos.client.events.motion.movement.MotionEvent;
-import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
-import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
+import cope.cosmos.client.events.*;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.player.MotionUtil;
-import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-@SuppressWarnings("unused")
+/**
+ * @author bon55, linustouchtips
+ * @since 04/17/2021
+ */
 public class PacketFlight extends Module {
-	public static PacketFlight INSTANCE;
+    public static PacketFlight INSTANCE;
 
-	public PacketFlight() {
-		super("PacketFlight", Category.MOVEMENT, "Fly with packet exploit.", () -> StringFormatter.formatEnum(mode.getValue()));
-		INSTANCE = this;
-	}
+    public PacketFlight() {
+        super("PacketFlight", Category.MOVEMENT, "Allows you to fly with silent packet movements");
+        INSTANCE = this;
+    }
 
-	public static Setting<Mode> mode = new Setting<>("Mode", Mode.FAST).setDescription("Mode for PacketFlight");
-	public static Setting<Direction> direction = new Setting<>("Direction", Direction.DOWN).setDescription("Direction of the bounds packets");
-	public static Setting<Double> factor = new Setting<>("Factor", 0.0, 1.0, 5.0, 1).setDescription("Speed factor").setVisible(() -> mode.getValue().equals(Mode.FACTOR));
-	public static Setting<Double> subdivisions = new Setting<>("Subdivisions", 0.0, 4.0, 10.0, 0).setDescription("How many rotations packets to send").setVisible(() -> mode.getValue().equals(Mode.STRICT));
-	public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true).setDescription("Prevents getting kicked by vanilla anti-cheat");
-	public static Setting<Boolean> limitJitter = new Setting<>("LimitJitter", true).setDescription("Proactively confirms packets");
-	public static Setting<Boolean> overshoot = new Setting<>("Overshoot", false).setDescription("Slightly overshoots the packet positions");
-	public static Setting<Boolean> stabilize = new Setting<>("Stabilize", true).setDescription("Ignores server position and rotation requests");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.FAST).setDescription("Mode for how to control packet rates");
+    public static Setting<Type> type = new Setting<>("Type", Type.LIMIT_JITTER).setDescription("Mode for confirming packets");
+    public static Setting<Bounds> bounds = new Setting<>("Bounds", Bounds.UP).setDescription("The packet bounds");
+    public static Setting<Phase> phase = new Setting<>("Phase", Phase.FULL).setDescription("How to phase through blocks");
+    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST).setDescription("Applies block friction while phasing");
+    public static Setting<Double> factor = new Setting<>("Factor", 0.0, 1.0, 5.0, 1).setDescription("Speed factor").setVisible(() -> mode.getValue().equals(Mode.FACTOR));
+    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Accepts server positions when receiving packets");
+    public static Setting<Boolean> overshoot = new Setting<>("Overshoot", false).setDescription("Slightly overshoots the packet positions");
+    public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true).setDescription("Applies gravity to prevent detection by the vanilla anticheat");
 
-	private final ConcurrentSet<CPacketPlayer> safePackets = new ConcurrentSet<>();
-	private final ConcurrentHashMap<Integer, Vec3d> vectorMap = new ConcurrentHashMap<>();
+    // packet map
+    private final Map<Integer, Vec3d> packetMap = new ConcurrentHashMap<>();
 
-	int lastTeleportId;
+    // packet teleport id
+    private int teleportID;
 
-	// client packet data
-	float clientYaw;
-	float clientPitch;
-	double clientX;
-	double clientY;
-	double clientZ;
+    @SubscribeEvent
+    public void onMotionUpdate(MotionUpdateEvent event) {
+        // vanilla packet data
+        event.setX(mc.player.posX);
+        event.setY(mc.player.getEntityBoundingBox().minY);
+        event.setZ(mc.player.posZ);
+        event.setYaw(mc.player.rotationYaw);
+        event.setPitch(mc.player.rotationPitch);
+        event.setOnGround(false);
 
-	// server packet data
-	float serverYaw;
-	float serverPitch;
-	double serverX;
-	double serverY;
-	double serverZ;
+        // vertical movement
+        double motionY = 0;
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onMotionUpdate(MotionUpdateEvent event) {
-		if (nullCheck()) {
-			mc.player.setVelocity(0, 0, 0);
+        // non-phase movement, allowed to move faster and more freely
+        if (!isPhased()) {
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = 0.031; // float up
 
-			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
-			mc.player.motionX = motion[0];
-			mc.player.motionY = motion[1];
-			mc.player.motionZ = motion[2];
-			mc.player.setVelocity(motion[0], motion[1], motion[2]);
-			mc.player.noClip = true;
+                // fall
+                if (mc.player.ticksExisted % 18 == 0 && antiKick.getValue()) {
+                    motionY = -0.04;
+                }
+            }
 
-			processPackets(new double[] {
-					motion[0], motion[1], motion[2]
-			});
-		}
-	}
+            // float down
+            if (mc.gameSettings.keyBindSneak.isKeyDown() && !mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = -0.031;
+            }
+        }
 
-	@SubscribeEvent
-	public void onMove(MotionEvent event) {
-		if (nullCheck()) {
-			event.setCanceled(true);
+        // phase movement, no need to apply vanilla anticheat gravity here
+        else {
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = 0.017; // float up, slower
+            }
 
-			double[] motion = getMotion(isPlayerClipped() ? (mode.getValue().equals(Mode.FACTOR) ? factor.getValue() : 1) : 1);
-			event.setX(motion[0]);
-			event.setY(motion[1]);
-			event.setZ(motion[2]);
-			mc.player.setVelocity(motion[0], motion[1], motion[2]);
-			mc.player.noClip = true;
-		}
-	}
+            if (mc.gameSettings.keyBindSneak.isKeyDown() && !mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = -0.017; // float down, slower
+            }
+        }
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onPacketSend(PacketEvent.PacketSendEvent event) {
-		if (event.getPacket() instanceof CPacketPlayer) {
-			CPacketPlayer packet = (CPacketPlayer) event.getPacket();
+        // frozen movement
+        if (motionY == 0 && !isPhased()) {
 
-			if (((ICPacketPlayer) packet).isMoving() || ((ICPacketPlayer) packet).isRotating()) {
-				event.setCanceled(!safePackets.contains(packet));
-			}
-		}
-	}
+            // fall
+            if (mc.player.ticksExisted % 4 == 0 && antiKick.getValue()) {
+                motionY = -0.0325;
+            }
+        }
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-		if (nullCheck()) {
-			clientYaw = mc.player.rotationYaw;
-			clientPitch = mc.player.rotationPitch;
-			clientX = mc.player.posX;
-			clientY = mc.player.getEntityBoundingBox().minY;
-			clientZ = mc.player.posZ;
+        // the current movement input values of the user
+        float forward = mc.player.movementInput.moveForward;
+        float strafe = mc.player.movementInput.moveStrafe;
+        float yaw = mc.player.rotationYaw;
 
-			if (event.getPacket() instanceof SPacketPlayerPosLook) {
-				SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
-				Vec3d packetVector = vectorMap.remove(packet.getTeleportId());
+        // if we're not inputting any movements, then we shouldn't be adding any motion
+        if (!MotionUtil.isMoving()) {
+            mc.player.motionX = 0;
+            mc.player.motionZ = 0;
+        }
 
-				if (mode.getValue().equals(Mode.FAST) && packetVector != null && packetVector.x == packet.getX() && packetVector.y == packet.getY() && packetVector.z == packet.getZ()) {
-					event.setCanceled(stabilize.getValue());
-					return;
-				}
+        else if (forward != 0) {
+            if (strafe >= 1) {
+                yaw += (forward > 0 ? -45 : 45);
+                strafe = 0;
+            }
 
-				serverYaw = packet.getYaw();
-				serverPitch = packet.getPitch();
-				serverX = packet.getX();
-				serverY = packet.getY();
-				serverZ = packet.getZ();
+            else if (strafe <= -1) {
+                yaw += (forward > 0 ? 45 : -45);
+                strafe = 0;
+            }
 
-				// update our packet values
-				{
-					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X)) {
-						serverX += mc.player.posX;
-					}
+            if (forward > 0) {
+                forward = 1;
+            }
 
-					else {
-						mc.player.motionX = 0;
-					}
+            else if (forward < 0) {
+                forward = -1;
+            }
+        }
 
-					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y)) {
-						serverY += mc.player.posY;
-					}
+        // our facing values, according to movement not rotations
+        double cos = Math.cos(Math.toRadians(yaw + 90));
+        double sin = Math.sin(Math.toRadians(yaw + 90));
 
-					else {
-						mc.player.motionY = 0;
-					}
+        double moveSpeed;
+        if (motionY != 0) {
+            moveSpeed = 0.026;
+        }
 
-					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Z)) {
-						serverZ += mc.player.posZ;
-					}
+        // we can move faster while not moving up
+        else {
+            moveSpeed = 0.040;
 
-					else {
-						mc.player.motionZ = 0;
-					}
+            if (mode.getValue().equals(Mode.FACTOR)) {
+                moveSpeed *= factor.getValue();
+            }
+        }
 
-					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.X_ROT)) {
-						serverPitch += mc.player.rotationPitch;
-					}
+        // horizontal motion
+        double motionX = (forward * moveSpeed * cos) + (strafe * moveSpeed * sin);
+        double motionZ = (forward * moveSpeed * sin) - (strafe * moveSpeed * cos);
 
-					if (packet.getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y_ROT)) {
-						serverYaw += mc.player.rotationYaw;
-					}
-				}
+        if (!isPhased()) {
+            if (motionY != 0 && motionY != -0.0325) {
+                motionX = 0;
+                motionZ = 0;
+            }
 
-				if (mode.getValue().equals(Mode.STRICT)) {
-					event.setCanceled(stabilize.getValue());
+            else {
+                motionX *= 3.59125;
+                motionZ *= 3.59125;
+            }
+        }
 
-					// teleport us back to the server values
-					mc.player.setPosition(serverX, serverY, serverZ);
+        // apply block friction when moving through blocks
+        else {
+            if (friction.getValue().equals(Friction.STRICT)) {
+                motionX *= 0.75;
+                motionY *= 0.75;
+            }
+        }
 
-					if (limitJitter.getValue()) {
-						mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
-					}
+        // update the movements
+        mc.player.motionX = motionX;
+        mc.player.motionY = motionY;
+        mc.player.motionZ = motionZ;
 
-					CPacketPlayer.PositionRotation serverPacket = new CPacketPlayer.PositionRotation(serverX, serverY, serverZ, serverYaw, serverPitch, false);
-					safePackets.add(serverPacket);
-					mc.player.connection.sendPacket(serverPacket);
-				}
+        // if we're not inputting any movements, then we shouldn't be adding any motion
+        if (!MotionUtil.isMoving()) {
+            mc.player.motionX = 0;
+            mc.player.motionZ = 0;
+        }
 
-				else {
-					((ISPacketPlayerPosLook) packet).setYaw(clientYaw);
-					((ISPacketPlayerPosLook) packet).setPitch(clientPitch);
-					((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.X_ROT);
-					((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.Y_ROT);
-				}
+        // allow the player to clip through blocks
+        mc.player.noClip = true;
 
-				lastTeleportId = packet.getTeleportId();
-			}
-		}
-	}
+        // vectors
+        Vec3d motionVector = new Vec3d(motionX, motionY, motionZ);
+        Vec3d playerVector = new Vec3d(mc.player.posX, mc.player.getEntityBoundingBox().minY, mc.player.posZ);
 
-	@SubscribeEvent
-	public void onPushOutOfBlocks(PushOutOfBlocksEvent event) {
-		event.setCanceled(true);
-	}
+        // slightly overshoot positions
+        if (overshoot.getValue()) {
+            playerVector.addVector(ThreadLocalRandom.current().nextDouble(-0.5, 0.5), ThreadLocalRandom.current().nextDouble(-0.5, 0.5), ThreadLocalRandom.current().nextDouble(-0.5, 0.5));
+        }
 
-	private void processPackets(double[] motion) {
-		Vec3d increment = new Vec3d(motion[0], motion[1], motion[2]);
-		Vec3d playerIncrement = mc.player.getPositionVector().add(increment);
-		Vec3d bounded = getBoundingVectors(increment, playerIncrement);
+        // bounds
+        Vec3d boundVector = motionVector.add(playerVector.add(motionVector)).add(bounds.getValue().getAddition());
 
-		CPacketPlayer.PositionRotation legit = new CPacketPlayer.PositionRotation(playerIncrement.x + (overshoot.getValue() ? ThreadLocalRandom.current().nextDouble(-1, 1) : 0), playerIncrement.y + (overshoot.getValue() ? ThreadLocalRandom.current().nextDouble(-1, 1) : 0), playerIncrement.z + (overshoot.getValue() ? ThreadLocalRandom.current().nextDouble(-1, 1) : 0), mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround);
-		CPacketPlayer.PositionRotation bounds = new CPacketPlayer.PositionRotation(bounded.x, direction.getValue().equals(Direction.GROUND) ? 0 : bounded.y, bounded.z, mc.player.rotationYaw, mc.player.rotationPitch, !direction.getValue().equals(Direction.GROUND) || mc.player.onGround);
+        // process packets
+        if (mc.getConnection() != null) {
 
-		safePackets.add(legit);
-		safePackets.add(bounds);
+            // send packets
+            if (mode.getValue().equals(Mode.FACTOR)) {
+                if (motionY == 0) {
 
-		mc.player.connection.sendPacket(legit);
-		mc.player.connection.sendPacket(bounds);
+                    // percent chance to round
+                    double factorize = factor.getValue() - StrictMath.floor(factor.getValue());
 
-		if (!vectorMap.containsKey(lastTeleportId)) {
-			if (limitJitter.getValue()) {
-				mc.player.connection.sendPacket(new CPacketConfirmTeleport(lastTeleportId++));
-			}
+                    // (factorize)% chance of factorizing
+                    double factorScaled = StrictMath.floor(factor.getValue());
+                    if (StrictMath.random() <= factorize) {
+                        factorScaled++;
+                    }
 
-			mc.player.setPosition(playerIncrement.x, playerIncrement.y, playerIncrement.z);
-			vectorMap.put(lastTeleportId, playerIncrement);
-		}
-	}
+                    // send factored packets
+                    for (int i = 0; i < factorScaled; i++) {
+                        double motionFactorX = (motionX / factorScaled) * (i + 1);
+                        double motionFactorZ = (motionZ / factorScaled)* (i + 1);
 
-	private double[] getMotion(double factor) {
-		double motionY = getMotionY();
-		double speed;
+                        //
+                        mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.x + motionFactorX, playerVector.add(motionVector).y, playerVector.z + motionFactorZ, false));
+                    }
+                }
 
-		if (motionY != 0) {
-			speed = 0.026;
-		}
+                else {
+                    // we can just move instantly
+                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false));
+                }
+            }
 
-		else {
-			speed = 0.040;
-		}
+            else {
+                // we can just move instantly
+                mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false));
+            }
 
-		double[] motion = MotionUtil.getMoveSpeed(motionY != 0 ? speed : speed * factor);
+            mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(boundVector.x, boundVector.y, boundVector.z, false));
 
-		if (!isPlayerClipped()) {
-			if (motionY != 0 && motionY != -0.0325) {
-				motion[0] = 0;
-				motion[1] = 0;
-			}
+            // predict teleport packet
+            if (type.getValue().equals(Type.JITTER) || type.getValue().equals(Type.LIMIT_JITTER)) {
+                if (!packetMap.containsKey(teleportID)) {
+                    teleportID++;
 
-			else {
-				if (mode.getValue().equals(Mode.STRICT)) {
-					motion[0] *= 2.3425;
-					motion[1] *= 2.3425;
-				}
+                    // confirm predicted teleport
+                    mc.player.connection.sendPacket(new CPacketConfirmTeleport(teleportID));
+                    packetMap.put(teleportID, playerVector);
 
-				else {
-					motion[0] *= 3.59125;
-					motion[1] *= 3.59125;
-				}
-			}
-		}
+                    // teleport player since we know where they are going
+                    mc.player.setPosition(playerVector.x, playerVector.y, playerVector.z);
+                }
+            }
+        }
+    }
 
-		else {
-			if (mode.getValue().equals(Mode.STRICT)) {
-				motion[0] *= 0.8;
-				motion[1] *= 0.8;
-			}
+    @SubscribeEvent
+    public void onRotationUpdate(RotationUpdateEvent event) {
+        event.setCanceled(true);
+    }
 
-			else if (mode.getValue().equals(Mode.SLOW)) {
-				motion[0] *= 0.75;
-				motion[1] *= 0.75;
-			}
-		}
+    @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+        if (event.getPacket() instanceof CPacketPlayer) {
+            // cancel the packet if we are moving
+            if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+                event.setCanceled(true);
+            }
+        }
+    }
 
-		return new double[] {
-				motion[0], motionY, motion[1]
-		};
-	}
+    @SubscribeEvent
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        if (event.getPacket() instanceof SPacketPlayerPosLook) {
 
-	private double getMotionY() {
-		double motionY = 0;
+            // packet vector associated with this rubberband
+            Vec3d packetVector = packetMap.remove(((SPacketPlayerPosLook) event.getPacket()).getTeleportId());
 
-		if (!isPlayerClipped()) {
-			if (mc.gameSettings.keyBindJump.isKeyDown()) {
-				motionY = 0.031;
+            // server data
+            double serverX = ((SPacketPlayerPosLook) event.getPacket()).getX();
+            double serverY = ((SPacketPlayerPosLook) event.getPacket()).getY();
+            double serverZ = ((SPacketPlayerPosLook) event.getPacket()).getZ();
+            float serverYaw = ((SPacketPlayerPosLook) event.getPacket()).getYaw();
+            float serverPitch = ((SPacketPlayerPosLook) event.getPacket()).getPitch();
 
-				if (mc.player.ticksExisted % 18 == 0 && antiKick.getValue())
-					motionY = -0.04;
-			}
+            if (((SPacketPlayerPosLook) event.getPacket()).getFlags().contains(SPacketPlayerPosLook.EnumFlags.X)) {
+                serverX += mc.player.posX;
+            }
 
-			if (mc.gameSettings.keyBindSneak.isKeyDown() && !mc.gameSettings.keyBindJump.isKeyDown())
-				motionY = -0.031;
-		}
+            if (((SPacketPlayerPosLook) event.getPacket()).getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y)) {
+                serverY += mc.player.getEntityBoundingBox().minY;
+            }
 
-		else {
-			if (mc.gameSettings.keyBindJump.isKeyDown())
-				motionY = 0.017;
+            if (((SPacketPlayerPosLook) event.getPacket()).getFlags().contains(SPacketPlayerPosLook.EnumFlags.Z)) {
+                serverZ += mc.player.posZ;
+            }
 
-			if (mc.gameSettings.keyBindSneak.isKeyDown() && !mc.gameSettings.keyBindJump.isKeyDown())
-				motionY = -0.017;
-		}
+            if (((SPacketPlayerPosLook) event.getPacket()).getFlags().contains(SPacketPlayerPosLook.EnumFlags.X_ROT)) {
+                serverPitch += mc.player.rotationPitch;
+            }
 
-		if (motionY == 0 && !isPlayerClipped()) {
-			if (mc.player.ticksExisted % 4 == 0 && antiKick.getValue())
-				motionY = -0.0325;
-		}
+            if (((SPacketPlayerPosLook) event.getPacket()).getFlags().contains(SPacketPlayerPosLook.EnumFlags.Y_ROT)) {
+                serverYaw += mc.player.rotationYaw;
+            }
 
-		return motionY;
-	}
+            // quickly confirm the teleport
+            if (type.getValue().equals(Type.LIMIT) || type.getValue().equals(Type.LIMIT_JITTER)) {
+                mc.player.connection.sendPacket(new CPacketConfirmTeleport(((SPacketPlayerPosLook) event.getPacket()).getTeleportId()));
+            }
 
-	private Vec3d getBoundingVectors(Vec3d actual, Vec3d bound) {
-		Vec3d newVector = actual.add(bound);
+            // accept server position
+            if (strict.getValue()) {
+                mc.player.setPosition(serverX, serverY, serverZ);
 
-		switch (direction.getValue()) {
-			case UP:
-				return newVector.addVector(0, 80085.69, 0);
-			case DOWN:
-			default:
-				return newVector.addVector(0, -80085.69, 0);
-			case RANDOM:
-				return newVector.addVector(0, ThreadLocalRandom.current().nextDouble(-80085.69, 80085.69), 0);
-			case GROUND:
-			case NONE:
-				return newVector.addVector(0, 0, 0);
-		}
-	}
+                if (mc.getConnection() != null) {
+                    mc.getConnection().sendPacket(new CPacketPlayer.PositionRotation(serverX, serverY, serverZ, serverYaw, serverPitch, false));
+                }
+            }
 
-	private boolean isPlayerClipped() {
-		return !mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().contract(0.125, 0.15, 0.125)).isEmpty();
-	}
+            switch (mode.getValue()) {
+                // we already predicted this rubberband and have sent a packet to resolve it, so we can ignore the server request
+                case FAST:
+                    if (packetVector.x == serverX && packetVector.y == serverY && packetVector.z == serverZ) {
+                        event.setCanceled(true);
+                    }
 
-	public enum Mode {
-		FAST, FACTOR, SLOW, STRICT
-	}
+                    else {
+                        ((ISPacketPlayerPosLook) event.getPacket()).setYaw(mc.player.rotationYaw);
+                        ((ISPacketPlayerPosLook) event.getPacket()).setPitch(mc.player.rotationPitch);
 
-	public enum Direction {
-		UP, DOWN, GROUND, RANDOM, NONE
-	}
+                        // remove packet flags
+                        ((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.X_ROT);
+                        ((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.Y_ROT);
+                    }
+
+                    break;
+                case CONCEAL:
+                    event.setCanceled(true);
+                    break;
+                case FACTOR:
+                    ((ISPacketPlayerPosLook) event.getPacket()).setYaw(mc.player.rotationYaw);
+                    ((ISPacketPlayerPosLook) event.getPacket()).setPitch(mc.player.rotationPitch);
+
+                    // remove packet flags
+                    ((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.X_ROT);
+                    ((SPacketPlayerPosLook) event.getPacket()).getFlags().remove(SPacketPlayerPosLook.EnumFlags.Y_ROT);
+
+                    break;
+            }
+
+            // update our current teleport id
+            teleportID = ((SPacketPlayerPosLook) event.getPacket()).getTeleportId();
+        }
+    }
+
+    @SubscribeEvent
+    public void onPushOutOfBlock(PushOutOfBlocksEvent event) {
+        if (isPhased()) {
+            event.setCanceled(true); // prevent blocks from applying velocity to the player
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
+        if (event.getEntity().equals(mc.player)) {
+            // disable module on death
+            disable(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onDisconnect(DisconnectEvent event) {
+        // disable module on disconnect
+        disable(true);
+    }
+
+    /**
+     * Checks whether the player is phased inside a block
+     * @return Whether the player is phased inside a block
+     */
+    public boolean isPhased() {
+        return !mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().contract(0.125, 0.15, 0.125)).isEmpty();
+    }
+
+    public enum Mode {
+
+        /**
+         * Cancels server packet requests
+         */
+        FAST,
+
+        /**
+         * Attempts to conceal bounds
+         */
+        CONCEAL,
+
+        /**
+         * Allows you to change the packet rate
+         */
+        FACTOR
+    }
+
+    public enum Type {
+
+        /**
+         * Confirms packets proactively
+         */
+        LIMIT,
+
+        /**
+         * Confirms packets reactively
+         */
+        JITTER,
+
+        /**
+         * Confirms packets proactively and reactively
+         */
+        LIMIT_JITTER,
+
+        /**
+         * Does not confirm teleport packets
+         */
+        NONE
+    }
+
+    public enum Phase {
+
+        /**
+         * Allows you to phase through any blocks
+         */
+        FULL,
+
+        /**
+         * Allows you to phase through "no clip" blocks
+         */
+        SEMI,
+
+        /**
+         * Does not allow you to phase through blocks
+         */
+        NONE
+    }
+
+    public enum Friction {
+
+        /**
+         * Does not apply block friction when phasing
+         */
+        FAST,
+
+        /**
+         * Applies block friction when phasing
+         */
+        STRICT
+    }
+
+    public enum Bounds {
+
+        /**
+         * Up bounds
+         */
+        UP(0, 6980085, 0),
+
+        /**
+         * Down bounds
+         */
+        DOWN(0, -6980085, 0),
+
+        /**
+         * Conceals the horizontal and vertical positions
+         */
+        CONCEAL(ThreadLocalRandom.current().nextInt(-100000, 100000), 2, ThreadLocalRandom.current().nextInt(-100000, 100000)),
+
+        /**
+         * Preserves the player height
+         */
+        PRESERVE(ThreadLocalRandom.current().nextInt(100000), 0, ThreadLocalRandom.current().nextInt(100000));
+
+        // the vector to add to the player position
+        private final Vec3d addition;
+
+        Bounds(double x, double y, double z) {
+            addition = new Vec3d(x, y, z);
+        }
+
+        /**
+         * Gets the vector to add to the player position
+         * @return The vector to add to the player position
+         */
+        public Vec3d getAddition() {
+            return addition;
+        }
+    }
 }

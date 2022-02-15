@@ -9,6 +9,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
+/**
+ * @author bon55, linustouchtips
+ * @since 05/05/2021
+ */
 public class ClickGUI extends Module {
 	public static ClickGUI INSTANCE;
 	
@@ -20,15 +24,15 @@ public class ClickGUI extends Module {
 	}
 
 	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false).setDescription("Pause the game when in GUI");
-	public static Setting<Boolean> windowBlur = new Setting<>("WindowBlur", true).setDescription("Blur shader for GUI Panels");
 	public static Setting<Boolean> blur = new Setting<>("Blur", false).setDescription("Blur shader for GUI background");
-	public static Setting<Boolean> invertedScrolling = new Setting<>("InvertScroll", false).setDescription("Inverts scrolling in GUI windows (useful for trackpad users, can make scrolling feel more natural)");
 
 	@Override
 	public void onEnable() {
 		super.onEnable();
 
+		// open gui
 		mc.displayGuiScreen(getCosmos().getClickGUI());
+
 		Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
 
 		// blur shader for background
@@ -40,6 +44,7 @@ public class ClickGUI extends Module {
 	@SubscribeEvent
 	public void onSettingEnable(SettingUpdateEvent event) {
 		if (event.getSetting().equals(blur)) {
+			// blur shader for background
 			if (blur.getValue()) {
 				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
 			}

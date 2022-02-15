@@ -1,8 +1,9 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.combat.DeathEvent;
-import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.client.events.DeathEvent;
+import cope.cosmos.client.events.EntityWorldEvent;
+import cope.cosmos.client.events.TotemPopEvent;
 import cope.cosmos.client.features.modules.misc.Notifier;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
@@ -34,7 +35,7 @@ public class PopManager extends Manager implements Wrapper {
     }
 
     @SubscribeEvent
-    public void onDeath(DeathEvent event) {
+    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
         if (totemPops.containsKey(event.getEntity())) {
             // notify the player if necessary
             if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {

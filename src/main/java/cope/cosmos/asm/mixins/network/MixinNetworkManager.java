@@ -42,7 +42,7 @@ public class MixinNetworkManager {
     }
 
     @Inject(method = "exceptionCaught", at = @At("HEAD"), cancellable = true)
-    private void exceptionCaught(ChannelHandlerContext exceptionCaught1, Throwable exceptionCaught2, CallbackInfo info) {
+    private void onExceptionCaught(ChannelHandlerContext exceptionCaught1, Throwable exceptionCaught2, CallbackInfo info) {
         ExceptionThrownEvent exceptionThrownEvent = new ExceptionThrownEvent(exceptionCaught2);
         Cosmos.EVENT_BUS.post(exceptionThrownEvent);
 

@@ -224,7 +224,7 @@ public class PresetManager extends Manager {
                             // set the enabled state
                             if (inputTOML.getBoolean(module.getName() + ".Enabled") != null) {
                                 if (inputTOML.getBoolean(module.getName() + ".Enabled", false)) {
-                                    module.enable();
+                                    module.enable(true);
                                     module.getAnimation().setState(true);
                                 }
                             }

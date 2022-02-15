@@ -16,7 +16,7 @@ public class Colors extends Module {
         setExempt(true);
 
         // enable by default
-        enable();
+        enable(true);
     }
 
     public static Setting<Color> color = new Setting<>("Color", new Color(118, 98, 224, 255)).setDescription("The primary color for the client");

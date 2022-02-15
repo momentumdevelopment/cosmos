@@ -11,7 +11,7 @@ public class DiscordPresence extends Module {
         super("DiscordPresence", Category.CLIENT, "Displays a custom presence on Discord");
         setDrawn(false);
         setExempt(true);
-        enable();
+        enable(true);
         INSTANCE = this;
     }
 

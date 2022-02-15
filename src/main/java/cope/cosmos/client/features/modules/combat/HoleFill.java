@@ -65,7 +65,7 @@ public class HoleFill extends Module {
     public void onUpdate() {
         // if we already filled in all the holes, then we can disable
         if (fills.isEmpty() && completion.getValue().equals(Completion.COMPLETION)) {
-            disable();
+            disable(true);
             return;
         }
 

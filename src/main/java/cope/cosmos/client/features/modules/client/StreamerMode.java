@@ -63,7 +63,7 @@ public class StreamerMode extends Module {
 
             @Override
             public void windowClosing(WindowEvent event) {
-                disable();
+                disable(true);
             }
         });
 

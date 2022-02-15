@@ -29,14 +29,14 @@ public class ReloadManager extends Manager implements Wrapper {
             // disable all modules (exempt property prevents modules from being reloaded)
             getCosmos().getModuleManager().getAllModules().forEach(module -> {
                 if (!module.isExempt()) {
-                    module.disable();
+                    module.disable(false);
                 }
             });
 
             // re-enable previously enabled modules
             enabledModules.forEach(module -> {
                 if (!module.isExempt()) {
-                    module.enable();
+                    module.enable(false);
                 }
             });
         }

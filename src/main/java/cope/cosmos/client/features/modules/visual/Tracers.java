@@ -9,8 +9,6 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.util.math.Vec3d;
 
 /**
@@ -54,10 +52,10 @@ public class Tracers extends Module {
                 }
 
                 // Corrected position of the entity
-                Vec3d entityVec = new Vec3d(interpolatedPosition.x - mc.getRenderManager().viewerPosX, interpolatedPosition.y - mc.getRenderManager().viewerPosY + addedHeight, interpolatedPosition.z - mc.getRenderManager().viewerPosZ);
+                Vec3d entityVector = new Vec3d(interpolatedPosition.x - mc.getRenderManager().viewerPosX, interpolatedPosition.y - mc.getRenderManager().viewerPosY + addedHeight, interpolatedPosition.z - mc.getRenderManager().viewerPosZ);
 
                 // Draw tracer
-                RenderUtil.drawTracer(entityVec, lineWidth.getValue(), ColorUtil.getPrimaryColor());
+                RenderUtil.drawTracer(entityVector, lineWidth.getValue(), ColorUtil.getPrimaryColor());
             }
         });
     }
@@ -74,18 +72,18 @@ public class Tracers extends Module {
                 EntityUtil.isHostileMob(entity) && mobs.getValue();
     }
 
-    /**
-     * Place to draw the line to
-     */
     public enum To {
+
         /**
          * Draw the line towards the entity's feet
          */
         FEET,
+
         /**
          * Draw the line to the middle of the entity's body
          */
         BODY,
+
         /**
          * Draw the line to the top of the entity's body
          */

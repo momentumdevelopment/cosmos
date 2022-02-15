@@ -85,18 +85,19 @@ public class Module extends Feature implements Wrapper {
 	 */
 	public void toggle() {
 		if (enabled) {
-			disable();
+			disable(true);
 		}
 
 		else {
-			enable();
+			enable(true);
 		}
 	}
 
 	/**
 	 * Enables the module, subscribing it to the event bus and allowing it to function
+	 * @param in Allows the enable event to run
 	 */
-	public void enable() {
+	public void enable(boolean in) {
 		if (!enabled) {
 			// set the enabled state to true
 			enabled = true;
@@ -105,8 +106,10 @@ public class Module extends Feature implements Wrapper {
 
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
 				// runs onEnable callbacks
-				ModuleEnableEvent event = new ModuleEnableEvent(this);
-				Cosmos.EVENT_BUS.post(event);
+				if (in) {
+					ModuleEnableEvent event = new ModuleEnableEvent(this);
+					Cosmos.EVENT_BUS.post(event);
+				}
 
 				try {
 					onEnable();
@@ -119,8 +122,9 @@ public class Module extends Feature implements Wrapper {
 
 	/**
 	 * Disables the module, unsubscribing it from event bus and stopping it from functioning
+	 *  * @param in Allows the enable event to run
 	 */
-	public void disable() {
+	public void disable(boolean in) {
 		if (enabled) {
 			// sets the enabled state to false
 			enabled = false;
@@ -128,8 +132,10 @@ public class Module extends Feature implements Wrapper {
 			// run the onDisable event
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
 				// runs onDisable callbacks
-				ModuleDisableEvent event = new ModuleDisableEvent(this);
-				Cosmos.EVENT_BUS.post(event);
+				if (in) {
+					ModuleDisableEvent event = new ModuleDisableEvent(this);
+					Cosmos.EVENT_BUS.post(event);
+				}
 
 				try {
 					onDisable();

@@ -124,7 +124,7 @@ public class LongJump extends Module {
         // disable on rubberband or teleport
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             moveSpeed = 0;
-            disable();
+            disable(true);
         }
     }
 }

@@ -103,13 +103,13 @@ public class Surround extends Module {
 
             // pause if we are not in the same starting position
             if (completion.getValue().equals(Completion.AIR) && Math.abs(mc.player.posY - startY) > 0.25) {
-                disable();
+                disable(true);
                 return;
             }
 
             // pause if we are already in a hole
             if (completion.getValue().equals(Completion.SURROUNDED) && !getCosmos().getHoleManager().isHole(mc.player.getPosition())) {
-                disable();
+                disable(true);
                 return;
             }
         }

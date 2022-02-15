@@ -22,7 +22,7 @@ public class Social extends Module {
         setDrawn(false);
 
         // enable by default
-        enable();
+        enable(true);
     }
 
     public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");
