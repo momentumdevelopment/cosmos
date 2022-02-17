@@ -1,16 +1,23 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.string.ColorUtil;
 import io.netty.util.internal.ConcurrentSet;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketChunkData;
+import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -19,6 +26,8 @@ import java.util.Set;
 /**
  * @author aesthetical
  * @since 12/11/2021
+ *
+ * Credits to bleachhack for the updated new chunks
  */
 @SuppressWarnings("unused")
 public class NewChunks extends Module {
@@ -32,6 +41,8 @@ public class NewChunks extends Module {
     public static Setting<Box> render = new Setting<>("Render", Box.OUTLINE).setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE);
     public static Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 0).setDescription("The height to render the new chunk at");
     public static Setting<Double> width = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the render").setVisible(() -> render.getValue().equals(Box.BOTH) || render.getValue().equals(Box.OUTLINE) || render.getValue().equals(Box.CLAW));
+
+    // public static Setting<Boolean> updated = new Setting<>("Updated", false).setDescription("Allows new chunks to work on 1.12+ servers");
 
     // new chunks
     private final Set<Vec2f> chunks = new ConcurrentSet<>();
@@ -72,6 +83,40 @@ public class NewChunks extends Module {
             if (!((SPacketChunkData) event.getPacket()).isFullChunk()) {
                 chunks.add(new Vec2f(((SPacketChunkData) event.getPacket()).getChunkX() * 16, ((SPacketChunkData) event.getPacket()).getChunkZ() * 16));
             }
+        }
+//
+//        else {
+//            if (!updated.getValue()) {
+//                return;
+//            }
+//
+//            // TODO: check if liquid block is moving
+//            if (event.getPacket() instanceof SPacketBlockChange) {
+//                SPacketBlockChange packet = (SPacketBlockChange) event.getPacket();
+//
+//                // if the block state is not null
+//                if (packet.getBlockState() != null) {
+//                    Block block = packet.getBlockState().getBlock();
+//
+//                    if (block.equals(Blocks.FLOWING_LAVA) || block.equals(Blocks.FLOWING_WATER)) {
+//                        BlockPos pos = packet.getBlockPosition();
+//                        chunks.add(new Vec2f(pos.getX() >> 4, pos.getZ() >> 4));
+//                    }
+//                }
+//            } else if (event.getPacket() instanceof SPacketMultiBlockChange) {
+//                SPacketMultiBlockChange packet = (SPacketMultiBlockChange) event.getPacket();
+//
+//                for (SPacketMultiBlockChange.BlockUpdateData data : packet.getChangedBlocks()) {
+//                    if (data.getBlockState() != null) {
+//                        Block block = data.getBlockState().getBlock();
+//
+//                        if (block.equals(Blocks.FLOWING_LAVA) || block.equals(Blocks.FLOWING_WATER)) {
+//                            BlockPos pos = data.getPos();
+//                            chunks.add(new Vec2f(pos.getX() >> 4, pos.getZ() >> 4));
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 
