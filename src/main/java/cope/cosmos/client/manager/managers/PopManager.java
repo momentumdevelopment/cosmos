@@ -3,7 +3,7 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
-import cope.cosmos.client.features.modules.misc.Notifier;
+import cope.cosmos.client.features.modules.misc.NotifierModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
@@ -37,7 +37,7 @@ public class PopManager extends Manager implements Wrapper {
     public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
         if (totemPops.containsKey(event.getEntity())) {
             // notify the player if necessary
-            if (Notifier.INSTANCE.isEnabled() && Notifier.popNotify.getValue()) {
+            if (NotifierModule.INSTANCE.isEnabled() && NotifierModule.popNotify.getValue()) {
                 getCosmos().getChatManager().sendClientMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + totemPops.get(event.getEntity()) + " totems!");
             }
 

@@ -2,7 +2,7 @@ package cope.cosmos.client.ui.clickgui;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.modules.client.ClickGUI;
+import cope.cosmos.client.features.modules.client.ClickGUIModule;
 import cope.cosmos.client.ui.clickgui.feature.ClickType;
 import cope.cosmos.client.ui.clickgui.feature.features.category.CategoryFrameFeature;
 import cope.cosmos.client.ui.util.InterfaceUtil;
@@ -46,7 +46,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         // draws the default dark background
-        if (!ClickGUI.blur.getValue()) {
+        if (!ClickGUIModule.blur.getValue()) {
             drawDefaultBackground();
         }
 
@@ -134,7 +134,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         Cosmos.EVENT_BUS.unregister(this);
 
         // disable the GUI modules, keeps the toggle state consistent with open/close
-        ClickGUI.INSTANCE.disable(true);
+        ClickGUIModule.INSTANCE.disable(true);
 
         // save our configs when exiting the GUI
         Cosmos.INSTANCE.getPresetManager().save();
@@ -146,7 +146,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
 
     @Override
     public boolean doesGuiPauseGame() {
-        return ClickGUI.pauseGame.getValue();
+        return ClickGUIModule.pauseGame.getValue();
     }
 
     @SubscribeEvent

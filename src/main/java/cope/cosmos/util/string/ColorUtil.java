@@ -1,36 +1,35 @@
 package cope.cosmos.util.string;
 
-import cope.cosmos.client.features.modules.client.Colors;
-import org.lwjgl.opengl.GL11;
+import cope.cosmos.client.features.modules.client.ColorsModule;
 
 import java.awt.*;
 
 public class ColorUtil {
 
 	public static Color getPrimaryColor(int offset) {
-		switch (Colors.rainbow.getValue()) {
+		switch (ColorsModule.rainbow.getValue()) {
 			case GRADIENT:
-				return rainbow(offset, Colors.color.getValue().getAlpha());
+				return rainbow(offset, ColorsModule.color.getValue().getAlpha());
 			case STATIC:
-				return rainbow(1L, Colors.color.getValue().getAlpha());
+				return rainbow(1L, ColorsModule.color.getValue().getAlpha());
 			case ALPHA:
-				return alphaCycle(Colors.color.getValue(), (offset * 2) + 10);
+				return alphaCycle(ColorsModule.color.getValue(), (offset * 2) + 10);
 			case NONE:
 			default:
-				return Colors.color.getValue();
+				return ColorsModule.color.getValue();
 		}
 	}
 
 	public static Color getPrimaryColor() {
-		switch (Colors.rainbow.getValue()) {
+		switch (ColorsModule.rainbow.getValue()) {
 			case GRADIENT:
 			case STATIC:
-				return rainbow(1L, Colors.color.getValue().getAlpha());
+				return rainbow(1L, ColorsModule.color.getValue().getAlpha());
 			case ALPHA:
-				return alphaCycle(Colors.color.getValue(), 10);
+				return alphaCycle(ColorsModule.color.getValue(), 10);
 			case NONE:
 			default:
-				return Colors.color.getValue();
+				return ColorsModule.color.getValue();
 		}
 	}
 
@@ -48,8 +47,8 @@ public class ColorUtil {
 	}
 
 	public static Color rainbow(long offset, int alpha) {
-		float hue = (float) (((double) System.currentTimeMillis() * (Colors.speed.getValue() / 10) + (double) (offset * 500L)) % (30000 / (Colors.difference.getValue() / 100)) / (30000 / (Colors.difference.getValue() / 20F)));
-		int rgb = Color.HSBtoRGB(hue, Colors.saturation.getValue().floatValue(), Colors.brightness.getValue().floatValue());
+		float hue = (float) (((double) System.currentTimeMillis() * (ColorsModule.speed.getValue() / 10) + (double) (offset * 500L)) % (30000 / (ColorsModule.difference.getValue() / 100)) / (30000 / (ColorsModule.difference.getValue() / 20F)));
+		int rgb = Color.HSBtoRGB(hue, ColorsModule.saturation.getValue().floatValue(), ColorsModule.brightness.getValue().floatValue());
 		int red = rgb >> 16 & 255;
 		int green = rgb >> 8 & 255;
 		int blue = rgb & 255;

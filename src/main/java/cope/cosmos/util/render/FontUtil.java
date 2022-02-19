@@ -1,9 +1,10 @@
 package cope.cosmos.util.render;
 
-import cope.cosmos.client.features.modules.client.Font;
+import cope.cosmos.client.features.modules.client.FontModule;
 import cope.cosmos.font.FontRenderer;
 import cope.cosmos.util.Wrapper;
 
+import java.awt.Font;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static void drawStringWithShadow(String text, float x, float y, int color) {
-		if (Font.INSTANCE.isEnabled()) {
+		if (FontModule.INSTANCE.isEnabled()) {
 			globalFont.drawStringWithShadow(text, x, y, color);
 		}
 
@@ -27,7 +28,7 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static void drawCenteredStringWithShadow(String text, float x, float y, int color) {
-		if (Font.INSTANCE.isEnabled()) {
+		if (FontModule.INSTANCE.isEnabled()) {
 			globalFont.drawStringWithShadow(text, x - globalFont.getStringWidth(text) / 2f + 0.75f, y - globalFont.getHeight() / 2f + 2f, color);
 		}
 
@@ -37,7 +38,7 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static int getStringWidth(String text) {
-		if (Font.INSTANCE.isEnabled()) {
+		if (FontModule.INSTANCE.isEnabled()) {
 			return globalFont.getStringWidth(text);
 		}
 
@@ -117,25 +118,30 @@ public class FontUtil implements Wrapper {
 	}
 
 	public static int getFontString(String text, float x, float y, int color) {
-		if (Font.INSTANCE.isEnabled()) {
+		if (FontModule.INSTANCE.isEnabled()) {
 			return globalFont.drawStringWithShadow(text, x, y, color);
 		}
 
 		return mc.fontRenderer.drawStringWithShadow(text, x, y, color);
 	}
 
-	private static java.awt.Font getFont(String fontName, float size) {
+	private static Font getFont(String fontName, float size) {
 		try {
 			InputStream inputStream = FontUtil.class.getResourceAsStream("/assets/cosmos/fonts/" + fontName + ".ttf");
-			assert inputStream != null;
-			java.awt.Font awtClientFont = java.awt.Font.createFont(0, inputStream);
-			awtClientFont = awtClientFont.deriveFont(java.awt.Font.PLAIN, size);
-			inputStream.close();
 
-			return awtClientFont;
+			if (inputStream != null) {
+				Font awtClientFont = Font.createFont(0, inputStream);
+				awtClientFont = awtClientFont.deriveFont(Font.PLAIN, size);
+				inputStream.close();
+				return awtClientFont;
+			}
+
+			// default
+			return new Font("default", Font.PLAIN, (int) size);
+
 		} catch (Exception exception) {
 			exception.printStackTrace();
-			return new java.awt.Font("default", java.awt.Font.PLAIN, (int) size);
+			return new Font("default", Font.PLAIN, (int) size);
 		}
 	}
 }

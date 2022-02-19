@@ -5,10 +5,10 @@ import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.client.ModuleToggleEvent;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.combat.Burrow;
-import cope.cosmos.client.features.modules.combat.Surround;
-import cope.cosmos.client.features.modules.combat.Surround.SurroundVectors;
-import cope.cosmos.client.features.modules.movement.ElytraFlight;
+import cope.cosmos.client.features.modules.combat.BurrowModule;
+import cope.cosmos.client.features.modules.combat.SurroundModule;
+import cope.cosmos.client.features.modules.combat.SurroundModule.SurroundVectors;
+import cope.cosmos.client.features.modules.movement.ElytraFlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.NotificationManager.Notification;
@@ -97,9 +97,9 @@ public class PatchManager extends Manager implements Wrapper {
     }
 
     public void updatePatches() {
-        patchMap.put(new Patch(Burrow.INSTANCE, "crystalpvp.cc", "us.crystalpvp.cc", "constantiam.org", "2b2tpvp.net", "strict.2b2tpvp.net", "eliteanarchy.net"), PatchState.PATCHED);
-        patchMap.put(new Patch(ElytraFlight.INSTANCE, "2b2t.org", "constantiam.org"), PatchState.PATCHED);
-        patchMap.put(new Patch(Surround.mode, Surround.mode.getValue().equals(SurroundVectors.BASE), "2b2t.org", "strict.2b2tpvp.net"), PatchState.PATCHED);
+        patchMap.put(new Patch(BurrowModule.INSTANCE, "crystalpvp.cc", "us.crystalpvp.cc", "constantiam.org", "2b2tpvp.net", "strict.2b2tpvp.net", "eliteanarchy.net"), PatchState.PATCHED);
+        patchMap.put(new Patch(ElytraFlightModule.INSTANCE, "2b2t.org", "constantiam.org"), PatchState.PATCHED);
+        patchMap.put(new Patch(SurroundModule.mode, SurroundModule.mode.getValue().equals(SurroundVectors.BASE), "2b2t.org", "strict.2b2tpvp.net"), PatchState.PATCHED);
     }
 
     public void pushPatchSafety(String message) {

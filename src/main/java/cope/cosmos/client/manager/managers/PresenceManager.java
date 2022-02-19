@@ -4,7 +4,7 @@ import club.minnced.discord.rpc.DiscordEventHandlers;
 import club.minnced.discord.rpc.DiscordRPC;
 import club.minnced.discord.rpc.DiscordRichPresence;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.features.modules.combat.AutoCrystal;
+import cope.cosmos.client.features.modules.combat.AutoCrystalModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
@@ -48,7 +48,7 @@ public class PresenceManager extends Manager implements Wrapper {
             "Cracking latest konas :yawn:",
             "Autoduping on eliteanarchy.org",
             "Tater",
-            "I am a " + ((AutoCrystal.placeDamage.getValue() < 4) ? "faggot." : "good config person :)"),
+            "I am a " + ((AutoCrystalModule.placeDamage.getValue() < 4) ? "faggot." : "good config person :)"),
             "Injecting estrogen",
             "Releasing Pyro 1.5",
             "Stealing Quill's pyro account",

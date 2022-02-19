@@ -80,7 +80,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
             }
 
             if (isExpanding()) {
-                height = MathHelper.clamp(getMouse().getPosition().y - getPosition().y, 0, 350);
+                height = MathHelper.clamp((getMouse().getPosition().y - getPosition().y) - TITLE, 0, 350);
             }
         }
 

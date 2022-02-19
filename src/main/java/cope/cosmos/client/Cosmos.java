@@ -2,10 +2,10 @@ package cope.cosmos.client;
 
 import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.features.Feature;
-import cope.cosmos.client.features.modules.client.Colors;
-import cope.cosmos.client.features.modules.client.DiscordPresence;
-import cope.cosmos.client.features.modules.client.Font;
-import cope.cosmos.client.features.modules.client.Social;
+import cope.cosmos.client.features.modules.client.ColorsModule;
+import cope.cosmos.client.features.modules.client.DiscordPresenceModule;
+import cope.cosmos.client.features.modules.client.FontModule;
+import cope.cosmos.client.features.modules.client.SocialModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
@@ -131,7 +131,6 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up Social Manager");
 
         // sets up the alt manager
-
         altManager = new AltManager();
         managers.add(altManager);
         progressManager.step("[Cosmos] Setting up Alt Manager");
@@ -400,11 +399,11 @@ public class Cosmos {
      */
     public List<Feature> getNullSafeFeatures() {
     	return Arrays.asList(
-                DiscordPresence.INSTANCE,
-                Colors.INSTANCE,
-                Font.INSTANCE,
-                Social.INSTANCE,
-                Font.INSTANCE
+                DiscordPresenceModule.INSTANCE,
+                ColorsModule.INSTANCE,
+                FontModule.INSTANCE,
+                SocialModule.INSTANCE,
+                FontModule.INSTANCE
         );
     }
 }

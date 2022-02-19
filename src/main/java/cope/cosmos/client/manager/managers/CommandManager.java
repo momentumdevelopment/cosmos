@@ -24,11 +24,11 @@ public class CommandManager extends Manager {
 
 		// add all commands
 		commands = Arrays.asList(
-				new Friend(),
-				new Preset(),
-				new Help(),
-				new Drawn(),
-				new Bind()
+				new FriendCommand(),
+				new PresetCommand(),
+				new HelpCommand(),
+				new DrawnCommand(),
+				new BindCommand()
 		);
 
 		// register commands to dispatcher
