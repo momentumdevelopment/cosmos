@@ -3,31 +3,32 @@ package cope.cosmos.client.features.modules.combat;
 import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
-import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
-import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderBuilder.Box;
-import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.AngleUtil;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.render.RenderBuilder;
+import cope.cosmos.util.render.RenderBuilder.Box;
+import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.world.RaytraceUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.block.material.Material;
@@ -38,6 +39,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemPotion;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -179,6 +182,7 @@ public class AutoCrystal extends Module {
     private final Map<BlockPos, Integer> attemptedPlacements = new ConcurrentHashMap<>();
 
     // tick clamp
+    private int switchTicks;
     private int strictTicks;
 
     // rotation info
@@ -186,7 +190,6 @@ public class AutoCrystal extends Module {
     private Vec3d interactVector = Vec3d.ZERO;
 
     // switch info
-    private EnumHand previousHand;
     private int previousSlot = -1;
 
     // response time
@@ -279,10 +282,16 @@ public class AutoCrystal extends Module {
                         // prefer the sword over a pickaxe
                         if (swordSlot != -1) {
                             getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
+
+                            // sync item
+                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                         }
 
                         else if (pickSlot != -1) {
                             getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
+
+                            // sync item
+                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                         }
                     }
                 }
@@ -291,7 +300,7 @@ public class AutoCrystal extends Module {
             if (explodeTimer.passedTime(explodeDelay.getValue().longValue() + ThreadLocalRandom.current().nextInt(explodeRandom.getValue().intValue() + 1), Format.MILLISECONDS) && switchTimer.passedTime(explodeSwitch.getValue().longValue(), Format.MILLISECONDS)) {
                 // explode the crystal
                 explodeCrystal(explodeCrystal.getCrystal(), explodePacket.getValue());
-                swingArm(explodeHand.getValue());
+                swingCrystal(explodeHand.getValue());
 
                 explodeTimer.resetTime();
 
@@ -336,14 +345,7 @@ public class AutoCrystal extends Module {
             // log our previous slot and hand, we'll switch back after placing
             if (placeSwitch.getValue().equals(Switch.PACKET)) {
                 previousSlot = mc.player.inventory.currentItem;
-
-                if (mc.player.isHandActive()) {
-                    previousHand = mc.player.getActiveHand();
-                }
             }
-
-            // switch to crystals if needed
-            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
 
             if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
                 // directions of placement
@@ -377,7 +379,7 @@ public class AutoCrystal extends Module {
                             facingDirection = laxResult.sideHit;
 
                             // if we're at world height, we can still place a crystal if we interact with the bottom of the block, this doesn't work on strict servers
-                            if (placePosition.getPosition().getY() >= (mc.world.getHeight() - 1)) {
+                            if (placePosition.getPosition().getY() >= (mc.world.getActualHeight() - 1)) {
                                 facingDirection = EnumFacing.DOWN;
                             }
                         }
@@ -436,17 +438,32 @@ public class AutoCrystal extends Module {
                         break;
                 }
 
+                if ((mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
+                    // pause switch to account for eating
+                    if (PlayerUtil.isEating()) {
+                        switchTicks = 0;
+                    }
+
+                    else {
+                        switchTicks++;
+                    }
+                }
+
+                // switch to crystals if needed
+                if (switchTicks > 15 || !(mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
+                    getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
+
+                    // sync item
+                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                }
+
                 // place the crystal
                 placeCrystal(placePosition.getPosition(), facingDirection, new Vec3d(facingX, facingY, facingZ), placePacket.getValue());
-                swingArm(placeHand.getValue());
+                swingCrystal(placeHand.getValue());
 
                 // switch back after placing, should only switch serverside
                 if (placeSwitch.getValue().equals(Switch.PACKET)) {
                     getCosmos().getInventoryManager().switchToSlot(previousSlot, placeSwitch.getValue());
-
-                    if (previousHand != null) {
-                        mc.player.setActiveHand(previousHand);
-                    }
 
                     // reset previous slot
                     previousSlot = -1;
@@ -933,10 +950,16 @@ public class AutoCrystal extends Module {
                                     // prefer the sword over a pickaxe
                                     if (swordSlot != -1) {
                                         getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
+
+                                        // sync item
+                                        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                                     }
 
                                     else if (pickSlot != -1) {
                                         getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
+
+                                        // sync item
+                                        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                                     }
                                 }
                             }
@@ -944,7 +967,7 @@ public class AutoCrystal extends Module {
 
                         // explode the linear crystal
                         explodeCrystal(idealLinear.getValue());
-                        swingArm(explodeHand.getValue());
+                        swingCrystal(explodeHand.getValue());
 
                         // add crystal to our list of attempted explosions
                         attemptedExplosions.put(((SPacketSpawnObject) event.getPacket()).getEntityID(), attemptedExplosions.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) ? attemptedExplosions.get(((SPacketSpawnObject) event.getPacket()).getEntityID()) + 1 : 1);
@@ -1076,7 +1099,7 @@ public class AutoCrystal extends Module {
      * Swings the player's arm
      * @param hand The hand to swing
      */
-    public void swingArm(Hand hand) {
+    public void swingCrystal(Hand hand) {
         switch (hand) {
             // swing arm based on hand
             case SYNC:
@@ -1159,7 +1182,6 @@ public class AutoCrystal extends Module {
         placePosition = new CrystalPosition(BlockPos.ORIGIN, null, 0, 0);
         interactVector = Vec3d.ZERO;
         yawLimit = false;
-        previousHand = null;
         previousSlot = -1;
         strictTicks = 0;
         startTime = 0;

@@ -2,10 +2,11 @@ package cope.cosmos.client.features.modules.combat;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
+import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
-import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
-import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -35,6 +36,8 @@ import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemPotion;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -76,7 +79,6 @@ public class Aura extends Module {
     public static Setting<Double> delayTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 50.0, 0).setDescription("The minimum age of the target to attack").setParent(timing);
 
     // misc. category
-    public static Setting<Double> timer = new Setting<>("Timer", 0.0, 1.0, 2.0, 2).setDescription("Client-Side timer");
     public static Setting<Double> fov = new Setting<>("FOV", 1.0, 180.0, 180.0, 0).setDescription("Field of vision for the process to function");
 
     // weapon category
@@ -129,6 +131,7 @@ public class Aura extends Module {
     private final Timer switchTimer = new Timer();
 
     // tick clamp
+    private int switchTicks;
     private int strictTicks;
 
     // rotation info
@@ -294,16 +297,29 @@ public class Aura extends Module {
                     return;
                 }
 
+                if ((mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
+                    // pause switch to account for eating
+                    if (PlayerUtil.isEating()) {
+                        switchTicks = 0;
+                    }
+
+                    else {
+                        switchTicks++;
+                    }
+                }
+
                 // switch to our weapon
-                getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
+                if (switchTicks > 15 || !(mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
+                    getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
+
+                    // sync item
+                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                }
 
                 // make sure we are holding our weapon
                 if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || InventoryUtil.getHighestEnchantLevel() <= 1000 && weaponThirtyTwoK.getValue()) {
                     return;
                 }
-
-                // set the client ticks
-                getCosmos().getTickManager().setClientTicks(timer.getValue().floatValue());
 
                 // teleport to our target, rarely works on an actual server
                 if (teleport.getValue()) {
@@ -412,7 +428,7 @@ public class Aura extends Module {
 
                 // check hurt resistance time
                 if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                    if (auraTarget.hurtResistantTime > 0) {
+                    if (auraTarget.hurtResistantTime > 11) {
                         return;
                     }
                 }

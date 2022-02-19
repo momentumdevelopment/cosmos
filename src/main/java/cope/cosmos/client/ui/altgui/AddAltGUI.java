@@ -1,5 +1,6 @@
-package cope.cosmos.client.ui.altmanager;
+package cope.cosmos.client.ui.altgui;
 
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.manager.managers.AltManager;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -13,15 +14,19 @@ import java.io.IOException;
 
 /**
  * @author Wolfsurge
+ * @since 02/05/2022
  */
 public class AddAltGUI extends GuiScreen {
 
     // The last screen (which will always be AltManagerGUI) for easy switching back
     private final GuiScreen lastScreen;
+
     // The email text box
     private GuiTextField loginField;
+
     // The password text box
     private GuiTextField passwordField;
+
     // The current type that is selected (MS by default)
     private Alt.AltType currentType = Alt.AltType.MICROSOFT;
 
@@ -56,6 +61,7 @@ public class AddAltGUI extends GuiScreen {
 
         // Draw email text box
         loginField.drawTextBox();
+
         if (loginField.getText().isEmpty() && !loginField.isFocused() && loginField.getVisible()) {
             FontUtil.drawStringWithShadow(TextFormatting.GRAY + "Login", loginField.x + 3, loginField.y + 3.5f, -1);
         }
@@ -78,12 +84,13 @@ public class AddAltGUI extends GuiScreen {
                 // Add new alt
                 if (!(loginField.getText().isEmpty())) {
                     // Add alt
-                    AltManager.getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
+                    Cosmos.INSTANCE.getAltManager().getAltEntries().add(new AltEntry(new Alt(loginField.getText(), passwordField.getText(), currentType), AltManagerGUI.altEntryOffset));
                     // Increase offset
                     AltManagerGUI.altEntryOffset += 32;
                     // Display alt manager
                     mc.displayGuiScreen(lastScreen);
                 }
+
                 break;
 
             case 4:

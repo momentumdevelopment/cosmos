@@ -2,10 +2,12 @@ package cope.cosmos.client.manager.managers;
 
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.client.ui.altgui.Alt;
+import cope.cosmos.client.ui.altgui.AltEntry;
+import cope.cosmos.client.ui.altgui.AltManagerGUI;
 
 import java.awt.*;
 import java.io.*;
@@ -103,8 +105,8 @@ public class PresetManager extends Manager {
         loadInfo();
         loadModules();
         loadSocial();
+        loadAlts();
         // loadGUI();
-        // loadAlts();
     }
 
     /**
@@ -114,8 +116,8 @@ public class PresetManager extends Manager {
         saveInfo();
         saveModules();
         saveSocial();
+        saveAlts();
         // saveGUI();
-        // saveAlts();
     }
 
     /**
@@ -123,14 +125,24 @@ public class PresetManager extends Manager {
      */
     public void writeDirectories() {
         if (!mainDirectory.exists()) {
-            mainDirectory.mkdirs();
+            boolean success = mainDirectory.mkdirs();
+
+            // notify user
+            if (success) {
+                System.out.println("[Cosmos] Main Directory was created successfully!");
+            }
         }
 
         presets.forEach(preset -> {
             File presetDirectory = new File("cosmos/" + preset);
 
             if (!presetDirectory.exists()) {
-                presetDirectory.mkdirs();
+                boolean success = presetDirectory.mkdirs();
+
+                // notify user
+                if (success) {
+                    System.out.println("[Cosmos] " + preset + " Directory was created successfully!");
+                }
             }
         });
     }
@@ -191,6 +203,10 @@ public class PresetManager extends Manager {
                         });
 
                         outputTOML.append("\r\n");
+
+                        // notify user
+                        System.out.println("[Cosmos] " + module.getName() + " was saved successfully!");
+
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }
@@ -220,6 +236,7 @@ public class PresetManager extends Manager {
             if (inputTOML != null) {
                 getCosmos().getModuleManager().getAllModules().forEach(module -> {
                     if (module != null) {
+
                         try {
                             // set the enabled state
                             if (inputTOML.getBoolean(module.getName() + ".Enabled") != null) {
@@ -231,7 +248,8 @@ public class PresetManager extends Manager {
 
                             // set the drawn state
                             if (inputTOML.getBoolean(module.getName() + ".Drawn") != null) {
-                                module.setDrawn(inputTOML.getBoolean(module.getName() + ".Drawn", true));
+                                boolean drawn = inputTOML.getBoolean(module.getName() + ".Drawn", true);
+                                module.setDrawn(drawn);
                             }
 
                             // set the keybind
@@ -292,11 +310,16 @@ public class PresetManager extends Manager {
                                                 ((Setting<Color>) setting).setValue(value);
                                            }
                                         }
+
                                     } catch (Exception exception) {
                                         exception.printStackTrace();
                                     }
                                 }
                             });
+
+                            // notify user
+                            System.out.println("[Cosmos] " + module.getName() + " was loaded successfully!");
+
                         } catch (Exception exception) {
                             exception.printStackTrace();
                         }
@@ -336,6 +359,10 @@ public class PresetManager extends Manager {
             // write the socials to a TOML file
             socialOutputStreamWriter.write(outputTOML.toString());
             socialOutputStreamWriter.close();
+
+            // notify user
+            System.out.println("[Cosmos] Socials were saved successfully!");
+
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -366,6 +393,10 @@ public class PresetManager extends Manager {
                     exception.printStackTrace();
                 }
             }
+
+            // notify user
+            System.out.println("[Cosmos] Socials were loaded successfully!");
+
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -389,12 +420,17 @@ public class PresetManager extends Manager {
                 outputTOML.append("Setup = ").append(Cosmos.SETUP).append("\r\n");
                 outputTOML.append("Prefix = ").append('"').append(Cosmos.PREFIX).append('"').append("\r\n");
                 outputTOML.append("Preset = ").append('"').append(currentPreset).append('"').append("\r\n");
+
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
 
             infoOutputStreamWriter.write(outputTOML.toString());
             infoOutputStreamWriter.close();
+
+            // notify user
+            System.out.println("[Cosmos] Info was saved successfully!");
+
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -424,9 +460,98 @@ public class PresetManager extends Manager {
                 if (inputTOML.getString("Info.Preset") != null) {
                     currentPreset = inputTOML.getString("Info.Preset", "default");
                 }
+
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
+
+            // notify user
+            System.out.println("[Cosmos] Info was loaded successfully!");
+
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Saves the alt accounts to alts.toml
+     */
+    public void saveAlts() {
+        try {
+            // File writer
+            OutputStreamWriter altOutputStreamWriter = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/alts.toml"), StandardCharsets.UTF_8);
+
+            // Output
+            StringBuilder output = new StringBuilder();
+
+            try {
+                output.append("[Alts]").append("\r\n");
+
+                output.append("Alts").append(" = ").append("[");
+
+                // Add the alt's info, in the order: email:password:type
+                for (AltEntry altEntry : getCosmos().getAltManager().getAltEntries()) {
+                    output.append('"').append(altEntry.getAlt().getLogin()).append(":").append(altEntry.getAlt().getPassword()).append(":").append(altEntry.getAlt().getAltType().name()).append('"').append(",");
+                }
+
+                output.append("]").append("\r\n");
+
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
+            // Write the info
+            altOutputStreamWriter.write(output.toString());
+            altOutputStreamWriter.close();
+
+            // notify user
+            System.out.println("[Cosmos] Alts were saved successfully!");
+
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Loads the alts from alts.toml
+     */
+    public void loadAlts() {
+        try {
+            // The stream from alts file
+            InputStream inputStream = Files.newInputStream(Paths.get(mainDirectory.getName() + "/alts.toml"));
+
+            // Input TOML
+            Toml input = new Toml().read(inputStream);
+
+            if (input != null) {
+                try {
+                    if (input.getList("Alts.Alts") != null) {
+                        input.getList("Alts.Alts").forEach(object -> {
+                            // 0 = Email, 1 = Password, 2 = Type
+                            String[] altInfo = ((String) object).split(":");
+
+                            // Get type based on text
+                            Alt.AltType type = Alt.AltType.valueOf(altInfo[2]);
+
+                            // Loading alt
+                            Alt alt = new Alt(altInfo[0], altInfo[1], type);
+
+                            // Add alt to list
+                            getCosmos().getAltManager().getAltEntries().add(new AltEntry(alt, AltManagerGUI.altEntryOffset));
+
+                            // Add to offset
+                            AltManagerGUI.altEntryOffset += 32;
+                        });
+                    }
+
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
+
+            // notify user
+            System.out.println("[Cosmos] Alts were loaded successfully!");
+
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -435,44 +560,6 @@ public class PresetManager extends Manager {
     // TODO: fix alt/GUI saving & loading
 
     /*
-    public void saveAlts() {
-        try {
-            OutputStreamWriter altOutputStreamWriter = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/alts.toml"), StandardCharsets.UTF_8);
-            StringBuilder outputTOML = new StringBuilder();
-
-            int altList = 0;
-            for (AltEntry altEntry : AltManager.getAlts()) {
-                outputTOML.append("[").append(altList).append("]").append("\r\n");
-                outputTOML.append("Name = ").append('"').append(altEntry.getName()).append('"').append("\r\n");
-                outputTOML.append("Email = ").append('"').append(altEntry.getEmail()).append('"').append("\r\n");
-                outputTOML.append("Password = ").append('"').append(altEntry.getPassword()).append('"').append("\r\n");
-
-                outputTOML.append("\r\n");
-                altList++;
-            }
-
-            altOutputStreamWriter.write(outputTOML.toString());
-            altOutputStreamWriter.close();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public void loadAlts() {
-        try {
-            InputStream inputStream = Files.newInputStream(Paths.get(mainDirectory.getName() + "/alts.toml"));
-            Toml inputTOML = new Toml().read(inputStream);
-
-            for (int i = 0; i < 20; i++) {
-                if (inputTOML.getString(i + ".Email") != null)
-                    AltManager.getAlts().add(new AltEntry(inputTOML.getString(i + ".Email"), inputTOML.getString(i + ".Password")));
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
-
-
     public void saveGUI() {
         try {
             // the file writer

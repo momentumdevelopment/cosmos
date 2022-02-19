@@ -1,7 +1,7 @@
 package cope.cosmos.client.features.modules.misc;
 
-import cope.cosmos.client.events.DisconnectEvent;
-import cope.cosmos.client.events.EntityWorldEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;

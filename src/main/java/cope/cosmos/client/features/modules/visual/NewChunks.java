@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.PacketEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -9,15 +9,8 @@ import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import io.netty.util.internal.ConcurrentSet;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockLiquid;
-import net.minecraft.init.Blocks;
-import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketChunkData;
-import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -29,7 +22,6 @@ import java.util.Set;
  *
  * Credits to bleachhack for the updated new chunks
  */
-@SuppressWarnings("unused")
 public class NewChunks extends Module {
     public static NewChunks INSTANCE;
 
@@ -118,7 +110,6 @@ public class NewChunks extends Module {
 //                }
 //            }
         }
-    }
 
     /**
      * Gets the player's distance to a chunk

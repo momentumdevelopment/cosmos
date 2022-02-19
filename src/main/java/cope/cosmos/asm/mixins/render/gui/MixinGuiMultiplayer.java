@@ -1,6 +1,6 @@
 package cope.cosmos.asm.mixins.render.gui;
 
-import cope.cosmos.client.ui.altmanager.AltManagerGUI;
+import cope.cosmos.client.ui.altgui.AltManagerGUI;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.GuiScreen;

@@ -1,6 +1,6 @@
-package cope.cosmos.client.ui.altmanager;
+package cope.cosmos.client.ui.altgui;
 
-import cope.cosmos.client.manager.managers.AltManager;
+import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * @author Wolfsurge
+ * @since 02/05/2022
  */
 public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
 
@@ -38,7 +39,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         buttonList.add(new GuiButton(2, scaledResolution.getScaledWidth() / 2 + 50, scaledResolution.getScaledHeight() - 23, 100, 20, "Back"));
 
         altEntryOffset = 41;
-        if (!AltManager.getAltEntries().isEmpty()) {
+        if (!Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
             getFirstAlt().setOffset(altEntryOffset);
         }
     }
@@ -60,7 +61,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         RenderUtil.scissor((scaledResolution.getScaledWidth() / 2f) - 151, 40, (scaledResolution.getScaledWidth() / 2f) + 151, scaledResolution.getScaledHeight() - 24);
 
         // Draw alt entries
-        AltManager.getAltEntries().forEach(entry -> {
+        Cosmos.INSTANCE.getAltManager().getAltEntries().forEach(entry -> {
             entry.drawAltEntry(mouseX, mouseY);
         });
         
@@ -68,7 +69,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         RenderUtil.endScissor();
 
         // Display 'No alts!' if there are no alt entries
-        if (AltManager.getAltEntries().isEmpty()) {
+        if (Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
             FontUtil.drawCenteredStringWithShadow("No alts!", scaledResolution.getScaledWidth() / 2f, 50, 0xFFFFFF);
         }
 
@@ -88,7 +89,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         ScaledResolution scaledResolution = new ScaledResolution(mc);
 
         // Cancel if there are no alts
-        if (AltManager.getAltEntries().isEmpty()) {
+        if (Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
             return;
         }
 
@@ -104,7 +105,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                     return;
                 }
 
-                AltManager.getAltEntries().forEach(entry -> {
+                Cosmos.INSTANCE.getAltManager().getAltEntries().forEach(entry -> {
                     entry.setOffset(entry.getOffset() - 16);
                 });
             }
@@ -115,7 +116,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                     return;
                 }
 
-                AltManager.getAltEntries().forEach(entry -> {
+                Cosmos.INSTANCE.getAltManager().getAltEntries().forEach(entry -> {
                     entry.setOffset(entry.getOffset() + 16);
                 });
             }
@@ -135,11 +136,11 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
                 // If there is a selected entry, remove it
                 if (getSelectedAltEntry() != null) {
                     // Remove the entry
-                    AltManager.getAltEntries().remove(getSelectedAltEntry());
+                    Cosmos.INSTANCE.getAltManager().getAltEntries().remove(getSelectedAltEntry());
                     // Decrease the offset
                     altEntryOffset -= 32;
                     // Refresh positions of all other alts
-                    if (!AltManager.getAltEntries().isEmpty()) {
+                    if (!Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
                         getFirstAlt().setOffset(41);
                     }
                 }
@@ -157,7 +158,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
     @Override
     public void onGuiClosed() {
         // Save the alts to alts.toml
-        AltManager.saveAlts();
+        Cosmos.INSTANCE.getPresetManager().saveAlts();
     }
 
     /**
@@ -167,7 +168,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
         // Get the first alt's offset
         float altOffset = getFirstAlt().getOffset();
 
-        for (AltEntry altEntry : AltManager.getAltEntries()) {
+        for (AltEntry altEntry : Cosmos.INSTANCE.getAltManager().getAltEntries()) {
             // Set the offset to a new offset
             altEntry.setOffset(altOffset);
             // Increase offset for next entry
@@ -180,7 +181,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
      * @return The first alt
      */
     private AltEntry getFirstAlt() {
-        return AltManager.getAltEntries().get(0);
+        return Cosmos.INSTANCE.getAltManager().getAltEntries().get(0);
     }
 
     /**
@@ -189,7 +190,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
      * @return The last alt
      */
     private AltEntry getLastAlt() {
-        return AltManager.getAltEntries().get(AltManager.getAltEntries().size() - 1);
+        return Cosmos.INSTANCE.getAltManager().getAltEntries().get(Cosmos.INSTANCE.getAltManager().getAltEntries().size() - 1);
     }
 
     /**
@@ -197,7 +198,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
      * @return The selected alt
      */
     private AltEntry getSelectedAltEntry() {
-        for (AltEntry altEntry : AltManager.getAltEntries()) {
+        for (AltEntry altEntry : Cosmos.INSTANCE.getAltManager().getAltEntries()) {
             // If the alt is selected, return the entry
             if (altEntry.isSelected) {
                 return altEntry;
@@ -213,7 +214,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
      */
     private void setSelectedAltEntry(AltEntry newSelected) {
         // Sets whether the alt is selected to whether it is the newSelected parameter
-        for (AltEntry altEntry : AltManager.getAltEntries()) {
+        for (AltEntry altEntry : Cosmos.INSTANCE.getAltManager().getAltEntries()) {
             altEntry.isSelected = altEntry == newSelected;
         }
     }
@@ -246,7 +247,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
         // Set the selected alt
-        for (AltEntry altEntry : AltManager.getAltEntries()) {
+        for (AltEntry altEntry : Cosmos.INSTANCE.getAltManager().getAltEntries()) {
             if (altEntry.isMouseOverButton(mouseX, mouseY)) {
                 // Run only if it is already selected
                 if (altEntry.isSelected) {

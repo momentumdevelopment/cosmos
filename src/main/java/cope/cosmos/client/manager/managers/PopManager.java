@@ -1,9 +1,8 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.DeathEvent;
-import cope.cosmos.client.events.EntityWorldEvent;
-import cope.cosmos.client.events.TotemPopEvent;
+import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.features.modules.misc.Notifier;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;

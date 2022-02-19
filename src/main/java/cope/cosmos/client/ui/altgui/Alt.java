@@ -1,4 +1,4 @@
-package cope.cosmos.client.ui.altmanager;
+package cope.cosmos.client.ui.altgui;
 
 import com.mojang.authlib.Agent;
 import com.mojang.authlib.exceptions.AuthenticationException;
@@ -13,15 +13,19 @@ import java.util.UUID;
 
 /**
  * @author Wolfsurge
+ * @since 02/05/2022
  */
 public class Alt {
 
     // The type of alt
     private final AltType altType;
+
     // The email or username of the alt. Called login because it looks better than emailUsername etc
     private final String login;
+
     // The password of the alt
     private final String password;
+
     // The alt session, for quick login
     private final Session altSession;
 
@@ -30,6 +34,7 @@ public class Alt {
         this.login = altLogin;
         this.password = altPassword;
         this.altType = altType;
+
         // Create a new session when, and only when, the alt is created
         this.altSession = createSession();
     }

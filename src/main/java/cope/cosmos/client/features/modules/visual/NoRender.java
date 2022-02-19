@@ -57,7 +57,7 @@ public class NoRender extends Module {
     public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
     public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
     public static Setting<Boolean> swing = new Setting<>("Swing", false).setDescription("Prevents other player's swing animations from rendering");
-    public static Setting<Boolean> crosshairBob = new Setting<>("CrosshairBob", true).setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
+    public static Setting<Boolean> noBob = new Setting<>("NoBob", true).setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
 
     @SubscribeEvent
     public void onRenderItem(RenderItemEvent event) {
@@ -227,9 +227,8 @@ public class NoRender extends Module {
     @SubscribeEvent
     public void onCrosshairBob(CrosshairBobEvent event) {
         // Lets the hand bobbing animation run without the crosshair bobbing as well
-        if (crosshairBob.getValue()) {
+        if (noBob.getValue()) {
             event.setCanceled(true);
         }
     }
-
 }
