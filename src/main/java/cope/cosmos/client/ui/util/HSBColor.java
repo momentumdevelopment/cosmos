@@ -20,6 +20,8 @@ public class HSBColor {
 
     public HSBColor(Color color) {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+
+        // this() constructor has to be first call
         hue = hsb[0];
         saturation = hsb[1];
         brightness = hsb[2];

@@ -1,4 +1,4 @@
-package cope.cosmos.client.ui.clickgui.feature;
+package cope.cosmos.client.ui.clickgui.component;
 
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.util.Wrapper;
@@ -7,12 +7,12 @@ import cope.cosmos.util.Wrapper;
  * @author linustouchtips
  * @since 01/29/2022
  */
-public abstract class DrawableFeature implements InterfaceUtil, Wrapper {
+public abstract class DrawableComponent implements InterfaceUtil, Wrapper {
 
     /**
      * Draws the feature
      */
-    public abstract void drawFeature();
+    public abstract void drawComponent();
 
     /**
      * Runs when the feature is clicked

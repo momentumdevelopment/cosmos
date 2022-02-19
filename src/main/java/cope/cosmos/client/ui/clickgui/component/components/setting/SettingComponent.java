@@ -1,31 +1,31 @@
-package cope.cosmos.client.ui.clickgui.feature.features.setting;
+package cope.cosmos.client.ui.clickgui.component.components.setting;
 
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.DrawableFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.module.ModuleFeature;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.DrawableComponent;
+import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
 
 /**
  * @author linustouchtips
  * @param <T> The setting type
  * @since 01/31/2022
  */
-public class SettingFeature<T> extends DrawableFeature {
+public class SettingComponent<T> extends DrawableComponent {
 
     // parent feature and setting
-    private final ModuleFeature moduleFeature;
+    private final ModuleComponent moduleComponent;
     private final Setting<T> setting;
 
     // component height
     public int HEIGHT = 14;
 
-    public SettingFeature(ModuleFeature moduleFeature, Setting<T> setting) {
-        this.moduleFeature = moduleFeature;
+    public SettingComponent(ModuleComponent moduleComponent, Setting<T> setting) {
+        this.moduleComponent = moduleComponent;
         this.setting = setting;
     }
 
     @Override
-    public void drawFeature() {
+    public void drawComponent() {
 
     }
 
@@ -64,8 +64,8 @@ public class SettingFeature<T> extends DrawableFeature {
      * Gets the parent module feature
      * @return The parent module feature
      */
-    public ModuleFeature getModuleFeature() {
-        return moduleFeature;
+    public ModuleComponent getModuleComponent() {
+        return moduleComponent;
     }
 
     /**

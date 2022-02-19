@@ -1,10 +1,10 @@
-package cope.cosmos.client.ui.clickgui.feature.features.category;
+package cope.cosmos.client.ui.clickgui.component.components.category;
 
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.ui.util.Animation;
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.features.FrameFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.module.ModuleFeature;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.components.FrameComponent;
+import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -24,10 +24,10 @@ import static org.lwjgl.opengl.GL11.glScaled;
  * @author linustouchtips
  * @since 01/29/2022
  */
-public class CategoryFrameFeature extends FrameFeature<Category> implements Wrapper {
+public class CategoryFrameComponent extends FrameComponent<Category> implements Wrapper {
 
     // module features associated with this frame
-    private final List<ModuleFeature> moduleFeatures = new ArrayList<>();
+    private final List<ModuleComponent> moduleComponents = new ArrayList<>();
 
     // height of the frame
     private float height = 196;
@@ -49,30 +49,30 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     // WHAT THE BLOOP
     private final JFrame frame = new JFrame();
 
-    public CategoryFrameFeature(Category value, Vec2f position) {
+    public CategoryFrameComponent(Category value, Vec2f position) {
         super(value, position);
 
         // add all associated modules to our feature list
         getCosmos().getModuleManager().getAllModules().forEach(module -> {
             if (module.getCategory().equals(getValue())) {
-                moduleFeatures.add(new ModuleFeature(this, module));
+                moduleComponents.add(new ModuleComponent(this, module));
             }
         });
 
         // filler features
         for (int i = 0; i < 100; i++) {
-            moduleFeatures.add(new ModuleFeature(this, null));
+            moduleComponents.add(new ModuleComponent(this, null));
         }
     }
 
     @Override
-    public void drawFeature() {
+    public void drawComponent() {
         // expand height
         if (open) {
-            long interactingWindows = getGUI().getCategoryFrameFeatures()
+            long interactingWindows = getGUI().getCategoryFrameComponents()
                     .stream()
-                    .filter(categoryFrameFeature -> categoryFrameFeature.equals(this))
-                    .filter(categoryFrameFeature -> categoryFrameFeature.isExpanding() || categoryFrameFeature.isDragging())
+                    .filter(categoryFrameComponent -> categoryFrameComponent.equals(this))
+                    .filter(categoryFrameComponent -> categoryFrameComponent.isExpanding() || categoryFrameComponent.isDragging())
                     .count();
 
             if (isMouseOver(getPosition().x, getPosition().y + TITLE + height + 2, WIDTH, 4) && getMouse().isLeftHeld()) {
@@ -84,11 +84,11 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
             }
         }
 
-        super.drawFeature();
+        super.drawComponent();
 
         // make sure the scroll doesn't go farther than our bounds
-        double scaledFeatureOffset = getFeatureOffset() - 1400;
-        scroll = (float) MathHelper.clamp(scroll, -Math.max(0, scaledFeatureOffset - height), 0);
+        double scaledComponentOffset = getComponentOffset() - 1400;
+        scroll = (float) MathHelper.clamp(scroll, -Math.max(0, scaledComponentOffset - height), 0);
 
         // window title
         glScaled(1.05, 1.05, 1.05); {
@@ -113,8 +113,8 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
             RenderUtil.drawRect(getPosition().x, getPosition().y + TITLE + 2, WIDTH, (float) (height * animation.getAnimationFactor()), new Color(23, 23, 29, 255));
 
             featureOffset = 0;
-            moduleFeatures.forEach(moduleFeature -> {
-                moduleFeature.drawFeature();
+            moduleComponents.forEach(moduleComponent -> {
+                moduleComponent.drawComponent();
             });
 
             // pop scissor
@@ -166,8 +166,8 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
                 getCosmos().getSoundManager().playSound("click");
             }
 
-            moduleFeatures.forEach(moduleFeature -> {
-                moduleFeature.onClick(in);
+            moduleComponents.forEach(moduleComponent -> {
+                moduleComponent.onClick(in);
             });
         }
     }
@@ -176,8 +176,8 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
     public void onType(int in) {
         super.onType(in);
 
-        moduleFeatures.forEach(moduleFeature -> {
-            moduleFeature.onType(in);
+        moduleComponents.forEach(moduleComponent -> {
+            moduleComponent.onType(in);
         });
     }
 
@@ -189,8 +189,8 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
         // update scroll offset
         scroll += in * 0.05;
 
-        moduleFeatures.forEach(moduleFeature -> {
-            moduleFeature.onScroll(in);
+        moduleComponents.forEach(moduleComponent -> {
+            moduleComponent.onScroll(in);
         });
     }
 
@@ -246,7 +246,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
      * Gets the feature offset
      * @return The feature offset
      */
-    public double getFeatureOffset() {
+    public double getComponentOffset() {
         return featureOffset;
     }
 
@@ -254,7 +254,7 @@ public class CategoryFrameFeature extends FrameFeature<Category> implements Wrap
      * Adds a specified amount to the feature offset
      * @param in Amount to add to the feature offset
      */
-    public void addFeatureOffset(double in) {
+    public void addComponentOffset(double in) {
         featureOffset += in;
     }
 }

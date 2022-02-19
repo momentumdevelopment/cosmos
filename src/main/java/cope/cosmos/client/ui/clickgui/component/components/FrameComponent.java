@@ -1,7 +1,7 @@
-package cope.cosmos.client.ui.clickgui.feature.features;
+package cope.cosmos.client.ui.clickgui.component.components;
 
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.DrawableFeature;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.DrawableComponent;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.util.math.Vec2f;
@@ -12,7 +12,7 @@ import java.awt.*;
  * @author linustouchtips
  * @since 01/29/2022
  */
-public class FrameFeature<T> extends DrawableFeature {
+public class FrameComponent<T> extends DrawableComponent {
 
     // immutable frame traits
     public static final int WIDTH = 100;
@@ -30,17 +30,17 @@ public class FrameFeature<T> extends DrawableFeature {
     // hover animation
     private int hoverAnimation;
 
-    public FrameFeature(T value, Vec2f position) {
+    public FrameComponent(T value, Vec2f position) {
         this.value = value;
         this.position = position;
     }
 
     @Override
-    public void drawFeature() {
-        long interactingWindows = getGUI().getCategoryFrameFeatures()
+    public void drawComponent() {
+        long interactingWindows = getGUI().getCategoryFrameComponents()
                 .stream()
-                .filter(categoryFrameFeature -> categoryFrameFeature.equals(this))
-                .filter(categoryFrameFeature -> categoryFrameFeature.isExpanding() || categoryFrameFeature.isDragging())
+                .filter(categoryFrameComponent -> categoryFrameComponent.equals(this))
+                .filter(categoryFrameComponent -> categoryFrameComponent.isExpanding() || categoryFrameComponent.isDragging())
                 .count();
 
         // dragging

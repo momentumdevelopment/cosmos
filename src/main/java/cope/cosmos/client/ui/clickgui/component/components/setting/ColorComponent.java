@@ -1,8 +1,8 @@
-package cope.cosmos.client.ui.clickgui.feature.features.setting;
+package cope.cosmos.client.ui.clickgui.component.components.setting;
 
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.features.module.ModuleFeature;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.client.ui.util.HSBColor;
 import cope.cosmos.util.render.FontUtil;
@@ -21,7 +21,7 @@ import static org.lwjgl.opengl.GL11.*;
  * @author linustouchtips
  * @since 02/03/2022
  */
-public class ColorFeature extends SettingFeature<Color> {
+public class ColorComponent extends SettingComponent<Color> {
 
     // feature offset
     private float featureHeight;
@@ -30,45 +30,45 @@ public class ColorFeature extends SettingFeature<Color> {
     private boolean open;
 
     // selected color in the color picker
-    private HSBColor selectedColor;
+    private final HSBColor selectedColor;
 
     // animation
     private final Animation animation = new Animation(200, false);
     private int hoverAnimation;
 
-    public ColorFeature(ModuleFeature moduleFeature, Setting<Color> setting) {
-        super(moduleFeature, setting);
+    public ColorComponent(ModuleComponent moduleComponent, Setting<Color> setting) {
+        super(moduleComponent, setting);
 
         // initial value
         selectedColor = new HSBColor(setting.getValue());
     }
 
     @Override
-    public void drawFeature() {
-        super.drawFeature();
+    public void drawComponent() {
+        super.drawComponent();
 
         // feature height
-        featureHeight = getModuleFeature().getCategoryFrameFeature().getPosition().y + getModuleFeature().getCategoryFrameFeature().getTitle() + getModuleFeature().getSettingFeatureOffset() + getModuleFeature().getCategoryFrameFeature().getScroll() + 2;
+        featureHeight = getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + getModuleComponent().getSettingComponentOffset() + getModuleComponent().getCategoryFrameComponent().getScroll() + 2;
 
         // hover alpha animation
-        if (isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT) && hoverAnimation < 25) {
+        if (isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT) && hoverAnimation < 25) {
             hoverAnimation += 5;
         }
 
-        else if (!isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT) && hoverAnimation > 0) {
+        else if (!isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT) && hoverAnimation > 0) {
             hoverAnimation -= 5;
         }
 
         // feature background
-        RenderUtil.drawRect(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT, new Color(12 + hoverAnimation, 12 + hoverAnimation, 17 + hoverAnimation, 255));
-        RenderUtil.drawRect(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, 2, HEIGHT, ColorUtil.getPrimaryColor());
+        RenderUtil.drawRect(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT, new Color(12 + hoverAnimation, 12 + hoverAnimation, 17 + hoverAnimation, 255));
+        RenderUtil.drawRect(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, 2, HEIGHT, ColorUtil.getPrimaryColor());
 
         // color
-        RenderUtil.drawRoundedRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 12, featureHeight + 2, 10, 10, 2, getSetting().getValue());
+        RenderUtil.drawRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 12, featureHeight + 2, 10, 10, 2, getSetting().getValue());
 
         // setting name
         glScaled(0.55, 0.55, 0.55); {
-            float scaledX = (getModuleFeature().getCategoryFrameFeature().getPosition().x + 6) * 1.81818181F;
+            float scaledX = (getModuleComponent().getCategoryFrameComponent().getPosition().x + 6) * 1.81818181F;
             float scaledY = (featureHeight + 5) * 1.81818181F;
             FontUtil.drawStringWithShadow(getSetting().getName(), scaledX, scaledY, -1);
         }
@@ -78,29 +78,30 @@ public class ColorFeature extends SettingFeature<Color> {
         if (animation.getAnimationFactor() > 0) {
 
             // center of the picker
-            Vec2f circleCenter = new Vec2f(getModuleFeature().getCategoryFrameFeature().getPosition().x + ((getModuleFeature().getCategoryFrameFeature().getWidth() - 34) / 2F) + 4, featureHeight + HEIGHT + 34);
+            Vec2f circleCenter = new Vec2f(getModuleComponent().getCategoryFrameComponent().getPosition().x + ((getModuleComponent().getCategoryFrameComponent().getWidth() - 34) / 2F) + 4, featureHeight + HEIGHT + 34);
 
             if (getMouse().isLeftHeld()) {
                 if (isWithinCircle(circleCenter.x, circleCenter.y, 32)) {
 
                     // rectangular coordinates
                     float xDistance = getMouse().getPosition().x - circleCenter.x;
-                    float yDistance = getMouse().getPosition().x - circleCenter.y;
+                    float yDistance = getMouse().getPosition().y - circleCenter.y;
 
                     // convert to polar coordinates
                     double radius = Math.hypot(xDistance, yDistance);
                     double angle = -Math.toDegrees(Math.atan2(yDistance, xDistance) + (Math.PI / 2)) % 360;
 
                     // holds hsb
-                    selectedColor = new HSBColor(angle / 360F, radius / 32F, selectedColor.getBrightness(), selectedColor.getTransparency());
+                    selectedColor.setHue(angle / 360F);
+                    selectedColor.setSaturation(radius / 32F);
                 }
 
-                if (isWithinRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 24, featureHeight + HEIGHT + 4, 62)) {
-                    selectedColor.setBrightness(1 - (getMouse().getPosition().y - ((featureHeight + HEIGHT + 4)) / 64));
+                if (isWithinRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 24, featureHeight + HEIGHT + 4, 62)) {
+                    selectedColor.setBrightness(1 - ((getMouse().getPosition().y - (featureHeight + HEIGHT + 4)) / 64));
                 }
 
-                if (isWithinRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 10, featureHeight + HEIGHT + 4, 62)) {
-                    selectedColor.setTransparency(1 - (getMouse().getPosition().y - ((featureHeight + HEIGHT + 4)) / 64));
+                if (isWithinRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 10, featureHeight + HEIGHT + 4, 62)) {
+                    selectedColor.setTransparency(1 - ((getMouse().getPosition().y - (featureHeight + HEIGHT + 4)) / 64));
                 }
             }
 
@@ -112,34 +113,34 @@ public class ColorFeature extends SettingFeature<Color> {
 
             // color picker
             mc.getTextureManager().bindTexture(new ResourceLocation("cosmos", "textures/imgs/picker.png"));
-            Gui.drawModalRectWithCustomSizedTexture((int) getModuleFeature().getCategoryFrameFeature().getPosition().x + 4, (int) featureHeight + HEIGHT + 2, 0, 0, getModuleFeature().getCategoryFrameFeature().getWidth() - 34, 64, getModuleFeature().getCategoryFrameFeature().getWidth() - 34, 64);
+            Gui.drawModalRectWithCustomSizedTexture((int) getModuleComponent().getCategoryFrameComponent().getPosition().x + 4, (int) featureHeight + HEIGHT + 2, 0, 0, getModuleComponent().getCategoryFrameComponent().getWidth() - 34, 64, getModuleComponent().getCategoryFrameComponent().getWidth() - 34, 64);
             RenderUtil.drawPolygon((float) (circleCenter.x + ((selectedColor.getSaturation() * 32) * Math.cos(Math.toRadians(selectedColor.getHue() * 360) + (Math.PI / 2)))), (float) (circleCenter.y - ((selectedColor.getSaturation() * 32) * Math.sin(Math.toRadians(selectedColor.getHue() * 360) + (Math.PI / 2)))), 1.5F, 360, Color.WHITE);
 
             // brightness slider
-            drawGradientRoundedRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 24, featureHeight + HEIGHT + 2, 3, 62, 2, false);
-            RenderUtil.drawPolygon(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 22.5, featureHeight + HEIGHT + (64 * (1 - selectedColor.getBrightness())) + 2, 2, 360, Color.WHITE);
+            drawGradientRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 24, featureHeight + HEIGHT + 2, 3, 62, 2, false);
+            RenderUtil.drawPolygon(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 22.5, featureHeight + HEIGHT + (64 * (1 - selectedColor.getBrightness())) + 2, 2, 360, Color.WHITE);
 
             // transparency slider
-            drawGradientRoundedRect(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 10, featureHeight + HEIGHT + 2, 3, 62, 2, true);
-            RenderUtil.drawPolygon(getModuleFeature().getCategoryFrameFeature().getPosition().x + getModuleFeature().getCategoryFrameFeature().getWidth() - 8.5, featureHeight + HEIGHT + (64 * (1 - selectedColor.getTransparency())) + 2, 2, 360, Color.WHITE);
+            drawGradientRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 10, featureHeight + HEIGHT + 2, 3, 62, 2, true);
+            RenderUtil.drawPolygon(getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - 8.5, featureHeight + HEIGHT + (64 * (1 - selectedColor.getTransparency())) + 2, 2, 360, Color.WHITE);
 
             // HAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHA :|
-            getModuleFeature().addSettingFeatureOffset((float) ((HEIGHT * 4.857) * animation.getAnimationFactor()));
-            getModuleFeature().getCategoryFrameFeature().addFeatureOffset((HEIGHT * 4.857) * animation.getAnimationFactor());
+            getModuleComponent().addSettingComponentOffset((float) ((HEIGHT * 4.857) * animation.getAnimationFactor()));
+            getModuleComponent().getCategoryFrameComponent().addComponentOffset((HEIGHT * 4.857) * animation.getAnimationFactor());
         }
     }
 
     @Override
     public void onClick(ClickType in) {
         // open the color picker if clicked
-        if (in.equals(ClickType.RIGHT) && isMouseOver(getModuleFeature().getCategoryFrameFeature().getPosition().x, featureHeight, getModuleFeature().getCategoryFrameFeature().getWidth(), HEIGHT)) {
+        if (in.equals(ClickType.RIGHT) && isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT)) {
 
             // module feature bounds
             float highestPoint = featureHeight;
             float lowestPoint = highestPoint + HEIGHT;
 
             // check if it's able to be interacted with
-            if (highestPoint >= getModuleFeature().getCategoryFrameFeature().getPosition().y + getModuleFeature().getCategoryFrameFeature().getTitle() + 2 && lowestPoint <= getModuleFeature().getCategoryFrameFeature().getPosition().y + getModuleFeature().getCategoryFrameFeature().getTitle() + getModuleFeature().getCategoryFrameFeature().getHeight() + 2) {
+            if (highestPoint >= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + 2 && lowestPoint <= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + getModuleComponent().getCategoryFrameComponent().getHeight() + 2) {
                 open = !open;
                 animation.setState(open);
             }
@@ -246,6 +247,6 @@ public class ColorFeature extends SettingFeature<Color> {
      * @return Whether the point is within the given rectangle
      */
     public boolean isWithinRect(float x, float y, float height) {
-        return getMouse().getPosition().x > x && getMouse().getPosition().y > y && getMouse().getPosition().x < (x + 4) && getMouse().getPosition().y < (y + height);
+        return getMouse().getPosition().x > (x - 2) && getMouse().getPosition().y > y && getMouse().getPosition().x < (x + 6) && getMouse().getPosition().y < (y + height);
     }
 }

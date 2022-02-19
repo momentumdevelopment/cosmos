@@ -105,12 +105,13 @@ public class Module extends Feature implements Wrapper {
 			Cosmos.EVENT_BUS.register(this);
 
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
-				// runs onEnable callbacks
+				// runs the onEnable event
 				if (in) {
 					ModuleEnableEvent event = new ModuleEnableEvent(this);
 					Cosmos.EVENT_BUS.post(event);
 				}
 
+				// runs onEnable callbacks
 				try {
 					onEnable();
 				} catch (Exception exception) {
@@ -129,14 +130,14 @@ public class Module extends Feature implements Wrapper {
 			// sets the enabled state to false
 			enabled = false;
 
-			// run the onDisable event
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
-				// runs onDisable callbacks
+				// run the onDisable event
 				if (in) {
 					ModuleDisableEvent event = new ModuleDisableEvent(this);
 					Cosmos.EVENT_BUS.post(event);
 				}
 
+				// runs onDisable callbacks
 				try {
 					onDisable();
 				} catch (Exception exception) {

@@ -3,8 +3,8 @@ package cope.cosmos.client.ui.clickgui;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.client.ClickGUIModule;
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.features.category.CategoryFrameFeature;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.components.category.CategoryFrameComponent;
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.util.ScissorStack;
@@ -27,7 +27,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
 
     // list of windows
-    private final LinkedList<CategoryFrameFeature> categoryFrameFeatures = new LinkedList<>();
+    private final LinkedList<CategoryFrameComponent> categoryFrameComponents = new LinkedList<>();
     private final ScissorStack scissorStack = new ScissorStack();
 
     public ClickGUIScreen() {
@@ -35,7 +35,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
         int frameSpace = 0;
         for (Category category : Category.values()) {
             if (!category.equals(Category.HIDDEN)) {
-                categoryFrameFeatures.add(new CategoryFrameFeature(category, new Vec2f(10 + frameSpace, 20)));
+                categoryFrameComponents.add(new CategoryFrameComponent(category, new Vec2f(10 + frameSpace, 20)));
                 frameSpace += 110;
             }
         }
@@ -50,22 +50,22 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
             drawDefaultBackground();
         }
 
-        categoryFrameFeatures.forEach(categoryFrameFeature -> {
-            categoryFrameFeature.drawFeature();
+        categoryFrameComponents.forEach(categoryFrameComponent -> {
+            categoryFrameComponent.drawComponent();
         });
 
         // find the frame we are focused on
-        CategoryFrameFeature focusedFrameFeature = categoryFrameFeatures
+        CategoryFrameComponent focusedFrameComponent = categoryFrameComponents
                 .stream()
-                .filter(categoryFrameFeature -> isMouseOver(categoryFrameFeature.getPosition().x, categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle(), categoryFrameFeature.getWidth(), categoryFrameFeature.getHeight()))
+                .filter(categoryFrameComponent -> isMouseOver(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y + categoryFrameComponent.getTitle(), categoryFrameComponent.getWidth(), categoryFrameComponent.getHeight()))
                 .findFirst()
                 .orElse(null);
 
-        if (focusedFrameFeature != null && Mouse.hasWheel()) {
+        if (focusedFrameComponent != null && Mouse.hasWheel()) {
 
             // scroll length
             int scroll = Mouse.getDWheel();
-            focusedFrameFeature.onScroll(scroll);
+            focusedFrameComponent.onScroll(scroll);
         }
 
         mouse.setLeftClick(false);
@@ -82,8 +82,8 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
 
-                categoryFrameFeatures.forEach(categoryFrameFeature -> {
-                    categoryFrameFeature.onClick(ClickType.LEFT);
+                categoryFrameComponents.forEach(categoryFrameComponent -> {
+                    categoryFrameComponent.onClick(ClickType.LEFT);
                 });
 
                 break;
@@ -91,8 +91,8 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
                 mouse.setRightClick(true);
                 mouse.setRightHeld(true);
 
-                categoryFrameFeatures.forEach(categoryFrameFeature -> {
-                    categoryFrameFeature.onClick(ClickType.RIGHT);
+                categoryFrameComponents.forEach(categoryFrameComponent -> {
+                    categoryFrameComponent.onClick(ClickType.RIGHT);
                 });
 
                 break;
@@ -111,9 +111,9 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
             mouse.setLeftHeld(false);
             mouse.setRightHeld(false);
 
-            categoryFrameFeatures.forEach(categoryFrameFeature -> {
-                categoryFrameFeature.setDragging(false);
-                categoryFrameFeature.setExpanding(false);
+            categoryFrameComponents.forEach(categoryFrameComponent -> {
+                categoryFrameComponent.setDragging(false);
+                categoryFrameComponent.setExpanding(false);
             });
         }
     }
@@ -122,8 +122,8 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     public void keyTyped(char typedChar, int keyCode) throws IOException {
         super.keyTyped(typedChar, keyCode);
 
-        categoryFrameFeatures.forEach(categoryFrameFeature -> {
-            categoryFrameFeature.onType(keyCode);
+        categoryFrameComponents.forEach(categoryFrameComponent -> {
+            categoryFrameComponent.onType(keyCode);
         });
     }
 
@@ -161,8 +161,8 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
      * Gets the category frame features in the GUI
      * @return The category frame features in the GUI
      */
-    public LinkedList<CategoryFrameFeature> getCategoryFrameFeatures() {
-        return categoryFrameFeatures;
+    public LinkedList<CategoryFrameComponent> getCategoryFrameComponents() {
+        return categoryFrameComponents;
     }
 
     /**

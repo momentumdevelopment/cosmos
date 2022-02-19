@@ -60,6 +60,14 @@ public class ChatManager extends Manager {
      * Sends a message in chat with the client prefix (only visible to the user)
      * @param in The message
      */
+    public void sendClientMessage(Number in) {
+        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in), ThreadLocalRandom.current().nextInt(32767));
+    }
+
+    /**
+     * Sends a message in chat with the client prefix (only visible to the user)
+     * @param in The message
+     */
     public void sendClientMessage(Module in) {
         mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in.getName() + (in.isEnabled() ? ChatFormatting.GREEN + " enabled!" : ChatFormatting.RED + " disabled!")), messageMap.get(in));
     }

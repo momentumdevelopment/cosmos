@@ -1,11 +1,11 @@
-package cope.cosmos.client.ui.clickgui.feature.features.module;
+package cope.cosmos.client.ui.clickgui.component.components.module;
 
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.feature.ClickType;
-import cope.cosmos.client.ui.clickgui.feature.DrawableFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.category.CategoryFrameFeature;
-import cope.cosmos.client.ui.clickgui.feature.features.setting.*;
+import cope.cosmos.client.ui.clickgui.component.ClickType;
+import cope.cosmos.client.ui.clickgui.component.DrawableComponent;
+import cope.cosmos.client.ui.clickgui.component.components.category.CategoryFrameComponent;
+import cope.cosmos.client.ui.clickgui.component.components.setting.*;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -23,23 +23,23 @@ import static org.lwjgl.opengl.GL11.glScaled;
  * @author linustouchtips
  * @since 01/29/2022
  */
-public class ModuleFeature extends DrawableFeature {
+public class ModuleComponent extends DrawableComponent {
 
     // immutable module feature traits
     public static final int HEIGHT = 14;
 
     // parent frame
-    private final CategoryFrameFeature categoryFrameFeature;
+    private final CategoryFrameComponent categoryFrameComponent;
     private float featureHeight;
 
     // module associated with this feature
     private final Module module;
 
     // setting features under this module feature
-    private final List<SettingFeature<?>> settingFeatures = new ArrayList<>();
+    private final List<SettingComponent<?>> settingComponents = new ArrayList<>();
 
     // offset for setting features (don't have the animation applied to them)
-    private float settingFeatureOffset;
+    private float settingComponentOffset;
 
     // hover animation
     private final Animation animation = new Animation(200, false);
@@ -49,8 +49,8 @@ public class ModuleFeature extends DrawableFeature {
     private boolean open;
 
     @SuppressWarnings("unchecked")
-    public ModuleFeature(CategoryFrameFeature categoryFrameFeature, Module module) {
-        this.categoryFrameFeature = categoryFrameFeature;
+    public ModuleComponent(CategoryFrameComponent categoryFrameComponent, Module module) {
+        this.categoryFrameComponent = categoryFrameComponent;
         this.module = module;
 
         if (module != null) {
@@ -58,82 +58,82 @@ public class ModuleFeature extends DrawableFeature {
             // add all module's settings
             module.getSettings().forEach(setting -> {
                 if (setting.getValue() instanceof Boolean) {
-                    settingFeatures.add(new BooleanFeature(this, (Setting<Boolean>) setting));
+                    settingComponents.add(new BooleanComponent(this, (Setting<Boolean>) setting));
                 }
 
                 else if (setting.getValue() instanceof Enum<?>) {
-                    settingFeatures.add(new EnumFeature(this, (Setting<Enum<?>>) setting));
+                    settingComponents.add(new EnumComponent(this, (Setting<Enum<?>>) setting));
                 }
 
                 else if (setting.getValue() instanceof AtomicInteger) {
-                    settingFeatures.add(new BindFeature(this, (Setting<AtomicInteger>) setting));
+                    settingComponents.add(new BindComponent(this, (Setting<AtomicInteger>) setting));
                 }
 
                 else if (setting.getValue() instanceof AtomicBoolean) {
-                    settingFeatures.add(new DrawnFeature(this, (Setting<AtomicBoolean>) setting));
+                    settingComponents.add(new DrawnComponent(this, (Setting<AtomicBoolean>) setting));
                 }
 
                 else if (setting.getValue() instanceof Float) {
-                    settingFeatures.add(new NumberFeature(this, (Setting<Number>) setting));
+                    settingComponents.add(new NumberComponent(this, (Setting<Number>) setting));
                 }
 
                 else if (setting.getValue() instanceof Double) {
-                    settingFeatures.add(new NumberFeature(this, (Setting<Number>) setting));
+                    settingComponents.add(new NumberComponent(this, (Setting<Number>) setting));
                 }
 
                 else if (setting.getValue() instanceof Color) {
-                    // settingFeatures.add(new ColorFeature(this, (Setting<Color>) setting));
+                    settingComponents.add(new ColorComponent(this, (Setting<Color>) setting));
                 }
             });
 
             // all module features have a bind and drawn feature
-            settingFeatures.add(new DrawnFeature(this, new Setting<>("Drawn", new AtomicBoolean(true))));
-            settingFeatures.add(new BindFeature(this, new Setting<>("Bind", new AtomicInteger(0))));
+            settingComponents.add(new DrawnComponent(this, new Setting<>("Drawn", new AtomicBoolean(true))));
+            settingComponents.add(new BindComponent(this, new Setting<>("Bind", new AtomicInteger(0))));
         }
     }
 
     @Override
-    public void drawFeature() {
+    public void drawComponent() {
         // feature height
-        featureHeight = (float) (categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + categoryFrameFeature.getFeatureOffset() + categoryFrameFeature.getScroll() + 2);
+        featureHeight = (float) (categoryFrameComponent.getPosition().y + categoryFrameComponent.getTitle() + categoryFrameComponent.getComponentOffset() + categoryFrameComponent.getScroll() + 2);
 
         if (module != null) {
 
             // hover alpha animation
-            if (isMouseOver(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT) && hoverAnimation < 25 && !categoryFrameFeature.isExpanding()) {
+            if (isMouseOver(categoryFrameComponent.getPosition().x, featureHeight, categoryFrameComponent.getWidth(), HEIGHT) && hoverAnimation < 25 && !categoryFrameComponent.isExpanding()) {
                 hoverAnimation += 5;
             }
 
-            else if (!isMouseOver(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT) && hoverAnimation > 0) {
+            else if (!isMouseOver(categoryFrameComponent.getPosition().x, featureHeight, categoryFrameComponent.getWidth(), HEIGHT) && hoverAnimation > 0) {
                 hoverAnimation -= 5;
             }
         }
 
         // offset to account for this feature
-        categoryFrameFeature.addFeatureOffset(HEIGHT);
+        categoryFrameComponent.addComponentOffset(HEIGHT);
 
         if (module != null) {
 
             // draw all setting features
             if (animation.getAnimationFactor() > 0) {
-                settingFeatureOffset = (int) categoryFrameFeature.getFeatureOffset();
-                settingFeatures.forEach(settingFeature -> {
-                    if (settingFeature.getSetting().isVisible()) {
-                        settingFeature.drawFeature();
+                settingComponentOffset = (int) categoryFrameComponent.getComponentOffset();
+                settingComponents.forEach(settingComponent -> {
+                    if (settingComponent.getSetting().isVisible()) {
+                        settingComponent.drawComponent();
 
                         // add offset with animation factor accounted for
-                        settingFeatureOffset += settingFeature.getHeight();
-                        categoryFrameFeature.addFeatureOffset(settingFeature.getHeight() * animation.getAnimationFactor());
+                        settingComponentOffset += settingComponent.getHeight();
+                        categoryFrameComponent.addComponentOffset(settingComponent.getHeight() * animation.getAnimationFactor());
                     }
                 });
 
                 // side bar
-                // RenderUtil.drawRect(categoryFrameFeature.getPosition().x, categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + (float) categoryFrameFeature.getFeatureOffset() + 2, 2, settingFeatureOffset - (float) categoryFrameFeature.getFeatureOffset(), ColorUtil.getPrimaryColor());
+                // RenderUtil.drawRect(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y + categoryFrameComponent.getTitle() + (float) categoryFrameComponent.getComponentOffset() + 2, 2, settingComponentOffset - (float) categoryFrameComponent.getComponentOffset(), ColorUtil.getPrimaryColor());
             }
         }
 
         // module background
-        RenderUtil.drawRect(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
+        RenderUtil.drawRect(categoryFrameComponent.getPosition().x, featureHeight, categoryFrameComponent.getWidth(), HEIGHT, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
 
         if (module != null) {
 
@@ -141,9 +141,9 @@ public class ModuleFeature extends DrawableFeature {
             glScaled(0.8, 0.8, 0.8); {
 
                 // scaled position
-                float scaledX = (categoryFrameFeature.getPosition().x + 4) * 1.25F;
+                float scaledX = (categoryFrameComponent.getPosition().x + 4) * 1.25F;
                 float scaledY = (featureHeight + 4.5F) * 1.25F;
-                float scaledWidth = (categoryFrameFeature.getPosition().x + categoryFrameFeature.getWidth() - (FontUtil.getStringWidth("...") * 0.8F) - 3) * 1.25F;
+                float scaledWidth = (categoryFrameComponent.getPosition().x + categoryFrameComponent.getWidth() - (FontUtil.getStringWidth("...") * 0.8F) - 3) * 1.25F;
 
                 FontUtil.drawStringWithShadow(getModule().getName(), scaledX, scaledY, getModule().isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : Color.WHITE.getRGB());
                 FontUtil.drawStringWithShadow("...", scaledWidth, scaledY, new Color(255, 255, 255).getRGB());
@@ -158,14 +158,14 @@ public class ModuleFeature extends DrawableFeature {
         if (module != null) {
 
             // toggle the module if clicked
-            if (isMouseOver(categoryFrameFeature.getPosition().x, featureHeight, categoryFrameFeature.getWidth(), HEIGHT)) {
+            if (isMouseOver(categoryFrameComponent.getPosition().x, featureHeight, categoryFrameComponent.getWidth(), HEIGHT)) {
 
                 // module feature bounds
                 float highestPoint = featureHeight;
                 float lowestPoint = highestPoint + HEIGHT;
 
                 // check if it's able to be interacted with
-                if (highestPoint >= categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + 2 && lowestPoint <= categoryFrameFeature.getPosition().y + categoryFrameFeature.getTitle() + categoryFrameFeature.getHeight() + 2) {
+                if (highestPoint >= categoryFrameComponent.getPosition().y + categoryFrameComponent.getTitle() + 2 && lowestPoint <= categoryFrameComponent.getPosition().y + categoryFrameComponent.getTitle() + categoryFrameComponent.getHeight() + 2) {
                     if (in.equals(ClickType.LEFT)) {
                         module.toggle();
                     }
@@ -181,8 +181,8 @@ public class ModuleFeature extends DrawableFeature {
             }
 
             if (open) {
-                settingFeatures.forEach(settingFeature -> {
-                    settingFeature.onClick(in);
+                settingComponents.forEach(settingComponent -> {
+                    settingComponent.onClick(in);
                 });
             }
         }
@@ -192,8 +192,8 @@ public class ModuleFeature extends DrawableFeature {
     public void onType(int in) {
         if (module != null) {
             if (open) {
-                settingFeatures.forEach(settingFeature -> {
-                    settingFeature.onType(in);
+                settingComponents.forEach(settingComponent -> {
+                    settingComponent.onType(in);
                 });
             }
         }
@@ -203,8 +203,8 @@ public class ModuleFeature extends DrawableFeature {
     public void onScroll(int in) {
         if (module != null) {
             if (open) {
-                settingFeatures.forEach(settingFeature -> {
-                    settingFeature.onScroll(in);
+                settingComponents.forEach(settingComponent -> {
+                    settingComponent.onScroll(in);
                 });
             }
         }
@@ -214,8 +214,8 @@ public class ModuleFeature extends DrawableFeature {
      * Gets the parent category frame feature
      * @return The parent category frame feature
      */
-    public CategoryFrameFeature getCategoryFrameFeature() {
-        return categoryFrameFeature;
+    public CategoryFrameComponent getCategoryFrameComponent() {
+        return categoryFrameComponent;
     }
 
     /**
@@ -230,15 +230,15 @@ public class ModuleFeature extends DrawableFeature {
      * Adds a specified amount to the setting feature offset
      * @param in Amount to add to the setting feature offset
      */
-    public void addSettingFeatureOffset(float in) {
-        settingFeatureOffset += in;
+    public void addSettingComponentOffset(float in) {
+        settingComponentOffset += in;
     }
 
     /**
      * Gets the offset for setting features
      * @return The offset for setting features
      */
-    public float getSettingFeatureOffset() {
-        return settingFeatureOffset;
+    public float getSettingComponentOffset() {
+        return settingComponentOffset;
     }
 }
