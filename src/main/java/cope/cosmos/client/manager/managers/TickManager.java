@@ -8,6 +8,7 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.math.MathUtil;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -35,7 +36,7 @@ public class TickManager extends Manager {
         Cosmos.EVENT_BUS.register(this);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (event.getPacket() instanceof SPacketTimeUpdate) {
             if (prevTime != -1) {

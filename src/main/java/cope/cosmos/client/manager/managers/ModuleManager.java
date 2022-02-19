@@ -98,6 +98,7 @@ public class ModuleManager extends Manager {
 				new NametagsModule(),
 				new NewChunksModule(),
 				new NoRenderModule(),
+				new NoWeatherModule(),
 				new SkyColorModule(),
 				new TracersModule(),
 				new ViewModelModule()
