@@ -1,4 +1,4 @@
-package cope.cosmos.client.ui.clickgui.component;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component;
 
 import java.util.Arrays;
 

@@ -1,8 +1,8 @@
-package cope.cosmos.client.ui.clickgui.component.components.setting;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting;
 
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.client.ui.util.HSBColor;
 import cope.cosmos.util.render.FontUtil;

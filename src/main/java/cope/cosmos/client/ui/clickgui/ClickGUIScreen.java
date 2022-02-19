@@ -3,8 +3,9 @@ package cope.cosmos.client.ui.clickgui;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.client.ClickGUIModule;
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.components.category.CategoryFrameComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category.CategoryFrameComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.taskbar.Taskbar;
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.util.ScissorStack;
@@ -29,6 +30,9 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
     // list of windows
     private final LinkedList<CategoryFrameComponent> categoryFrameComponents = new LinkedList<>();
     private final ScissorStack scissorStack = new ScissorStack();
+
+    // taskbar
+    Taskbar taskbar = new Taskbar();
 
     public ClickGUIScreen() {
         // add all categories
@@ -67,6 +71,9 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
             int scroll = Mouse.getDWheel();
             focusedFrameComponent.onScroll(scroll);
         }
+
+        // draw taskbar
+        taskbar.drawComponent();
 
         mouse.setLeftClick(false);
         mouse.setRightClick(false);

@@ -1,5 +1,6 @@
-package cope.cosmos.client.ui.clickgui.component;
+package cope.cosmos.client.ui.clickgui.screens;
 
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.util.InterfaceUtil;
 import cope.cosmos.util.Wrapper;
 

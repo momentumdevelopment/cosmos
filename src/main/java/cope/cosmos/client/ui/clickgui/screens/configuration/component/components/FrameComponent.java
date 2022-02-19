@@ -1,7 +1,7 @@
-package cope.cosmos.client.ui.clickgui.component.components;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component.components;
 
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.DrawableComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.DrawableComponent;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.util.math.Vec2f;

@@ -1,10 +1,10 @@
-package cope.cosmos.client.ui.clickgui.component.components.category;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category;
 
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.ui.util.Animation;
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.components.FrameComponent;
-import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.FrameComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -80,7 +80,7 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
             }
 
             if (isExpanding()) {
-                height = MathHelper.clamp((getMouse().getPosition().y - getPosition().y) - TITLE, 0, 350);
+                height = MathHelper.clamp((getMouse().getPosition().y - getPosition().y) - TITLE - 2, 0, 350);
             }
         }
 
@@ -145,7 +145,7 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
         }
 
         // lower bar
-        RenderUtil.drawRect(getPosition().x, (float) (getPosition().y + TITLE + (height * animation.getAnimationFactor()) + 2), WIDTH, 4, new Color(12 + hoverAnimation, 12 + hoverAnimation, 17 + hoverAnimation, 255));
+        RenderUtil.drawRect(getPosition().x, (float) (getPosition().y + TITLE + (height * animation.getAnimationFactor()) + 2), WIDTH, 4, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
 
         // update our previous mouse position
         updatePreviousPosition();

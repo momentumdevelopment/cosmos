@@ -1,11 +1,11 @@
-package cope.cosmos.client.ui.clickgui.component.components.module;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module;
 
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.DrawableComponent;
-import cope.cosmos.client.ui.clickgui.component.components.category.CategoryFrameComponent;
-import cope.cosmos.client.ui.clickgui.component.components.setting.*;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.DrawableComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category.CategoryFrameComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting.*;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;

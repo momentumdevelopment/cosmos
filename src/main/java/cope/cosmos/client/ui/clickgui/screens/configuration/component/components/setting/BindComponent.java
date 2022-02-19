@@ -1,22 +1,23 @@
-package cope.cosmos.client.ui.clickgui.component.components.setting;
+package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting;
 
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.clickgui.component.ClickType;
-import cope.cosmos.client.ui.clickgui.component.components.module.ModuleComponent;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
+import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
-import cope.cosmos.util.string.StringFormatter;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.opengl.GL11.glScaled;
 
 /**
  * @author linustouchtips
- * @since 02/01/2022
+ * @since 02/02/2022
  */
-public class EnumComponent extends SettingComponent<Enum<?>> {
+public class BindComponent extends SettingComponent<AtomicInteger> {
 
     // feature offset
     private float featureHeight;
@@ -24,7 +25,10 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
     // animation
     private int hoverAnimation;
 
-    public EnumComponent(ModuleComponent moduleComponent, Setting<Enum<?>> setting) {
+    // binding state
+    private boolean binding;
+
+    public BindComponent(ModuleComponent moduleComponent, Setting<AtomicInteger> setting) {
         super(moduleComponent, setting);
     }
 
@@ -51,13 +55,13 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
         glScaled(0.55, 0.55, 0.55); {
             float scaledX = (getModuleComponent().getCategoryFrameComponent().getPosition().x + 6) * 1.81818181F;
             float scaledY = (featureHeight + 5) * 1.81818181F;
-            float scaledWidth = (getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - (FontUtil.getStringWidth(StringFormatter.formatEnum(getSetting().getValue())) * 0.55F) - 3) * 1.81818181F;
+            float scaledWidth = (getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - (FontUtil.getStringWidth(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey())) * 0.55F) - 3) * 1.81818181F;
 
             // setting name
             FontUtil.drawStringWithShadow(getSetting().getName(), scaledX, scaledY, -1);
 
-            // setting value
-            FontUtil.drawStringWithShadow(StringFormatter.formatEnum(getSetting().getValue()), scaledWidth, scaledY, -1);
+            // bind value
+            FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey()), scaledWidth, scaledY, -1);
         }
 
         glScaled(1.81818181, 1.81818181, 1.81818181);
@@ -65,7 +69,7 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
 
     @Override
     public void onClick(ClickType in) {
-        // move to the next mode if clicked
+        // toggle the binding state if clicked
         if (in.equals(ClickType.LEFT) && isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT)) {
 
             // module feature bounds
@@ -74,14 +78,31 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
 
             // check if it's able to be interacted with
             if (highestPoint >= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + 2 && lowestPoint <= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + getModuleComponent().getCategoryFrameComponent().getHeight() + 2) {
-                Enum<?> nextValue = getSetting().getNextMode();
-
-                // update values
-                getSetting().setValue(nextValue);
+                binding = !binding;
             }
 
             // play a sound to make the user happy :)
             getCosmos().getSoundManager().playSound("click");
+        }
+    }
+
+    @Override
+    public void onType(int in) {
+        if (binding) {
+            if (in != -1 && in != Keyboard.KEY_ESCAPE) {
+
+                // backspace -> no bind
+                if (in == Keyboard.KEY_BACK || in == Keyboard.KEY_DELETE) {
+                    getModuleComponent().getModule().setKey(Keyboard.KEY_NONE);
+                }
+
+                else {
+                    getModuleComponent().getModule().setKey(in);
+                }
+
+                // we are no longer binding
+                binding = false;
+            }
         }
     }
 }
