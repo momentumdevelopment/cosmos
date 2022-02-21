@@ -287,14 +287,18 @@ public class AutoCrystalModule extends Module {
                             getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
 
                             // sync item
-                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                            if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                            }
                         }
 
                         else if (pickSlot != -1) {
                             getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
 
                             // sync item
-                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                            if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                            }
                         }
                     }
                 }
@@ -316,7 +320,7 @@ public class AutoCrystalModule extends Module {
                 }
 
                 // switch to our previous slot
-                if (previousSlot != -1) {
+                if (explodeWeakness.getValue().equals(Switch.PACKET) && previousSlot != -1) {
                     getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                     // reset our previous slot
@@ -348,6 +352,28 @@ public class AutoCrystalModule extends Module {
             // log our previous slot and hand, we'll switch back after placing
             if (placeSwitch.getValue().equals(Switch.PACKET)) {
                 previousSlot = mc.player.inventory.currentItem;
+            }
+
+            // pause switch to account for eating
+            if (PlayerUtil.isEating()) {
+                switchTicks = 0;
+            }
+
+            // sync item
+            if (placeSwitch.getValue().equals(Switch.NORMAL)) {
+                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+            }
+
+            switchTicks++;
+
+            // switch to crystals if needed
+            if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && switchTicks > 10) {
+                getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
+
+                // sync item
+                if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                }
             }
 
             if (placeTimer.passedTime(placeDelay.getValue().longValue(), Format.MILLISECONDS) && (InventoryUtil.isHolding(Items.END_CRYSTAL) || placeSwitch.getValue().equals(Switch.PACKET))) {
@@ -439,24 +465,6 @@ public class AutoCrystalModule extends Module {
                         }
 
                         break;
-                }
-
-                // pause switch to account for eating
-                if (PlayerUtil.isEating()) {
-                    switchTicks = 0;
-                }
-
-                // sync item
-                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
-
-                switchTicks++;
-
-                // switch to crystals if needed
-                if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && switchTicks > 10) {
-                    getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
-
-                    // sync item
-                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                 }
 
                 // place the crystal
@@ -968,14 +976,18 @@ public class AutoCrystalModule extends Module {
                                         getCosmos().getInventoryManager().switchToSlot(swordSlot, explodeWeakness.getValue());
 
                                         // sync item
-                                        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                                        if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                                        }
                                     }
 
                                     else if (pickSlot != -1) {
                                         getCosmos().getInventoryManager().switchToSlot(pickSlot, explodeWeakness.getValue());
 
                                         // sync item
-                                        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                                        if (placeSwitch.getValue().equals(Switch.PACKET)) {
+                                            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                                        }
                                     }
                                 }
                             }
@@ -994,7 +1006,7 @@ public class AutoCrystalModule extends Module {
                         }
 
                         // switch to our previous slot
-                        if (previousSlot != -1) {
+                        if (explodeWeakness.getValue().equals(Switch.PACKET) && previousSlot != -1) {
                             getCosmos().getInventoryManager().switchToSlot(previousSlot, explodeWeakness.getValue());
 
                             // reset our previous slot
