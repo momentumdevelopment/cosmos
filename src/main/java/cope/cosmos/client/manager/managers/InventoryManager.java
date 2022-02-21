@@ -51,6 +51,19 @@ public class InventoryManager extends Manager {
     }
 
     /**
+     * Switches to an item in the hotbar
+     * @param in The item to switch to
+     * @param swap The switch mode to use
+     */
+    public void switchToItem(Class<? extends Item> in, Switch swap) {
+        // slot of the item
+        int slot = searchSlot(in, InventoryRegion.HOTBAR);
+
+        // switch to the slot
+        switchToSlot(slot, swap);
+    }
+
+    /**
      * Switches to the first of a list of specified items in the hotbar
      * @param in The items to switch to
      * @param swap The switch mode to use
@@ -120,6 +133,28 @@ public class InventoryManager extends Manager {
         for (int i = inventoryRegion.getStart(); i <= inventoryRegion.getBound(); i++) {
             // if we found the slot, save it and return
             if (mc.player.inventory.getStackInSlot(i).getItem().equals(in)) {
+                slot = i;
+                break;
+            }
+        }
+
+        return slot;
+    }
+
+    /**
+     * Searches the slot id of a given item
+     * @param in The given item
+     * @param inventoryRegion The inventory region to search
+     * @return The slot id of the given item
+     */
+    public int searchSlot(Class<? extends Item> in, InventoryRegion inventoryRegion) {
+        // slot of the item
+        int slot = -1;
+
+        // search the region for the item
+        for (int i = inventoryRegion.getStart(); i <= inventoryRegion.getBound(); i++) {
+            // if we found the slot, save it and return
+            if (in.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
                 slot = i;
                 break;
             }

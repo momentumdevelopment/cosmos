@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -39,6 +40,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemEndCrystal;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.network.play.client.CPacketAnimation;
@@ -182,7 +185,7 @@ public class AutoCrystalModule extends Module {
     private final Map<BlockPos, Integer> attemptedPlacements = new ConcurrentHashMap<>();
 
     // tick clamp
-    private int switchTicks;
+    private int switchTicks = 10;
     private int strictTicks;
 
     // rotation info
@@ -438,19 +441,18 @@ public class AutoCrystalModule extends Module {
                         break;
                 }
 
-                if ((mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
-                    // pause switch to account for eating
-                    if (PlayerUtil.isEating()) {
-                        switchTicks = 0;
-                    }
-
-                    else {
-                        switchTicks++;
-                    }
+                // pause switch to account for eating
+                if (PlayerUtil.isEating()) {
+                    switchTicks = 0;
                 }
 
+                // sync item
+                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+
+                switchTicks++;
+
                 // switch to crystals if needed
-                if (switchTicks > 15 || !(mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
+                if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && switchTicks > 10) {
                     getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
 
                     // sync item
@@ -834,6 +836,20 @@ public class AutoCrystalModule extends Module {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // reset our switch time, we just switched
             switchTimer.resetTime();
+
+            // pause switch
+            Item switchItem = mc.player.inventory.getStackInSlot(((CPacketHeldItemChange) event.getPacket()).getSlotId()).getItem();
+            if (!(switchItem instanceof ItemEndCrystal)) {
+                switchTicks = 0;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRightClickItem(RightClickItemEvent event) {
+        // don't switch, we are eating
+        if (event.getItemStack().getItem() instanceof ItemFood || event.getItemStack().getItem() instanceof ItemPotion) {
+            switchTicks = 0;
         }
     }
 
@@ -1175,7 +1191,7 @@ public class AutoCrystalModule extends Module {
     }
 
     /**
-     * Reset all variables, timers, and lists
+     * Resets all variables, timers, and lists
      */
     public void resetProcess() {
         explodeCrystal = new Crystal(null, null, 0, 0);
@@ -1184,6 +1200,7 @@ public class AutoCrystalModule extends Module {
         yawLimit = false;
         previousSlot = -1;
         strictTicks = 0;
+        switchTicks = 10;
         startTime = 0;
         responseTime = 0;
         placeTimer.resetTime();

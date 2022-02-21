@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -13,20 +14,20 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
-import cope.cosmos.util.string.ColorUtil;
-import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.combat.EnemyUtil;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.entity.InterpolationUtil;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
-import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.AngleUtil;
-import cope.cosmos.util.entity.EntityUtil;
-import cope.cosmos.util.entity.InterpolationUtil;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.render.RenderBuilder;
+import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.world.RaytraceUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
@@ -35,9 +36,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemPotion;
+import net.minecraft.item.*;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -62,6 +61,7 @@ public class AuraModule extends Module {
     }
 
     // general settings
+    public static Setting<Interact> interact = new Setting<>("Interact", Interact.STRICT).setDescription("Changes how you attack the target");
     public static Setting<Double> iterations = new Setting<>("Iterations", 0.0, 1.0, 5.0, 0).setDescription("Attacks per iteration");
     public static Setting<Double> variation = new Setting<>("Variation", 0.0, 100.0, 100.0, 0).setDescription("Probability of your hits doing damage");
     public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 7.0, 1).setDescription("Range to attack entities");
@@ -131,7 +131,7 @@ public class AuraModule extends Module {
     private final Timer switchTimer = new Timer();
 
     // tick clamp
-    private int switchTicks;
+    private int switchTicks = 10;
     private int strictTicks;
 
     // rotation info
@@ -297,23 +297,19 @@ public class AuraModule extends Module {
                     return;
                 }
 
-                if ((mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
-                    // pause switch to account for eating
-                    if (PlayerUtil.isEating()) {
-                        switchTicks = 0;
-                    }
-
-                    else {
-                        switchTicks++;
-                    }
+                // pause switch to account for eating
+                if (PlayerUtil.isEating()) {
+                    switchTicks = 0;
                 }
 
-                // switch to our weapon
-                if (switchTicks > 15 || !(mc.player.getHeldItemMainhand().getItem() instanceof ItemFood || mc.player.getHeldItemMainhand().getItem() instanceof ItemPotion)) {
-                    getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
+                // sync item
+                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
 
-                    // sync item
-                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                switchTicks++;
+
+                // switch to our weapon
+                if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && switchTicks > 10) {
+                    getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
                 }
 
                 // make sure we are holding our weapon
@@ -439,7 +435,7 @@ public class AuraModule extends Module {
                     if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.MILLISECONDS)) {
 
                         // if we passed our critical time, then we can attempt a critical attack
-                        if (criticalTimer.passedTime(300, Format.MILLISECONDS)) {
+                        if (interact.getValue().equals(Interact.NORMAL) && criticalTimer.passedTime(300, Format.MILLISECONDS)) {
 
                             // spoof our fall state to simulate a critical attack
                             mc.player.fallDistance = 0.1F;
@@ -470,8 +466,10 @@ public class AuraModule extends Module {
                         }
 
                         // reset fall state
-                        mc.player.fallDistance = fallDistance;
-                        mc.player.onGround = onGround;
+                        if (interact.getValue().equals(Interact.NORMAL)) {
+                            mc.player.fallDistance = fallDistance;
+                            mc.player.onGround = onGround;
+                        }
                     }
 
                     // reset sneak state
@@ -494,6 +492,14 @@ public class AuraModule extends Module {
                 }
             }
         }
+    }
+
+    @Override
+    public void onDisable() {
+        super.onDisable();
+
+        // reset our process for next enable
+        resetProcess();
     }
 
     @Override
@@ -588,7 +594,48 @@ public class AuraModule extends Module {
         if (event.getPacket() instanceof CPacketHeldItemChange) {
             // we just switched, so reset our time
             switchTimer.resetTime();
+
+            // pause switch
+            Item switchItem = mc.player.inventory.getStackInSlot(((CPacketHeldItemChange) event.getPacket()).getSlotId()).getItem();
+            if (!weapon.getValue().getItem().isInstance(switchItem)) {
+                switchTicks = 0;
+            }
         }
+    }
+
+    @SubscribeEvent
+    public void onRightClickItem(RightClickItemEvent event) {
+        // don't switch, we are eating
+        if (event.getItemStack().getItem() instanceof ItemFood || event.getItemStack().getItem() instanceof ItemPotion) {
+            switchTicks = 0;
+        }
+    }
+
+    /**
+     * Resets all variables, timers, and lists
+     */
+    public void resetProcess() {
+        auraTarget = null;
+        switchTicks = 10;
+        strictTicks = 0;
+        yawLimit = false;
+        attackVector = Vec3d.ZERO;
+        auraTimer.resetTime();
+        criticalTimer.resetTime();
+        switchTimer.resetTime();
+    }
+
+    public enum Interact {
+
+        /**
+         * Attempt to spoof fall state
+         */
+        NORMAL,
+
+        /**
+         * Attacks normally
+         */
+        STRICT,
     }
 
     public enum Delay {
@@ -637,21 +684,21 @@ public class AuraModule extends Module {
         /**
          * Sword is the preferred weapon
          */
-        SWORD(Items.DIAMOND_SWORD),
+        SWORD(ItemSword.class),
 
         /**
          * Axe is the preferred weapon
          */
-        AXE(Items.DIAMOND_AXE),
+        AXE(ItemAxe.class),
 
         /**
          * Pickaxe is the preferred weapon
          */
-        PICKAXE(Items.DIAMOND_PICKAXE);
+        PICKAXE(ItemPickaxe.class);
 
-        private final Item item;
+        private final Class<? extends Item> item;
 
-        Weapon(Item item) {
+        Weapon(Class<? extends Item> item) {
             this.item = item;
         }
 
@@ -659,7 +706,7 @@ public class AuraModule extends Module {
          * Gets the preferred item
          * @return The preferred item
          */
-        public Item getItem() {
+        public Class<? extends Item> getItem() {
             return item;
         }
     }
