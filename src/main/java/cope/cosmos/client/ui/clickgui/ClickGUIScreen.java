@@ -6,7 +6,7 @@ import cope.cosmos.client.features.modules.client.ClickGUIModule;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category.CategoryFrameComponent;
 import cope.cosmos.client.ui.clickgui.screens.configuration.taskbar.Taskbar;
-import cope.cosmos.client.ui.util.InterfaceUtil;
+import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.util.ScissorStack;
 import net.minecraft.client.gui.GuiScreen;
@@ -23,7 +23,7 @@ import java.util.LinkedList;
  * @author linustouchtips
  * @since 01/29/2022
  */
-public class ClickGUIScreen extends GuiScreen implements InterfaceUtil {
+public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
 
     private final MousePosition mouse = new MousePosition(Vec2f.ZERO, false, false, false, false);
 

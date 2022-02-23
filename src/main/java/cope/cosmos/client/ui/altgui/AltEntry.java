@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
-import cope.cosmos.client.ui.util.InterfaceUtil;
+import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
@@ -17,7 +17,7 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Wolfsurge
  * @since 02/05/2022
  */
-public class AltEntry implements Wrapper, InterfaceUtil {
+public class AltEntry implements Wrapper, InterfaceWrapper {
 
     // The alt
     private final Alt alt;

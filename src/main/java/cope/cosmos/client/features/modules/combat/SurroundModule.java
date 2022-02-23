@@ -1,27 +1,45 @@
 package cope.cosmos.client.features.modules.combat;
 
+import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.combat.ExplosionUtil;
+import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.holder.Rotation.Rotate;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.network.play.server.SPacketBlockBreakAnim;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author linustouchtips
@@ -35,6 +53,7 @@ public class SurroundModule extends Module {
         INSTANCE = this;
     }
 
+    // general
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL).setDescription("When to place blocks");
     public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE).setDescription("Block positions for surround");
     public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN).setDescription("Block item to use for surround");
@@ -43,6 +62,11 @@ public class SurroundModule extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
 
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
+
+    // extend
+    public static Setting<Boolean> extend = new Setting<>("Extend", false).setDescription("Extends surround when there is an entity blocking the surround");
+    // public static Setting<Boolean> volatiles = new Setting<>("Volatile", false).setDescription("Extends surround when the surround is being broken");
+    public static Setting<Boolean> scatter = new Setting<>("Scatter", true).setDescription("Clears entities before attempting to place");
 
     // anti-cheat
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
@@ -55,7 +79,8 @@ public class SurroundModule extends Module {
     private int previousSlot = -1;
 
     // blocks info
-    private int blocksPlaced = 0;
+    private int blocksPlaced;
+    private List<Vec3i> calculateOffsets = new ArrayList<>();
 
     // start info
     private double startY;
@@ -95,6 +120,7 @@ public class SurroundModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // we haven't placed on blocks on this tick
         blocksPlaced = 0;
 
@@ -114,6 +140,93 @@ public class SurroundModule extends Module {
             }
         }
 
+        // offsets after calculations
+        calculateOffsets = new ArrayList<>();
+
+        // avoids UnsupportedOperationException
+        List<Vec3i> modeOffsets = Arrays.asList(mode.getValue().getVectors());
+        calculateOffsets.addAll(modeOffsets);
+
+        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
+            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+            // the position to place the block
+            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+            // make sure there is no entity on the block
+            int unsafeEntities = 0;
+            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(surroundPosition))) {
+
+                // can be placed on
+                if (entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                    continue;
+                }
+
+                // clear area before placing
+                if (scatter.getValue()) {
+
+                    // attack crystals that are in the way
+                    if (entity instanceof EntityEnderCrystal) {
+
+                        // damage done by the crystal
+                        double crystalDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
+
+                        // explode crystal if it won't kill us
+                        if (PlayerUtil.getHealth() - crystalDamage >= 0.1) {
+                            mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+                            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+                        }
+
+                        continue;
+                    }
+
+                    // attack vehicles 3 times
+                    else if (EntityUtil.isVehicleMob(entity)) {
+
+                        if (mc.getConnection() != null) {
+                            for (int i = 0; i < 3; i++) {
+                                mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(entity));
+                                mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+                            }
+                        }
+
+                        continue;
+                    }
+                }
+
+                unsafeEntities++;
+            }
+
+            if (unsafeEntities > 0) {
+
+                // extend surround to account for entity hitboxes
+                if (extend.getValue() && center.getValue().equals(Center.NONE)) {
+
+                    // extending blocks
+                    List<Vec3d> extender = Arrays.asList(
+                            new Vec3d(1, 0, 0),
+                            new Vec3d(-1, 0, 0),
+                            new Vec3d(0, 0, 1),
+                            new Vec3d(0, 0, -1)
+                    );
+
+                    // extend based on offset
+                    extender.forEach(extendOffset -> {
+                        Vec3d extend = extendOffset.addVector(surroundOffset.getX(), surroundOffset.getY(), surroundOffset.getZ());
+
+                        // add to offsets
+                        calculateOffsets.add(new Vec3i(extend.x, extend.y, extend.z));
+                    });
+
+                    // remove centers
+                    calculateOffsets.remove(surroundOffset);
+                    calculateOffsets.removeIf(vec3i -> vec3i.getX() == 0 && vec3i.getZ() == 0);
+                }
+            }
+        }
+
         // save the previous slot
         previousSlot = mc.player.inventory.currentItem;
 
@@ -121,8 +234,9 @@ public class SurroundModule extends Module {
         getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
         if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-            // place on each of the offsets
-            for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+
+            // place on each of the calculated offsets
+            for (Vec3i surroundOffset : calculateOffsets) {
 
                 // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                 BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -158,7 +272,7 @@ public class SurroundModule extends Module {
         if (render.getValue()) {
 
             // render all of the surround blocks
-            for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+            for (Vec3i surroundOffset : calculateOffsets) {
 
                 // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                 BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -169,9 +283,17 @@ public class SurroundModule extends Module {
                 // find if the block is safe or not
                 boolean safeBlock = BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) || BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE);
 
+                // find if the block is being broken
+                AtomicBoolean breakBlock = new AtomicBoolean(false);
+                ((IRenderGlobal) mc.renderGlobal).getDamagedBlocks().forEach((integer, destroyBlockProgress) -> {
+                    if (destroyBlockProgress.getPosition().equals(surroundPosition)) {
+                        breakBlock.set(true);
+                    }
+                });
+
                 RenderUtil.drawBox(new RenderBuilder()
                         .position(surroundPosition)
-                        .color(safeBlock ? new Color(0, 255, 0, 40) : new Color(255, 0, 0, 40))
+                        .color(safeBlock ? (breakBlock.get() ? new Color(255, 255, 0, 40) : new Color(0, 255, 0, 40)) : new Color(255, 0, 0, 40))
                         .box(renderMode.getValue())
                         .setup()
                         .line(1.5F)
@@ -188,7 +310,23 @@ public class SurroundModule extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && !getCosmos().getHoleManager().isHole(mc.player.getPosition());
+        boolean isSurrounded = true;
+        for (Vec3i surroundOffset : calculateOffsets) {
+
+            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
+            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+            // the position to place the block
+            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+            // find if the block is safe or not
+            if (!BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) && !BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE)) {
+                isSurrounded = false;
+                break;
+            }
+        }
+
+        return isSurrounded;
     }
 
     @SubscribeEvent
@@ -204,7 +342,7 @@ public class SurroundModule extends Module {
                     BlockPos changePosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
 
                     // check each of the offsets
-                    for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+                    for (Vec3i surroundOffset : calculateOffsets) {
 
                         // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                         BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -256,7 +394,7 @@ public class SurroundModule extends Module {
                         BlockPos changePosition = blockUpdateData.getPos();
 
                         // check each of the offsets
-                        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
+                        for (Vec3i surroundOffset : calculateOffsets) {
 
                             // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
                             BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -291,6 +429,75 @@ public class SurroundModule extends Module {
                     }
                 }
             }
+        }
+
+        // packet for block breaking animation
+        if (event.getPacket() instanceof SPacketBlockBreakAnim) {
+
+            /*
+
+            getCosmos().getChatManager().sendClientMessage(((SPacketBlockBreakAnim) event.getPacket()).getProgress());
+
+            if (volatiles.getValue()) {
+                if () {
+
+                    // the position of the block change
+                    BlockPos changePosition = ((SPacketBlockBreakAnim) event.getPacket()).getPosition();
+
+                    // check each of the offsets
+                    for (Vec3i surroundOffset : calculateOffsets) {
+
+                        // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
+                        BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+                        // the position to place the block
+                        BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+                        if (changePosition.equals(surroundPosition)) {
+                            // save the previous slot
+                            previousSlot = mc.player.inventory.currentItem;
+
+                            // switch to obsidian
+                            getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
+
+                            // extending blocks
+                            List<Vec3i> extender = Arrays.asList(
+                                    new Vec3i(1, 0, 0),
+                                    new Vec3i(-1, 0, 0),
+                                    new Vec3i(0, 0, 1),
+                                    new Vec3i(0, 0, -1)
+                            );
+
+                            // surround each extender
+                            for (Vec3i extend : extender) {
+
+                                // extended position
+                                BlockPos extendPosition = changePosition.add(extend);
+
+                                if (InventoryUtil.isHolding(block.getValue().getBlock())) {
+                                    // update blocks placed
+                                    blocksPlaced++;
+
+                                    // place a block
+                                    getCosmos().getInteractionManager().placeBlock(extendPosition, rotate.getValue(), strict.getValue());
+                                }
+                            }
+
+                            // switch back to our previous item
+                            if (previousSlot != -1) {
+                                getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
+
+                                // reset previous slot info
+                                previousSlot = -1;
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+             */
         }
     }
 

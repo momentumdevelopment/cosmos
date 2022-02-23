@@ -4,7 +4,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
 import cope.cosmos.client.ui.util.Animation;
-import cope.cosmos.client.ui.util.HSBColor;
+import cope.cosmos.client.ui.util.ColorHSB;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
@@ -30,7 +30,7 @@ public class ColorComponent extends SettingComponent<Color> {
     private boolean open;
 
     // selected color in the color picker
-    private final HSBColor selectedColor;
+    private final ColorHSB selectedColor;
 
     // animation
     private final Animation animation = new Animation(200, false);
@@ -40,7 +40,7 @@ public class ColorComponent extends SettingComponent<Color> {
         super(moduleComponent, setting);
 
         // initial value
-        selectedColor = new HSBColor(setting.getValue());
+        selectedColor = new ColorHSB(setting.getValue());
     }
 
     @Override

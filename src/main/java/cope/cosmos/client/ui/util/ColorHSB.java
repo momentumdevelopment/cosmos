@@ -6,26 +6,26 @@ import java.awt.*;
  * @author linustouchtips
  * @since 06/05/2021
  */
-public class HSBColor {
+public class ColorHSB {
 
     // hsb values
     private double hue, saturation, brightness, transparency;
 
-    public HSBColor(double hue, double saturation, double brightness, double transparency) {
+    public ColorHSB(double hue, double saturation, double brightness, double transparency) {
         this.hue = hue;
         this.saturation = saturation;
         this.brightness = brightness;
         this.transparency = transparency;
     }
 
-    public HSBColor(Color color) {
+    public ColorHSB(Color color) {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
 
         // this() constructor has to be first call
         hue = hsb[0];
         saturation = hsb[1];
         brightness = hsb[2];
-        transparency = color.getAlpha();
+        transparency = color.getAlpha() / 255F;
     }
 
     /**

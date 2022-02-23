@@ -231,6 +231,9 @@ public class AutoCrystalModule extends Module {
             // make sure we are not already auto-placing
             if (HoleFillModule.INSTANCE.isActive() || BurrowModule.INSTANCE.isActive()) {
                 resetProcess();
+
+                // wait some ticks before resuming
+                strictTicks = 2;
                 return;
             }
         }
@@ -367,7 +370,13 @@ public class AutoCrystalModule extends Module {
             switchTicks++;
 
             // switch to crystals if needed
-            if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && switchTicks > 10) {
+            if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+
+                // wait for switch pause
+                if (switchTicks <= 10 && placeSwitch.getValue().equals(Switch.NORMAL)) {
+                    return;
+                }
+
                 getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, placeSwitch.getValue());
 
                 // sync item

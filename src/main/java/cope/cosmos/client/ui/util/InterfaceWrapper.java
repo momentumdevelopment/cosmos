@@ -7,7 +7,7 @@ import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
  * @author linustouchtips
  * @since 08/23/2022
  */
-public interface InterfaceUtil {
+public interface InterfaceWrapper {
 
     /**
      * Checks if the mouse is over a region

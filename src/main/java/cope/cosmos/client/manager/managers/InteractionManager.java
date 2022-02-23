@@ -157,8 +157,12 @@ public class InteractionManager extends Manager implements Wrapper {
         }
     }
 
-    public void placeItem() {
-
+    /**
+     * Swings the player's hand
+     * @param in The hand to swing
+     */
+    public void swingArm(EnumHand in) {
+        mc.player.swingArm(in);
     }
 
     public void attackEntity(Entity entity, boolean packet, double variation) {

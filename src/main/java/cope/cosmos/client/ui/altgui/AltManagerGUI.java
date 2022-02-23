@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.ui.util.InterfaceUtil;
+import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -17,7 +17,7 @@ import java.io.IOException;
  * @author Wolfsurge
  * @since 02/05/2022
  */
-public class AltManagerGUI extends GuiScreen implements InterfaceUtil {
+public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
 
     // Last GUI screen
     private final GuiScreen lastScreen;
