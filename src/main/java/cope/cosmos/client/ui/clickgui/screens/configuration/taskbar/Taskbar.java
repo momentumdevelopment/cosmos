@@ -46,7 +46,7 @@ public class Taskbar extends DrawableComponent {
         // player info
         glScaled(2.75, 2.75, 2.75); {
             float scaledX = 7 * 0.36363636F;
-            float scaledY = (resolution.getScaledHeight() - 39) * 0.36363636F;
+            float scaledY = (resolution.getScaledHeight() - 35) * 0.36363636F;
             FontUtil.drawStringWithShadow(mc.player.getName(), scaledX, scaledY, ColorUtil.getPrimaryColor().getRGB());
         }
 

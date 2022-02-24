@@ -2,9 +2,11 @@ package cope.cosmos.asm.mixins.world;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.render.other.RenderParticleEvent;
 import cope.cosmos.client.events.render.world.RenderSkyEvent;
 import cope.cosmos.client.events.render.world.RenderSkylightEvent;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.EnumSkyBlock;
@@ -28,6 +30,16 @@ public class MixinWorld {
                 info.cancel();
                 info.setReturnValue(true);
             }
+        }
+    }
+
+    @Inject(method = "spawnParticle(Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V", at = @At("HEAD"), cancellable = true)
+    public void onSpawnParticle(EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int[] parameters, CallbackInfo info) {
+        RenderParticleEvent renderParticleEvent = new RenderParticleEvent(particleType);
+        Cosmos.EVENT_BUS.post(renderParticleEvent);
+
+        if (renderParticleEvent.isCanceled()) {
+            info.cancel();
         }
     }
 

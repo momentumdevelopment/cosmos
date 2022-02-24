@@ -39,18 +39,20 @@ public class FrameComponent<T> extends DrawableComponent {
     public void drawComponent() {
         long interactingWindows = getGUI().getCategoryFrameComponents()
                 .stream()
-                .filter(categoryFrameComponent -> categoryFrameComponent.equals(this))
+                .filter(categoryFrameComponent -> !categoryFrameComponent.equals(this))
                 .filter(categoryFrameComponent -> categoryFrameComponent.isExpanding() || categoryFrameComponent.isDragging())
                 .count();
 
         // dragging
-        if (isMouseOver(position.x, position.y, WIDTH, TITLE) && getMouse().isLeftHeld()) {
-            setDragging(true);
-        }
+        if (interactingWindows <= 0) {
+            if (isMouseOver(position.x, position.y, WIDTH, TITLE) && getMouse().isLeftHeld()) {
+                setDragging(true);
+            }
 
-        // update position to drag
-        if (isDragging()) {
-            setPosition(new Vec2f(position.x + (getMouse().getPosition().x - previousPosition.x), position.y + (getMouse().getPosition().y - previousPosition.y)));
+            // update position to drag
+            if (isDragging()) {
+                setPosition(new Vec2f(position.x + (getMouse().getPosition().x - previousPosition.x), position.y + (getMouse().getPosition().y - previousPosition.y)));
+            }
         }
 
         // hover alpha animation

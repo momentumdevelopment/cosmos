@@ -10,6 +10,7 @@ import cope.cosmos.client.events.render.gui.BossOverlayEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import cope.cosmos.client.events.render.other.RenderMapEvent;
+import cope.cosmos.client.events.render.other.RenderParticleEvent;
 import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
 import cope.cosmos.client.events.render.player.ModifyFOVEvent;
@@ -20,6 +21,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketAnimation;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraftforge.client.event.RenderBlockOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -51,6 +53,7 @@ public class NoRenderModule extends Module {
     public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Prevents armor from rendering");
     public static Setting<Boolean> items = new Setting<>("Items", false).setDescription("Prevents dropped items from rendering");
     public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false).setDescription("Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering");
+    public static Setting<Boolean> barrier = new Setting<>("Barrier", true).setDescription("Prevents barrier block signs from rendering");
     public static Setting<Boolean> maps = new Setting<>("Maps", false).setDescription("Prevents maps from rendering");
     public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true).setDescription("Removes the hurt camera effect");
     public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true).setDescription("Prevents flying wither skulls from rendering");
@@ -188,6 +191,14 @@ public class NoRenderModule extends Module {
     public void onRenderWitherSkull(RenderWitherSkullEvent event) {
         // cancels wither skulls from rendering
         if (witherSkull.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderParticle(RenderParticleEvent event) {
+        // cancels barrier particles from rendering
+        if (barrier.getValue() && event.getParticleType().equals(EnumParticleTypes.BARRIER)) {
             event.setCanceled(true);
         }
     }

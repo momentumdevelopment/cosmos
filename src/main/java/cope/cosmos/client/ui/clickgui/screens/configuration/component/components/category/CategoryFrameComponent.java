@@ -71,16 +71,18 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
         if (open) {
             long interactingWindows = getGUI().getCategoryFrameComponents()
                     .stream()
-                    .filter(categoryFrameComponent -> categoryFrameComponent.equals(this))
+                    .filter(categoryFrameComponent -> !categoryFrameComponent.equals(this))
                     .filter(categoryFrameComponent -> categoryFrameComponent.isExpanding() || categoryFrameComponent.isDragging())
                     .count();
 
-            if (isMouseOver(getPosition().x, getPosition().y + TITLE + height + 2, WIDTH, 4) && getMouse().isLeftHeld()) {
-                setExpanding(true);
-            }
+            if (interactingWindows <= 0) {
+                if (isMouseOver(getPosition().x, getPosition().y + TITLE + height + 2, WIDTH, 4) && getMouse().isLeftHeld()) {
+                    setExpanding(true);
+                }
 
-            if (isExpanding()) {
-                height = MathHelper.clamp((getMouse().getPosition().y - getPosition().y) - TITLE - 2, 0, 350);
+                if (isExpanding()) {
+                    height = MathHelper.clamp((getMouse().getPosition().y - getPosition().y) - TITLE - 2, 0, 350);
+                }
             }
         }
 

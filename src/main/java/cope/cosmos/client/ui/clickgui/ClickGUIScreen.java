@@ -17,7 +17,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author linustouchtips
@@ -82,23 +85,50 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
+        // reversed list
+        List<CategoryFrameComponent> reverseCategoryFrameComponents = new ArrayList<>();
+
+        categoryFrameComponents.forEach(categoryFrameComponent -> {
+            reverseCategoryFrameComponents.add(categoryFrameComponent);
+        });
+
+        // reverse
+        Collections.reverse(reverseCategoryFrameComponents);
+
         switch (mouseButton) {
             case 0:
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
 
-                categoryFrameComponents.forEach(categoryFrameComponent -> {
-                    categoryFrameComponent.onClick(ClickType.LEFT);
-                });
+                for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
+                    if (isMouseOver(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y, categoryFrameComponent.getWidth(), categoryFrameComponent.getTitle() + categoryFrameComponent.getHeight() + 2)) {
+
+                        // handle click
+                        categoryFrameComponent.onClick(ClickType.LEFT);
+
+                        int index = categoryFrameComponents.indexOf(categoryFrameComponent);
+
+                        // push to front
+                        categoryFrameComponents.addLast(categoryFrameComponent);
+                        categoryFrameComponents.remove(index);
+
+                        break;
+                    }
+                }
 
                 break;
             case 1:
                 mouse.setRightClick(true);
                 mouse.setRightHeld(true);
 
-                categoryFrameComponents.forEach(categoryFrameComponent -> {
-                    categoryFrameComponent.onClick(ClickType.RIGHT);
-                });
+                for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
+                    if (isMouseOver(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y, categoryFrameComponent.getWidth(), categoryFrameComponent.getTitle() + categoryFrameComponent.getHeight() + 2)) {
+
+                        // handle click
+                        categoryFrameComponent.onClick(ClickType.RIGHT);
+                        break;
+                    }
+                }
 
                 break;
             default:
