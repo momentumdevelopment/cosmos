@@ -3,7 +3,6 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
@@ -104,7 +103,7 @@ public class HoleManager extends Manager {
                     boolean standable = false;
                     
                     // check above position
-                    if (mc.world.isAirBlock(blockPosition.add(0, 1, 0))) {
+                    if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 0)).getMaterial().isReplaceable()) {
                         standable = true;
                     }
 
@@ -172,7 +171,7 @@ public class HoleManager extends Manager {
                             boolean doubleXStandable = false;
 
                             // check above position
-                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(1, 1, 0))) {
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 0)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(1, 2, 0)).getMaterial().isReplaceable()) {
                                 doubleXStandable = true;
                             }
 
@@ -238,7 +237,7 @@ public class HoleManager extends Manager {
                             boolean doubleZStandable = false;
 
                             // check above position
-                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(0, 1, 1))) {
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 0)).getMaterial().isReplaceable() || mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 1)).getMaterial().isReplaceable()) {
                                 doubleZStandable = true;
                             }
 
@@ -301,12 +300,28 @@ public class HoleManager extends Manager {
                         if (!mc.world.getBlockState(blockPosition.add(0, -1, 1)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 0)).getMaterial().isReplaceable() && !mc.world.getBlockState(blockPosition.add(1, -1, 1)).getMaterial().isReplaceable()) {
 
                             // boolean to keep track of whether or not the hole is able to be entered
-                            boolean quadStandable = false;
+                            boolean quadStandable;
 
                             // check above position
-                            if (mc.world.isAirBlock(blockPosition.add(0, 1, 0)) || mc.world.isAirBlock(blockPosition.add(1, 1, 0)) || mc.world.isAirBlock(blockPosition.add(0, 1, 1)) || mc.world.isAirBlock(blockPosition.add(1, 1, 1))) {
-                                quadStandable = true;
+                            int stopBlocks = 0;
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 0)).getMaterial().isReplaceable()) {
+                                stopBlocks++;
                             }
+
+                            if (mc.world.getBlockState(blockPosition.add(1, 1, 0)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(1, 2, 0)).getMaterial().isReplaceable()) {
+                                stopBlocks++;
+                            }
+
+                            if (mc.world.getBlockState(blockPosition.add(0, 1, 1)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(0, 2, 1)).getMaterial().isReplaceable()) {
+                                stopBlocks++;
+                            }
+
+                            if (mc.world.getBlockState(blockPosition.add(1, 1, 1)).getMaterial().isReplaceable() && mc.world.getBlockState(blockPosition.add(1, 2, 1)).getMaterial().isReplaceable()) {
+                                stopBlocks++;
+                            }
+
+                            // quads need at least two or three stop blocks
+                            quadStandable = stopBlocks == 0 || stopBlocks == 2 || stopBlocks == 3;
 
                             // check all offsets
                             for (Vec3i holeSide : QUAD_HOLE) {
