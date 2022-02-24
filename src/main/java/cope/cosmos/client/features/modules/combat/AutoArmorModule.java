@@ -46,7 +46,7 @@ public class AutoArmorModule extends Module {
 
     @Override
     public void onTick() {
-        if (!mc.player.capabilities.isCreativeMode) {
+        if (mc.currentScreen == null || mc.currentScreen instanceof GuiInventory) {
 
             // loop through our entire inventory
             for (int i = 0; i < 36; ++i) {

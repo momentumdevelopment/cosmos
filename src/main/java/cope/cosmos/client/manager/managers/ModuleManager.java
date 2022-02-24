@@ -53,6 +53,7 @@ public class ModuleManager extends Manager {
 				new AntiAFKModule(),
 				new AntiAimModule(),
 				new AntiCrashModule(),
+				new AutoDisconnectModule(),
 				new ChatModificationsModule(),
 				new ExtraTabModule(),
 				new FakePlayerModule(),

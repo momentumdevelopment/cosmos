@@ -50,9 +50,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         // draws the default dark background
-        if (!ClickGUIModule.blur.getValue()) {
-            drawDefaultBackground();
-        }
+        drawDefaultBackground();
 
         categoryFrameComponents.forEach(categoryFrameComponent -> {
             categoryFrameComponent.drawComponent();
