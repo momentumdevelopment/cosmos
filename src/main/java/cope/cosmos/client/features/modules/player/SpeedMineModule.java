@@ -57,7 +57,7 @@ public class SpeedMineModule extends Module {
     public static Setting<Boolean> reset = new Setting<>("Reset", false).setDescription("Doesn't allow block break progress to be reset");
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Renders a visual over current mining block");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.BOTH).setParent(render).setDescription("Style for the visual");
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH).setParent(render).setDescription("Style for the visual");
 
     // mine info
     private BlockPos minePosition;

@@ -89,9 +89,9 @@ public class AuraModule extends Module {
 
     // rotate category
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
-    public static Setting<Limit> rotateLimit = new Setting<>("Limit", Limit.NONE).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET)).setParent(rotate);
+    public static Setting<Limit> rotateLimit = new Setting<>("YawLimit", Limit.NONE).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET)).setParent(rotate);
     public static Setting<Bone> rotateBone = new Setting<>("Bone", Bone.EYES).setDescription("What body part to rotate to");
-    public static Setting<Double> rotateRandom = new Setting<>("Random", 0.0, 0.0, 5.0, 1).setDescription("Randomize rotations to simulate real rotations").setParent(rotate);
+    public static Setting<Double> rotateRandom = new Setting<>("RandomRotate", 0.0, 0.0, 5.0, 1).setDescription("Randomize rotations to simulate real rotations").setParent(rotate);
 
     // anti-cheat category
     public static Setting<Hand> swing = new Setting<>("Swing", Hand.MAINHAND).setDescription("Hand to swing");
@@ -104,20 +104,20 @@ public class AuraModule extends Module {
 
     // pause category
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause");
-    public static Setting<Double> pauseHealth = new Setting<>("Health", 0.0, 2.0, 36.0, 0).setDescription("Pause when below this health").setParent(pause);
-    public static Setting<Boolean> pauseEating = new Setting<>("Eating", false).setDescription("Pause when eating").setParent(pause);
-    public static Setting<Boolean> pauseMining = new Setting<>("Mining", true).setDescription("Pause when mining").setParent(pause);
-    public static Setting<Boolean> pauseMending = new Setting<>("Mending", false).setDescription("Pause when mending").setParent(pause);
+    public static Setting<Double> pauseHealth = new Setting<>("PauseHealth", 0.0, 2.0, 36.0, 0).setDescription("Pause when below this health").setParent(pause);
+    public static Setting<Boolean> pauseEating = new Setting<>("PauseEating", false).setDescription("Pause when eating").setParent(pause);
+    public static Setting<Boolean> pauseMining = new Setting<>("PauseMining", true).setDescription("Pause when mining").setParent(pause);
+    public static Setting<Boolean> pauseMending = new Setting<>("PauseMending", false).setDescription("Pause when mending").setParent(pause);
 
     // switch category
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to weapon");
 
     // target category
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Boolean> targetPlayers = new Setting<>("Players", true).setDescription("Target players").setParent(target);
-    public static Setting<Boolean> targetPassives = new Setting<>("Passives", false).setDescription("Target passives").setParent(target);
-    public static Setting<Boolean> targetNeutrals = new Setting<>("Neutrals", false).setDescription("Target neutrals").setParent(target);
-    public static Setting<Boolean> targetHostiles = new Setting<>("Hostiles", false).setDescription("Target hostiles").setParent(target);
+    public static Setting<Boolean> targetPlayers = new Setting<>("TargetPlayers", true).setDescription("Target players").setParent(target);
+    public static Setting<Boolean> targetPassives = new Setting<>("TargetPassives", false).setDescription("Target passives").setParent(target);
+    public static Setting<Boolean> targetNeutrals = new Setting<>("TargetNeutrals", false).setDescription("Target neutrals").setParent(target);
+    public static Setting<Boolean> targetHostiles = new Setting<>("TargetHostiles", false).setDescription("Target hostiles").setParent(target);
 
     // render category
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual over the target");

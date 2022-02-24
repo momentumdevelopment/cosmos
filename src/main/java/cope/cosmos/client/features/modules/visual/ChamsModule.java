@@ -6,6 +6,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
@@ -13,8 +14,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -48,14 +47,7 @@ public class ChamsModule extends Module {
     public static Setting<Boolean> transparent = new Setting<>("Transparent", true).setDescription("Makes entity models transparent");
     public static Setting<Boolean> depth = new Setting<>("Depth", true).setDescription("Enables entity depth");
     public static Setting<Boolean> walls = new Setting<>("Walls", true).setDescription("Renders chams models through walls");
-
-    // colors
-    public static Setting<Boolean> xqz = new Setting<>("XQZ", true).setDescription("Colors chams models through walls");
-    public static Setting<Color> xqzColor = new Setting<>("XQZColor", new Color(0, 70, 250, 50)).setDescription("Color of models through walls").setParent(xqz);
-
-    public static Setting<Boolean> highlight = new Setting<>("Highlight", true).setDescription("Colors chams models when visible");
-    public static Setting<Color> highlightColor = new Setting<>("HighlightColor", new Color(250, 0, 250, 50)).setDescription("Color of models when visible").setParent(highlight);
-
+    
     // texture for enchantment glint
     private final ResourceLocation GLINT_TEXTURE = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
@@ -116,9 +108,7 @@ public class ChamsModule extends Module {
             glLineWidth(width.getValue().floatValue());
 
             // color the model (walls)
-            if (xqz.getValue()) {
-                glColor4d(xqzColor.getValue().getRed() / 255F, xqzColor.getValue().getGreen() / 255F, xqzColor.getValue().getBlue() / 255F, xqzColor.getValue().getAlpha() / 255F);
-            }
+            glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
             // render the model
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
@@ -134,10 +124,7 @@ public class ChamsModule extends Module {
             }
 
             // color the model (non-walls)
-            if (highlight.getValue()) {
-                Color modeColor = mode.getValue().equals(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue();
-                glColor4d(modeColor.getRed() / 255F, modeColor.getGreen() / 255F, modeColor.getBlue() / 255F, modeColor.getAlpha() / 255F);
-            }
+            glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
 
             // render the model
             event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
@@ -272,9 +259,7 @@ public class ChamsModule extends Module {
             glLineWidth(width.getValue().floatValue());
 
             // color the model (walls)
-            if (xqz.getValue()) {
-                glColor4d(xqzColor.getValue().getRed() / 255F, xqzColor.getValue().getGreen() / 255F, xqzColor.getValue().getBlue() / 255F, xqzColor.getValue().getAlpha() / 255F);
-            }
+            glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
             // render the model
             if (event.getEntityEnderCrystal().shouldShowBottom()) {
@@ -295,10 +280,8 @@ public class ChamsModule extends Module {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
 
-            if (highlight.getValue()) {
-                Color modeColor = mode.getValue().equals(Mode.WIRE_MODEL) ? new Color(xqzColor.getValue().getRed(), xqzColor.getValue().getGreen(), xqzColor.getValue().getBlue(), 255) : highlightColor.getValue();
-                glColor4d(modeColor.getRed() / 255F, modeColor.getGreen() / 255F, modeColor.getBlue() / 255F, modeColor.getAlpha() / 255F);
-            }
+            glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
+
             if (event.getEntityEnderCrystal().shouldShowBottom()) {
                 event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
             }

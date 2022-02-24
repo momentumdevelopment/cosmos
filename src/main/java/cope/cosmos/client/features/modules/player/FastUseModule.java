@@ -42,8 +42,8 @@ public class FastUseModule extends Module {
 
     // packet use
     public static Setting<Boolean> packetUse = new Setting<>("PacketUse", false).setDescription("Uses packets when using items");
-    public static Setting<Boolean> packetFood = new Setting<>("Food", false).setDescription("Uses packets when eating food").setParent(packetUse);
-    public static Setting<Boolean> packetPotion = new Setting<>("Potions", true).setDescription("Uses packets when drinking potions").setParent(packetUse);
+    public static Setting<Boolean> packetFood = new Setting<>("PacketFood", false).setDescription("Uses packets when eating food").setParent(packetUse);
+    public static Setting<Boolean> packetPotion = new Setting<>("PacketPotions", true).setDescription("Uses packets when drinking potions").setParent(packetUse);
 
     // valid items
     public static Setting<Boolean> exp = new Setting<>("EXP", true).setDescription("Applies fast placements to experience");

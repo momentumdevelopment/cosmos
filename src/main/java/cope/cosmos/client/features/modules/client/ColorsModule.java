@@ -23,10 +23,10 @@ public class ColorsModule extends Module {
 
     // rainbow config
     public static Setting<Rainbow> rainbow = new Setting<>("Rainbow", Rainbow.NONE).setDescription("Add a rainbow effect to the client color");
-    public static Setting<Double> speed = new Setting<>("Speed", 0.1, 50.0, 100.0, 1).setParent(rainbow).setDescription("Speed of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
-    public static Setting<Double> saturation = new Setting<>("Saturation", 0.01, 0.35, 1.0, 2).setParent(rainbow).setDescription("Saturation of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
-    public static Setting<Double> brightness = new Setting<>("Brightness", 0.01, 1.0, 1.0, 2).setParent(rainbow).setDescription( "Brightness of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
-    public static Setting<Double> difference = new Setting<>("Difference", 0.1, 40.0, 100.0, 1).setParent(rainbow).setDescription("Difference offset of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
+    public static Setting<Double> speed = new Setting<>("RainbowSpeed", 0.1, 50.0, 100.0, 1).setParent(rainbow).setDescription("Speed of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
+    public static Setting<Double> saturation = new Setting<>("RainbowSaturation", 0.01, 0.35, 1.0, 2).setParent(rainbow).setDescription("Saturation of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
+    public static Setting<Double> brightness = new Setting<>("RainbowBrightness", 0.01, 1.0, 1.0, 2).setParent(rainbow).setDescription( "Brightness of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
+    public static Setting<Double> difference = new Setting<>("RainbowDifference", 0.1, 40.0, 100.0, 1).setParent(rainbow).setDescription("Difference offset of the rainbow").setVisible(() -> !rainbow.getValue().equals(Rainbow.NONE));
 
     public enum Rainbow {
 

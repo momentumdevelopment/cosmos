@@ -39,11 +39,11 @@ public class ElytraFlightModule extends Module {
     public static Setting<Boolean> lockRotation = new Setting<>("LockRotation", false).setDescription("Locks rotation and flies in a straight path");
 
     public static Setting<Boolean> takeOff = new Setting<>("TakeOff", false).setDescription("Easier takeoff");
-    public static Setting<Double> takeOffTimer = new Setting<>("Timer", 0.0, 0.2, 1.0, 2).setDescription("Timer ticks when taking off").setParent(takeOff);
+    public static Setting<Double> takeOffTimer = new Setting<>("StartTimer", 0.0, 0.2, 1.0, 2).setDescription("Timer ticks when taking off").setParent(takeOff);
 
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("Pause elytra flight when");
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", true).setDescription("When in liquid").setParent(pause);
-    public static Setting<Boolean> pauseCollision = new Setting<>("Collision", false).setDescription("When colliding").setParent(pause);
+    public static Setting<Boolean> pauseLiquid = new Setting<>("PauseLiquid", true).setDescription("When in liquid").setParent(pause);
+    public static Setting<Boolean> pauseCollision = new Setting<>("PauseCollision", false).setDescription("When colliding").setParent(pause);
 
     @SubscribeEvent
     public void onTravel(TravelEvent event) {

@@ -48,9 +48,9 @@ public class OffhandModule extends Module {
     public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
 
     public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause and use a totem");
-    public static Setting<Boolean> pauseLiquid = new Setting<>("Liquid", false).setDescription("When in liquid").setParent(pause);
-    public static Setting<Boolean> pauseAir = new Setting<>("Air", true).setDescription("When falling or flying").setParent(pause);
-    public static Setting<Boolean> pauseElytra = new Setting<>("Elytra", true).setDescription("When elytra flying").setParent(pause);
+    public static Setting<Boolean> pauseLiquid = new Setting<>("PauseLiquid", false).setDescription("When in liquid").setParent(pause);
+    public static Setting<Boolean> pauseAir = new Setting<>("PauseAir", true).setDescription("When falling or flying").setParent(pause);
+    public static Setting<Boolean> pauseElytra = new Setting<>("PauseElytra", true).setDescription("When elytra flying").setParent(pause);
 
     // offhand stage
     private Stage stage = Stage.IDLE;

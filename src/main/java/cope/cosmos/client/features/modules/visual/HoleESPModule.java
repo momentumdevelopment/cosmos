@@ -27,13 +27,13 @@ public class HoleESPModule extends Module {
 
     // fill block rendering
     public static Setting<Box> main = new Setting<>("Main", Box.FILL).setDescription("Visual style for the main render").setExclusion(Box.OUTLINE, Box.CLAW, Box.BOTH);
-    public static Setting<Double> mainHeight = new Setting<>("Height", -1.0, 0.1, 3.0, 1).setDescription("Height of the main render").setParent(main);
-    public static Setting<Double> mainWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the main render").setVisible(() -> main.getValue().equals(Box.BOTH) || main.getValue().equals(Box.CLAW) || main.getValue().equals(Box.OUTLINE)).setParent(main);
+    public static Setting<Double> mainHeight = new Setting<>("MainHeight", -1.0, 0.1, 3.0, 1).setDescription("Height of the main render").setParent(main);
+    public static Setting<Double> mainWidth = new Setting<>("MainWidth", 0.0, 1.5, 3.0, 1).setDescription("Line width of the main render").setVisible(() -> main.getValue().equals(Box.BOTH) || main.getValue().equals(Box.CLAW) || main.getValue().equals(Box.OUTLINE)).setParent(main);
 
     // outline block rendering
     public static Setting<Box> outline = new Setting<>("Outline", Box.OUTLINE).setDescription("Visual style for the outline render").setExclusion(Box.GLOW, Box.REVERSE, Box.FILL, Box.BOTH);
-    public static Setting<Double> outlineHeight = new Setting<>("Height", -1.0, 0.1, 3.0, 1).setDescription("Height of the outline render").setParent(outline);
-    public static Setting<Double> outlineWidth = new Setting<>("Width", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> outline.getValue().equals(Box.BOTH) || outline.getValue().equals(Box.CLAW) || outline.getValue().equals(Box.OUTLINE)).setParent(outline);
+    public static Setting<Double> outlineHeight = new Setting<>("OutlineHeight", -1.0, 0.1, 3.0, 1).setDescription("Height of the outline render").setParent(outline);
+    public static Setting<Double> outlineWidth = new Setting<>("OutlineWidth", 0.0, 1.5, 3.0, 1).setDescription("Line width of the outline render").setVisible(() -> outline.getValue().equals(Box.BOTH) || outline.getValue().equals(Box.CLAW) || outline.getValue().equals(Box.OUTLINE)).setParent(outline);
 
     // general render settings
     public static Setting<Boolean> depth = new Setting<>("Depth", true).setDescription("Enables vanilla depth");
@@ -45,6 +45,7 @@ public class HoleESPModule extends Module {
 
     // colors
     public static Setting<Boolean> colors = new Setting<>("Colors", true).setDescription("Colors for the rendering");
+    public static Setting<Boolean> colorSync = new Setting<>("ColorSync", true).setDescription("Syncs holes colors to client colors");
     public static Setting<Color> obsidianColor = new Setting<>("Obsidian", ColorUtil.getPrimaryAlphaColor(45)).setDescription("Color of the obsidian holes").setParent(colors);
     public static Setting<Color> mixedColor = new Setting<>("Mixed", ColorUtil.getPrimaryAlphaColor(45)).setDescription("Color of the mixed holes").setParent(colors);
     public static Setting<Color> bedrockColor = new Setting<>("Bedrock", ColorUtil.getPrimaryAlphaColor(45)).setDescription("Color of the bedrock holes").setParent(colors);
@@ -82,7 +83,7 @@ public class HoleESPModule extends Module {
                                 .height(mainHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(obsidianColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                 .box(main.getValue()).setup()
                                 .line(mainWidth.getValue().floatValue())
                                 .cull(main.getValue().equals(Box.GLOW) || main.getValue().equals(Box.REVERSE))
@@ -98,7 +99,7 @@ public class HoleESPModule extends Module {
                                 .height(outlineHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(obsidianColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                 .box(outline.getValue())
                                 .setup()
                                 .line(outlineWidth.getValue().floatValue())
@@ -117,7 +118,7 @@ public class HoleESPModule extends Module {
                                 .height(mainHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(mixedColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                 .box(main.getValue())
                                 .setup()
                                 .line(mainWidth.getValue().floatValue())
@@ -134,7 +135,7 @@ public class HoleESPModule extends Module {
                                 .height(outlineHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(mixedColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                 .box(outline.getValue())
                                 .setup()
                                 .line(outlineWidth.getValue().floatValue())
@@ -153,7 +154,7 @@ public class HoleESPModule extends Module {
                                 .height(mainHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(bedrockColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                 .box(main.getValue())
                                 .setup()
                                 .line(mainWidth.getValue().floatValue())
@@ -170,7 +171,7 @@ public class HoleESPModule extends Module {
                                 .height(outlineHeight.getValue() - 1)
                                 .length(0)
                                 .width(0)
-                                .color(bedrockColor.getValue())
+                                .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                 .box(outline.getValue())
                                 .setup()
                                 .line(outlineWidth.getValue().floatValue())
@@ -194,7 +195,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -211,7 +212,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -230,7 +231,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -247,7 +248,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -266,7 +267,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -283,7 +284,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(0)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -302,7 +303,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -319,7 +320,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -338,7 +339,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -355,7 +356,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -374,7 +375,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -391,7 +392,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(0)
                                     .width(1)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -416,7 +417,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -433,7 +434,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(obsidianColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : obsidianColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -452,7 +453,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -469,7 +470,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(bedrockColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : bedrockColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())
@@ -488,7 +489,7 @@ public class HoleESPModule extends Module {
                                     .height(mainHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(main.getValue())
                                     .setup()
                                     .line(mainWidth.getValue().floatValue())
@@ -505,7 +506,7 @@ public class HoleESPModule extends Module {
                                     .height(outlineHeight.getValue() - 1)
                                     .length(1)
                                     .width(1)
-                                    .color(mixedColor.getValue())
+                                    .color(colorSync.getValue() ? ColorUtil.getPrimaryAlphaColor(45) : mixedColor.getValue())
                                     .box(outline.getValue())
                                     .setup()
                                     .line(outlineWidth.getValue().floatValue())

@@ -24,7 +24,7 @@ public class TracersModule extends Module {
     public static Setting<Boolean> mobs = new Setting<>("Mobs", false).setDescription("Draw lines to monsters");
 
     // Other
-    public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1F, 0.5F, 1.5F, 1).setDescription("How thick to render the lines");
+    public static Setting<Float> width = new Setting<>("Width", 0.1F, 0.5F, 1.5F, 1).setDescription("How thick to render the lines");
     public static Setting<To> to = new Setting<>("To", To.BODY).setDescription("Where to draw the line to");
 
     public TracersModule() {
@@ -55,7 +55,7 @@ public class TracersModule extends Module {
                 Vec3d entityVector = new Vec3d(interpolatedPosition.x - mc.getRenderManager().viewerPosX, interpolatedPosition.y - mc.getRenderManager().viewerPosY + addedHeight, interpolatedPosition.z - mc.getRenderManager().viewerPosZ);
 
                 // Draw tracer
-                RenderUtil.drawTracer(entityVector, lineWidth.getValue(), ColorUtil.getPrimaryColor());
+                RenderUtil.drawTracer(entityVector, width.getValue(), ColorUtil.getPrimaryColor());
             }
         });
     }
