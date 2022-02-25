@@ -116,6 +116,11 @@ public class HoleFillModule extends Module {
     }
 
     @Override
+    public boolean isActive() {
+        return isEnabled() && !fills.isEmpty();
+    }
+
+    @Override
     public void onRender3D() {
         // draw all fills
         if (render.getValue()) {
