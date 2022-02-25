@@ -229,7 +229,7 @@ public class AutoCrystalModule extends Module {
             }
 
             // make sure we are not already auto-placing
-            if (HoleFillModule.INSTANCE.isActive() || BurrowModule.INSTANCE.isActive()) {
+            if (BurrowModule.INSTANCE.isActive()) {
                 resetProcess();
 
                 // wait some ticks before resuming

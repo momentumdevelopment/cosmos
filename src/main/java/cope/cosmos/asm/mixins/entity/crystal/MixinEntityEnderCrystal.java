@@ -1,22 +1,16 @@
-package cope.cosmos.asm.mixins.entity;
+package cope.cosmos.asm.mixins.entity.crystal;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.combat.CrystalAttackEvent;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.util.DamageSource;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@SuppressWarnings("unused")
 @Mixin(EntityEnderCrystal.class)
-public abstract class MixinEntityEnderCrystal extends Entity {
-    public MixinEntityEnderCrystal(World worldIn) {
-        super(worldIn);
-    }
+public class MixinEntityEnderCrystal {
 
     @Inject(method = "attackEntityFrom", at = @At("RETURN"), cancellable = true)
     public void attackEntityFrom(DamageSource source, float amount, CallbackInfoReturnable<Boolean> info) {

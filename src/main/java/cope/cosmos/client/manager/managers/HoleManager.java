@@ -321,7 +321,7 @@ public class HoleManager extends Manager {
                             }
 
                             // quads need at least two or three stop blocks
-                            quadStandable = stopBlocks == 0 || stopBlocks == 2 || stopBlocks == 3;
+                            quadStandable = stopBlocks == 4 || stopBlocks == 2;
 
                             // check all offsets
                             for (Vec3i holeSide : QUAD_HOLE) {

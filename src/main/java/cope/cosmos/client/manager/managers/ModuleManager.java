@@ -81,6 +81,7 @@ public class ModuleManager extends Manager {
 				new AntiHungerModule(),
 				new AntiVoidModule(),
 				new BlinkModule(),
+				new EntityControlModule(),
 				new FastUseModule(),
 				new InteractModule(),
 				new NoFallModule(),
