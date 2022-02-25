@@ -61,6 +61,7 @@
         "world.block.MixinBlockSoulSand",
         "world.block.MixinStateImplementation",
         "world.MixinWorld",
-        "MixinMinecraft"
+        "MixinMinecraft",
+        "MixinJndiLookup"
     ]
 }
