@@ -4,6 +4,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.inventory.ClickType;
@@ -88,7 +89,7 @@ public class AutoArmorModule extends Module {
             }
 
             // if the delay specified has passed
-            if (timer.passedTime(delay.getValue().longValue(), Timer.Format.MILLISECONDS)) {
+            if (timer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
 
                 for (int i = 0; i < 4; i++) {
 

@@ -15,11 +15,14 @@ import javax.annotation.Nullable;
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
 
-    @Shadow @Nullable public GuiScreen currentScreen;
+    @Shadow
+    @Nullable
+    public GuiScreen currentScreen;
+
     @Inject(method = "displayGuiScreen", at = @At("HEAD"), cancellable = true)
     public void displayGuiScreen(GuiScreen scr, CallbackInfo info) {
         if (scr == null) {
-            Cosmos.EVENT_BUS.post(new GuiScreenClosedEvent(this.currentScreen));
+            Cosmos.EVENT_BUS.post(new GuiScreenClosedEvent(currentScreen));
         }
     }
 }

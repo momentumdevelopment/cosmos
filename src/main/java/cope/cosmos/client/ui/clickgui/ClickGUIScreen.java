@@ -32,10 +32,12 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
 
     // list of windows
     private final LinkedList<CategoryFrameComponent> categoryFrameComponents = new LinkedList<>();
+
+    // scissor stack
     private final ScissorStack scissorStack = new ScissorStack();
 
     // taskbar
-    Taskbar taskbar = new Taskbar();
+    private final Taskbar taskbar = new Taskbar();
 
     public ClickGUIScreen() {
         // add all categories

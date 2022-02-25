@@ -7,13 +7,20 @@ import cope.cosmos.client.manager.managers.HoleManager.Hole;
 import cope.cosmos.client.manager.managers.HoleManager.Type;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
-import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.holder.Rotation.Rotate;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
+import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.string.ColorUtil;
 import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Set;
 
@@ -21,7 +28,6 @@ import java.util.Set;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class HoleFillModule extends Module {
     public static HoleFillModule INSTANCE;
 
@@ -37,24 +43,26 @@ public class HoleFillModule extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to block");
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
 
+    // general
     public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
-    public static Setting<Boolean> safety = new Setting<>("Safety", false).setDescription("Makes sure you are not the closest player for the current hole fill");
+    public static Setting<Boolean> safety = new Setting<>("Safety", false).setDescription("Makes sure you are not the closest player for the current hole fill").setVisible(() -> mode.getValue().equals(Filler.TARGETED));
     public static Setting<Boolean> doubles = new Setting<>("Doubles", true).setDescription("Fills in double holes");
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
 
+    // target
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Double> targetRange = new Setting<>("Range", 0.0, 10.0, 15.0, 0).setDescription("Range to consider a player a target").setParent(target);
+    public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0).setDescription("Range to consider a player a target").setParent(target);
     public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1).setDescription("Target's distance from hole for it to be considered fill-able").setParent(target).setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the filling process");
-    public static Setting<Box> renderMode = new Setting<>("Mode", Box.FILL).setDescription("Style of the visual").setParent(render);
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL).setDescription("Style of the visual").setParent(render);
 
     // fills
     private Set<Hole> fills = new ConcurrentSet<>();
 
     // block info
-    private int blocksPlaced = 0;
+    private int blocksPlaced;
 
     @Override
     public void onThread() {
@@ -63,6 +71,9 @@ public class HoleFillModule extends Module {
 
     @Override
     public void onUpdate() {
+        // we haven't placed any blocks on this tick
+        blocksPlaced = 0;
+
         // if we already filled in all the holes, then we can disable
         if (fills.isEmpty() && completion.getValue().equals(Completion.COMPLETION)) {
             disable(true);
@@ -95,59 +106,138 @@ public class HoleFillModule extends Module {
         }
     }
 
+    @Override
+    public void onDisable() {
+        super.onDisable();
+
+        // reset process
+        fills.clear();
+        blocksPlaced = 0;
+    }
+
+    @Override
+    public void onRender3D() {
+        // draw all fills
+        if (render.getValue()) {
+            if (!fills.isEmpty()) {
+                fills.forEach(fill -> {
+                    RenderUtil.drawBox(new RenderBuilder()
+                            .position(fill.getHole())
+                            .color(ColorUtil.getPrimaryAlphaColor(60))
+                            .box(renderMode.getValue())
+                            .setup()
+                            .line(1.5F)
+                            .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                            .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                            .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
+                            .depth(true)
+                            .blend()
+                            .texture()
+                    );
+
+                    RenderUtil.drawNametag(
+                            fill.getHole(), 0.5F, "Fill"
+                    );
+                });
+            }
+        }
+    }
+
+    /**
+     * Searches for valid hole fills
+     * @return Set containing all valid hole fills for the current tick
+     */
     public Set<Hole> searchFills() {
+
         // list of found fills
         Set<Hole> searchedFills = new ConcurrentSet<>();
 
-        for (EntityPlayer player : mc.world.playerEntities) {
+        if (mode.getValue().equals(Filler.TARGETED)) {
 
-            // make sure the entity is valid to fill
-            if (player == null || player == mc.player || player.isDead || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
-                continue;
-            }
+            for (EntityPlayer player : mc.world.playerEntities) {
 
-            // verify that the target is within fill distance
-            double targetDistance = mc.player.getDistance(player);
-            if (targetDistance > targetRange.getValue()) {
-                continue;
+                // make sure the entity is valid to fill
+                if (player == null || player == mc.player || EnemyUtil.isDead(player) || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
+                    continue;
+                }
+
+                // verify that the target is within fill distance
+                double targetDistance = mc.player.getDistance(player);
+                if (targetDistance > targetRange.getValue()) {
+                    continue;
+                }
+
+                for (Hole hole : getCosmos().getHoleManager().getHoles()) {
+
+                    // position for the hole
+                    BlockPos holePosition = hole.getHole();
+
+                    // check to see if any entities are in the hole
+                    if (mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(holePosition)).isEmpty()) {
+
+                        // check if the hole is in range to be filled
+                        double holeDistance = mc.player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ());
+                        if (holeDistance > range.getValue()) {
+                            continue;
+                        }
+
+                        // not worthwhile filling quad holes, just creates more holes
+                        if (hole.isQuad() || hole.getType().equals(Type.VOID)) {
+                            continue;
+                        }
+
+                        // check if the hole is a double hole
+                        if (hole.isDouble() && !doubles.getValue()) {
+                            continue;
+                        }
+
+                        // target's distance from the hole
+                        double holeTargetDistance = player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ());
+
+                        // targeted fill, check if the target is near the hole
+                        if (holeTargetDistance > targetThreshold.getValue()) {
+                            continue;
+                        }
+
+                        // check safety
+                        if (holeDistance < holeTargetDistance && safety.getValue()) {
+                            continue;
+                        }
+
+                        searchedFills.add(hole);
+                    }
+                }
             }
+        }
+
+        else if (mode.getValue().equals(Filler.ALL)) {
 
             for (Hole hole : getCosmos().getHoleManager().getHoles()) {
 
-                // check if the hole is in range to be filled
-                double holeDistance = Math.sqrt(mc.player.getDistanceSq(hole.getHole()));
-                if (holeDistance > range.getValue()) {
-                    continue;
-                }
+                // position for the hole
+                BlockPos holePosition = hole.getHole();
 
-                // not worthwhile filling quad holes, just creates more holes
-                if (hole.isQuad() || hole.getType().equals(Type.VOID)) {
-                    continue;
-                }
+                // check to see if any entities are in the hole
+                if (mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(holePosition)).isEmpty()) {
 
-                // check if the hole is a double hole
-                if (hole.isDouble() && !doubles.getValue()) {
-                    continue;
-                }
-
-                // target's distance from the hole
-                double holeTargetDistance = Math.sqrt(player.getDistanceSq(hole.getHole()));
-
-                // targeted fill
-                if (mode.getValue().equals(Filler.TARGETED)) {
-
-                    // check if the target is near the hole
-                    if (holeTargetDistance > targetThreshold.getValue()) {
+                    // check if the hole is in range to be filled
+                    double holeDistance = mc.player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ());
+                    if (holeDistance > range.getValue()) {
                         continue;
                     }
-                }
 
-                // check safety
-                if (holeDistance < holeTargetDistance && safety.getValue()) {
-                    continue;
-                }
+                    // not worthwhile filling quad holes, just creates more holes
+                    if (hole.isQuad() || hole.getType().equals(Type.VOID)) {
+                        continue;
+                    }
 
-                searchedFills.add(hole);
+                    // check if the hole is a double hole
+                    if (hole.isDouble() && !doubles.getValue()) {
+                        continue;
+                    }
+
+                    searchedFills.add(hole);
+                }
             }
         }
 
