@@ -161,6 +161,11 @@ public class HoleFillModule extends Module {
                     continue;
                 }
 
+                // don't fill if the target is already in a hole
+                if (getCosmos().getHoleManager().isHole(player.getPosition())) {
+                    continue;
+                }
+
                 // verify that the target is within fill distance
                 double targetDistance = mc.player.getDistance(player);
                 if (targetDistance > targetRange.getValue()) {
