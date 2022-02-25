@@ -34,7 +34,7 @@ public class Cosmos {
     // mod info
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.3.0";
 
     // start up time
     private long startupTime;
