@@ -7,6 +7,7 @@ import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 
@@ -81,7 +82,7 @@ public class NumberComponent extends SettingComponent<Number> {
 
                     // set the value based on the type
                     if (getSetting().getValue() instanceof Double) {
-                        double valueSlid = MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale());
+                        double valueSlid = MathHelper.clamp(MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale()), min.doubleValue(), max.doubleValue());
 
                         // exclude number
                         if (getSetting().isExclusion(valueSlid)) {
@@ -89,21 +90,12 @@ public class NumberComponent extends SettingComponent<Number> {
                         }
 
                         else {
-                            // Clamp value
-                            if (valueSlid < getSetting().getMin().doubleValue()) {
-                                valueSlid = getSetting().getMin().doubleValue();
-                            }
-
-                            if (valueSlid > getSetting().getMax().doubleValue()) {
-                                valueSlid = getSetting().getMax().doubleValue();
-                            }
-
                             getSetting().setValue(valueSlid);
                         }
                     }
 
                     else if (getSetting().getValue() instanceof Float) {
-                        float valueSlid = MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale());
+                        float valueSlid = MathHelper.clamp(MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale()), min.floatValue(), max.floatValue());
 
                         // exclude number
                         if (getSetting().isExclusion(valueSlid)) {
@@ -111,15 +103,6 @@ public class NumberComponent extends SettingComponent<Number> {
                         }
 
                         else {
-                            // Clamp value
-                            if (valueSlid < getSetting().getMin().floatValue()) {
-                                valueSlid = getSetting().getMin().floatValue();
-                            }
-
-                            if (valueSlid > getSetting().getMax().floatValue()) {
-                                valueSlid = getSetting().getMax().floatValue();
-                            }
-
                             getSetting().setValue(valueSlid);
                         }
                     }
