@@ -7,13 +7,14 @@ import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 
 import static org.lwjgl.opengl.GL11.glScaled;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 02/02/2022
  */
 public class NumberComponent extends SettingComponent<Number> {
@@ -81,7 +82,7 @@ public class NumberComponent extends SettingComponent<Number> {
 
                     // set the value based on the type
                     if (getSetting().getValue() instanceof Double) {
-                        double valueSlid = MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale());
+                        double valueSlid = MathHelper.clamp(MathUtil.roundDouble(percentFilled * ((max.doubleValue() - min.doubleValue()) / 130.0D) + min.doubleValue(), getSetting().getRoundingScale()), min.doubleValue(), max.doubleValue());
 
                         // exclude number
                         if (getSetting().isExclusion(valueSlid)) {
@@ -94,7 +95,7 @@ public class NumberComponent extends SettingComponent<Number> {
                     }
 
                     else if (getSetting().getValue() instanceof Float) {
-                        float valueSlid = MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale());
+                        float valueSlid = MathHelper.clamp(MathUtil.roundFloat(percentFilled * (float) ((max.floatValue() - min.floatValue()) / 130.0D) + min.floatValue(), getSetting().getRoundingScale()), min.floatValue(), max.floatValue());
 
                         // exclude number
                         if (getSetting().isExclusion(valueSlid)) {
@@ -120,7 +121,7 @@ public class NumberComponent extends SettingComponent<Number> {
         }
 
         // slider length
-        float sliderWidth = (getModuleComponent().getCategoryFrameComponent().getWidth() - 10) * (getSetting().getValue().floatValue() / getSetting().getMax().floatValue());
+        float sliderWidth = 91 * (getSetting().getValue().floatValue() - getSetting().getMin().floatValue()) / (getSetting().getMax().floatValue() - getSetting().getMin().floatValue());
 
         // clamp
         if (sliderWidth < 2) {
@@ -135,7 +136,7 @@ public class NumberComponent extends SettingComponent<Number> {
         RenderUtil.drawRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + 6, featureHeight + 14, getModuleComponent().getCategoryFrameComponent().getWidth() - 10, 3, 2, new Color(23 + hoverAnimation, 23 + hoverAnimation, 29 + hoverAnimation, 255));
 
         if (getSetting().getValue().doubleValue() > getSetting().getMin().doubleValue()) {
-            RenderUtil.drawRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + 6, featureHeight + 14, sliderWidth - 2, 3, 2, ColorUtil.getPrimaryAlphaColor(255));
+            RenderUtil.drawRoundedRect(getModuleComponent().getCategoryFrameComponent().getPosition().x + 6, featureHeight + 14, sliderWidth, 3, 2, ColorUtil.getPrimaryAlphaColor(255));
         }
 
         // RenderUtil.drawPolygon(getModuleComponent().getCategoryFrameComponent().getPosition().x + 4 + sliderWidth, featureHeight + 15.5, 2, 360, ColorUtil.getPrimaryColor());
