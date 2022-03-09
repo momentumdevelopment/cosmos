@@ -6,16 +6,21 @@ import club.minnced.discord.rpc.DiscordRichPresence;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.combat.AutoCrystalModule;
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.util.Wrapper;
 
 import java.util.Random;
 
-public class PresenceManager extends Manager implements Wrapper {
+/**
+ * @author linustouchtips, bon55
+ * @since 06/08/2021
+ */
+public class PresenceManager extends Manager {
 
+    // discord stuff
     private static final DiscordRPC discordPresence = DiscordRPC.INSTANCE;
     private static final DiscordRichPresence richPresence = new DiscordRichPresence();
     private static final DiscordEventHandlers presenceHandlers = new DiscordEventHandlers();
 
+    // discord presence thread
     private static Thread presenceThread;
 
     public PresenceManager() {
@@ -48,7 +53,7 @@ public class PresenceManager extends Manager implements Wrapper {
             "Cracking latest konas :yawn:",
             "Autoduping on eliteanarchy.org",
             "Tater",
-            "I am a " + ((AutoCrystalModule.placeDamage.getValue() < 4) ? "faggot." : "good config person :)"),
+            "I am a " + ((AutoCrystalModule.damage.getValue() < 4) ? "faggot." : "good config person :)"),
             "Injecting estrogen",
             "Releasing Pyro 1.5",
             "Stealing Quill's pyro account",
@@ -88,11 +93,17 @@ public class PresenceManager extends Manager implements Wrapper {
             "Average cosmos user"
     };
 
+    /**
+     * Starts the discord presence
+     */
     public static void startPresence() {
+
+        // startup
         discordPresence.Discord_Initialize("832656395609440277", presenceHandlers, true, "");
         richPresence.startTimestamp = System.currentTimeMillis() / 1000L;
         discordPresence.Discord_UpdatePresence(richPresence);
 
+        // run on new thread LOL
         presenceThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -103,6 +114,8 @@ public class PresenceManager extends Manager implements Wrapper {
                     richPresence.details = mc.isIntegratedServerRunning() ? "SinglePlayer" : (mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP.toLowerCase() : "Menus");
                     richPresence.state = presenceDetails[new Random().nextInt(presenceDetails.length)];
                     discordPresence.Discord_UpdatePresence(richPresence);
+
+                    // update every 3 seconds
                     Thread.sleep(3000);
                 } catch (Exception ignored) {
 
@@ -113,15 +126,23 @@ public class PresenceManager extends Manager implements Wrapper {
         presenceThread.start();
     }
 
+    /**
+     * Stops the discord presence
+     */
     public static void interruptPresence() {
         if (presenceThread != null && !presenceThread.isInterrupted()) {
             presenceThread.interrupt();
         }
 
+        // shutdown
         discordPresence.Discord_Shutdown();
         discordPresence.Discord_ClearPresence();
     }
 
+    /**
+     * Gets the presence details
+     * @return The presence details
+     */
     public static String[] getPresenceDetails() {
         return presenceDetails;
     }

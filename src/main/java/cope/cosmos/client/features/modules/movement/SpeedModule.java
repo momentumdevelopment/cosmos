@@ -79,6 +79,7 @@ public class SpeedModule extends Module {
         latestMoveSpeed = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
         if (friction.getValue().equals(Friction.STRICT)) {
@@ -221,6 +222,8 @@ public class SpeedModule extends Module {
                 // set the timer if the player is moving
                 else if (MotionUtil.isMoving()) {
                     getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
+
+                    // slight boost
                     event.setX(event.getX() * 1.02);
                     event.setZ(event.getZ() * 1.02);
                 }
@@ -356,10 +359,6 @@ public class SpeedModule extends Module {
 
             // the final move speed, finds the higher speed
             moveSpeed = Math.max(moveSpeed, baseSpeed);
-
-            if (mode.getValue().equals(Mode.STRAFE) || mode.getValue().equals(Mode.STRAFE_LOW)) {
-                moveSpeed = Math.min(moveSpeed, 0.551);
-            }
 
             // boost the move speed for 10 ticks
             if (velocityFactor.getValue() && boostTicks <= 10) {

@@ -56,6 +56,7 @@
         "render.tile.MixinTileEntityEnchantmentTableRenderer",
         "render.tile.MixinTileEntityRenderDispatcher",
         "render.MixinRender",
+        "render.MixinRenderGlobal",
         "world.block.MixinBlockLiquid",
         "world.block.MixinBlockSlime",
         "world.block.MixinBlockSoulSand",

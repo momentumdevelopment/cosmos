@@ -17,10 +17,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.Set;
 
 /**
- * @author aesthetical
+ * @author aesthetical, BleachDrinker420
  * @since 12/11/2021
- *
- * Credits to bleachhack for the updated new chunks
  */
 public class NewChunksModule extends Module {
     public static NewChunksModule INSTANCE;
@@ -71,6 +69,7 @@ public class NewChunksModule extends Module {
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         // packet for chunk data
         if (event.getPacket() instanceof SPacketChunkData) {
+
             // add it to our set if it's not been newly generated
             if (!((SPacketChunkData) event.getPacket()).isFullChunk()) {
                 chunks.add(new Vec2f(((SPacketChunkData) event.getPacket()).getChunkX() * 16, ((SPacketChunkData) event.getPacket()).getChunkZ() * 16));

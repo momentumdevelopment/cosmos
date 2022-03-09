@@ -11,11 +11,19 @@ import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 
+import java.awt.*;
+
 /**
  * @author Wolfsurge
  * @since 04/02/22
  */
 public class TracersModule extends Module {
+    public static TracersModule INSTANCE;
+
+    public TracersModule() {
+        super("Tracers", Category.VISUAL, "Draws lines to entities in the world");
+        INSTANCE = this;
+    }
 
     // Filters
     public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Draw lines to players");
@@ -27,15 +35,14 @@ public class TracersModule extends Module {
     public static Setting<Float> width = new Setting<>("Width", 0.1F, 0.5F, 1.5F, 1).setDescription("How thick to render the lines");
     public static Setting<To> to = new Setting<>("To", To.BODY).setDescription("Where to draw the line to");
 
-    public TracersModule() {
-        super("Tracers", Category.VISUAL, "Draws lines to entities in the world");
-    }
 
     @Override
     public void onRender3D() {
         // Draw lines to entities if they are valid
         mc.world.loadedEntityList.forEach(entity -> {
+
             if (isEntityValid(entity)) {
+
                 // Interpolated position of the entity
                 Vec3d interpolatedPosition = InterpolationUtil.getInterpolatedPosition(entity, mc.getRenderPartialTicks());
 
@@ -55,9 +62,27 @@ public class TracersModule extends Module {
                 Vec3d entityVector = new Vec3d(interpolatedPosition.x - mc.getRenderManager().viewerPosX, interpolatedPosition.y - mc.getRenderManager().viewerPosY + addedHeight, interpolatedPosition.z - mc.getRenderManager().viewerPosZ);
 
                 // Draw tracer
-                RenderUtil.drawTracer(entityVector, width.getValue(), ColorUtil.getPrimaryColor());
+                drawTracer(entityVector, width.getValue(), ColorUtil.getPrimaryColor());
             }
         });
+    }
+
+    /**
+     * Draws a tracer to the specified vector
+     * @param vecTo The vector to draw to
+     * @param lineWidth The line width of the tracer
+     * @param lineColor The line color of the tracer
+     */
+    public static void drawTracer(Vec3d vecTo, float lineWidth, Color lineColor) {
+
+        // position to draw to
+        Vec3d eyes = new Vec3d(0, 0, 1)
+                .rotatePitch(-((float) Math.toRadians(mc.player.rotationPitch))) // Rotate pitch
+                .rotateYaw(-((float) Math.toRadians(mc.player.rotationYaw))) // Rotate yaw
+                .addVector(0, mc.player.getEyeHeight(), 0); // Add player's eye height
+
+        // draw line
+        RenderUtil.drawLine3D(eyes, vecTo, lineColor, lineWidth);
     }
 
     /**
@@ -66,10 +91,7 @@ public class TracersModule extends Module {
      * @return If the entity is valid
      */
     public boolean isEntityValid(Entity entity) {
-        return entity instanceof EntityOtherPlayerMP && players.getValue() ||
-                EntityUtil.isPassiveMob(entity) && passive.getValue() ||
-                EntityUtil.isNeutralMob(entity) && neutrals.getValue() ||
-                EntityUtil.isHostileMob(entity) && mobs.getValue();
+        return entity instanceof EntityOtherPlayerMP && players.getValue() || EntityUtil.isPassiveMob(entity) && passive.getValue() || EntityUtil.isNeutralMob(entity) && neutrals.getValue() || EntityUtil.isHostileMob(entity) && mobs.getValue();
     }
 
     public enum To {

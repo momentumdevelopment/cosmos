@@ -557,7 +557,7 @@ public class PresetManager extends Manager {
         }
     }
 
-    // TODO: fix alt/GUI saving & loading
+    // TODO: fix GUI saving & loading
 
     /*
     public void saveGUI() {

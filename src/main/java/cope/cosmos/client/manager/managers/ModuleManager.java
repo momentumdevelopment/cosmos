@@ -93,6 +93,7 @@ public class ModuleManager extends Manager {
 				new SpeedMineModule(),
 
 				// visual
+				new BlockHighlightModule(),
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),
