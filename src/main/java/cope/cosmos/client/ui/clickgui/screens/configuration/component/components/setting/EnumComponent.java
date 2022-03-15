@@ -65,6 +65,7 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
 
     @Override
     public void onClick(ClickType in) {
+
         // move to the next mode if clicked
         if (in.equals(ClickType.LEFT) && isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT)) {
 

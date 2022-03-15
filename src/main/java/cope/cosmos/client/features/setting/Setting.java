@@ -123,7 +123,7 @@ public class Setting<T> extends Feature implements Wrapper {
 			Enum<?> enumVal = (Enum<?>) value;
 
 			// search all values
-			String[] values = Arrays.stream(enumVal.getClass().getEnumConstants()).map(Enum::name).toArray(String[]::new);
+			String[] values = Arrays.stream(enumVal.getClass().getEnumConstants()).filter(in -> !isExclusion((T) in)).map(Enum::name).toArray(String[]::new);
 			index = index + 1 > values.length - 1 ? 0 : index + 1;
 
 			// use value index
