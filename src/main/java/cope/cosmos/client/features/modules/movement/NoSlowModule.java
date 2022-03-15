@@ -20,6 +20,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -120,9 +121,10 @@ public class NoSlowModule extends Module {
 
         // if we are slowed, then send corresponding packets
         if (isSlowed()) {
+
             // Old NCP bypass
             if (placeStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(mc.objectMouseOver.getBlockPos(), EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(BlockPos.ORIGIN, EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
             }
         }
 
@@ -170,6 +172,7 @@ public class NoSlowModule extends Module {
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
             if (isSlowed()) {
+
                 // NCP bypass
                 if (strict.getValue()) {
                     mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
@@ -189,6 +192,7 @@ public class NoSlowModule extends Module {
         }
 
         if (event.getPacket() instanceof CPacketClickWindow) {
+
             // Updated NCP bypass for inventory move
             if (strict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING)); // rofl nice patch ncp devs
@@ -196,6 +200,7 @@ public class NoSlowModule extends Module {
         }
 
         if (event.getPacket() instanceof CPacketPlayerTryUseItem || event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
+
             // Updated NCP bypass
             if (switchStrict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
