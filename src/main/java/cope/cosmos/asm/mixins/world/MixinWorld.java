@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinWorld {
 
     @Inject(method = "checkLightFor", at = @At("HEAD"), cancellable = true)
-    public void checkLightFor(EnumSkyBlock lightType, BlockPos pos, CallbackInfoReturnable<Boolean> info) {
+    public void onCheckLightFor(EnumSkyBlock lightType, BlockPos pos, CallbackInfoReturnable<Boolean> info) {
         if (lightType.equals(EnumSkyBlock.SKY)) {
             RenderSkylightEvent renderSkylightEvent = new RenderSkylightEvent();
             Cosmos.EVENT_BUS.post(renderSkylightEvent);
@@ -44,7 +44,7 @@ public class MixinWorld {
     }
 
     @Inject(method = "spawnEntity", at = @At("RETURN"), cancellable = true)
-    public void spawnEntity(Entity entity, CallbackInfoReturnable<Boolean> info) {
+    public void onSpawnEntity(Entity entity, CallbackInfoReturnable<Boolean> info) {
         EntityWorldEvent.EntitySpawnEvent entitySpawnEvent = new EntityWorldEvent.EntitySpawnEvent(entity);
         Cosmos.EVENT_BUS.post(entitySpawnEvent);
 
@@ -54,7 +54,17 @@ public class MixinWorld {
     }
 
     @Inject(method = "removeEntity", at = @At("HEAD"), cancellable = true)
-    public void removeEntity(Entity entity, CallbackInfo info) {
+    public void onRemoveEntity(Entity entity, CallbackInfo info) {
+        EntityWorldEvent.EntityRemoveEvent entityRemoveEvent = new EntityWorldEvent.EntityRemoveEvent(entity);
+        Cosmos.EVENT_BUS.post(entityRemoveEvent);
+
+        if (entityRemoveEvent.isCanceled()) {
+            info.cancel();
+        }
+    }
+
+    @Inject(method = "removeEntityDangerously", at = @At("HEAD"), cancellable = true)
+    public void onRemoveEntityDangerously(Entity entity, CallbackInfo info) {
         EntityWorldEvent.EntityRemoveEvent entityRemoveEvent = new EntityWorldEvent.EntityRemoveEvent(entity);
         Cosmos.EVENT_BUS.post(entityRemoveEvent);
 
@@ -64,7 +74,7 @@ public class MixinWorld {
     }
 
     @Inject(method = "updateEntity", at = @At("HEAD"), cancellable = true)
-    public void updateEntity(Entity entity, CallbackInfo info) {
+    public void onUpdateEntity(Entity entity, CallbackInfo info) {
         EntityWorldEvent.EntityUpdateEvent entityUpdateEvent = new EntityWorldEvent.EntityUpdateEvent(entity);
         Cosmos.EVENT_BUS.post(entityUpdateEvent);
 
@@ -74,7 +84,7 @@ public class MixinWorld {
     }
 
     @Inject(method = "getSkyColor", at = @At("HEAD"), cancellable = true)
-    public void getSkyColor(Entity entityIn, float partialTicks, CallbackInfoReturnable<Vec3d> info) {
+    public void onGetSkyColor(Entity entityIn, float partialTicks, CallbackInfoReturnable<Vec3d> info) {
         RenderSkyEvent renderSkyEvent = new RenderSkyEvent();
         Cosmos.EVENT_BUS.post(renderSkyEvent);
 

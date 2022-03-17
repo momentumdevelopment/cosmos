@@ -2,6 +2,7 @@ package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.ui.util.InterfaceWrapper;
+import cope.cosmos.client.ui.util.ScissorStack;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -12,6 +13,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
+
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
+import static org.lwjgl.opengl.GL11.glDisable;
 
 /**
  * @author Wolfsurge
@@ -24,6 +28,8 @@ public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
 
     // Offset of the entries
     public static float altEntryOffset = 41;
+
+    private final ScissorStack scissorStack = new ScissorStack();
 
     public AltManagerGUI(GuiScreen lastScreen) {
         this.lastScreen = lastScreen;
@@ -58,7 +64,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
         RenderUtil.drawRect((scaledResolution.getScaledWidth() / 2f) - 155, 36, 310, scaledResolution.getScaledHeight() - 38, 0x90000000);
 
         // Scissor around alt entries
-        RenderUtil.scissor((scaledResolution.getScaledWidth() / 2f) - 151, 40, (scaledResolution.getScaledWidth() / 2f) + 151, scaledResolution.getScaledHeight() - 24);
+        scissorStack.pushScissor((scaledResolution.getScaledWidth() / 2) - 151, 40, (scaledResolution.getScaledWidth() / 2) + 151, scaledResolution.getScaledHeight() - 24);
 
         // Draw alt entries
         Cosmos.INSTANCE.getAltManager().getAltEntries().forEach(entry -> {
@@ -66,7 +72,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
         });
         
         // Stop scissoring
-        RenderUtil.endScissor();
+        scissorStack.popScissor();
 
         // Display 'No alts!' if there are no alt entries
         if (Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {

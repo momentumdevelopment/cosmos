@@ -38,7 +38,7 @@ public class AutoArmorModule extends Module {
     };
 
     // a timer for waiting to do the next action
-    private final Timer timer = new Timer();
+    private final Timer armorTimer = new Timer();
 
     @Override
     public void onDisable() {
@@ -88,19 +88,16 @@ public class AutoArmorModule extends Module {
                 }
             }
 
-            // if the delay specified has passed
-            if (timer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
+            for (int i = 0; i < 4; i++) {
 
-                for (int i = 0; i < 4; i++) {
+                // if the delay specified has passed
+                if (armorTimer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
 
                     // get the best slots array
                     int id = bestSlots[i];
 
                     // if the damageReduceAmount is equal to -1 (meaning nothing was set there), continue
                     if (id != -1) {
-
-                        // if we found a valid better slot, we can rest our time.
-                        timer.resetTime();
 
                         // if the armor slot we are replacing was empty
                         // the reason why i do this, is because we do not delay our click packets, so it'll happen instantly
@@ -127,6 +124,9 @@ public class AutoArmorModule extends Module {
 
                         // reset our best slot index.
                         bestSlots[i] = -1;
+
+                        // if we found a valid better slot, we can rest our time.
+                        armorTimer.resetTime();
                     }
                 }
             }
