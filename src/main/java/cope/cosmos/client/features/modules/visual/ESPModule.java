@@ -5,6 +5,7 @@ import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.asm.mixins.accessor.IRenderManager;
 import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
 import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
@@ -16,6 +17,8 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.shader.shaders.DotShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
+import cope.cosmos.util.render.RenderBuilder;
+import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import net.minecraft.client.gui.ScaledResolution;
@@ -33,13 +36,18 @@ import net.minecraft.entity.item.EntityExpBottle;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.tileentity.*;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.EXTPackedDepthStencil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -77,6 +85,9 @@ public class ESPModule extends Module {
     public static Setting<Boolean> hoppers = new Setting<>("Hoppers", true).setDescription("Highlight hoppers");
     public static Setting<Boolean> furnaces = new Setting<>("Furnaces", true).setDescription("Highlight furnaces");
 
+    // other shit
+    public static Setting<Boolean> chorus = new Setting<>("Chorus", false).setDescription("Highlights chorus teleports");
+
     // framebuffer
     private Framebuffer framebuffer;
     private int lastScaleFactor;
@@ -87,6 +98,9 @@ public class ESPModule extends Module {
     private final OutlineShader outlineShader = new OutlineShader();
     private final RainbowOutlineShader rainbowOutlineShader = new RainbowOutlineShader();
     private final DotShader dotShader = new DotShader();
+
+    // contains chorus fruit teleports
+    private final List<Vec3d> chorusTeleports = new ArrayList<>();
 
     @Override
     public void onUpdate() {
@@ -125,6 +139,9 @@ public class ESPModule extends Module {
                 }
             });
         }
+
+        // remove all cached teleports
+        chorusTeleports.clear();
     }
 
     @SubscribeEvent
@@ -135,6 +152,38 @@ public class ESPModule extends Module {
                 if (entity != null && entity.isGlowing()) {
                     entity.setGlowing(false);
                 }
+            });
+        }
+    }
+
+    @SubscribeEvent
+    public void onPacket(PacketEvent.PacketReceiveEvent event) {
+        if (event.getPacket() instanceof SPacketSoundEffect) {
+            SPacketSoundEffect packet = (SPacketSoundEffect) event.getPacket();
+
+            // if the sound being sent from the server is a chorus teleport, that means someone has eaten a chorus fruit
+            // since this sound plays at the position the player teleports at, that's where they'll be teleported
+            if (packet.getSound().equals(SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT) || packet.getSound().equals(SoundEvents.ENTITY_ENDERMEN_TELEPORT)) {
+                // cache their teleport position
+                chorusTeleports.add(new Vec3d(packet.getX(), packet.getY(), packet.getZ()));
+            }
+        }
+    }
+
+    @Override
+    public void onRender3D() {
+        // if we can render chorus fruit teleports
+        if (chorus.getValue() && !chorusTeleports.isEmpty()) {
+            chorusTeleports.forEach((pos) -> {
+                RenderUtil.drawBox(new RenderBuilder()
+                        .position(new AxisAlignedBB(pos.x, pos.y, pos.z, pos.x, pos.y + 2.0, pos.z))
+                        .box(RenderBuilder.Box.BOTH)
+                        .width(width.getValue())
+                        .color(ColorUtil.getPrimaryAlphaColor(80))
+                        .blend()
+                        .depth(true)
+                        .texture()
+                );
             });
         }
     }
