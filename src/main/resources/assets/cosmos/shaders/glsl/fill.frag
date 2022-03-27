@@ -1,29 +1,23 @@
 #version 120
 
-// texture info
+// texture based on the entity, uv (1 / resolution)
 uniform sampler2D texture;
 uniform vec2 texelSize;
 
-// colors and width
-uniform vec4 colorDot;
-uniform vec4 colorFilled;
+// color and width
+uniform vec4 color;
 uniform float radius;
 
 void main(void) {
-    // Color for the entity model
+    // color for the entity model, each vertex is assigned a color
     vec4 centerCol = texture2D(texture, gl_TexCoord[0].xy);
 
-    // If a color is already assigned (alpha value is greater than 0), we want to overwrite it
+    // If a colour is already assigned, make the colour transparent
     if (centerCol.a > 0) {
-        // dots have no alpha, so use dot color every 8 vertices
-        if (int(gl_FragCoord.x) - (8 * int(gl_FragCoord.x / 8)) == 0 && int(gl_FragCoord.y) - (8 * int(gl_FragCoord.y / 8)) == 0) {
-            gl_FragColor = colorDot;
-        }
-        // else we'll use our fill color
-        else {
-            gl_FragColor = colorFilled;
-        }
-    } else {
+        gl_FragColor = vec4(color.x, color.y, color.z, 0.5F);
+    }
+
+    else {
         // closest radius distance
         float closest = radius * 2.0F + 2.0F;
 
@@ -46,6 +40,6 @@ void main(void) {
         }
 
         // color the area
-        gl_FragColor = vec4(colorDot.x, colorDot.y, colorDot.z, max(0, (radius - (closest - 1)) / radius));;
+        gl_FragColor = vec4(color.x, color.y, color.z, max(0, (radius - (closest - 1)) / radius));;
     }
 }

@@ -14,6 +14,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.shader.shaders.DotShader;
+import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
 import cope.cosmos.util.string.ColorUtil;
@@ -87,6 +88,7 @@ public class ESPModule extends Module {
     private final OutlineShader outlineShader = new OutlineShader();
     private final RainbowOutlineShader rainbowOutlineShader = new RainbowOutlineShader();
     private final DotShader dotShader = new DotShader();
+    private final FillShader fillShader = new FillShader();
 
     @Override
     public void onUpdate() {
@@ -227,6 +229,9 @@ public class ESPModule extends Module {
                         case OUTLINE:
                             rainbowOutlineShader.startShader();
                             break;
+                        case OUTLINE_FILL:
+                            fillShader.startShader();
+                            break;
                     }
                 }
 
@@ -238,6 +243,9 @@ public class ESPModule extends Module {
                             break;
                         case OUTLINE:
                             outlineShader.startShader();
+                            break;
+                        case OUTLINE_FILL:
+                            fillShader.startShader();
                             break;
                     }
                 }
@@ -677,6 +685,11 @@ public class ESPModule extends Module {
         /**
          * Draws a dotted map over the entity
          */
-        DOTTED
+        DOTTED,
+
+        /**
+         * Draws an outline with a transparent fill underneath
+         */
+        OUTLINE_FILL
     }
 }
