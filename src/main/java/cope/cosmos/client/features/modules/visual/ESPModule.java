@@ -47,7 +47,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 07/21/2021
  */
 public class ESPModule extends Module {
