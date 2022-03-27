@@ -226,13 +226,13 @@ public class CriticalsModule extends Module {
                         // modify packets based on entity hurt time
                         switch (criticalEntity.hurtResistantTime) {
                             case 19:
-                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.062602401692772F);
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.11F);
                                 break;
                             case 18:
-                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.0726023996066094F);
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.1100013579F);
                                 break;
                             case 17:
-                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY);
+                                ((ICPacketPlayer) event.getPacket()).setY(mc.player.getEntityBoundingBox().minY + 0.0000013579F);
                                 break;
                         }
                     }
@@ -266,7 +266,7 @@ public class CriticalsModule extends Module {
         /**
          * Attempts changing hit to a critical via packets for Updated NCP
          */
-        PACKET_STRICT(0.062602401692772F, 0.0726023996066094F, 0, 0),
+        PACKET_STRICT(0.11F, 0.1100013579F, 0.0000013579F),
 
         /**
          * Attempts critical via a jump
