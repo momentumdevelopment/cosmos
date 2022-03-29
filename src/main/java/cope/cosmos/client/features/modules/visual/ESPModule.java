@@ -15,6 +15,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.shader.shaders.DotShader;
+import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
 import cope.cosmos.util.render.RenderBuilder;
@@ -54,7 +55,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 07/21/2021
  */
 public class ESPModule extends Module {
@@ -98,6 +99,7 @@ public class ESPModule extends Module {
     private final OutlineShader outlineShader = new OutlineShader();
     private final RainbowOutlineShader rainbowOutlineShader = new RainbowOutlineShader();
     private final DotShader dotShader = new DotShader();
+    private final FillShader fillShader = new FillShader();
 
     // contains chorus fruit teleports
     private final List<Vec3d> chorusTeleports = new ArrayList<>();
@@ -276,6 +278,9 @@ public class ESPModule extends Module {
                         case OUTLINE:
                             rainbowOutlineShader.startShader();
                             break;
+                        case OUTLINE_FILL:
+                            fillShader.startShader();
+                            break;
                     }
                 }
 
@@ -287,6 +292,9 @@ public class ESPModule extends Module {
                             break;
                         case OUTLINE:
                             outlineShader.startShader();
+                            break;
+                        case OUTLINE_FILL:
+                            fillShader.startShader();
                             break;
                     }
                 }
@@ -726,6 +734,11 @@ public class ESPModule extends Module {
         /**
          * Draws a dotted map over the entity
          */
-        DOTTED
+        DOTTED,
+
+        /**
+         * Draws an outline with a transparent fill underneath
+         */
+        OUTLINE_FILL
     }
 }
