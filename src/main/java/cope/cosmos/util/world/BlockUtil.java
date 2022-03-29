@@ -2,9 +2,9 @@ package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockSlab;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -72,39 +72,43 @@ public class BlockUtil implements Wrapper {
     }
 
     /**
+     * Gets the distance to the center of the block
+     * @param in The block to get the distance to
+     * @return The distance to the center of the block
+     */
+    public static double getDistanceToCenter(EntityPlayer player, BlockPos in) {
+
+        // distances
+        double dX = in.getX() + 0.5 - player.posX;
+        double dY = in.getY() + 0.5 - player.posY;
+        double dZ = in.getZ() + 0.5 - player.posZ;
+
+        // distance to center
+        return StrictMath.sqrt((dX * dX) + (dY * dY) + (dZ * dZ));
+    }
+
+    /**
      * Gets all blocks in range from a specified player
      * @param player The player to find the surrounding blocks (anchor)
-     * @param range The range to consider a block
-     * @param motion Whether or not to take into account player motion
+     * @param area The area range to consider blocks
      * @return A list of the surrounding blocks
      */
-    public static List<BlockPos> getSurroundingBlocks(EntityPlayer player, double range, boolean motion) {
+    public static List<BlockPos> getBlocksInArea(EntityPlayer player, AxisAlignedBB area) {
         if (player != null) {
+
             // list of nearby blocks
             List<BlockPos> blocks = new ArrayList<>();
 
-            // ranges
-            double rangeX = Math.round(range);
-            double rangeY = Math.round(range);
-            double rangeZ = Math.round(range);
-
-            // add motion to reach
-            if (motion) {
-                rangeX += mc.player.motionX;
-                rangeY += mc.player.motionY;
-                rangeZ += mc.player.motionZ;
-            }
-
             // iterate through all surrounding blocks
-            for (double x = -rangeX; x <= rangeX; x++) {
-                for (double y = -rangeY; y <= rangeY; y++) {
-                    for (double z = -rangeZ; z <= rangeZ; z++) {
+            for (double x = StrictMath.floor(area.minX); x <= StrictMath.ceil(area.maxX); x++) {
+                for (double y = StrictMath.floor(area.minY); y <= StrictMath.ceil(area.maxY); y++) {
+                    for (double z = StrictMath.floor(area.minZ); z <= StrictMath.ceil(area.maxZ); z++) {
 
                         // the current position
                         BlockPos position = player.getPosition().add(x, y, z);
 
-                        // get distance to block
-                        if (mc.player.getDistance(position.getX() + 0.5, position.getY() + 1, position.getZ() + 0.5) >= range) {
+                        // check distance to block
+                        if (getDistanceToCenter(player, position) >= area.maxX) {
                             continue;
                         }
 

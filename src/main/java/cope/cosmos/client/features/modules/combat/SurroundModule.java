@@ -53,27 +53,55 @@ public class SurroundModule extends Module {
         INSTANCE = this;
     }
 
-    // general
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL).setDescription("When to place blocks");
-    public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE).setDescription("Block positions for surround");
-    public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN).setDescription("Block item to use for surround");
-    public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR).setDescription("When to toggle surround");
-    public static Setting<Center> center = new Setting<>("Center", Center.NONE).setDescription("Mode to center the player position");
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to switch to blocks");
+    // **************************** anti-cheat ****************************
 
-    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
+            .setDescription("When to place blocks");
 
-    // extend
-    public static Setting<Boolean> extend = new Setting<>("Extend", false).setDescription("Extends surround when there is an entity blocking the surround");
-    // public static Setting<Boolean> volatiles = new Setting<>("Volatile", false).setDescription("Extends surround when the surround is being broken");
-    public static Setting<Boolean> scatter = new Setting<>("Scatter", true).setDescription("Clears entities before attempting to place");
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Only places on visible sides");
 
-    // anti-cheat
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setDescription("Mode for placement rotations");
 
-    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the surround");
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL).setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE).setParent(render);
+    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0)
+            .setDescription("Allowed block placements per tick");
+
+    // **************************** general settings ****************************
+
+    public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE)
+            .setDescription("Block positions for surround");
+
+    public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN)
+            .setDescription("Block item to use for surround");
+
+    public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR)
+            .setDescription("When to toggle surround");
+
+    public static Setting<Center> center = new Setting<>("Center", Center.NONE)
+            .setDescription("Mode to center the player position");
+
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setDescription("Mode to switch to blocks");
+
+    // **************************** extend ****************************
+
+    public static Setting<Boolean> extend = new Setting<>("Extend", false)
+            .setDescription("Extends surround when there is an entity blocking the surround");
+
+    // public static Setting<Boolean> volatiles = new Setting<>("Volatile", false)
+    //      .setDescription("Extends surround when the surround is being broken");
+
+    public static Setting<Boolean> scatter = new Setting<>("Scatter", true)
+            .setDescription("Clears entities before attempting to place");
+
+    // **************************** render ****************************
+
+    public static Setting<Boolean> render = new Setting<>("Render", true)
+            .setDescription("Render a visual of the surround");
+
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL)
+            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE).setParent(render);
 
     // switch info
     private int previousSlot = -1;
@@ -170,11 +198,14 @@ public class SurroundModule extends Module {
                     // attack crystals that are in the way
                     if (entity instanceof EntityEnderCrystal) {
 
+                        // player health
+                        double health = PlayerUtil.getHealth();
+
                         // damage done by the crystal
-                        double crystalDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
+                        double crystalDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
 
                         // explode crystal if it won't kill us
-                        if (PlayerUtil.getHealth() - crystalDamage >= 0.1) {
+                        if (health - crystalDamage >= 0.1) {
                             mc.player.connection.sendPacket(new CPacketUseEntity(entity));
                             mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
                         }
@@ -571,12 +602,13 @@ public class SurroundModule extends Module {
         TICK,
 
         /**
-         * Places when recieving packets
+         * Places when receiving packets
          */
         SEQUENTIAL
     }
 
     public enum Center {
+
         /**
          * Teleports the player the center of the block
          */
@@ -594,6 +626,7 @@ public class SurroundModule extends Module {
     }
 
     public enum Completion {
+
         /**
          * Toggles the module when you have moved out of the block
          */
@@ -611,6 +644,7 @@ public class SurroundModule extends Module {
     }
 
     private enum BlockItem {
+
         /**
          * Obsidian
          */

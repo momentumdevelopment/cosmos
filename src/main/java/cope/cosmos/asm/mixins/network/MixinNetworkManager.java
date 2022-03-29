@@ -1,8 +1,8 @@
 package cope.cosmos.asm.mixins.network;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.client.ExceptionThrownEvent;
+import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NetworkManager;
@@ -22,8 +22,8 @@ public class MixinNetworkManager {
     }
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
-    public void onPacketSend(Packet<?> packet, CallbackInfo info) {
-        PacketEvent.PacketSendEvent packetSendEvent = new PacketEvent.PacketSendEvent(packet);
+    public void onSendPacket(Packet<?> packetIn, CallbackInfo info) {
+        PacketEvent.PacketSendEvent packetSendEvent = new PacketEvent.PacketSendEvent(packetIn);
         Cosmos.EVENT_BUS.post(packetSendEvent);
 
         if (packetSendEvent.isCanceled()) {

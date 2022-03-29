@@ -3,6 +3,7 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
@@ -85,7 +86,9 @@ public class HoleManager extends Manager {
         List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
         // search all blocks in range
-        for (BlockPos blockPosition : BlockUtil.getSurroundingBlocks(mc.player, 10, false)) {
+        for (BlockPos blockPosition : BlockUtil.getBlocksInArea(mc.player, new AxisAlignedBB(
+                -10, -10, -10, 10, 10, 10 // range = 10
+        ))) {
 
             // void holes
             if (BlockUtil.isBreakable(blockPosition) && (mc.player.dimension == -1 ? (blockPosition.getY() == 0 || blockPosition.getY() == 127) : blockPosition.getY() == 0)) {

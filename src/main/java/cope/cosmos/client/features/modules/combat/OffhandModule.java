@@ -147,6 +147,7 @@ public class OffhandModule extends Module {
                     
                     break;
                 case DAMAGE:
+
                     // check nearby crystals
                     for (Entity entity : mc.world.loadedEntityList) {
                         if (mc.player.getDistance(entity) > 6) {
@@ -154,11 +155,15 @@ public class OffhandModule extends Module {
                         }
 
                         if (entity instanceof EntityEnderCrystal) {
+
+                            // player health
+                            double health = PlayerUtil.getHealth();
+
                             // damage from crystal
-                            double damage = ExplosionUtil.getDamageFromExplosion(entity.posX, entity.posY, entity.posZ, mc.player, false, false);
+                            double damage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
 
                             // crystal will kill us
-                            if (PlayerUtil.getHealth() - damage <= 1) {
+                            if (health - damage <= 1) {
                                 switchItem = Items.TOTEM_OF_UNDYING;
                                 break;
                             }

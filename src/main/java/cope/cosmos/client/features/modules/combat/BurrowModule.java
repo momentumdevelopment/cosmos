@@ -25,9 +25,18 @@ public class BurrowModule extends Module {
 		INSTANCE = this;
 	}
 
-	public static Setting<Mode> mode = new Setting<>("Mode", Mode.OBSIDIAN).setDescription("Block to prefer");
-	public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
-	public static Setting<Double> offset = new Setting<>("Offset", -10.0, 2.2, 10.0, 1).setDescription("How high to rubberband");
+	// **************************** anticheat ****************************
+
+	public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+			.setDescription("Mode for attack rotations");
+
+	public static Setting<Double> offset = new Setting<>("Offset", -10.0, 2.2, 10.0, 1)
+			.setDescription("How high to rubberband");
+
+	// **************************** general ****************************
+
+	public static Setting<Mode> mode = new Setting<>("Mode", Mode.OBSIDIAN)
+			.setDescription("Block to use when burrowing");
 
 	@Override
 	public void onEnable() {

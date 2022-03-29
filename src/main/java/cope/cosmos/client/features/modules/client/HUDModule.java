@@ -28,7 +28,10 @@ import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Objects;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since 06/04/2021
+ */
 public class HUDModule extends Module {
     public static HUDModule INSTANCE;
 
@@ -39,17 +42,42 @@ public class HUDModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> watermark = new Setting<>("Watermark", true).setDescription("Displays a client watermark");
-    public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", true).setDescription("Displays all enabled modules");
-    public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true).setDescription("Displays the user's coordinates");
-    public static Setting<Boolean> speed = new Setting<>("Speed", true).setDescription("Displays the user's speed");
-    public static Setting<Boolean> ping = new Setting<>("Ping", true).setDescription("Displays the user's server connection speed");
-    public static Setting<Boolean> fps = new Setting<>("FPS", true).setDescription("Displays the current FPS");
-    public static Setting<Boolean> tps = new Setting<>("TPS", true).setDescription("Displays the server TPS");
-    public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Displays the player's armor");
-    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", false).setDescription("Displays the player's active potion effects");
-    public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", false).setDescription("Displays the vanilla potion effect hud");
-    public static Setting<Boolean> advancements = new Setting<>("Advancements", false).setDescription("Displays the vanilla advancement notification");
+    // **************************** HUD ****************************
+
+    public static Setting<Boolean> watermark = new Setting<>("Watermark", true)
+            .setDescription("Displays a client watermark");
+
+    public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", true)
+            .setDescription("Displays all enabled modules");
+
+    public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true)
+            .setDescription("Displays the user's coordinates");
+
+    public static Setting<Boolean> speed = new Setting<>("Speed", true)
+            .setDescription("Displays the user's speed");
+
+    public static Setting<Boolean> ping = new Setting<>("Ping", true)
+            .setDescription("Displays the user's server connection speed");
+
+    public static Setting<Boolean> fps = new Setting<>("FPS", true)
+            .setDescription("Displays the current FPS");
+
+    public static Setting<Boolean> tps = new Setting<>("TPS", true)
+            .setDescription("Displays the server TPS");
+
+    public static Setting<Boolean> armor = new Setting<>("Armor", true)
+            .setDescription("Displays the player's armor");
+
+    // **************************** vanilla HUD ****************************
+
+    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", false)
+            .setDescription("Displays the player's active potion effects");
+
+    public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", false)
+            .setDescription("Displays the vanilla potion effect hud");
+
+    public static Setting<Boolean> advancements = new Setting<>("Advancements", false)
+            .setDescription("Displays the vanilla advancement notification");
 
     private int globalOffset;
 
@@ -86,7 +114,12 @@ public class HUDModule extends Module {
             if (activeModules.getValue()) {
                 listOffset = 0;
 
-                getCosmos().getModuleManager().getModules(Module::isDrawn).stream().filter(module -> module.getAnimation().getAnimationFactor() > 0.05).sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1)).forEach(module -> {
+                getCosmos().getModuleManager()
+                        .getModules(module -> module.isDrawn())
+                        .stream()
+                        .filter(module -> module.getAnimation().getValue() > 0.05)
+                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1))
+                        .forEach(module -> {
 
                     // formatted string
                     StringBuilder moduleString = new StringBuilder(module.getName());
@@ -96,10 +129,10 @@ public class HUDModule extends Module {
                     }
 
                     // draw string
-                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1))))) - 1, 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                    FontUtil.drawStringWithShadow(moduleString.toString(), new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getValue()))) - 1, 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
-                    listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * MathHelper.clamp(module.getAnimation().getAnimationFactor(), 0, 1);
+                    listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getValue();
                     globalOffset++;
                 });
             }

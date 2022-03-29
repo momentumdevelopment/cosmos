@@ -8,7 +8,6 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.math.MathUtil;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -21,12 +20,13 @@ public class TickManager extends Manager {
     private final float[] TPS = new float[20];
 
     // time
-    private long prevTime;
-    private int currentTick;
+    private long time;
+    private int tick;
 
     public TickManager() {
         super("TickManager", "Keeps track of the server ticks");
-        prevTime = -1;
+        
+        time = -1;
 
         // initialize an empty array
         for (int i = 0, len = TPS.length; i < len; i++) {
@@ -36,17 +36,20 @@ public class TickManager extends Manager {
         Cosmos.EVENT_BUS.register(this);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+        
+        // packet for server time updates
         if (event.getPacket() instanceof SPacketTimeUpdate) {
-            if (prevTime != -1) {
-                // update our TPS
-                TPS[currentTick % TPS.length] = MathHelper.clamp((20 / (System.currentTimeMillis() - prevTime / 1000F)), 0, 20);
-                currentTick++;
+
+            // update our TPS
+            if (time != -1) {
+                TPS[tick % TPS.length] = MathHelper.clamp((20 / (System.currentTimeMillis() - time / 1000F)), 0, 20);
+                tick++;
             }
 
             // mark as last response
-            prevTime = System.currentTimeMillis();
+            time = System.currentTimeMillis();
         }
     }
 

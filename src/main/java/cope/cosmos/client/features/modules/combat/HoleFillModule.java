@@ -15,7 +15,7 @@ import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import io.netty.util.internal.ConcurrentSet;
-import net.minecraft.block.Block;
+import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -36,27 +36,63 @@ public class HoleFillModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED).setDescription("Mode for the filler");
-    public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN).setDescription("Block to use for filling");
-    public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION).setDescription("When to consider the filling complete");
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 15.0, 1).setDescription("Range to scan for holes");
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to block");
-    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0).setDescription("Allowed block placements per tick");
+    // **************************** anticheat ****************************
 
-    // general
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Only places on visible sides");
-    public static Setting<Boolean> safety = new Setting<>("Safety", false).setDescription("Makes sure you are not the closest player for the current hole fill").setVisible(() -> mode.getValue().equals(Filler.TARGETED));
-    public static Setting<Boolean> doubles = new Setting<>("Doubles", true).setDescription("Fills in double holes");
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Only places on visible sides");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for placement rotations");
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setDescription("Mode for placement rotations");
 
-    // target
-    public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0).setDescription("Range to consider a player a target").setParent(target);
-    public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1).setDescription("Target's distance from hole for it to be considered fill-able").setParent(target).setVisible(() -> mode.getValue().equals(Filler.TARGETED));
+    // **************************** general ****************************
 
-    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual of the filling process");
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL).setDescription("Style of the visual").setParent(render);
+    public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED)
+            .setDescription("Mode for the filler");
+
+    public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN)
+            .setDescription("Block to use for filling");
+
+    public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION)
+            .setDescription("When to consider the filling complete");
+
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 15.0, 1)
+            .setDescription("Range to scan for holes");
+
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setDescription("Mode for switching to block");
+
+    // WTF DOES THIS EVEN DO? maybe just add delay setting
+    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0)
+            .setDescription("Allowed block placements per tick");
+
+    public static Setting<Boolean> safety = new Setting<>("Safety", false)
+            .setDescription("Makes sure you are not the closest player for the current hole fill")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
+
+    public static Setting<Boolean> doubles = new Setting<>("Doubles", true)
+            .setDescription("Fills in double holes");
+
+    // **************************** targeting ****************************
+
+    public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST)
+            .setDescription("Priority for searching target");
+
+    public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0)
+            .setDescription("Range to consider a player a target").setParent(target);
+
+    public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1)
+            .setDescription("Target's distance from hole for it to be considered fill-able")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
+
+    // **************************** render ****************************
+
+    public static Setting<Boolean> render = new Setting<>("Render", true)
+            .setDescription("Render a visual of the filling process");
+
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL)
+            .setDescription("Style of the visual")
+            .setExclusion(Box.GLOW, Box.REVERSE)
+            .setVisible(() -> render.getValue());
 
     // fills
     private Set<Hole> fills = new ConcurrentSet<>();
@@ -122,26 +158,29 @@ public class HoleFillModule extends Module {
 
     @Override
     public void onRender3D() {
+
         // draw all fills
         if (render.getValue()) {
             if (!fills.isEmpty()) {
                 fills.forEach(fill -> {
+
+                    // draw box
                     RenderUtil.drawBox(new RenderBuilder()
                             .position(fill.getHole())
                             .color(ColorUtil.getPrimaryAlphaColor(60))
                             .box(renderMode.getValue())
                             .setup()
                             .line(1.5F)
-                            .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                            .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                            .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
                             .depth(true)
                             .blend()
                             .texture()
                     );
 
+                    // draw tag
                     RenderUtil.drawNametag(
-                            fill.getHole(), 0.5F, "Fill"
+                            fill.getHole(),
+                            0.5F,
+                            "Fill"
                     );
                 });
             }
@@ -299,16 +338,16 @@ public class HoleFillModule extends Module {
         /**
          * Fills in holes with pressure plates to prevent them from showing up on HoleESP
          */
-        PRESSURE_PLATE(Blocks.WOODEN_PRESSURE_PLATE),
+        PRESSURE_PLATE(Blocks.WOODEN_PRESSURE_PLATE, Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE, Blocks.STONE_PRESSURE_PLATE, Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE),
 
         /**
          * Fills in holes with webs to prevent people from getting into them
          */
         WEB(Blocks.WEB);
 
-        private final Block block;
+        private final Block[] block;
 
-        BlockMode(Block block) {
+        BlockMode(Block... block) {
             this.block = block;
         }
 
@@ -316,7 +355,7 @@ public class HoleFillModule extends Module {
          * Gets the associated block
          * @return The associated block
          */
-        public Block getBlock() {
+        public Block[] getBlock() {
             return block;
         }
     }

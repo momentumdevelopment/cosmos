@@ -24,7 +24,6 @@ public class Timer implements Wrapper {
         Cosmos.EVENT_BUS.register(this);
     }
 
-    @SuppressWarnings("unused")
     @SubscribeEvent
     public void onUpdate(LivingEvent.LivingUpdateEvent event) {
         // update ticks
