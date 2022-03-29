@@ -9,6 +9,7 @@ import cope.cosmos.client.features.modules.client.SocialModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
+import cope.cosmos.client.ui.tabgui.TabGUI;
 import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -54,6 +55,9 @@ public class Cosmos {
 
     // the client gui
     private ClickGUIScreen clickGUI;
+
+    // The client's TabGUI
+    private TabGUI tabGUI;
 
     // list of managers
     private final List<Manager> managers = new ArrayList<>();
@@ -142,6 +146,7 @@ public class Cosmos {
 
         // sets up the GUI
         clickGUI = new ClickGUIScreen();
+        tabGUI = new TabGUI();
         progressManager.step("[Cosmos] Setting up GUI's");
 
         // sets up the reload manager
@@ -231,6 +236,14 @@ public class Cosmos {
      */
     public ClickGUIScreen getClickGUI() {
         return clickGUI;
+    }
+
+    /**
+     * Gets the TabGUI
+     * @return The Tab GUI
+     */
+    public TabGUI getTabGUI() {
+        return tabGUI;
     }
 
     /**

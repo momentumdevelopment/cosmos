@@ -157,7 +157,9 @@ public class Module extends Feature implements Wrapper {
 		getAnimation().setState(true);
 
 		// reset world timer
-		getCosmos().getTickManager().setClientTicks(1);
+		if (nullCheck()) {
+			getCosmos().getTickManager().setClientTicks(1);
+		}
 	}
 
 	/**
