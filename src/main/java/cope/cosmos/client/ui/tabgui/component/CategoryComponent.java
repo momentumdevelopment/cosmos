@@ -1,10 +1,10 @@
 package cope.cosmos.client.ui.tabgui.component;
 
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.ui.util.Animation;
 import cope.cosmos.client.ui.util.ScissorStack;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
@@ -20,7 +20,7 @@ import java.util.List;
  * @author Wolfsurge
  * @since 29/03/2022
  */
-public class CategoryComponent {
+public class CategoryComponent implements Wrapper {
     // The category of the component
     private final Category category;
 
@@ -56,7 +56,7 @@ public class CategoryComponent {
 
         // Max width of module components
         float maxWidth = 4;
-        for (Module module : Cosmos.INSTANCE.getModuleManager().getModules(module -> module.getCategory() == category)) {
+        for (Module module : getCosmos().getModuleManager().getModules(module -> module.getCategory().equals(category))) {
             // If module name is longer than max width, set max width to that
             if (FontUtil.getStringWidth(module.getName()) + 16 > maxWidth) {
                 maxWidth = FontUtil.getStringWidth(module.getName()) + 16;
@@ -65,7 +65,7 @@ public class CategoryComponent {
 
         // Add module components
         float yOffset = 0;
-        for (Module module : Cosmos.INSTANCE.getModuleManager().getModules(module -> module.getCategory().equals(category))) {
+        for (Module module : getCosmos().getModuleManager().getModules(module -> module.getCategory().equals(category))) {
             // Add module component
             moduleComponents.add(new ModuleComponent(x + 73, y + yOffset, maxWidth, module));
 
