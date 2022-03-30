@@ -274,7 +274,7 @@ public class HUDModule extends Module {
         }
 
         if (tabGUI.getValue()) {
-            Cosmos.INSTANCE.getTabGUI().render();
+            getCosmos().getTabGUI().render();
         }
     }
 
@@ -282,7 +282,7 @@ public class HUDModule extends Module {
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (mc.currentScreen == null) {
             if (tabGUI.getValue()) {
-                Cosmos.INSTANCE.getTabGUI().onKeyPress(event);
+                getCosmos().getTabGUI().onKeyPress(event);
             }
         }
     }

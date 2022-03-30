@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * @author Wolfsurge
+ * @since 29/03/2022
  */
 public class CategoryComponent {
     // The category of the component

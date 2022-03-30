@@ -10,6 +10,7 @@ import java.awt.*;
 
 /**
  * @author Wolfsurge
+ * @since 29/03/2022
  */
 public class ModuleComponent {
     // The module of the component
