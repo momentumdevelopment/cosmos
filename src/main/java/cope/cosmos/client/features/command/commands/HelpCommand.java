@@ -35,7 +35,7 @@ public class HelpCommand extends Command {
         // we'll have a max of 5 commands per "page"
         int maxLength = 5;
 
-        // get the max amount of pages by figuring out how many times maxLength can go into the commmand length
+        // get the max amount of pages by figuring out how many times maxLength can go into the command length
         int total = (int) Math.ceil(commands.size() / (double) maxLength);
 
         // make sure our page count isn't out of bounds

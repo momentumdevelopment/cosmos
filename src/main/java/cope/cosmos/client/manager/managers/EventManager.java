@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.events.combat.CriticalModifierEvent;
 import cope.cosmos.client.events.combat.DeathEvent;
 import cope.cosmos.client.events.combat.TotemPopEvent;
@@ -46,101 +47,184 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
+
 		// runs on the entity update method
+		mc.mcProfiler.startSection("cosmos-update");
+
 		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
+
+			// module onUpdate
 			getCosmos().getModuleManager().getAllModules().forEach(module -> {
-				if ((nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) && module.isEnabled()) {
-					try {
-						module.onUpdate();
-					} catch (Exception exception) {
-						exception.printStackTrace();
+				if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
+
+					// run if module is enabled
+					if (module.isEnabled()) {
+						try {
+							module.onUpdate();
+						} catch (Exception exception) {
+
+							// print stacktrace if in dev environment
+							if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+								exception.printStackTrace();
+							}
+						}
 					}
 				}
 			});
 
+			// manager onUpdate
 			getCosmos().getManagers().forEach(manager -> {
-				if (nullCheck()) {
+				if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
+
+					// run manager onUpdate
 					try {
 						manager.onUpdate();
 					} catch (Exception exception) {
-						exception.printStackTrace();
+
+						// print stacktrace if in dev environment
+						if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+							exception.printStackTrace();
+						}
 					}
 				}
 			});
 		}
 
-		/*
-		if (mc.currentScreen instanceof GuiMainMenu && !Cosmos.SETUP)
-			mc.displayGuiScreen(new SetUpGUI());
-		 */
+		mc.mcProfiler.endSection();
+
+		// if (mc.currentScreen instanceof GuiMainMenu && !Cosmos.SETUP) {
+		//		mc.displayGuiScreen(new SetUpGUI());
+		// }
 	}
 
 	@SubscribeEvent
 	public void onTick(TickEvent.ClientTickEvent event) {
+
+		// runs on game (root) tick
+		mc.mcProfiler.startSection("cosmos-root-tick");
+
+		// module onTick
 		getCosmos().getModuleManager().getAllModules().forEach(module -> {
-			if ((nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) && module.isEnabled()) {
-				try {
-					module.onTick();
-				} catch (Exception exception) {
-					exception.printStackTrace();
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
+
+				// run if module is enabled
+				if (module.isEnabled()) {
+					try {
+						module.onTick();
+					} catch (Exception exception) {
+
+						// print stacktrace if in dev environment
+						if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+							exception.printStackTrace();
+						}
+					}
 				}
 			}
 		});
 
+		// manager onTick
 		getCosmos().getManagers().forEach(manager -> {
-			try {
-				if (nullCheck()) {
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
+
+				// run manager onTick
+				try {
 					manager.onTick();
+				} catch (Exception exception) {
+
+					// print stacktrace if in dev environment
+					if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+						exception.printStackTrace();
+					}
 				}
-			} catch (Exception exception) {
-				exception.printStackTrace();
 			}
 		});
+
+		mc.mcProfiler.endSection();
 	}
 	
 	@SubscribeEvent
 	public void onRender2d(RenderGameOverlayEvent.Text event) {
+
+		// runs on every frame
+		mc.mcProfiler.startSection("cosmos-render-2D");
+
+		// module onRender2D
 		getCosmos().getModuleManager().getAllModules().forEach(module -> {
-			if (nullCheck() && module.isEnabled()) {
-				try {
-					module.onRender2D();
-				} catch (Exception exception) {
-					exception.printStackTrace();
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
+
+				// run if module is enabled
+				if (module.isEnabled()) {
+					try {
+						module.onRender2D();
+					} catch (Exception exception) {
+
+						// print stacktrace if in dev environment
+						if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+							exception.printStackTrace();
+						}
+					}
 				}
 			}
 		});
 
+		// manager onRender2D
 		getCosmos().getManagers().forEach(manager -> {
-			if (nullCheck()) {
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
+
+				// run manager onRender2D
 				try {
 					manager.onRender2D();
 				} catch (Exception exception) {
-					exception.printStackTrace();
+
+					// print stacktrace if in dev environment
+					if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+						exception.printStackTrace();
+					}
 				}
 			}
 		});
+
+		mc.mcProfiler.endSection();
 	}
 	
 	@SubscribeEvent
 	public void onRender3D(RenderWorldLastEvent event) {
-		mc.mcProfiler.startSection("cosmos-render");
 
+		// runs on every frame
+		mc.mcProfiler.startSection("cosmos-render-3D");
+
+		// module onRender3D
 		getCosmos().getModuleManager().getAllModules().forEach(module -> {
-			if (nullCheck() && module.isEnabled()) {
-				try {
-					module.onRender3D();
-				} catch (Exception exception) {
-					exception.printStackTrace();
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
+
+				// run if module is enabled
+				if (module.isEnabled()) {
+					try {
+						module.onRender3D();
+					} catch (Exception exception) {
+
+						// print stacktrace if in dev environment
+						if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+							exception.printStackTrace();
+						}
+					}
 				}
 			}
 		});
 
+		// manager onRender3D
 		getCosmos().getManagers().forEach(manager -> {
-			if (nullCheck()) {
+			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
+
+				// run manager onRender3D
 				try {
 					manager.onRender3D();
 				} catch (Exception exception) {
-					exception.printStackTrace();
+
+					// print stacktrace if in dev environment
+					if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+						exception.printStackTrace();
+					}
 				}
 			}
 		});
@@ -150,6 +234,7 @@ public class EventManager extends Manager implements Wrapper {
 	
 	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent event) {
+		
 		// pressed key
 		int key = Keyboard.getEventKey();
 
@@ -165,18 +250,25 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onChatInput(ClientChatEvent event) {
-		// event the user send a command
+		
+		// event the user sends a command
 		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
 			event.setCanceled(true);
 
 			try {
-				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher().parse(event.getOriginalMessage().substring(1), 1));
+				
+				// dispatch
+				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher()
+								.parse(event.getOriginalMessage().substring(1), 1));
+				
 			} catch (Exception exception) {
 				// exception.printStackTrace();
 				getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
 			}
 		}
 	}
+
+	// **************************** EVENTS ****************************
 
 	@SubscribeEvent
 	public void onTotemPop(PacketEvent.PacketReceiveEvent event) {
@@ -190,14 +282,12 @@ public class EventManager extends Manager implements Wrapper {
 		}
 	}
 
-	// converter
-
 	@SubscribeEvent
 	public void onCriticalHit(CriticalHitEvent event) {
 		CriticalModifierEvent criticalModifierEvent = new CriticalModifierEvent();
 		Cosmos.EVENT_BUS.post(criticalModifierEvent);
 
-		// update damage moduleifier
+		// update damage modifier
 		event.setDamageModifier(criticalModifierEvent.getDamageModifier());
 	}
 
@@ -286,6 +376,7 @@ public class EventManager extends Manager implements Wrapper {
 		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent(Color.WHITE);
 		Cosmos.EVENT_BUS.post(fogColorEvent);
 
+		// update fog colors
 		event.setRed(fogColorEvent.getColor().getRed() / 255F);
 		event.setGreen(fogColorEvent.getColor().getGreen() / 255F);
 		event.setBlue(fogColorEvent.getColor().getBlue() / 255F);

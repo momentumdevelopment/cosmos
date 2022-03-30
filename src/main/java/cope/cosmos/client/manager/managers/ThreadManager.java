@@ -1,5 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
@@ -46,7 +48,11 @@ public class ThreadManager extends Manager {
                                     module.onThread();
                                 }
                             } catch (Exception exception) {
-                                exception.printStackTrace();
+
+                                // print stacktrace if in dev environment
+                                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                    exception.printStackTrace();
+                                }
                             }
                         });
 
@@ -59,7 +65,11 @@ public class ThreadManager extends Manager {
 
                                 manager.onThread();
                             } catch (Exception exception) {
-                                exception.printStackTrace();
+
+                                // print stacktrace if in dev environment
+                                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                    exception.printStackTrace();
+                                }
                             }
                         });
                     }
@@ -68,8 +78,12 @@ public class ThreadManager extends Manager {
                     else {
                         Thread.yield();
                     }
-                } catch(Exception ignored) {
+                } catch(Exception exception) {
 
+                    // print stacktrace if in dev environment
+                    if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                        exception.printStackTrace();
+                    }
                 }
             }
         }
