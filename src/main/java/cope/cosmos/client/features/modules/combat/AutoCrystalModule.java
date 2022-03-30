@@ -946,7 +946,7 @@ public class AutoCrystalModule extends Module {
                 }
 
                  else {
-                    ((INetworkManager) mc.getConnection().getNetworkManager()).dispatchPacket(packet, null);
+                    ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(packet, null);
                 }
             }
 

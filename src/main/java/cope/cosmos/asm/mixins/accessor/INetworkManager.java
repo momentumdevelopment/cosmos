@@ -11,5 +11,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface INetworkManager {
 
     @Invoker("dispatchPacket")
-    void dispatchPacket(Packet<?> inPacket, GenericFutureListener<? extends Future<? super Void >>[] futureListeners);
+    void hookDispatchPacket(Packet<?> inPacket, GenericFutureListener<? extends Future<? super Void >>[] futureListeners);
 }
