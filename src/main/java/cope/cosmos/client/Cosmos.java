@@ -31,13 +31,15 @@ import java.util.List;
 @Mod(modid = Cosmos.MOD_ID, name = Cosmos.NAME, version = Cosmos.VERSION, acceptedMinecraftVersions = "[1.12.2]")
 public class Cosmos {
 
+    // client instance
+    @Mod.Instance
+    public static Cosmos INSTANCE;
+
     // mod info
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
     public static final String VERSION = "1.3.0";
-
-    // start up time
-    private long startupTime;
+    public static final ClientType CLIENT_TYPE = ClientType.DEVELOPMENT;
 
     // client event bus
     public static EventBus EVENT_BUS = MinecraftForge.EVENT_BUS;
@@ -48,9 +50,8 @@ public class Cosmos {
     // tracks whether or not the client has already run for the first time
     public static boolean SETUP = false;
 
-    // client instance
-    @Mod.Instance
-    public static Cosmos INSTANCE;
+    // start up time
+    private long startupTime;
 
     // the client gui
     private ClickGUIScreen clickGUI;
@@ -405,5 +406,24 @@ public class Cosmos {
                 SocialModule.INSTANCE,
                 FontModule.INSTANCE
         );
+    }
+
+
+    public enum ClientType {
+
+        /**
+         * Released version of client
+         */
+        RELEASE,
+
+        /**
+         * Beta release of client for testing
+         */
+        BETA,
+
+        /**
+         * Development version of client
+         */
+        DEVELOPMENT
     }
 }
