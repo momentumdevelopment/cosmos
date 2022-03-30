@@ -48,7 +48,6 @@
         "render.gui.MixinFontRenderer",
         "render.gui.MixinGuiInGame",
         "render.gui.MixinGuiMultiplayer",
-        "render.gui.MixinGuiConnecting",
         "render.gui.MixinSplashProgress",
         "render.item.MixinItemRenderer",
         "render.item.MixinLayerBipedArmor",
