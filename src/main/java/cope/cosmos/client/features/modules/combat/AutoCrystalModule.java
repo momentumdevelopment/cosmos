@@ -55,6 +55,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -565,7 +566,8 @@ public class AutoCrystalModule extends Module {
                     double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(spawnPosition).addVector(0.5, 0, 0.5), blockDestruction.getValue());
 
                     // search all targets
-                    for (Iterator<Entity> entityList = mc.world.loadedEntityList.iterator(); entityList.hasNext();) {
+                    Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+                    while (entityList.hasNext()) {
 
                         // next entity in the world
                         Entity entity = entityList.next();
@@ -663,7 +665,8 @@ public class AutoCrystalModule extends Module {
             mc.addScheduledTask(() -> {
 
                 // check all entities in the world
-                for (Iterator<Entity> entityList = mc.world.loadedEntityList.iterator(); entityList.hasNext();) {
+                Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+                while (entityList.hasNext()) {
 
                     // next entity in the world
                     Entity crystal = entityList.next();
@@ -698,9 +701,10 @@ public class AutoCrystalModule extends Module {
         }
 
         if (event.getPacket() instanceof SPacketExplosion) {
-
             // check all entities in the world
-            for (Iterator<Entity> entityList = mc.world.loadedEntityList.iterator(); entityList.hasNext();) {
+
+            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+            while (entityList.hasNext()) {
 
                 // next entity in the world
                 Entity crystal = entityList.next();
@@ -1214,9 +1218,14 @@ public class AutoCrystalModule extends Module {
 
             // find best crystal
             if (maxCrystals.getValue() <= 1) {
+                // another fucking null check
+                Entry<Double, DamageHolder<EntityEnderCrystal>> lastEntry = validCrystals.lastEntry();
+                if (lastEntry == null) {
+                    return null;
+                }
 
                 // best crystal in the map, in a TreeMap this is the last entry
-                DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
+                DamageHolder<EntityEnderCrystal> bestCrystal = lastEntry.getValue();
 
                 // check if the damage meets our requirements
                 if (bestCrystal.getTargetDamage() > damage.getValue()) {
@@ -1300,49 +1309,57 @@ public class AutoCrystalModule extends Module {
                 double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
 
                 // search all targets
-                for (Entity entity : mc.world.loadedEntityList) {
+                synchronized (mc.world.loadedEntityList) {
+                    for (Entity entity : mc.world.loadedEntityList) {
 
-                    // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
-                        continue;
+                        // make sure the entity actually exists
+                        if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
+                            continue;
+                        }
+
+                        // ignore crystals, they can't be targets
+                        if (entity instanceof EntityEnderCrystal) {
+                            continue;
+                        }
+
+                        // verify that the entity is a target
+                        if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                            continue;
+                        }
+
+                        // distance to target
+                        double entityRange = mc.player.getDistance(entity);
+
+                        // check if the target is in range
+                        if (entityRange > targetRange.getValue()) {
+                            continue;
+                        }
+
+                        // target damage done by the placement
+                        double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+
+                        // check the safety of the placement
+                        double placementSafety = getSafetyIndex(targetDamage, localDamage);
+
+                        // placement is very unsafe (latter case will kill us)
+                        if (placementSafety < 0) {
+                            continue;
+                        }
+
+                        // add to map
+                        validPlacements.put(targetDamage, new DamageHolder<>(position, targetDamage, localDamage));
                     }
-
-                    // ignore crystals, they can't be targets
-                    if (entity instanceof EntityEnderCrystal) {
-                        continue;
-                    }
-
-                    // verify that the entity is a target
-                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
-                        continue;
-                    }
-
-                    // distance to target
-                    double entityRange = mc.player.getDistance(entity);
-
-                    // check if the target is in range
-                    if (entityRange > targetRange.getValue()) {
-                        continue;
-                    }
-
-                    // target damage done by the placement
-                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
-
-                    // check the safety of the placement
-                    double placementSafety = getSafetyIndex(targetDamage, localDamage);
-
-                    // placement is very unsafe (latter case will kill us)
-                    if (placementSafety < 0) {
-                        continue;
-                    }
-
-                    // add to map
-                    validPlacements.put(targetDamage, new DamageHolder<>(position, targetDamage, localDamage));
                 }
             }
 
+            // check if the last entry is null
+            Entry<Double, DamageHolder<BlockPos>> lastEntry = validPlacements.lastEntry();
+            if (lastEntry == null) {
+                return null;
+            }
+
             // best placement in the map, in a TreeMap this is the last entry
-            DamageHolder<BlockPos> bestPlacement = validPlacements.lastEntry().getValue();
+            DamageHolder<BlockPos> bestPlacement = lastEntry.getValue();
 
             // check if the damage meets our requirements
             if (bestPlacement.getTargetDamage() > damage.getValue()) {
