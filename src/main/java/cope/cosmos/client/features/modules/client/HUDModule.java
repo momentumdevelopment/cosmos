@@ -22,6 +22,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -67,6 +68,9 @@ public class HUDModule extends Module {
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true)
             .setDescription("Displays the player's armor");
+
+    public static Setting<Boolean> tabGUI = new Setting<>("TabGUI", false)
+            .setDescription("Displays the client's TabGUI");
 
     // **************************** vanilla HUD ****************************
 
@@ -117,7 +121,7 @@ public class HUDModule extends Module {
                 getCosmos().getModuleManager()
                         .getModules(module -> module.isDrawn())
                         .stream()
-                        .filter(module -> module.getAnimation().getValue() > 0.05)
+                        .filter(module -> module.getAnimation().getAnimationFactor() > 0.05)
                         .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1))
                         .forEach(module -> {
 
@@ -129,10 +133,10 @@ public class HUDModule extends Module {
                     }
 
                     // draw string
-                    FontUtil.drawStringWithShadow(moduleString.toString(), new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getValue()))) - 1, 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
-                    listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getValue();
+                    listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getAnimationFactor();
                     globalOffset++;
                 });
             }
@@ -266,6 +270,19 @@ public class HUDModule extends Module {
 
                     armorOffset++;
                 });
+            }
+        }
+
+        if (tabGUI.getValue()) {
+            getCosmos().getTabGUI().render();
+        }
+    }
+
+    @SubscribeEvent
+    public void onKeyInput(InputEvent.KeyInputEvent event) {
+        if (mc.currentScreen == null) {
+            if (tabGUI.getValue()) {
+                getCosmos().getTabGUI().onKeyPress(event);
             }
         }
     }
