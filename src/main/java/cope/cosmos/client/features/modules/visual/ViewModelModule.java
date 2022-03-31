@@ -1,59 +1,72 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.render.player.RenderHeldItemAlphaEvent;
 import cope.cosmos.client.events.render.player.RenderHeldItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraftforge.client.event.RenderSpecificHandEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author aesthetical
- * @since 1/26/2022
+ * @author Wolfsurge
+ * @since 31/03/2022
  */
 public class ViewModelModule extends Module {
     public static ViewModelModule INSTANCE;
 
+    // Left hand settings
+    public static Setting<Double> leftX = new Setting<>("LeftX", -2D, 0D, 2D, 2).setDescription("The X position of the left item");
+    public static Setting<Double> leftY = new Setting<>("LeftY", -2D, 0D, 2D, 2).setDescription("The Y position of the left item");
+    public static Setting<Double> leftZ = new Setting<>("LeftZ", -2D, 0D, 2D, 2).setDescription("The Z position of the left item");
+    public static Setting<Float> leftYaw = new Setting<>("LeftYaw", -180F, 0F, 180F, 1).setDescription("The yaw rotation of the left item");
+    public static Setting<Float> leftPitch = new Setting<>("LeftPitch", -180F, 0F, 180F, 1).setDescription("The pitch rotation of the left item");
+    public static Setting<Float> leftRoll = new Setting<>("LeftRoll", -180F, 0F, 180F, 1).setDescription("The roll rotation of the left item");
+    public static Setting<Float> leftScale = new Setting<>("LeftScale", 0F, 1F, 2F, 1).setDescription("The scale of the left item");
+
+    // Right hand settings
+    public static Setting<Double> rightX = new Setting<>("RightX", -2D, 0D, 2D, 2).setDescription("The X position of the right item");
+    public static Setting<Double> rightY = new Setting<>("RightY", -2D, 0D, 2D, 2).setDescription("The Y position of the right item");
+    public static Setting<Double> rightZ = new Setting<>("RightZ", -2D, 0D, 2D, 2).setDescription("The Z position of the right item");
+    public static Setting<Float> rightYaw = new Setting<>("RightYaw", -180F, 0F, 180F, 1).setDescription("The yaw rotation of the right item");
+    public static Setting<Float> rightPitch = new Setting<>("RightPitch", -180F, 0F, 180F, 1).setDescription("The pitch rotation of the right item");
+    public static Setting<Float> rightRoll = new Setting<>("RightRoll", -180F, 0F, 180F, 1).setDescription("The roll rotation of the right item");
+    public static Setting<Float> rightScale = new Setting<>("RightScale", 0F, 1F, 2F, 1).setDescription("The scale of the right item");
+
     public ViewModelModule() {
-        super("ViewModel", Category.VISUAL, "Changes how your hands render");
+        super("ViewModel", Category.VISUAL, "Changes how items are rendered in first person");
         INSTANCE = this;
     }
 
-    public static Setting<Double> itemAlpha = new Setting<>("ItemAlpha", 0.0, 255.0, 255.0, 1).setDescription("The held item alpha to use");
-
-    public static Setting<Double> translateX = new Setting<>("TranslateX", -2.0, 0.0, 2.0, 1).setDescription("The x translation coordinate");
-    public static Setting<Double> translateY = new Setting<>("TranslateY", -2.0, 0.0, 2.0, 1).setDescription("The y translation coordinate");
-    public static Setting<Double> translateZ = new Setting<>("TranslateZ", -2.0, 0.0, 2.0, 1).setDescription("The z translation coordinate");
-
-    public static Setting<Double> scaleX = new Setting<>("ScaleX", -2.0, 1.0, 2.0, 1).setDescription("The x scale factor");
-    public static Setting<Double> scaleY = new Setting<>("ScaleY", -2.0, 1.0, 2.0, 1).setDescription("The y scale factor");
-    public static Setting<Double> scaleZ = new Setting<>("ScaleZ", -2.0, 1.0, 2.0, 1).setDescription("The z scale factor");
-
-    public static Setting<Float> rotateX = new Setting<>("RotateX", -200.0F, 0.0F, 200.0F, 1).setDescription("The rotation x factor");
-    public static Setting<Float> rotateY = new Setting<>("RotateY", -200.0F, 0.0F, 200.0F, 1).setDescription("The rotation y factor");
-    public static Setting<Float> rotateZ = new Setting<>("RotateZ", -200.0F, 0.0F, 200.0F, 1).setDescription("The rotation z factor");
-
     @SubscribeEvent
-    public void onRenderHand(RenderSpecificHandEvent event) {
-        GlStateManager.translate(translateX.getValue(), translateY.getValue(), translateZ.getValue());
+    public void onRenderItemPre(RenderHeldItemEvent.Pre event) {
+        // Translate and scale items
+        switch (event.getSide()) {
+            case LEFT:
+                GlStateManager.translate(leftX.getValue(), leftY.getValue(), leftZ.getValue());
+                GlStateManager.scale(leftScale.getValue(), leftScale.getValue(), leftScale.getValue());
+                break;
+            case RIGHT:
+                GlStateManager.translate(rightX.getValue(), rightY.getValue(), rightZ.getValue());
+                GlStateManager.scale(rightScale.getValue(), rightScale.getValue(), rightScale.getValue());
+                break;
+        }
     }
 
     @SubscribeEvent
-    public void onHeldItemRender(RenderHeldItemEvent event) {
-        // scale items
-        GlStateManager.scale(scaleX.getValue(), scaleY.getValue(), scaleZ.getValue());
+    public void onRenderItemPost(RenderHeldItemEvent.Post event) {
+        // Rotate items
+        switch (event.getSide()) {
+            case LEFT:
+                GlStateManager.rotate(leftYaw.getValue(), 0, 1, 0);
+                GlStateManager.rotate(leftPitch.getValue(), 1, 0, 0);
+                GlStateManager.rotate(leftRoll.getValue(), 0, 0, 1);
+                break;
 
-        // rotate items
-        GlStateManager.rotate(rotateX.getValue(), 1, 0, 0);
-        GlStateManager.rotate(rotateY.getValue(), 0, 1, 0);
-        GlStateManager.rotate(rotateZ.getValue(), 0, 0, 1);
-    }
-
-    @SubscribeEvent
-    public void onRenderItemAlpha(RenderHeldItemAlphaEvent event) {
-        // divide our alpha value by 255 to get the color value (OpenGL uses 0-1)
-        event.setAlpha(itemAlpha.getValue().floatValue() / 255F);
+            case RIGHT:
+                GlStateManager.rotate(rightYaw.getValue(), 0, 1, 0);
+                GlStateManager.rotate(rightPitch.getValue(), 1, 0, 0);
+                GlStateManager.rotate(rightRoll.getValue(), 0, 0, 1);
+                break;
+        }
     }
 }
