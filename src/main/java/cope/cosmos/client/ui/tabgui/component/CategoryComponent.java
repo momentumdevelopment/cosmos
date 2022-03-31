@@ -57,9 +57,10 @@ public class CategoryComponent implements Wrapper {
         // Max width of module components
         float maxWidth = 4;
         for (Module module : getCosmos().getModuleManager().getModules(module -> module.getCategory().equals(category))) {
-            // If module name is longer than max width, set max width to that
-            if (FontUtil.getStringWidth(module.getName()) + 16 > maxWidth) {
-                maxWidth = FontUtil.getStringWidth(module.getName()) + 16;
+            // If module name is longer than max width, set max width to that. We are using Minecraft's font renderer as it is bigger than
+            // the client's font.
+            if (mc.fontRenderer.getStringWidth(module.getName()) + 16 > maxWidth) {
+                maxWidth = mc.fontRenderer.getStringWidth(module.getName()) + 16;
             }
         }
 

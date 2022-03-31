@@ -52,7 +52,6 @@
         "render.item.MixinItemRenderer",
         "render.item.MixinLayerBipedArmor",
         "render.item.MixinMapItemRenderer",
-        "render.item.MixinRenderItem",
         "render.tile.MixinTileEntityBeaconRenderer",
         "render.tile.MixinTileEntityEnchantmentTableRenderer",
         "render.tile.MixinTileEntityRenderDispatcher",
