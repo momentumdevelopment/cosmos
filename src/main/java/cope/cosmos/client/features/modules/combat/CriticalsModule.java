@@ -19,6 +19,7 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -61,24 +62,36 @@ public class CriticalsModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for attempting criticals");
-    public static Setting<Double> motion = new Setting<>("Motion", 0.0D, 0.42D, 1.0D, 2).setDescription("Vertical motion").setVisible(() -> mode.getValue().equals(Mode.MOTION));
+    // **************************** anticheat ****************************
 
-    public static Setting<Double> modifier = new Setting<>("Modifier", 0.0D, 1.5D, 10.0D, 2).setDescription("Modifies the damage done by a critical attack");
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 200.0D, 2000.0D, 0).setDescription("Delay between attacks to attempt criticals");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET)
+            .setDescription("Mode for attempting criticals");
+
+    public static Setting<Double> motion = new Setting<>("Motion", 0.0D, 0.42D, 1.0D, 2)
+            .setDescription("Vertical motion")
+            .setVisible(() -> mode.getValue().equals(Mode.MOTION));
+
+    // **************************** general ****************************
+
+    public static Setting<Double> modifier = new Setting<>("Modifier", 0.0D, 1.5D, 10.0D, 2)
+            .setDescription("Modifies the damage done by a critical attack");
+
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 200.0D, 2000.0D, 0)
+            .setDescription("Delay between attacks to attempt criticals");
 
     // criticals timer
     private static final Timer criticalTimer = new Timer();
 
     // packet info
-    CPacketUseEntity resendAttackPacket;
-    CPacketAnimation resendAnimationPacket;
+    private CPacketUseEntity resendAttackPacket;
+    private CPacketAnimation resendAnimationPacket;
 
     // critical entity
-    Entity criticalEntity;
+    private Entity criticalEntity;
 
     @Override
     public void onUpdate() {
+
         // resend our attack packets
         if (resendAttackPacket != null) {
             mc.player.connection.sendPacket(resendAttackPacket);
@@ -94,8 +107,10 @@ public class CriticalsModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
         // packet for attacks
-        if (event.getPacket() instanceof CPacketUseEntity && ((CPacketUseEntity) event.getPacket()).getAction().equals(CPacketUseEntity.Action.ATTACK)) {
+        if (event.getPacket() instanceof CPacketUseEntity && ((CPacketUseEntity) event.getPacket()).getAction().equals(Action.ATTACK)) {
+
             // entity we attacked, if there was one
             Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
 
@@ -135,6 +150,7 @@ public class CriticalsModule extends Module {
 
                         // attempt motion criticals
                         if (mode.getValue().equals(Mode.MOTION)) {
+
                             // jump
                             mc.player.motionY = motion.getValue();
 
@@ -146,13 +162,16 @@ public class CriticalsModule extends Module {
                         // if our timer has cleared the delay, then we are cleared to attempt another critical attack
                         if (criticalTimer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
                             if (mode.getValue().equals(Mode.PACKET_STRICT)) {
+
                                 // cancel the attack, we'll resend it after packets
                                 event.setCanceled(true);
                             }
 
                             if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.PACKET_STRICT)) {
+
                                 // send packets for each of the offsets
                                 for (float offset : mode.getValue().getOffsets()) {
+
                                     // last packet on strict should confirm player position
                                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY + offset, mc.player.posZ, false));
                                 }
@@ -181,6 +200,7 @@ public class CriticalsModule extends Module {
         // packet for swing animation
         if (event.getPacket() instanceof CPacketAnimation) {
             if (mode.getValue().equals(Mode.MOTION)) {
+
                 // cancel our swing animation, we'll resend it next tick
                 event.setCanceled(true);
                 resendAnimationPacket = (CPacketAnimation) event.getPacket();
@@ -190,6 +210,7 @@ public class CriticalsModule extends Module {
         if (event.getPacket() instanceof CPacketPlayer) {
             if (((ICPacketPlayer) event.getPacket()).isMoving()) {
                 if (criticalEntity != null) {
+
                     // make sure entity is hurt
                     if (criticalEntity.hurtResistantTime <= 16) {
                         criticalEntity = null;
@@ -200,6 +221,7 @@ public class CriticalsModule extends Module {
 
                     // modify packets
                     if (mode.getValue().equals(Mode.VANILLA)) {
+
                         // all vanilla packets are off ground
                         ((ICPacketPlayer) event.getPacket()).setOnGround(false);
 
@@ -220,6 +242,7 @@ public class CriticalsModule extends Module {
 
                     // strict has dynamic onGround packets
                     else if (mode.getValue().equals(Mode.VANILLA_STRICT)) {
+
                         // all vanilla packets are off ground
                         ((ICPacketPlayer) event.getPacket()).setOnGround(false);
 
@@ -243,6 +266,7 @@ public class CriticalsModule extends Module {
 
     @SubscribeEvent
     public void onCriticalHit(CriticalModifierEvent event) {
+
         // set the damage modifier for critical hits
         event.setDamageModifier(modifier.getValue().floatValue());
     }

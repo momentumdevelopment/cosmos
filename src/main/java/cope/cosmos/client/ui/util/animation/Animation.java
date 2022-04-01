@@ -1,4 +1,4 @@
-package cope.cosmos.client.ui.util;
+package cope.cosmos.client.ui.util.animation;
 
 import net.minecraft.util.math.MathHelper;
 

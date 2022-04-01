@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.combat;
 import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.INetworkManager;
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
@@ -37,6 +38,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemEndCrystal;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -53,10 +55,11 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author linustouchtips
@@ -127,7 +130,7 @@ public class AutoCrystalModule extends Module {
     public static Setting<Heuristic> heuristic = new Setting<>("Heuristic", Heuristic.MAX)
             .setDescription("Heuristic for damage algorithm");
 
-    public static Setting<Double> damage = new Setting<>("Damage", 1.0, 4.0, 10.0, 1)
+    public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
             .setDescription("Minimum damage done by an action");
 
     public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 1.0, 5.0, 1)
@@ -135,6 +138,12 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> lethalMultiplier = new Setting<>("LethalMultiplier", 0.0, 1.0, 5.0, 1)
             .setDescription("Will override damages if we can kill the target in this many crystals");
+
+    public static Setting<Double> armorScale = new Setting<>("ArmorScale", 0.0, 10.0, 100.0, 0)
+            .setDescription("Will override damages if we can break the target's armor");
+
+    public static Setting<AtomicInteger> force = new Setting<>("Force", new AtomicInteger(Keyboard.KEY_NONE))
+            .setDescription("Will force damage override when key is pressed");
 
     // TODO: make AntiSuicide function well, should never kill/pop you
 
@@ -145,6 +154,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Multiplier for actions considered unsafe")
             .setVisible(() -> safety.getValue().equals(Safety.BALANCE));
 
+    // TODO: implement
     public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
             .setDescription("Ignores terrain that can be exploded when calculating damages");
 
@@ -159,8 +169,7 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 3.0, 0)
             .setDescription("Factor to explode crystals")
-            .setVisible(() -> explode.getValue())
-            .setVisible(() -> timing.getValue().equals(Timing.SEQUENTIAL));
+            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.SEQUENTIAL));
 
     public static Setting<Double> explodeRange = new Setting<>("ExplodeRange", 1.0, 5.0, 6.0, 1)
             .setDescription("Range to explode crystals")
@@ -178,7 +187,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Minimum age of the crystal")
             .setVisible(() -> explode.getValue());
 
-    // TODO: fix (FIX), WTF IS THIS FUCKING SETTING
+    // TODO: fix (FIX), WTF IS THIS FUCKING SETTING (need super secret bypass)
     public static Setting<Boolean> inhibit = new Setting<>("Inhibit", false)
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
@@ -607,32 +616,43 @@ public class AutoCrystalModule extends Module {
                         }
 
                         // add to map
-                        validCrystals.put(targetDamage, new DamageHolder<>(((SPacketSpawnObject) event.getPacket()).getEntityID(), targetDamage, localDamage));
+                        validCrystals.put(targetDamage, new DamageHolder<>(((SPacketSpawnObject) event.getPacket()).getEntityID(), entity, targetDamage, localDamage));
                     }
 
-                    // best crystal in the map, in a TreeMap this is the last entry
-                    DamageHolder<Integer> bestCrystal = validCrystals.lastEntry().getValue();
+                    // make sure we actually have some valid crystals
+                    if (!validCrystals.isEmpty()) {
 
-                    // check if the damage meets our requirements
-                    if (bestCrystal.getTargetDamage() > damage.getValue()) {
+                        // best crystal in the map, in a TreeMap this is the last entry
+                        DamageHolder<Integer> bestCrystal = validCrystals.lastEntry().getValue();
 
-                        // passed factor delay??
-                        if (explodeFactor.getValue() <= explodeFactor.getMin() || factorTimer.passedTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS)) {
+                        // no crystal under 1.5 damage is worth exploding
+                        if (bestCrystal.getTargetDamage() > 1.5) {
 
-                            // face the crystal
-                            angleVector = new Vec3d(spawnPosition).addVector(0.5, 0, 0.5);
+                            // check lethality of crystal
+                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
 
-                            if (attackCrystal(bestCrystal.getDamageSource())) {
+                            // check if the damage meets our requirements
+                            if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
 
-                                // update attack count
-                                attackedCrystalCount++;
+                                // passed factor delay??
+                                if (explodeFactor.getValue() <= explodeFactor.getMin() || factorTimer.passedTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS)) {
 
-                                // add it to our list of attacked crystals
-                                attackedCrystals.put(bestCrystal.getDamageSource(), System.currentTimeMillis());
+                                    // face the crystal
+                                    angleVector = new Vec3d(spawnPosition).addVector(0.5, 0, 0.5);
+
+                                    if (attackCrystal(bestCrystal.getDamageSource())) {
+
+                                        // update attack count
+                                        attackedCrystalCount++;
+
+                                        // add it to our list of attacked crystals
+                                        attackedCrystals.put(bestCrystal.getDamageSource(), System.currentTimeMillis());
+                                    }
+
+                                    // we attempted to attack on this crystal
+                                    factorTimer.resetTime();
+                                }
                             }
-
-                            // we attempted to attack on this crystal
-                            factorTimer.resetTime();
                         }
                     }
                 }
@@ -701,8 +721,8 @@ public class AutoCrystalModule extends Module {
         }
 
         if (event.getPacket() instanceof SPacketExplosion) {
-            // check all entities in the world
 
+            // check all entities in the world
             Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
             while (entityList.hasNext()) {
 
@@ -870,15 +890,11 @@ public class AutoCrystalModule extends Module {
             // check if this is a crystal that we manually placed
             if (manualCrystals.contains(spawnPosition.down())) {
 
-                // check if this is a crystal that we manually placed
-                if (manualCrystals.contains(spawnPosition.down())) {
+                // add to explode crystals, we should explode crystals we manually placed
+                explodeCrystals.add((EntityEnderCrystal) event.getEntity());
 
-                    // add to explode crystals, we should explode crystals we manually placed
-                    explodeCrystals.add((EntityEnderCrystal) event.getEntity());
-
-                    // remove from manual placements
-                    manualCrystals.remove(spawnPosition.down());
-                }
+                // remove from manual placements
+                manualCrystals.remove(spawnPosition.down());
             }
 
             // remove all violations associated with this position
@@ -996,8 +1012,20 @@ public class AutoCrystalModule extends Module {
             return false;
         }
 
-        // make sure we are holding a crystal
+        // if we are not holding a crystal
         if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+
+            // switch to a crystal
+            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
+
+            // sync item
+            if (autoSwitch.getValue().equals(Switch.PACKET)) {
+                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+            }
+        }
+
+        // make sure we are holding a crystal
+        if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && !autoSwitch.getValue().equals(Switch.PACKET)) {
             return false;
         }
 
@@ -1111,6 +1139,11 @@ public class AutoCrystalModule extends Module {
             mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
         }
 
+        // switch back after placing, should only switch serverside
+        if (autoSwitch.getValue().equals(Switch.PACKET)) {
+            getCosmos().getInventoryManager().switchToSlot(mc.player.inventory.currentItem, Switch.PACKET);
+        }
+
         // we did attempt to place
         return true;
     }
@@ -1127,8 +1160,14 @@ public class AutoCrystalModule extends Module {
             // list of valid crystals
             TreeMap<Double, DamageHolder<EntityEnderCrystal>> validCrystals = new TreeMap<>();
 
+            // list of entities in the world
+            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+
             // check all entities in the world
-            for (Entity crystal : mc.world.loadedEntityList) {
+            while (entityList.hasNext()) {
+
+                // next entity in the world
+                Entity crystal = entityList.next();
 
                 // make sure the entity actually exists
                 if (crystal == null || crystal.isDead) {
@@ -1172,7 +1211,10 @@ public class AutoCrystalModule extends Module {
                 double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
 
                 // search all targets
-                for (Entity entity : mc.world.loadedEntityList) {
+                while (entityList.hasNext()) {
+
+                    // next entity in the world
+                    Entity entity = entityList.next();
 
                     // make sure the entity actually exists
                     if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
@@ -1209,51 +1251,64 @@ public class AutoCrystalModule extends Module {
                     }
 
                     // add to map
-                    validCrystals.put(targetDamage, new DamageHolder<>((EntityEnderCrystal) crystal, targetDamage, localDamage));
+                    validCrystals.put(targetDamage, new DamageHolder<>((EntityEnderCrystal) crystal, entity, targetDamage, localDamage));
                 }
             }
 
-            // filtered list of crystals sorted by best crystals
-            Set<EntityEnderCrystal> bestCrystals = new ConcurrentSet<>();
+            // make sure we actually have some valid crystals
+            if (!validCrystals.isEmpty()) {
 
-            // find best crystal
-            if (maxCrystals.getValue() <= 1) {
-                // another fucking null check
-                Entry<Double, DamageHolder<EntityEnderCrystal>> lastEntry = validCrystals.lastEntry();
-                if (lastEntry == null) {
-                    return null;
-                }
+                // filtered list of crystals sorted by best crystals
+                Set<EntityEnderCrystal> bestCrystals = new ConcurrentSet<>();
 
-                // best crystal in the map, in a TreeMap this is the last entry
-                DamageHolder<EntityEnderCrystal> bestCrystal = lastEntry.getValue();
-
-                // check if the damage meets our requirements
-                if (bestCrystal.getTargetDamage() > damage.getValue()) {
-
-                    // add it to our list
-                    bestCrystals.add(bestCrystal.getDamageSource());
-                }
-            }
-
-            // find best crystals
-            else {
-                for (int i = 0; i < maxCrystals.getValue(); i++) {
+                // find best crystal
+                if (maxCrystals.getValue() <= 1) {
 
                     // best crystal in the map, in a TreeMap this is the last entry
                     DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
 
-                    // check if the damage meets our requirements
-                    if (bestCrystal.getTargetDamage() > damage.getValue()) {
+                    // no crystal under 1.5 damage is worth exploding
+                    if (bestCrystal.getTargetDamage() > 1.5) {
 
-                        // add it to our list
-                        bestCrystals.add(bestCrystal.getDamageSource());
-                        validCrystals.remove(bestCrystal.getTargetDamage(), bestCrystal);
+                        // check lethality of crystal
+                        boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
+
+                        // check if the damage meets our requirements
+                        if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
+
+                            // add it to our list
+                            bestCrystals.add(bestCrystal.getDamageSource());
+                        }
                     }
                 }
-            }
 
-            // update list of best crystals
-            return bestCrystals;
+                // find best crystals
+                else {
+                    for (int i = 0; i < maxCrystals.getValue(); i++) {
+
+                        // best crystal in the map, in a TreeMap this is the last entry
+                        DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
+
+                        // no crystal under 1.5 damage is worth exploding
+                        if (bestCrystal.getTargetDamage() > 1.5) {
+
+                            // check lethality of crystal
+                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
+
+                            // check if the damage meets our requirements
+                            if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
+
+                                // add it to our list
+                                bestCrystals.add(bestCrystal.getDamageSource());
+                                validCrystals.remove(bestCrystal.getTargetDamage(), bestCrystal);
+                            }
+                        }
+                    }
+                }
+
+                // update list of best crystals
+                return bestCrystals;
+            }
         }
 
         return null;
@@ -1270,6 +1325,9 @@ public class AutoCrystalModule extends Module {
 
             // list of valid placements
             TreeMap<Double, DamageHolder<BlockPos>> validPlacements = new TreeMap<>();
+
+            // list of entities in the world
+            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
 
             // check all positions in range
             for (BlockPos position : BlockUtil.getBlocksInArea(mc.player, new AxisAlignedBB(
@@ -1309,63 +1367,69 @@ public class AutoCrystalModule extends Module {
                 double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
 
                 // search all targets
-                synchronized (mc.world.loadedEntityList) {
-                    for (Entity entity : mc.world.loadedEntityList) {
+                while (entityList.hasNext()) {
 
-                        // make sure the entity actually exists
-                        if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
-                            continue;
-                        }
+                    // next entity in the world
+                    Entity entity = entityList.next();
 
-                        // ignore crystals, they can't be targets
-                        if (entity instanceof EntityEnderCrystal) {
-                            continue;
-                        }
-
-                        // verify that the entity is a target
-                        if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
-                            continue;
-                        }
-
-                        // distance to target
-                        double entityRange = mc.player.getDistance(entity);
-
-                        // check if the target is in range
-                        if (entityRange > targetRange.getValue()) {
-                            continue;
-                        }
-
-                        // target damage done by the placement
-                        double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
-
-                        // check the safety of the placement
-                        double placementSafety = getSafetyIndex(targetDamage, localDamage);
-
-                        // placement is very unsafe (latter case will kill us)
-                        if (placementSafety < 0) {
-                            continue;
-                        }
-
-                        // add to map
-                        validPlacements.put(targetDamage, new DamageHolder<>(position, targetDamage, localDamage));
+                    // make sure the entity actually exists
+                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
+                        continue;
                     }
+
+                    // ignore crystals, they can't be targets
+                    if (entity instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // verify that the entity is a target
+                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                        continue;
+                    }
+
+                    // distance to target
+                    double entityRange = mc.player.getDistance(entity);
+
+                    // check if the target is in range
+                    if (entityRange > targetRange.getValue()) {
+                        continue;
+                    }
+
+                    // target damage done by the placement
+                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+
+                    // check the safety of the placement
+                    double placementSafety = getSafetyIndex(targetDamage, localDamage);
+
+                    // placement is very unsafe (latter case will kill us)
+                    if (placementSafety < 0) {
+                        continue;
+                    }
+
+                    // add to map
+                    validPlacements.put(targetDamage, new DamageHolder<>(position, entity, targetDamage, localDamage));
                 }
             }
 
-            // check if the last entry is null
-            Entry<Double, DamageHolder<BlockPos>> lastEntry = validPlacements.lastEntry();
-            if (lastEntry == null) {
-                return null;
-            }
+            // make sure we actually have some valid placements
+            if (!validPlacements.isEmpty()) {
 
-            // best placement in the map, in a TreeMap this is the last entry
-            DamageHolder<BlockPos> bestPlacement = lastEntry.getValue();
+                // best placement in the map, in a TreeMap this is the last entry
+                DamageHolder<BlockPos> bestPlacement = validPlacements.lastEntry().getValue();
 
-            // check if the damage meets our requirements
-            if (bestPlacement.getTargetDamage() > damage.getValue()) {
+                // no placement under 1.5 damage is worth placing
+                if (bestPlacement.getTargetDamage() > 1.5) {
 
-                // mark it as our current placement
-                return bestPlacement;
+                    // check lethality of placement
+                    boolean lethal = getLethality(bestPlacement.getTarget(), bestPlacement.getTargetDamage());
+
+                    // check if the damage meets our requirements
+                    if (lethal || bestPlacement.getTargetDamage() > damage.getValue()) {
+
+                        // mark it as our current placement
+                        return bestPlacement;
+                    }
+                }
             }
         }
 
@@ -1414,6 +1478,62 @@ public class AutoCrystalModule extends Module {
 
         // safe
         return 1;
+    }
+
+    /**
+     * Gets the lethality of a given process
+     * @param target The target
+     * @param targetDamage The damage done to the target
+     * @return The lethality of a given process
+     */
+    public boolean getLethality(Entity target, double targetDamage) {
+
+        // target health
+        double health = EnemyUtil.getHealth(target);
+
+        // can kill the target very quickly
+        if (health <= 2) {
+            return true;
+        }
+
+        if (target instanceof EntityPlayer) {
+
+            // total durability
+            float lowestDurability = 100;
+
+            // check durability for each piece of armor
+            for (ItemStack armor : target.getArmorInventoryList()) {
+                if (armor != null && !armor.getItem().equals(Items.AIR)) {
+
+                    // durability of the armor
+                    float armorDurability = (armor.getMaxDamage() - armor.getItemDamage() / (float) armor.getMaxDamage()) * 100;
+
+                    // find lowest durability
+                    if (armorDurability < lowestDurability) {
+                        lowestDurability = armorDurability;
+                    }
+                }
+            }
+
+            // check if armor damage is significant
+            if (lowestDurability <= armorScale.getValue()) {
+                return true;
+            }
+        }
+
+        // force key
+        int forceKey = force.getValue().get();
+
+        // check if we are holding force key
+        if (Keyboard.isKeyDown(forceKey)) {
+            return true;
+        }
+
+        // lethality of the current process
+        double lethality = targetDamage * lethalMultiplier.getValue();
+
+        // will kill the target
+        return health - lethality <= 0.5;
     }
 
     /**
@@ -1614,6 +1734,7 @@ public class AutoCrystalModule extends Module {
     }
 
     // TODO: implement without reducing FPS significantly; angle resolver
+    @SuppressWarnings("unused")
     public enum Trace {
 
         /**
@@ -1671,10 +1792,6 @@ public class AutoCrystalModule extends Module {
             this.violationTag = violationTag;
         }
 
-        public Violation(ViolationTag violationTag) {
-            this(null, violationTag);
-        }
-
         /**
          * Gets the damage source that has caused this violation
          * @return The damage source that has caused this violation
@@ -1726,11 +1843,16 @@ public class AutoCrystalModule extends Module {
         // damager
         private final T damageSource;
 
+        private final Entity target;
+
         // damage info
         private final double targetDamage, localDamage;
 
-        public DamageHolder(T damageSource, double targetDamage, double localDamage) {
+        public DamageHolder(T damageSource, Entity target, double targetDamage, double localDamage) {
             this.damageSource = damageSource;
+
+            // target
+            this.target = target;
 
             // damage
             this.targetDamage = targetDamage;
@@ -1743,6 +1865,14 @@ public class AutoCrystalModule extends Module {
          */
         public T getDamageSource() {
             return damageSource;
+        }
+
+        /**
+         * Gets the target
+         * @return The target
+         */
+        public Entity getTarget() {
+            return target;
         }
 
         /**

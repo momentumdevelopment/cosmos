@@ -5,7 +5,8 @@ import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
+import cope.cosmos.client.ui.util.animation.Easing;
 import cope.cosmos.util.Wrapper;
 import org.lwjgl.input.Keyboard;
 
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * @author bon55
+ * @author bon55, linustouchtips
  * @since 05/05/2021
  */
 public class Module extends Feature implements Wrapper {
@@ -70,7 +71,9 @@ public class Module extends Feature implements Wrapper {
 		// default module state
 		drawn = true;
 		key = Keyboard.KEY_NONE;
-		animation = new Animation(150, enabled);
+
+		// animation
+		animation = new Animation(200, enabled);
 	}
 
 	public Module(String name, Category category, String description, Supplier<String> info) {
@@ -105,6 +108,7 @@ public class Module extends Feature implements Wrapper {
 			Cosmos.EVENT_BUS.register(this);
 
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
+
 				// runs the onEnable event
 				if (in) {
 					ModuleEnableEvent event = new ModuleEnableEvent(this);
@@ -131,6 +135,7 @@ public class Module extends Feature implements Wrapper {
 			enabled = false;
 
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(this)) {
+
 				// run the onDisable event
 				if (in) {
 					ModuleDisableEvent event = new ModuleDisableEvent(this);
@@ -153,8 +158,9 @@ public class Module extends Feature implements Wrapper {
 	 * Runs when the module is enabled
 	 */
 	public void onEnable() {
+
 		// toggle animation
-		getAnimation().setState(true);
+		// getAnimation().setValue(true);
 
 		// reset world timer
 		if (nullCheck()) {
@@ -166,8 +172,9 @@ public class Module extends Feature implements Wrapper {
 	 * Runs when the module is disabled
 	 */
 	public void onDisable() {
+
 		// toggle animation
-		getAnimation().setState(false);
+		// getAnimation().setReversed(false);
 
 		// reset world timer
 		getCosmos().getTickManager().setClientTicks(1);

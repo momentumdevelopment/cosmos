@@ -56,35 +56,6 @@ public class EnemyUtil implements Wrapper {
     }
 
     /**
-     * Gets the lowest armor durability for an entity's armor
-     * @param target The entity
-     * @return The lowest armor durability for the entity's armor
-     */
-    public static float getLowestArmor(Entity target) {
-        if (target instanceof EntityPlayer) {
-            // total durability
-            float lowestDurability = 100;
-
-            // check durability for each piece of armor
-            for (ItemStack armor : target.getArmorInventoryList()) {
-                if (armor != null && !armor.getItem().equals(Items.AIR)) {
-                    // durability of the armor
-                    float armorDurability = (armor.getMaxDamage() - armor.getItemDamage() / (float) armor.getMaxDamage()) * 100;
-
-                    // find lowest durability
-                    if (armorDurability < lowestDurability) {
-                        lowestDurability = armorDurability;
-                    }
-                }
-            }
-
-            return lowestDurability;
-        }
-
-        return 0;
-    }
-
-    /**
      * Checks if an entity is dead
      * @param entity The entity to check
      * @return Whether the entity is dead

@@ -34,23 +34,51 @@ public class OffhandModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<OffhandItem> item = new Setting<>("Item", OffhandItem.CRYSTAL).setDescription("Item to use when not at critical health");
-    public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", OffhandItem.GAPPLE).setDescription("Item to use if you don't have the chosen item");
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR).setDescription("How to timing when switching");
-    public static Setting<Gapple> gapple = new Setting<>("Gapple", Gapple.SWORD).setDescription("When to dynamically switch to a golden apple");
-    public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE).setDescription("When to consider the situation unsafe");
-    
-    public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 36.0D, 1).setDescription("Health considered as critical health");
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 0).setDescription("Delay when switching items");
+    // **************************** anticheat ****************************
 
-    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false).setDescription("Opens inventory serverside before switching");
-    public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false).setDescription("Stops motion before switching");
-    public static Setting<Boolean> recursive = new Setting<>("Recursive", false).setDescription("Allow hotbar items to be moved to the offhand");
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR)
+            .setDescription("How to timing when switching");
 
-    public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause and use a totem");
-    public static Setting<Boolean> pauseLiquid = new Setting<>("PauseLiquid", false).setDescription("When in liquid").setParent(pause);
-    public static Setting<Boolean> pauseAir = new Setting<>("PauseAir", true).setDescription("When falling or flying").setParent(pause);
-    public static Setting<Boolean> pauseElytra = new Setting<>("PauseElytra", true).setDescription("When elytra flying").setParent(pause);
+    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false)
+            .setDescription("Opens inventory serverside before switching");
+
+    public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false)
+            .setDescription("Stops motion before switching");
+
+    // **************************** general ****************************
+
+    public static Setting<OffhandItem> item = new Setting<>("Item", OffhandItem.CRYSTAL)
+            .setDescription("Item to use when not at critical health");
+
+    public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", OffhandItem.GAPPLE)
+            .setDescription("Item to use if you don't have the chosen item");
+
+    public static Setting<Gapple> gapple = new Setting<>("Gapple", Gapple.SWORD)
+            .setDescription("When to dynamically switch to a golden apple");
+
+    public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE)
+            .setDescription("When to consider the situation unsafe");
+
+    public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 36.0D, 1)
+            .setDescription("Health considered as critical health");
+
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 1)
+            .setDescription("Delay when switching items");
+
+    public static Setting<Boolean> recursive = new Setting<>("Recursive", false)
+            .setDescription("Allow hotbar items to be moved to the offhand");
+
+    // **************************** pause ****************************
+
+    public static Setting<Boolean> pauseLiquid = new Setting<>("PauseLiquid", false)
+            .setDescription("When in liquid");
+
+    public static Setting<Boolean> pauseAir = new Setting<>("PauseAir", true)
+            .setDescription("When falling or flying");
+
+    public static Setting<Boolean> pauseElytra = new Setting<>("PauseElytra", true)
+            .setDescription("When elytra flying");
+
 
     // offhand stage
     private Stage stage = Stage.IDLE;
@@ -118,18 +146,16 @@ public class OffhandModule extends Module {
             }
 
             // make sure we are not in a situation where we need to pause the offhand
-            if (pause.getValue()) {
-                if (pauseLiquid.getValue() && PlayerUtil.isInLiquid()) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
-                }
+            if (pauseLiquid.getValue() && PlayerUtil.isInLiquid()) {
+                switchItem = Items.TOTEM_OF_UNDYING;
+            }
 
-                else if (pauseAir.getValue() && mc.player.fallDistance > 5) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
-                }
+            else if (pauseAir.getValue() && mc.player.fallDistance > 5) {
+                switchItem = Items.TOTEM_OF_UNDYING;
+            }
 
-                else if (pauseElytra.getValue() && mc.player.isElytraFlying()) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
-                }
+            else if (pauseElytra.getValue() && mc.player.isElytraFlying()) {
+                switchItem = Items.TOTEM_OF_UNDYING;
             }
             
             // check possible unsafe situations

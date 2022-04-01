@@ -53,7 +53,7 @@ public class SurroundModule extends Module {
         INSTANCE = this;
     }
 
-    // **************************** anti-cheat ****************************
+    // **************************** anticheat ****************************
 
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("When to place blocks");
@@ -362,6 +362,7 @@ public class SurroundModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // packet for block changes
         if (event.getPacket() instanceof SPacketBlockChange) {
 

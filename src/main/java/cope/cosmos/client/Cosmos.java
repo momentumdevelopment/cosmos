@@ -39,7 +39,7 @@ public class Cosmos {
     // mod info
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.4.0-dev";
     public static final ClientType CLIENT_TYPE = ClientType.DEVELOPMENT;
 
     // client event bus
@@ -427,16 +427,31 @@ public class Cosmos {
         /**
          * Released version of client
          */
-        RELEASE,
+        RELEASE(""),
 
         /**
          * Beta release of client for testing
          */
-        BETA,
+        BETA("-beta"),
 
         /**
          * Development version of client
          */
-        DEVELOPMENT
+        DEVELOPMENT("-dev");
+
+        // version tag
+        private final String tag;
+
+        ClientType(String tag) {
+            this.tag = tag;
+        }
+
+        /**
+         * Gets the tag
+         * @return The tag
+         */
+        public String getTag() {
+            return tag;
+        }
     }
 }

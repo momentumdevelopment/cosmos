@@ -24,6 +24,7 @@ public class FastProjectileModule extends Module {
 
     public FastProjectileModule() {
         super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> {
+
             // if we are charged
             if (projectileTimer.passedTime(2, Format.SECONDS)) {
                 return "Charged";
@@ -48,16 +49,26 @@ public class FastProjectileModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> packets = new Setting<>("Packets", 1.0D, 10.0D, 100.0D, 0).setDescription("How many times to send packets");
-    public static Setting<Boolean> bows = new Setting<>("Bows", false).setDescription("Allow bows to do more damage");
-    public static Setting<Boolean> eggs = new Setting<>("Eggs", false).setDescription("Allow eggs to do more damage");
-    public static Setting<Boolean> snowballs = new Setting<>("Snowballs", false).setDescription("Allow snowballs to do more damage");
+    // **************************** general ****************************
+
+    public static Setting<Double> packets = new Setting<>("Packets", 1.0D, 10.0D, 100.0D, 0)
+            .setDescription("How many times to send packets");
+
+    public static Setting<Boolean> bows = new Setting<>("Bows", false)
+            .setDescription("Allow bows to do more damage");
+
+    public static Setting<Boolean> eggs = new Setting<>("Eggs", false)
+            .setDescription("Allow eggs to do more damage");
+
+    public static Setting<Boolean> snowballs = new Setting<>("Snowballs", false)
+            .setDescription("Allow snowballs to do more damage");
 
     // projectile timer, keeps track of last bow shot
     private static final Timer projectileTimer = new Timer();
     
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
         // packet when using projectiles
         if (event.getPacket() instanceof CPacketPlayerDigging && ((CPacketPlayerDigging) event.getPacket()).getAction().equals(CPacketPlayerDigging.Action.RELEASE_USE_ITEM)) {
 
@@ -66,6 +77,7 @@ public class FastProjectileModule extends Module {
 
                 // make sure there has been enough time since last shot
                 if (projectileTimer.passedTime(2, Format.SECONDS)) {
+
                     // bypass
                     mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
 
@@ -74,6 +86,7 @@ public class FastProjectileModule extends Module {
 
                     // set the position at crazy bounds, makes server think we have crazy velocity -> more velocity = more projectile damage
                     for (int tick = 0; tick < packets.getValue(); tick++) {
+
                         // player directions from rotation
                         double sin = -Math.sin(Math.toRadians(mc.player.rotationYaw));
                         double cos = Math.cos(Math.toRadians(mc.player.rotationYaw));

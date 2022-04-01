@@ -3,6 +3,7 @@ package cope.cosmos.client.ui.util;
 import java.awt.*;
 
 /**
+ * Holder class for HSB color values
  * @author linustouchtips
  * @since 06/05/2021
  */

@@ -72,7 +72,9 @@ public class ExplosionUtil implements Wrapper {
         int enchantModifier = 0;
         try {
             enchantModifier = EnchantmentHelper.getEnchantmentModifierDamage(entity.getArmorInventoryList(), src);
-        } catch (NullPointerException ignored) { }
+        } catch (NullPointerException ignored) {
+
+        }
 
         float eof = MathHelper.clamp(enchantModifier, 0, 20);
         damage *= 1F - eof / 25F;

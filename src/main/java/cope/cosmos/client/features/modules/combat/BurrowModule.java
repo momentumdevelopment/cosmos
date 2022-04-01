@@ -35,7 +35,7 @@ public class BurrowModule extends Module {
 
 	// **************************** general ****************************
 
-	public static Setting<Mode> mode = new Setting<>("Mode", Mode.OBSIDIAN)
+	public static Setting<Mode> mode = new Setting<>("Block", Mode.OBSIDIAN)
 			.setDescription("Block to use when burrowing");
 
 	@Override

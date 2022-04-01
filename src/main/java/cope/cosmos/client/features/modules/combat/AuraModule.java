@@ -60,67 +60,149 @@ public class AuraModule extends Module {
         INSTANCE = this;
     }
 
-    // general settings
-    public static Setting<Interact> interact = new Setting<>("Interact", Interact.STRICT).setDescription("Changes how you attack the target");
-    public static Setting<Double> iterations = new Setting<>("Iterations", 0.0, 1.0, 5.0, 0).setDescription("Attacks per iteration");
-    public static Setting<Double> variation = new Setting<>("Variation", 0.0, 100.0, 100.0, 0).setDescription("Probability of your hits doing damage");
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 7.0, 1).setDescription("Range to attack entities");
-    public static Setting<Double> wallsRange = new Setting<>("WallsRange", 0.0, 6.0, 7.0, 1).setDescription("Range to attack entities through walls");
+    // **************************** anticheat ****************************
 
-    // timing category
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA).setDescription("Mode for timing attacks");
-    public static Setting<Delay> delayMode = new Setting<>("Delay", Delay.SWING).setDescription("Mode for timing units").setParent(timing);
-    public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2).setDescription("Vanilla attack factor").setVisible(() -> delayMode.getValue().equals(Delay.SWING)).setParent(timing);
-    public static Setting<Double> delayMilliseconds = new Setting<>("Milliseconds", 0.0, 1000.0, 2000.0, 0).setDescription("Attack Delay in ms").setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS)).setParent(timing);
-    public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0).setDescription("Attack Delay in ticks").setVisible(() -> delayMode.getValue().equals(Delay.TICK)).setParent(timing);
-    public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE).setDescription("Sync attack timing to server ticks").setVisible(() -> delayMode.getValue().equals(Delay.TPS)).setParent(timing);
-    public static Setting<Double> delaySwitch = new Setting<>("Switch", 0.0, 0.0, 500.0, 0).setDescription("Time to delay attacks after switching items").setParent(timing);
-    public static Setting<Double> delayRandom = new Setting<>("Random", 0.0, 0.0, 200.0, 0).setDescription("Randomizes delay to simulate vanilla attacks").setParent(timing);
-    public static Setting<Double> delayTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 50.0, 0).setDescription("The minimum age of the target to attack").setParent(timing);
+    public static Setting<Interact> interact = new Setting<>("Interact", Interact.STRICT)
+            .setDescription("Changes how you attack the target");
 
-    // misc. category
-    public static Setting<Double> fov = new Setting<>("FOV", 1.0, 180.0, 180.0, 0).setDescription("Field of vision for the process to function");
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setDescription("Mode for attack rotations");
+    
+    public static Setting<Limit> rotateLimit = new Setting<>("YawLimit", Limit.NONE)
+            .setDescription("Mode for when to restrict rotations")
+            .setVisible(() -> rotate.getValue().equals(Rotate.PACKET));
+    
+    public static Setting<Bone> rotateBone = new Setting<>("Bone", Bone.EYES)
+            .setDescription("What body part to rotate to");
+    
+    public static Setting<Double> rotateRandom = new Setting<>("RandomRotate", 0.0, 0.0, 5.0, 1)
+            .setDescription("Randomize rotations to simulate real rotations");
 
-    // weapon category
-    public static Setting<Weapon> weapon = new Setting<>("Weapon", Weapon.SWORD).setDescription("Weapon to use for attacking");
-    public static Setting<Boolean> weaponOnly = new Setting<>("OnlyWeapon", true).setDescription("Only attack if holding weapon").setParent(weapon);
-    public static Setting<Boolean> weaponThirtyTwoK = new Setting<>("32K", false).setDescription("Only attack if holding 32k").setParent(weapon);
-    public static Setting<Boolean> weaponBlock = new Setting<>("Block", false).setDescription("Automatically blocks if you're holding a shield").setParent(weapon);
+    public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", false)
+            .setDescription("Stops sprinting before attacking");
+    
+    public static Setting<Boolean> stopSneak = new Setting<>("StopSneak", false)
+            .setDescription("Stops sneaking before attacking");
 
-    // rotate category
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE).setDescription("Mode for attack rotations");
-    public static Setting<Limit> rotateLimit = new Setting<>("YawLimit", Limit.NONE).setDescription("Mode for when to restrict rotations").setVisible(() -> rotate.getValue().equals(Rotate.PACKET)).setParent(rotate);
-    public static Setting<Bone> rotateBone = new Setting<>("Bone", Bone.EYES).setDescription("What body part to rotate to");
-    public static Setting<Double> rotateRandom = new Setting<>("RandomRotate", 0.0, 0.0, 5.0, 1).setDescription("Randomize rotations to simulate real rotations").setParent(rotate);
+    public static Setting<Hand> swing = new Setting<>("Swing", Hand.MAINHAND)
+            .setDescription("Hand to swing");
+    
+    public static Setting<Boolean> raytrace = new Setting<>("Raytrace", false)
+            .setDescription("Verify if target is visible");
 
-    // anti-cheat category
-    public static Setting<Hand> swing = new Setting<>("Swing", Hand.MAINHAND).setDescription("Hand to swing");
-    public static Setting<Boolean> raytrace = new Setting<>("Raytrace", false).setDescription("Verify if target is visible");
-    public static Setting<Boolean> packet = new Setting<>("Packet", true).setDescription("Attack with packets");
-    public static Setting<Boolean> teleport = new Setting<>("Teleport", false).setDescription("Vanilla teleport to target");
-    public static Setting<Boolean> reactive = new Setting<>("Reactive", false).setDescription("Spams attacks when target pops a totem");
-    public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", false).setDescription("Stops sprinting before attacking");
-    public static Setting<Boolean> stopSneak = new Setting<>("StopSneak", false).setDescription("Stops sneaking before attacking");
+    // **************************** general ****************************
+    
+    public static Setting<Double> iterations = new Setting<>("Iterations", 0.0, 1.0, 5.0, 0)
+            .setDescription("Attacks per iteration");
+    
+    public static Setting<Double> variation = new Setting<>("Variation", 0.0, 100.0, 100.0, 0)
+            .setDescription("Probability of your hits doing damage");
+    
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 7.0, 1)
+            .setDescription("Range to attack entities");
+    
+    public static Setting<Double> wallsRange = new Setting<>("WallsRange", 0.0, 6.0, 7.0, 1)
+            .setDescription("Range to attack entities through walls");
 
-    // pause category
-    public static Setting<Boolean> pause = new Setting<>("Pause", true).setDescription("When to pause");
-    public static Setting<Double> pauseHealth = new Setting<>("PauseHealth", 0.0, 2.0, 36.0, 0).setDescription("Pause when below this health").setParent(pause);
-    public static Setting<Boolean> pauseEating = new Setting<>("PauseEating", false).setDescription("Pause when eating").setParent(pause);
-    public static Setting<Boolean> pauseMining = new Setting<>("PauseMining", true).setDescription("Pause when mining").setParent(pause);
-    public static Setting<Boolean> pauseMending = new Setting<>("PauseMending", false).setDescription("Pause when mending").setParent(pause);
+    // **************************** timing ****************************
+    
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA)
+            .setDescription("Mode for timing attacks");
+    
+    public static Setting<Delay> delayMode = new Setting<>("Delay", Delay.SWING)
+            .setDescription("Mode for timing units");
+    
+    public static Setting<Double> delayFactor = new Setting<>("Factor", 0.0, 1.0, 1.0, 2)
+            .setDescription("Vanilla attack factor")
+            .setVisible(() -> delayMode.getValue().equals(Delay.SWING));
+    
+    public static Setting<Double> delayMilliseconds = new Setting<>("Milliseconds", 0.0, 1000.0, 2000.0, 0)
+            .setDescription("Attack Delay in ms")
+            .setVisible(() -> delayMode.getValue().equals(Delay.MILLISECONDS));
+    
+    public static Setting<Double> delayTicks = new Setting<>("Ticks", 0.0, 15.0, 20.0, 0)
+            .setDescription("Attack Delay in ticks")
+            .setVisible(() -> delayMode.getValue().equals(Delay.TICK));
+    
+    public static Setting<TPS> delayTPS = new Setting<>("TPS", TPS.AVERAGE)
+            .setDescription("Sync attack timing to server ticks");
+    //        .setVisible(() -> delayMode.getValue().equals(Delay.TPS));
+    
+    public static Setting<Double> delaySwitch = new Setting<>("SwitchDelay", 0.0, 0.0, 500.0, 0)
+            .setDescription("Time to delay attacks after switching items");
+    
+    public static Setting<Double> delayRandom = new Setting<>("RandomDelay", 0.0, 0.0, 200.0, 0)
+            .setDescription("Randomizes delay to simulate vanilla attacks");
+    
+    public static Setting<Double> delayTicksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 50.0, 0)
+            .setDescription("The minimum age of the target to attack");
 
-    // switch category
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode for switching to weapon");
+    // **************************** misc (maybe UNNECESSARY) ****************************
+    
+    public static Setting<Double> fov = new Setting<>("FOV", 1.0, 180.0, 180.0, 0)
+            .setDescription("Field of vision for the process to function");
 
-    // target category
-    public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST).setDescription("Priority for searching target");
-    public static Setting<Boolean> targetPlayers = new Setting<>("TargetPlayers", true).setDescription("Target players").setParent(target);
-    public static Setting<Boolean> targetPassives = new Setting<>("TargetPassives", false).setDescription("Target passives").setParent(target);
-    public static Setting<Boolean> targetNeutrals = new Setting<>("TargetNeutrals", false).setDescription("Target neutrals").setParent(target);
-    public static Setting<Boolean> targetHostiles = new Setting<>("TargetHostiles", false).setDescription("Target hostiles").setParent(target);
+    public static Setting<Boolean> packet = new Setting<>("Packet", true)
+            .setDescription("Attack with packets");
+    
+    public static Setting<Boolean> teleport = new Setting<>("Teleport", false)
+            .setDescription("Vanilla teleport to target");
+    
+    public static Setting<Boolean> reactive = new Setting<>("Reactive", false)
+            .setDescription("Spams attacks when target pops a totem");
+    
+    // **************************** weapon ****************************
 
-    // render category
-    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Render a visual over the target");
+    public static Setting<Weapon> weapon = new Setting<>("Weapon", Weapon.SWORD)
+            .setDescription("Weapon to use for attacking");
+    
+    public static Setting<Boolean> weaponOnly = new Setting<>("OnlyWeapon", true)
+            .setDescription("Only attack if holding weapon");
+    
+    public static Setting<Boolean> weaponThirtyTwoK = new Setting<>("32K", false)
+            .setDescription("Only attack if holding 32k");
+    
+    public static Setting<Boolean> weaponBlock = new Setting<>("Block", false)
+            .setDescription("Automatically blocks if you're holding a shield");
+
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setDescription("Mode for switching to weapon");
+
+    // **************************** pause ****************************
+    
+    public static Setting<Double> pauseHealth = new Setting<>("PauseHealth", 0.0, 2.0, 36.0, 0)
+            .setDescription("Pause when below this health");
+    
+    public static Setting<Boolean> pauseEating = new Setting<>("PauseEating", false)
+            .setDescription("Pause when eating");
+    
+    public static Setting<Boolean> pauseMining = new Setting<>("PauseMining", true)
+            .setDescription("Pause when mining");
+    
+    public static Setting<Boolean> pauseMending = new Setting<>("PauseMending", false)
+            .setDescription("Pause when mending");
+
+    // **************************** targeting ****************************
+    
+    public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST)
+            .setDescription("Priority for searching target");
+    
+    public static Setting<Boolean> targetPlayers = new Setting<>("TargetPlayers", true)
+            .setDescription("Target players");
+
+    public static Setting<Boolean> targetPassives = new Setting<>("TargetPassives", false)
+            .setDescription("Target passives");
+
+    public static Setting<Boolean> targetNeutrals = new Setting<>("TargetNeutrals", false)
+            .setDescription("Target neutrals");
+
+    public static Setting<Boolean> targetHostiles = new Setting<>("TargetHostiles", false)
+            .setDescription("Target hostiles");
+
+    // **************************** render ****************************
+
+    public static Setting<Boolean> render = new Setting<>("Render", true)
+            .setDescription("Render a visual over the target");
 
     // attack target
     private Entity auraTarget;
@@ -148,17 +230,14 @@ public class AuraModule extends Module {
             // prefer a player if there is one in range
             boolean playerBias = false;
 
-            // pause if needed
-            if (pause.getValue()) {
-                // pause if the player is doing something else
-                if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
-                    return;
-                }
+            // pause if the player is doing something else
+            if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
+                return;
+            }
 
-                // pause if the player is at a critical health
-                else if (PlayerUtil.getHealth() <= pauseHealth.getValue()) {
-                    return;
-                }
+            // pause if the player is at a critical health
+            else if (PlayerUtil.getHealth() <= pauseHealth.getValue()) {
+                return;
             }
 
             // map for potential targets
@@ -504,6 +583,7 @@ public class AuraModule extends Module {
 
     @Override
     public void onRender3D() {
+
         // render a visual around the target
         if (auraTarget != null && render.getValue()) {
             RenderUtil.drawCircle(new RenderBuilder()
@@ -577,6 +657,7 @@ public class AuraModule extends Module {
     @SubscribeEvent
     public void onRenderRotations(RenderRotationsEvent event) {
         if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
+
             // cancel the model rendering for rotations, we'll set it to our values
             event.setCanceled(true);
 
@@ -591,7 +672,10 @@ public class AuraModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // packet for switching held items
         if (event.getPacket() instanceof CPacketHeldItemChange) {
+
             // we just switched, so reset our time
             switchTimer.resetTime();
 

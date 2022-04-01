@@ -61,7 +61,13 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
             FontUtil.drawStringWithShadow(getSetting().getName(), scaledX, scaledY, -1);
 
             // bind value
-            FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey()), scaledWidth, scaledY, -1);
+            if (getSetting().getValue() != null) {
+                FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getSetting().getValue().get()), scaledWidth, scaledY, -1);
+            }
+
+            else {
+                FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey()), scaledWidth, scaledY, -1);
+            }
         }
 
         glScaled(1.81818181, 1.81818181, 1.81818181);
@@ -93,11 +99,23 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
 
                 // backspace -> no bind
                 if (in == Keyboard.KEY_BACK || in == Keyboard.KEY_DELETE) {
-                    getModuleComponent().getModule().setKey(Keyboard.KEY_NONE);
+                    if (getSetting().getValue() != null) {
+                        getSetting().setValue(new AtomicInteger(Keyboard.KEY_NONE));
+                    }
+
+                    else {
+                        getModuleComponent().getModule().setKey(Keyboard.KEY_NONE);
+                    }
                 }
 
                 else {
-                    getModuleComponent().getModule().setKey(in);
+                    if (getSetting().getValue() != null) {
+                        getSetting().setValue(new AtomicInteger(in));
+                    }
+
+                    else {
+                        getModuleComponent().getModule().setKey(in);
+                    }
                 }
 
                 // we are no longer binding

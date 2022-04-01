@@ -6,7 +6,7 @@ import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.DrawableComponent;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category.CategoryFrameComponent;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting.*;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
@@ -88,7 +88,7 @@ public class ModuleComponent extends DrawableComponent {
 
             // all module features have a bind and drawn feature
             settingComponents.add(new DrawnComponent(this, new Setting<>("Drawn", new AtomicBoolean(true))));
-            settingComponents.add(new BindComponent(this, new Setting<>("Bind", new AtomicInteger(0))));
+            settingComponents.add(new BindComponent(this, new Setting<>("Bind", null)));
         }
     }
 

@@ -83,8 +83,9 @@ public class HUDModule extends Module {
     public static Setting<Boolean> advancements = new Setting<>("Advancements", false)
             .setDescription("Displays the vanilla advancement notification");
 
-    private int globalOffset;
 
+    // offsets
+    private int globalOffset;
     private float listOffset;
     private int armorOffset;
 

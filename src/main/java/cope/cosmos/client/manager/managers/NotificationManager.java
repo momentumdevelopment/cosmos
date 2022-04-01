@@ -1,7 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.math.Timer;
 import net.minecraft.util.ResourceLocation;
 

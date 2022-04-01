@@ -3,7 +3,7 @@ package cope.cosmos.client.ui.clickgui.screens.configuration.component.component
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.client.ui.util.ColorHSB;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
