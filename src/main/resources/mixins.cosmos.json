@@ -47,6 +47,7 @@
         "render.gui.overlay.MixinGuiToast",
         "render.gui.MixinFontRenderer",
         "render.gui.MixinGuiInGame",
+        "render.gui.MixinGuiConnecting",
         "render.gui.MixinGuiMultiplayer",
         "render.gui.MixinSplashProgress",
         "render.item.MixinItemRenderer",

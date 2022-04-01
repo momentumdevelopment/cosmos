@@ -8,8 +8,8 @@ package cope.cosmos.client.features;
 public class Feature {
 
     // all features should have a name, and optionally a description
-    public String name;
-    public String description;
+    protected String name;
+    protected String description;
 
     public Feature(String name, String description) {
         this.name = name;
