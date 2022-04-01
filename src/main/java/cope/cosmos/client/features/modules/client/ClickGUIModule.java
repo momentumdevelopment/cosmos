@@ -35,6 +35,11 @@ public class ClickGUIModule extends Module {
 
 		Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
 
+		// open frames
+		getCosmos().getClickGUI().getCategoryFrameComponents().forEach(categoryFrameComponent -> {
+			categoryFrameComponent.setOpen(true);
+		});
+
 		// blur shader for background
 		if (blur.getValue()) {
 			mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));

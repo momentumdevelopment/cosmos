@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.category;
 
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.FrameComponent;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
@@ -108,6 +108,7 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
 
         // height scales with animation factor
         if (animation.getAnimationFactor() > 0) {
+
             // scissor out the area
             getScissorStack().pushScissor((int) getPosition().x, (int) getPosition().y + TITLE + 2, WIDTH, (int) (height * animation.getAnimationFactor()));
 
@@ -258,5 +259,14 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
      */
     public void addComponentOffset(double in) {
         featureOffset += in;
+    }
+
+    /**
+     * Sets the category frame open or closed state
+     * @param in The category frame open state
+     */
+    public void setOpen(boolean in) {
+        open = in;
+        animation.setState(in);
     }
 }

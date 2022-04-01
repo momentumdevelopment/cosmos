@@ -168,6 +168,11 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
     public void onGuiClosed() {
         super.onGuiClosed();
 
+        // close frames
+        categoryFrameComponents.forEach(categoryFrameComponent -> {
+            categoryFrameComponent.setOpen(false);
+        });
+
         Cosmos.EVENT_BUS.unregister(this);
 
         // disable the GUI modules, keeps the toggle state consistent with open/close
