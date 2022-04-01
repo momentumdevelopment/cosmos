@@ -94,6 +94,7 @@ public class ModuleManager extends Manager {
 
 				// visual
 				new BlockHighlightModule(),
+				new BreadcrumbsModule(),
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),

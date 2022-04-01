@@ -8,6 +8,7 @@ import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.ui.altgui.Alt;
 import cope.cosmos.client.ui.altgui.AltEntry;
 import cope.cosmos.client.ui.altgui.AltManagerGUI;
+import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
 import java.io.*;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 06/08/2021
  */
 public class PresetManager extends Manager {
@@ -106,7 +107,7 @@ public class PresetManager extends Manager {
         loadModules();
         loadSocial();
         loadAlts();
-        // loadGUI();
+        loadGUI();
     }
 
     /**
@@ -117,7 +118,7 @@ public class PresetManager extends Manager {
         saveModules();
         saveSocial();
         saveAlts();
-        // saveGUI();
+        saveGUI();
     }
 
     /**
@@ -557,53 +558,65 @@ public class PresetManager extends Manager {
         }
     }
 
-    // TODO: fix GUI saving & loading
-
-    /*
     public void saveGUI() {
         try {
-            // the file writer
-            OutputStreamWriter guiOutputStreamWriter = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/gui.toml"), StandardCharsets.UTF_8);
+            // File writer
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/gui.toml"), StandardCharsets.UTF_8);
 
-            // the output string
-            StringBuilder outputTOML = new StringBuilder();
+            // Output string
+            StringBuilder output = new StringBuilder();
 
             try {
-                // write the window properties
-                getCosmos().getWindowGUI().getManager().getPinnedWindows().forEach(window -> {
-                    outputTOML.append("[").append(window.getName()).append("]").append("\r\n");
-                    outputTOML.append("X = ").append(window.getPosition().x).append("\r\n");
-                    outputTOML.append("Y = ").append(window.getPosition().y).append("\r\n");
-                    outputTOML.append("Height = ").append(window.getHeight()).append("\r\n");
-                    outputTOML.append("Width = ").append(window.getWidth()).append("\r\n");
+                // Add frame info to output
+                getCosmos().getClickGUI().getCategoryFrameComponents().forEach(component -> {
+                    output.append("[").append(component.getValue().name()).append("]").append("\r\n");
+                    output.append("X = ").append(component.getPosition().x).append("\r\n");
+                    output.append("Y = ").append(component.getPosition().y).append("\r\n");
+                    output.append("Height = ").append(component.getHeight()).append("\r\n");
+                    output.append("\r\n");
                 });
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
 
-            // write to a TOML file
-            guiOutputStreamWriter.write(outputTOML.toString());
-            guiOutputStreamWriter.close();
-        } catch (IOException exception) {
+            // Write and close
+            writer.write(output.toString());
+            writer.close();
+
+            System.out.println("[Cosmos] GUI was saved successfully!");
+        } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
     public void loadGUI() {
         try {
-            // the stream from the GUI file
+            // The stream from gui file
             InputStream inputStream = Files.newInputStream(Paths.get(mainDirectory.getName() + "/gui.toml"));
 
-            // the TOML input from the file
-            Toml inputTOML = new Toml().read(inputStream);
+            // Input TOML
+            Toml toml = new Toml().read(inputStream);
 
+            if (toml != null) {
+                // Set frame values
+                Cosmos.INSTANCE.getClickGUI().getCategoryFrameComponents().forEach(component -> {
+                    // Set X and Y
+                    if (toml.getDouble(component.getValue().name() + ".X") != null && toml.getDouble(component.getValue().name() + ".Y") != null) {
+                        component.setPosition(new Vec2f(toml.getDouble(component.getValue().name() + ".X").floatValue(), toml.getDouble(component.getValue().name() + ".Y").floatValue()));
+                    }
 
+                    // Set height
+                    if (toml.getDouble(component.getValue().name() + ".Height") != null) {
+                        component.setHeight(toml.getDouble(component.getValue().name() + ".Height").floatValue());
+                    }
+                });
+            }
+
+            System.out.println("[Cosmos] GUI was loaded successfully!");
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
-
-    */
 
     /**
      * Gets the client configuration's current preset
