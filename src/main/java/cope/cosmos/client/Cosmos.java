@@ -147,6 +147,7 @@ public class Cosmos {
 
         // sets up the GUI
         clickGUI = new ClickGUIScreen();
+        presetManager.loadGUI();
         tabGUI = new TabGUI();
         progressManager.step("[Cosmos] Setting up GUI's");
 

@@ -181,6 +181,9 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
         // save our configs when exiting the GUI
         Cosmos.INSTANCE.getPresetManager().save();
 
+        // Save GUI config
+        Cosmos.INSTANCE.getPresetManager().saveGUI();
+
         if (mc.entityRenderer.isShaderActive()) {
             mc.entityRenderer.getShaderGroup().deleteShaderGroup();
         }
