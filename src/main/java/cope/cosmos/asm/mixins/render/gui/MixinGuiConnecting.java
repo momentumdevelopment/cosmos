@@ -1,6 +1,5 @@
 package cope.cosmos.asm.mixins.render.gui;
 
-import cope.cosmos.connection.Client;
 import net.minecraft.client.multiplayer.GuiConnecting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

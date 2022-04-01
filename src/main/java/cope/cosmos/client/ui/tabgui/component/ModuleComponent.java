@@ -1,7 +1,7 @@
 package cope.cosmos.client.ui.tabgui.component;
 
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
@@ -13,6 +13,7 @@ import java.awt.*;
  * @since 29/03/2022
  */
 public class ModuleComponent {
+
     // The module of the component
     private final Module module;
 

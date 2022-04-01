@@ -272,6 +272,7 @@ public class CriticalsModule extends Module {
     }
 
     public enum Mode {
+
         /**
          * Attempts changing hit to a critical via packets
          */

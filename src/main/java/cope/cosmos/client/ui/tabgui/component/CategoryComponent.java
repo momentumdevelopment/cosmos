@@ -2,7 +2,7 @@ package cope.cosmos.client.ui.tabgui.component;
 
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.ui.util.Animation;
+import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.client.ui.util.ScissorStack;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
@@ -21,6 +21,7 @@ import java.util.List;
  * @since 29/03/2022
  */
 public class CategoryComponent implements Wrapper {
+
     // The category of the component
     private final Category category;
 
