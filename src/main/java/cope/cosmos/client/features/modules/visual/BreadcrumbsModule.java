@@ -1,10 +1,12 @@
 package cope.cosmos.client.features.modules.visual;
 
+import cope.cosmos.client.events.network.ConnectEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -17,6 +19,13 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class BreadcrumbsModule extends Module {
 
+    public static BreadcrumbsModule INSTANCE;
+
+    public BreadcrumbsModule() {
+        super("Breadcrumbs", Category.VISUAL, "Draws a trail behind you");
+        INSTANCE = this;
+    }
+
     // Settings
     public static final Setting<Boolean> infinite = new Setting<>("Infinite", false).setDescription("Makes breadcrumbs last forever");
     public static final Setting<Float> lifespanValue = new Setting<>("Lifespan", 10F, 100F, 1000F, 0).setDescription("The lifespan of the positions in ticks").setVisible(() -> !infinite.getValue());
@@ -24,16 +33,6 @@ public class BreadcrumbsModule extends Module {
 
     // List of positions
     private final ArrayList<Position> positions = new ArrayList<>();
-
-    public BreadcrumbsModule() {
-        super("Breadcrumbs", Category.VISUAL, "Draws a trail behind you");
-    }
-
-    @Override
-    public void onEnable() {
-        // Clear positions
-        positions.clear();
-    }
 
     @Override
     public void onDisable() {

@@ -107,7 +107,7 @@ public class PresetManager extends Manager {
         loadModules();
         loadSocial();
         loadAlts();
-        // loadGUI();
+        loadGUI();
     }
 
     /**
@@ -118,7 +118,7 @@ public class PresetManager extends Manager {
         saveModules();
         saveSocial();
         saveAlts();
-        // saveGUI();
+        saveGUI();
     }
 
     /**
