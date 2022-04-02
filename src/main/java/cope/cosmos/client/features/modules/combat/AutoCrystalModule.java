@@ -39,10 +39,7 @@ import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemEndCrystal;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraft.network.play.server.SPacketDestroyEntities;
 import net.minecraft.network.play.server.SPacketExplosion;
@@ -74,10 +71,10 @@ public class AutoCrystalModule extends Module {
             // **************************** TESTING INFO ****************************
 
             // violation counts total
-            int violationCount = violations.size();
+            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
 
             // INFO
-            return violationCount + ", " + waitTicks;
+            return String.valueOf(responseTime);
         });
 
         INSTANCE = this;
@@ -261,7 +258,10 @@ public class AutoCrystalModule extends Module {
     // **************************** ticks ****************************
 
     // ticks to pause the process
-    private static int waitTicks;
+    private int waitTicks;
+
+    // ticks to wait after switching
+    private int switchTicks = 10;
 
     // **************************** explode ****************************
 
@@ -352,6 +352,9 @@ public class AutoCrystalModule extends Module {
         // we are cleared to process our calculations
         if (waitTicks <= 0) {
 
+            // update ticks before switching
+            switchTicks++;
+
             // we are no longer waiting
             rotationLimit = true;
 
@@ -440,7 +443,7 @@ public class AutoCrystalModule extends Module {
         if (render.getValue() && placement != null) {
 
             // only render if we are holding crystals
-            if (InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+            if (InventoryUtil.isHolding(Items.END_CRYSTAL) || autoSwitch.getValue().equals(Switch.PACKET)) {
 
                 // draw a box at the position
                 RenderUtil.drawBox(new RenderBuilder()
@@ -952,6 +955,14 @@ public class AutoCrystalModule extends Module {
 
         if (mc.getConnection() != null) {
 
+            // player sprint state
+            boolean sprintState = mc.player.isSprinting();
+
+            // stop sprinting when attacking an entity
+            if (sprintState) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+            }
+
             // response time projection
             long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
 
@@ -993,6 +1004,11 @@ public class AutoCrystalModule extends Module {
 
             mc.player.resetCooldown();
 
+            // reset sprint state
+            if (sprintState) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            }
+
             // we did attempt an attack, we can verify if it actually did anything later
             return true;
         }
@@ -1012,8 +1028,21 @@ public class AutoCrystalModule extends Module {
             return false;
         }
 
+        // pause switch to account for eating
+        if (PlayerUtil.isEating()) {
+            switchTicks = 0;
+        }
+
         // if we are not holding a crystal
         if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+
+            if (autoSwitch.getValue().equals(Switch.NORMAL)) {
+
+                // wait for switch pause
+                if (switchTicks <= 10) {
+                    return false;
+                }
+            }
 
             // switch to a crystal
             getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());

@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
@@ -206,10 +207,16 @@ public class PresetManager extends Manager {
                         outputTOML.append("\r\n");
 
                         // notify user
-                        System.out.println("[Cosmos] " + module.getName() + " was saved successfully!");
+                        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                            System.out.println("[Cosmos] " + module.getName() + " was saved successfully!");
+                        }
 
                     } catch (Exception exception) {
-                        exception.printStackTrace();
+
+                        // print exception if development environment
+                        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                            exception.printStackTrace();
+                        }
                     }
                 }
             });
@@ -218,7 +225,11 @@ public class PresetManager extends Manager {
             moduleOutputStreamWriter.close();
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -319,16 +330,26 @@ public class PresetManager extends Manager {
                             });
 
                             // notify user
-                            System.out.println("[Cosmos] " + module.getName() + " was loaded successfully!");
+                            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                System.out.println("[Cosmos] " + module.getName() + " was loaded successfully!");
+                            }
 
                         } catch (Exception exception) {
-                            exception.printStackTrace();
+
+                            // print exception if development environment
+                            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                exception.printStackTrace();
+                            }
                         }
                     }
                 });
             }
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -354,7 +375,11 @@ public class PresetManager extends Manager {
 
                 outputTOML.append("]").append("\r\n");
             } catch (Exception exception) {
-                exception.printStackTrace();
+
+                // print exception if development environment
+                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                    exception.printStackTrace();
+                }
             }
 
             // write the socials to a TOML file
@@ -362,10 +387,16 @@ public class PresetManager extends Manager {
             socialOutputStreamWriter.close();
 
             // notify user
-            System.out.println("[Cosmos] Socials were saved successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Socials were saved successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -391,15 +422,25 @@ public class PresetManager extends Manager {
                         }
                     }
                 } catch (Exception exception) {
-                    exception.printStackTrace();
+
+                    // print exception if development environment
+                    if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                        exception.printStackTrace();
+                    }
                 }
             }
 
             // notify user
-            System.out.println("[Cosmos] Socials were loaded successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Socials were loaded successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -430,10 +471,16 @@ public class PresetManager extends Manager {
             infoOutputStreamWriter.close();
 
             // notify user
-            System.out.println("[Cosmos] Info was saved successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Info was saved successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -463,14 +510,24 @@ public class PresetManager extends Manager {
                 }
 
             } catch (Exception exception) {
-                exception.printStackTrace();
+
+                // print exception if development environment
+                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                    exception.printStackTrace();
+                }
             }
 
             // notify user
-            System.out.println("[Cosmos] Info was loaded successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Info was loaded successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -498,7 +555,11 @@ public class PresetManager extends Manager {
                 output.append("]").append("\r\n");
 
             } catch (Exception exception) {
-                exception.printStackTrace();
+
+                // print exception if development environment
+                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                    exception.printStackTrace();
+                }
             }
 
             // Write the info
@@ -506,10 +567,16 @@ public class PresetManager extends Manager {
             altOutputStreamWriter.close();
 
             // notify user
-            System.out.println("[Cosmos] Alts were saved successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Alts were saved successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -546,15 +613,25 @@ public class PresetManager extends Manager {
                     }
 
                 } catch (Exception exception) {
-                    exception.printStackTrace();
+
+                    // print exception if development environment
+                    if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                        exception.printStackTrace();
+                    }
                 }
             }
 
             // notify user
-            System.out.println("[Cosmos] Alts were loaded successfully!");
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Alts were loaded successfully!");
+            }
 
         } catch (IOException exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -576,16 +653,28 @@ public class PresetManager extends Manager {
                     output.append("\r\n");
                 });
             } catch (Exception exception) {
-                exception.printStackTrace();
+
+                // print exception if development environment
+                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                    exception.printStackTrace();
+                }
             }
 
             // Write and close
             writer.write(output.toString());
             writer.close();
 
-            System.out.println("[Cosmos] GUI was saved successfully!");
+            // notify user
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] GUI was saved successfully!");
+            }
+
         } catch (Exception exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 
@@ -599,7 +688,7 @@ public class PresetManager extends Manager {
 
             if (toml != null) {
                 // Set frame values
-                Cosmos.INSTANCE.getClickGUI().getCategoryFrameComponents().forEach(component -> {
+                getCosmos().getClickGUI().getCategoryFrameComponents().forEach(component -> {
                     // Set X and Y
                     if (toml.getDouble(component.getValue().name() + ".X") != null && toml.getDouble(component.getValue().name() + ".Y") != null) {
                         component.setPosition(new Vec2f(toml.getDouble(component.getValue().name() + ".X").floatValue(), toml.getDouble(component.getValue().name() + ".Y").floatValue()));
@@ -612,9 +701,17 @@ public class PresetManager extends Manager {
                 });
             }
 
-            System.out.println("[Cosmos] GUI was loaded successfully!");
+            // notify user
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] GUI was loaded successfully!");
+            }
+
         } catch (Exception exception) {
-            exception.printStackTrace();
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
         }
     }
 

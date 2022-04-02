@@ -23,6 +23,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketAnimation;
+import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.server.SPacketBlockBreakAnim;
@@ -206,8 +207,23 @@ public class SurroundModule extends Module {
 
                         // explode crystal if it won't kill us
                         if (health - crystalDamage >= 0.1) {
+
+                            // player sprint state
+                            boolean sprintState = mc.player.isSprinting();
+
+                            // stop sprinting when attacking an entity
+                            if (sprintState) {
+                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                            }
+
+                            // attack
                             mc.player.connection.sendPacket(new CPacketUseEntity(entity));
                             mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+
+                            // reset sprint state
+                            if (sprintState) {
+                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                            }
                         }
 
                         continue;

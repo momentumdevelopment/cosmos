@@ -53,21 +53,29 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
         RenderUtil.drawRect(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, 2, HEIGHT, ColorUtil.getPrimaryColor());
 
         glScaled(0.55, 0.55, 0.55); {
+
+            // key name
+            String keyName;
+
+            // key setting name
+            if (getSetting().getValue() != null) {
+                keyName = Keyboard.getKeyName(getSetting().getValue().get());
+            }
+
+            // key module name
+            else {
+                keyName = Keyboard.getKeyName(getModuleComponent().getModule().getKey());
+            }
+
             float scaledX = (getModuleComponent().getCategoryFrameComponent().getPosition().x + 6) * 1.81818181F;
             float scaledY = (featureHeight + 5) * 1.81818181F;
-            float scaledWidth = (getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - (FontUtil.getStringWidth(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey())) * 0.55F) - 3) * 1.81818181F;
+            float scaledWidth = (getModuleComponent().getCategoryFrameComponent().getPosition().x + getModuleComponent().getCategoryFrameComponent().getWidth() - (FontUtil.getStringWidth(binding ? "Listening ..." : keyName) * 0.55F) - 3) * 1.81818181F;
 
             // setting name
             FontUtil.drawStringWithShadow(getSetting().getName(), scaledX, scaledY, -1);
 
             // bind value
-            if (getSetting().getValue() != null) {
-                FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getSetting().getValue().get()), scaledWidth, scaledY, -1);
-            }
-
-            else {
-                FontUtil.drawStringWithShadow(binding ? "Listening ..." : Keyboard.getKeyName(getModuleComponent().getModule().getKey()), scaledWidth, scaledY, -1);
-            }
+            FontUtil.drawStringWithShadow(binding ? "Listening ..." : keyName, scaledWidth, scaledY, -1);
         }
 
         glScaled(1.81818181, 1.81818181, 1.81818181);

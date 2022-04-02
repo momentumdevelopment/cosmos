@@ -4,9 +4,9 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
+import cope.cosmos.client.features.PersistentFeature;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.animation.Animation;
-import cope.cosmos.client.ui.util.animation.Easing;
 import cope.cosmos.util.Wrapper;
 import org.lwjgl.input.Keyboard;
 
@@ -23,6 +23,9 @@ public class Module extends Feature implements Wrapper {
 
 	// enabled state
 	private boolean enabled;
+
+	// always enabled state
+	private final boolean persistent = getClass().isAnnotationPresent(PersistentFeature.class);
 
 	// drawn state -> visible in the arraylist
 	private boolean drawn;
@@ -47,6 +50,11 @@ public class Module extends Feature implements Wrapper {
 
 	public Module(String name, Category category, String description) {
 		super(name, description);
+
+		// persistent, enabled by default
+		if (persistent) {
+			enabled = true;
+		}
 
 		this.category = category;
 
@@ -101,7 +109,8 @@ public class Module extends Feature implements Wrapper {
 	 * @param in Allows the enable event to run
 	 */
 	public void enable(boolean in) {
-		if (!enabled) {
+		if (!persistent && !enabled) {
+
 			// set the enabled state to true
 			enabled = true;
 
@@ -130,7 +139,7 @@ public class Module extends Feature implements Wrapper {
 	 *  * @param in Allows the enable event to run
 	 */
 	public void disable(boolean in) {
-		if (enabled) {
+		if (!persistent && enabled) {
 			// sets the enabled state to false
 			enabled = false;
 
@@ -160,7 +169,7 @@ public class Module extends Feature implements Wrapper {
 	public void onEnable() {
 
 		// toggle animation
-		// getAnimation().setValue(true);
+		getAnimation().setState(true);
 
 		// reset world timer
 		if (nullCheck()) {
@@ -174,10 +183,12 @@ public class Module extends Feature implements Wrapper {
 	public void onDisable() {
 
 		// toggle animation
-		// getAnimation().setReversed(false);
+		getAnimation().setState(false);
 
 		// reset world timer
-		getCosmos().getTickManager().setClientTicks(1);
+		if (nullCheck()) {
+			getCosmos().getTickManager().setClientTicks(1);
+		}
 	}
 
 	/**
