@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
+import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.client.events.combat.CriticalModifierEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -138,8 +139,8 @@ public class CriticalsModule extends Module {
                     // attack 5 times
                     if (mc.getConnection() != null) {
                         for (int i = 0; i < 5; i++) {
-                            mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
-                            mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation());
+                            ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketUseEntity(attackEntity), null);
+                            ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketAnimation(((CPacketUseEntity) event.getPacket()).getHand()), null);
                         }
                     }
                 }
@@ -183,7 +184,7 @@ public class CriticalsModule extends Module {
                             // resend attack packet
                             if (mode.getValue().equals(Mode.PACKET_STRICT)) {
                                 if (mc.getConnection() != null) {
-                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(attackEntity));
+                                    ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketUseEntity(attackEntity), null);
                                 }
                             }
                         }
@@ -279,6 +280,11 @@ public class CriticalsModule extends Module {
         PACKET(0.05F, 0, 0.03F, 0),
 
         /**
+         * Attempts changing hit to a critical via packets for Updated NCP
+         */
+        PACKET_STRICT(0.11F, 0.1100013579F, 0.0000013579F),
+
+        /**
          * Attempts changing hit to a critical via modifying vanilla packets
          */
         VANILLA(),
@@ -287,11 +293,6 @@ public class CriticalsModule extends Module {
          * Attempts changing hit to a critical via modifying vanilla packets for Updated NCP
          */
         VANILLA_STRICT(),
-
-        /**
-         * Attempts changing hit to a critical via packets for Updated NCP
-         */
-        PACKET_STRICT(0.11F, 0.1100013579F, 0.0000013579F),
 
         /**
          * Attempts critical via a jump

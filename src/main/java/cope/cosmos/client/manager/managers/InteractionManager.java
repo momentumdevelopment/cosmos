@@ -2,7 +2,6 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.manager.Manager;
-import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.player.AngleUtil;
@@ -25,7 +24,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class InteractionManager extends Manager implements Wrapper {
+/**
+ * @author linustouchtips
+ * @since 11/16/2021
+ */
+public class InteractionManager extends Manager {
     public InteractionManager() {
         super("InteractionManager", "Manages all player interactions");
     }
@@ -166,8 +169,10 @@ public class InteractionManager extends Manager implements Wrapper {
     }
 
     public void attackEntity(Entity entity, boolean packet, double variation) {
+
         // check hit chance
         if (Math.random() <= (variation / 100)) {
+
             // attack
             if (packet) {
                 mc.player.connection.sendPacket(new CPacketUseEntity(entity));
