@@ -47,17 +47,49 @@ public class SpeedMineModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("Mode for SpeedMine");
-    public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.PACKET).setDescription( "Mode when switching to a pickaxe").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1).setDescription("Instant block damage").setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Mines on the opposite face").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Boolean> strictSwitch = new Setting<>("StrictSwitch", false).setDescription("Switches to a tool when mining first").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Boolean> strictReMine = new Setting<>("StrictBreak", true).setDescription("Limits re-mines").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Boolean> swing = new Setting<>("NoSwing", false).setDescription("Cancels swinging packets").setVisible(() -> mode.getValue().equals(Mode.PACKET));
-    public static Setting<Boolean> reset = new Setting<>("Reset", false).setDescription("Doesn't allow block break progress to be reset");
+    // **************************** general ****************************
 
-    public static Setting<Boolean> render = new Setting<>("Render", true).setDescription("Renders a visual over current mining block");
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH).setParent(render).setDescription("Style for the visual");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET)
+            .setDescription("Mode for SpeedMine");
+
+    public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.PACKET)
+            .setDescription( "Mode when switching to a pickaxe")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+
+    public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1)
+            .setDescription("Instant block damage")
+            .setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
+
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Mines on the opposite face")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+
+    public static Setting<Boolean> strictSwitch = new Setting<>("StrictSwitch", false)
+            .setDescription("Switches to a tool when mining first")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+
+    // TODO: FIX, should not keep mining lol
+    public static Setting<Boolean> strictReMine = new Setting<>("StrictBreak", true)
+            .setDescription("Limits re-mines")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+
+    public static Setting<Boolean> swing = new Setting<>("NoSwing", false)
+            .setDescription("Cancels swinging packets")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+
+    public static Setting<Boolean> reset = new Setting<>("Reset", false)
+            .setDescription("Doesn't allow block break progress to be reset");
+
+    // **************************** render ****************************
+
+    public static Setting<Boolean> render = new Setting<>("Render", true)
+            .setDescription("Renders a visual over current mining block");
+
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
+            .setDescription("Style for the visual")
+            .setExclusion(Box.GLOW, Box.REVERSE);
 
     // mine info
     private BlockPos minePosition;
@@ -75,11 +107,14 @@ public class SpeedMineModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // no reason to speedmine in creative mode, blocks break instantly
         if (!mc.player.capabilities.isCreativeMode) {
             if (strictReMine.getValue()) {
+
                 // limit re-mines
                 if (mineBreaks > 3) {
+
                     // reset our block info
                     minePosition = null;
                     mineFacing = null;
@@ -89,6 +124,7 @@ public class SpeedMineModule extends Module {
             }
 
             if (mode.getValue().equals(Mode.DAMAGE)) {
+
                 // if the damage is greater than our specified damage, set the block to full damage
                 if (((IPlayerControllerMP) mc.playerController).getCurrentBlockDamage() > damage.getValue().floatValue()) {
                     ((IPlayerControllerMP) mc.playerController).setCurrentBlockDamage(1);
@@ -100,6 +136,7 @@ public class SpeedMineModule extends Module {
 
             else if (mode.getValue().equals(Mode.PACKET)) {
                 if (minePosition != null) {
+
                     // if the block is broken
                     if (mineDamage >= 1) {
 
@@ -108,6 +145,7 @@ public class SpeedMineModule extends Module {
 
                         // save our current slot
                         if (previousSlot != -1) {
+
                             // switch to our previous slot
                             mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
 
@@ -122,6 +160,7 @@ public class SpeedMineModule extends Module {
             }
 
             else if (mode.getValue().equals(Mode.VANILLA)) {
+
                 // add haste and set the block hit delay to 0
                 ((IPlayerControllerMP) mc.playerController).setBlockHitDelay(0);
                 mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE.setPotionName("SpeedMine"), 80950, 1, false, false));
@@ -149,6 +188,7 @@ public class SpeedMineModule extends Module {
         }
 
         if (previousHaste > 0) {
+
             // reapply old haste
             mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE, previousHaste));
         }
@@ -162,9 +202,12 @@ public class SpeedMineModule extends Module {
 
     @Override
     public void onRender3D() {
+
         // render the current mining block
         if (mode.getValue().equals(Mode.PACKET) && !mc.player.capabilities.isCreativeMode) {
             if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
+
+                // draw box
                 RenderUtil.drawBox(new RenderBuilder()
                         .position(minePosition)
                         .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
@@ -184,15 +227,18 @@ public class SpeedMineModule extends Module {
 
     @SubscribeEvent
     public void onLeftClickBlock(LeftClickBlockEvent event) {
+
         // make sure the block is breakable
         if (BlockUtil.isBreakable(event.getPos()) && !mc.player.capabilities.isCreativeMode) {
             if (mode.getValue().equals(Mode.CREATIVE)) {
+
                 // instantly break the block and set the block to air
                 mc.playerController.onPlayerDestroyBlock(event.getPos());
                 mc.world.setBlockToAir(event.getPos());
             }
 
             if (mode.getValue().equals(Mode.PACKET)) {
+
                 // save our current slot
                 previousSlot = mc.player.inventory.currentItem;
 
@@ -204,9 +250,12 @@ public class SpeedMineModule extends Module {
                 // re-click
                 if (event.getPos().equals(minePosition)) {
                     if (mode.getValue().equals(Mode.PACKET)) {
+
                         // if our damage is enough to destroy the block then we switch to the best item
                         if (mineDamage >= 1) {
+
                             if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+
                                 // switch to the most efficient item
                                 getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
 
@@ -215,6 +264,7 @@ public class SpeedMineModule extends Module {
 
                                 // save our current slot
                                 if (previousSlot != -1) {
+
                                     // switch to our previous slot
                                     mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
 
@@ -228,6 +278,7 @@ public class SpeedMineModule extends Module {
 
                 // left click block info
                 else if (!event.getPos().equals(minePosition)) {
+
                     // new mine info
                     minePosition = event.getPos();
                     mineFacing = event.getFace();
@@ -250,6 +301,7 @@ public class SpeedMineModule extends Module {
                         }
 
                         if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+
                             // switch to the most efficient item
                             int switchSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR);
                             getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
@@ -262,16 +314,22 @@ public class SpeedMineModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        // packet for block break
         if (event.getPacket() instanceof SPacketBlockChange) {
+
             // broken block
             if (((SPacketBlockChange) event.getPacket()).getBlockPosition().equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
                 mineBreaks++;
             }
         }
 
+        // packet for multiple block breaks
         if (event.getPacket() instanceof SPacketMultiBlockChange) {
+
             // check updated blocks
             for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
+
                 // broken block
                 if (blockUpdateData.getPos().equals(minePosition) && blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
                     mineBreaks++;
@@ -282,6 +340,7 @@ public class SpeedMineModule extends Module {
 
     @SubscribeEvent
     public void onBlockReset(BlockResetEvent event) {
+
         // don't allow block break progress to be reset
         if (reset.getValue()) {
             event.setCanceled(true);
@@ -290,6 +349,7 @@ public class SpeedMineModule extends Module {
 
     @SubscribeEvent
     public void onSettingChange(SettingUpdateEvent event) {
+
         // clear haste effect on mode change
         if (event.getSetting().equals(mode) && !event.getSetting().getValue().equals(Mode.VANILLA)) {
             if (mc.player.isPotionActive(MobEffects.HASTE)) {
@@ -297,6 +357,7 @@ public class SpeedMineModule extends Module {
             }
 
             if (previousHaste > 0) {
+
                 // reapply old haste
                 mc.player.addPotionEffect(new PotionEffect(MobEffects.HASTE, previousHaste));
             }
@@ -311,6 +372,7 @@ public class SpeedMineModule extends Module {
      * @return The most efficient item for the specified position
      */
     public ItemStack getEfficientItem(IBlockState state) {
+
         // the efficient slot
         int bestSlot = -1;
 
@@ -324,6 +386,7 @@ public class SpeedMineModule extends Module {
 
                 // make sure the block is breakable
                 if (breakSpeed > 1) {
+
                     // scale by efficiency enchantment
                     if (EnchantmentHelper.getEnchantmentLevel(Enchantments.EFFICIENCY, mc.player.inventory.getStackInSlot(i)) > 0) {
                         breakSpeed += StrictMath.pow(EnchantmentHelper.getEnchantmentLevel(Enchantments.EFFICIENCY, mc.player.inventory.getStackInSlot(i)), 2) + 1;
@@ -353,10 +416,11 @@ public class SpeedMineModule extends Module {
      * @return The block strength of the specified block
      */
     public float getBlockStrength(IBlockState state, BlockPos position) {
+
         // the block's hardness
         float hardness = state.getBlockHardness(mc.world, position);
 
-        // if the block is air, it has no strenght
+        // if the block is air, it has no strength
         if (hardness < 0) {
             return 0;
         }
@@ -380,6 +444,7 @@ public class SpeedMineModule extends Module {
      */
     @SuppressWarnings("deprecation")
     public boolean canHarvestBlock(Block block, BlockPos position) {
+
         // get the state of the block
         IBlockState worldState = mc.world.getBlockState(position);
         IBlockState state = worldState.getBlock().getActualState(worldState, mc.world, position);
@@ -475,6 +540,7 @@ public class SpeedMineModule extends Module {
      * @return The destroy speed of the specified position
      */
     public float getDestroySpeed(IBlockState state) {
+
         // base destroy speed
         float destroySpeed = 1;
 

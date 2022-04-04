@@ -32,37 +32,78 @@ public class SpeedModule extends Module {
         INSTANCE = this;
     }
 
-    // mode
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE).setDescription("Mode for Speed");
-    public static Setting<BaseSpeed> speed = new Setting<>("Speed", BaseSpeed.NORMAL).setDescription("Base speed when moving");
-    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST).setDescription("Friction for moving through objects");
+    // **************************** speeds ****************************
 
-    // anticheat
-    public static Setting<Boolean> velocityFactor = new Setting<>("VelocityFactor", false).setDescription("Boosts speed when taking knockback");
-    public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true).setDescription("Applies potions effects to speed");
-    public static Setting<Boolean> retain = new Setting<>("Retain", false).setDescription("Quickly restarts strafe after collision");
-    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false).setDescription("Allows you to boost your speed and control movement in the air");
-    public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false).setDescription("Use slightly higher and therefore slower jumps to bypass better");
-    public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false).setDescription("Collision reset");
-    public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false).setDescription("Maintains sprint while moving");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE)
+            .setDescription("Mode for Speed");
 
-    // timer
-    public static Setting<Boolean> timer = new Setting<>("Timer", true).setDescription("Uses timer to speed up strafe");
-    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1).setDescription("Timer speed").setParent(timer);
+    public static Setting<BaseSpeed> speed = new Setting<>("Speed", BaseSpeed.NORMAL)
+            .setDescription("Base speed when moving");
 
-    // current stage
+    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST)
+            .setDescription("Friction for moving through objects");
+
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> velocityFactor = new Setting<>("VelocityFactor", false)
+            .setDescription("Boosts speed when taking knockback");
+
+    public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true)
+            .setDescription("Applies potions effects to speed");
+
+    public static Setting<Boolean> retain = new Setting<>("Retain", false)
+            .setDescription("Quickly restarts strafe after collision");
+
+    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false)
+            .setDescription("Allows you to boost your speed and control movement in the air");
+
+    public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false)
+            .setDescription("Use slightly higher and therefore slower jumps to bypass better");
+
+    public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false)
+            .setDescription("Collision reset");
+
+    public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false)
+            .setDescription("Maintains sprint while moving");
+
+    // **************************** timer ****************************
+
+    public static Setting<Boolean> timer = new Setting<>("Timer", true)
+            .setDescription("Uses timer to speed up strafe");
+
+    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1)
+            .setDescription("Timer speed")
+            .setVisible(() -> timer.getValue());
+
+    // **************************** stages ****************************
+
+    // strafe stage
     private StrafeStage strafeStage = StrafeStage.SPEED;
+
+    // on-ground stage
     private GroundStage groundStage = GroundStage.CHECK_SPACE;
+
+    // **************************** speeds ****************************
 
     // the move speed for the current mode
     private double moveSpeed;
     private double latestMoveSpeed;
+
+    // boost speed
     private double boostSpeed;
 
-    // ticks
+    // **************************** ticks ****************************
+
+    // strict tick clamp
     private int strictTicks;
+
+    // timer tick
     private int timerTicks;
+
+    // ticks boosted
     private int boostTicks;
+
+    // **************************** packets ****************************
 
     // packet manipulation
     private boolean offsetPackets;
@@ -537,14 +578,7 @@ public class SpeedModule extends Module {
      * Resets the Speed process and sets all values back to defaults
      */
     public void resetProcess() {
-        strafeStage = StrafeStage.COLLISION;
-        groundStage = GroundStage.CHECK_SPACE;
-        moveSpeed = 0;
-        latestMoveSpeed = 0;
-        boostSpeed = 0;
-        strictTicks = 0;
-        timerTicks = 0;
-        boostTicks = 0;
+
     }
 
     public enum Mode {

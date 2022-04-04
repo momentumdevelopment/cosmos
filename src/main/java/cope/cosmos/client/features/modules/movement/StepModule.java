@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Doogie13
+ * @author Doogie13, linustouchtips
  * @since 12/27/2021
  */
 public class StepModule extends Module {
@@ -28,11 +28,21 @@ public class StepModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL).setDescription("Mode for how to step up blocks");
-    public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1).setDescription("The maximum height to step up blocks");
-    public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false).setDescription("Allows you to step up blocks while riding entities");
-    
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL)
+            .setDescription("Mode for how to step up blocks");
+
+    public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1)
+            .setDescription("The maximum height to step up blocks");
+
+    public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false)
+            .setDescription("Allows you to step up blocks while riding entities");
+
+    // timer enabled??
     private boolean timer;
+
+    // riding entity (player, sometimes null)
     private Entity entityRiding;
 
     @Override
@@ -90,6 +100,7 @@ public class StepModule extends Module {
                 double[] offsets = getOffset(stepHeight);
 
                 if (offsets.length > 1) {
+
                     // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
                     getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
 
@@ -116,6 +127,7 @@ public class StepModule extends Module {
      * @return The NCP packet offsets for the given step height
      */
     public double[] getOffset(double height) {
+
         // list of step heights
         List<StepHeight> stepHeights = Arrays.asList(
                 new StepHeight(1, 0.42, 0.753),

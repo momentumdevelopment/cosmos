@@ -19,6 +19,7 @@ import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -33,31 +34,58 @@ public class FastUseModule extends Module {
         INSTANCE = this;
     }
 
-    // delay for using items
-    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 4.0, 4.0, 0).setDescription("Place speed");
+    // **************************** speeds ****************************
 
-    // anti-cheat
-    public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", false).setDescription("Fixes the item ghost issue on some servers");
-    public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", false).setDescription("Drops items faster");
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 4.0, 4.0, 0)
+            .setDescription("Place speed");
 
-    // packet use
-    public static Setting<Boolean> packetUse = new Setting<>("PacketUse", false).setDescription("Uses packets when using items");
-    public static Setting<Boolean> packetFood = new Setting<>("PacketFood", false).setDescription("Uses packets when eating food").setParent(packetUse);
-    public static Setting<Boolean> packetPotion = new Setting<>("PacketPotions", true).setDescription("Uses packets when drinking potions").setParent(packetUse);
+    // **************************** anticheat ****************************
 
-    // valid items
-    public static Setting<Boolean> exp = new Setting<>("EXP", true).setDescription("Applies fast placements to experience");
-    public static Setting<Boolean> bow = new Setting<>("Bow", false).setDescription("Applies fast placements to bows");
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", false).setDescription("Applies fast placements to crystals");
-    public static Setting<Boolean> blocks = new Setting<>("Blocks", false).setDescription("Applies fast placements to blocks");
-    public static Setting<Boolean> spawnEggs = new Setting<>("SpawnEggs", false).setDescription("Applies fast placements to spawn eggs");
-    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false).setDescription("Applies fast placements to fireworks");
+    public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", false)
+            .setDescription("Fixes the item ghost issue on some servers");
+
+    public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", false)
+            .setDescription("Drops items faster");
+
+    // **************************** packet use ****************************
+
+    public static Setting<Boolean> packetUse = new Setting<>("PacketUse", false)
+            .setDescription("Uses packets when using items");
+
+    public static Setting<Boolean> packetFood = new Setting<>("PacketFood", false)
+            .setDescription("Uses packets when eating food");
+
+    public static Setting<Boolean> packetPotion = new Setting<>("PacketPotions", true)
+            .setDescription("Uses packets when drinking potions");
+
+    // **************************** items ****************************
+
+    public static Setting<Boolean> exp = new Setting<>("EXP", true)
+            .setDescription("Applies fast placements to experience");
+
+    public static Setting<Boolean> bow = new Setting<>("Bow", false)
+            .setDescription("Applies fast placements to bows");
+
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
+            .setDescription("Applies fast placements to crystals");
+
+    public static Setting<Boolean> blocks = new Setting<>("Blocks", false)
+            .setDescription("Applies fast placements to blocks");
+
+    public static Setting<Boolean> spawnEggs = new Setting<>("SpawnEggs", false)
+            .setDescription("Applies fast placements to spawn eggs");
+
+    public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false)
+            .setDescription("Applies fast placements to fireworks");
 
     @Override
     public void onUpdate() {
+
         // make sure we're holding a valid item
         if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue()) {
+
             if (ghostFix.getValue()) {
+
                 // spam the use packet, NCP flags for CPacketPlayerTryUseItemOnBlock too fast so we can use CPacketPlayerTryUseItem instead
                 if (mc.gameSettings.keyBindUseItem.isKeyDown()) {
                     mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
@@ -65,12 +93,14 @@ public class FastUseModule extends Module {
             }
 
             else {
+
                 // set our vanilla right click delay timer to 0
-                ((IMinecraft) mc).setRightClickDelayTimer(4 - speed.getValue().intValue());
+                ((IMinecraft) mc).setRightClickDelayTimer(speed.getMax().intValue() - speed.getValue().intValue());
             }
         }
 
         if (fastDrop.getValue()) {
+
             // spam the drop item packet
             if (mc.gameSettings.keyBindDrop.isKeyDown()) {
                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
@@ -81,7 +111,7 @@ public class FastUseModule extends Module {
         if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive()) {
 
             // make sure we've held it for at least a minimum of 1 tick
-            if (mc.player.getItemInUseMaxCount() >= speed.getValue() - 1) {
+            if (mc.player.getItemInUseMaxCount() >= MathHelper.clamp(3 + ((speed.getMax().intValue() - speed.getValue().intValue()) * 5), 3, 20)) {
 
                 // spam release bow packets
                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
@@ -110,6 +140,7 @@ public class FastUseModule extends Module {
 
             // make sure we are holding eatable/drinkable items
             if (packetFood.getValue() && event.getItemStack().getItem() instanceof ItemFood || packetPotion.getValue() && event.getItemStack().getItem().equals(Items.POTIONITEM)) {
+
                 // cancel eating animation and skip to the item finish state
                 event.setCanceled(true);
                 event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), mc.world, mc.player);

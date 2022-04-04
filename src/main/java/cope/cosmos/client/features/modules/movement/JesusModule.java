@@ -34,7 +34,10 @@ public class JesusModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SOLID).setDescription("Mode to use when walking on water");
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SOLID)
+            .setDescription("Mode to use when walking on water");
 
     // float offset
     private double floatOffset;

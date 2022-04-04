@@ -26,8 +26,15 @@ public class EntitySpeedModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 1.0, 3.0, 2).setDescription("Speed when moving");
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Remounts entities constantly");
+    // **************************** speeds ****************************
+
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 1.0, 3.0, 2)
+            .setDescription("Speed when moving");
+
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Remounts entities constantly");
 
     @Override
     public void onUpdate() {

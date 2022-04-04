@@ -25,15 +25,27 @@ public class ReachModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> reach = new Setting<>("Reach", 0.0, 0.0, 3.0, 2).setDescription("Player reach extension");
+    // **************************** general ****************************
 
-    // hitbox interactions
-    public static Setting<Boolean> hitBox = new Setting<>("HitBox", true).setDescription("Ignores entity hitboxes");
-    public static Setting<Double> hitBoxExtend = new Setting<>("Extend", 0.0, 0.0, 2.0, 2).setDescription("Entity hitbox extension").setVisible(() -> !hitBox.getValue()).setParent(hitBox);
-    public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", false).setDescription("Only ignores player hitboxes").setVisible(() -> hitBox.getValue()).setParent(hitBox);
+    public static Setting<Double> reach = new Setting<>("Reach", 0.0, 0.0, 3.0, 2)
+            .setDescription("Player reach extension");
+
+    // **************************** hitbox ****************************
+
+    public static Setting<Boolean> hitBox = new Setting<>("HitBox", true)
+            .setDescription("Ignores entity hitboxes");
+
+    public static Setting<Double> hitBoxExtend = new Setting<>("Extend", 0.0, 0.0, 2.0, 2)
+            .setDescription("Entity hitbox extension")
+            .setVisible(() -> !hitBox.getValue());
+
+    public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", false)
+            .setDescription("Only ignores player hitboxes")
+            .setVisible(() -> hitBox.getValue());
 
     @Override
     public void onUpdate() {
+
         // ignore entity hitboxes
         if (hitBox.getValue()) {
 

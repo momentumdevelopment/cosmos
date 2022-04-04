@@ -39,22 +39,45 @@ public class NoSlowModule extends Module {
         INSTANCE = this;
     }
 
-    // anti-cheat
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Allows you to bypass normal NCP server");
-    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", false).setDescription("Allows you to bypass strict NCP servers while in the air");
-    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", false).setDescription("Allows you to bypass strict NCP servers");
-    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", false).setDescription("Allows you to bypass strict servers");
-    public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", false).setDescription("Allows you to bypass strict NCP servers while on the ground");
+    // **************************** anticheat ****************************
 
-    // inventory move
-    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", true).setDescription("Allows you to move around while in GUIs");
-    public static Setting<Float> arrowLook = new Setting<>("Arrow", 0.0F, 5.0F, 10.0F, 1).setDescription("The speed that the arrow keys should rotate you with").setParent(inventoryMove);
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Allows you to bypass normal NCP server");
 
-    // no slow instances
-    public static Setting<Boolean> items = new Setting<>("Items", true).setDescription("Removes the slowdown effect while using items");
-    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", false).setDescription("Removes the slowdown effect when walking on soulsand");
-    public static Setting<Boolean> slime = new Setting<>("Slime", false).setDescription("Removes the slowdown effect when walking on slime");
-    public static Setting<Boolean> ice = new Setting<>("Ice", true).setDescription("Removes the slipperiness effect when walking on ice");
+    public static Setting<Boolean> airStrict = new Setting<>("AirStrict", false)
+            .setDescription("Allows you to bypass strict NCP servers while in the air");
+
+    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", false)
+            .setDescription("Allows you to bypass strict NCP servers");
+
+    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", false)
+            .setDescription("Allows you to bypass strict servers");
+
+    public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", false)
+            .setDescription("Allows you to bypass strict NCP servers while on the ground");
+
+    // **************************** inventory move ****************************
+
+    public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", true)
+            .setDescription("Allows you to move around while in GUIs");
+
+    public static Setting<Float> arrowLook = new Setting<>("Arrow", 0.0F, 5.0F, 10.0F, 1)
+            .setDescription("The speed that the arrow keys should rotate you with")
+            .setVisible(() -> inventoryMove.getValue());
+
+    // **************************** slowdowns ****************************
+
+    public static Setting<Boolean> items = new Setting<>("Items", true)
+            .setDescription("Removes the slowdown effect while using items");
+
+    public static Setting<Boolean> soulsand = new Setting<>("SoulSand", false)
+            .setDescription("Removes the slowdown effect when walking on soulsand");
+
+    public static Setting<Boolean> slime = new Setting<>("Slime", false)
+            .setDescription("Removes the slowdown effect when walking on slime");
+
+    public static Setting<Boolean> ice = new Setting<>("Ice", true)
+            .setDescription("Removes the slipperiness effect when walking on ice");
 
     // serverside sneaking
     private boolean isSneaking = false;

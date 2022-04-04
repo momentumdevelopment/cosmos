@@ -37,13 +37,14 @@ public class ThreadManager extends Manager {
                 try {
                     // check if the mc world is running
                     if (nullCheck()) {
+
+                        // run and remove the latest service
+                        if (!clientProcesses.isEmpty()) {
+                            clientProcesses.poll().run();
+                        }
+
                         getCosmos().getModuleManager().getAllModules().forEach(module -> {
                             try {
-                                // run and remove the latest service
-                                if (!clientProcesses.isEmpty()) {
-                                    clientProcesses.poll().run();
-                                }
-
                                 if (module.isEnabled()) {
                                     module.onThread();
                                 }
@@ -58,11 +59,6 @@ public class ThreadManager extends Manager {
 
                         getCosmos().getManagers().forEach(manager -> {
                             try {
-                                // run and remove the latest service
-                                if (!clientProcesses.isEmpty()) {
-                                    clientProcesses.poll().run();
-                                }
-
                                 manager.onThread();
                             } catch (Exception exception) {
 
@@ -78,6 +74,7 @@ public class ThreadManager extends Manager {
                     else {
                         Thread.yield();
                     }
+
                 } catch(Exception exception) {
 
                     // print stacktrace if in dev environment

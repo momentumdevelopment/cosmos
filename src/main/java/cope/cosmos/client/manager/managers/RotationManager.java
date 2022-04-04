@@ -32,11 +32,16 @@ public class RotationManager extends Manager implements Wrapper {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // rotation packet
         if (event.getPacket() instanceof CPacketPlayer) {
+
+            // packet
             CPacketPlayer packet = (CPacketPlayer) event.getPacket();
 
             // check if the packet has rotations
             if (((ICPacketPlayer) packet).isRotating()) {
+
                 // update our server rotation
                 serverRotation.setYaw(packet.getYaw(0));
                 serverRotation.setPitch(packet.getPitch(0));
@@ -47,6 +52,7 @@ public class RotationManager extends Manager implements Wrapper {
     @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
         if (!rotationMap.isEmpty()) {
+
             // rotation with the highest priority
             Rotation rotation = rotationMap.lastEntry().getValue();
 

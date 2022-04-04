@@ -25,9 +25,16 @@ public class ReplenishModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> percent = new Setting<>("Percent", 1.0, 70.0, 99.0, 1).setDescription("The percentage of the item stack size from 100% before replacing");
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 100.0, 1000.0, 1).setDescription("The delay in ms before replenishing");
-    public static Setting<Boolean> wait = new Setting<>("Wait", false).setDescription("If the item is a crystal and a combat module is on, it will wait for the combat module to be turned off");
+    // **************************** general ****************************
+
+    public static Setting<Double> percent = new Setting<>("Percent", 1.0, 70.0, 99.0, 1)
+            .setDescription("The percentage of the item stack size from 100% before replacing");
+
+    public static Setting<Double> delay = new Setting<>("Delay", 0.0, 100.0, 1000.0, 1)
+            .setDescription("The delay in ms before replenishing");
+
+    public static Setting<Boolean> wait = new Setting<>("Wait", false)
+            .setDescription("If the item is a crystal and a combat module is on, it will wait for the combat module to be turned off");
 
     // our cached hotbar
     private final Map<Integer, ItemStack> hotbar = new ConcurrentHashMap<>();
@@ -49,16 +56,19 @@ public class ReplenishModule extends Module {
 
     @Override
     public void onTick() {
+
         // if we have not queued a slot to refill next timer reset
         if (refillSlot == -1) {
 
             // go through the entire hotbar
             for (int i = 0; i < 9; ++i) {
+
                 // get the stack from our hotbar cache
                 ItemStack stack = mc.player.inventory.getStackInSlot(i);
 
                 // if it was not found in the cache, we have to set it in the cache
                 if (hotbar.getOrDefault(i, null) == null) {
+
                     // ignore air items
                     if (stack.getItem().equals(Items.AIR)) {
                         continue;
@@ -69,7 +79,7 @@ public class ReplenishModule extends Module {
                 }
 
                 // so, getCount() and getMaxStackSize() return ints, so we need to convert them to a double
-                // because 45 / 64 = 0.703125, but converting to an int will be a whole number, so thats why the casts are needed
+                // because 45 / 64 = 0.703125, but converting to an int will be a whole number, so that's why the casts are needed
                 // to then make it out of 100, we need to multiply by 100. the above example would give us 70.0
                 double percentage = ((double) stack.getCount() / (double) stack.getMaxStackSize()) * 100.0;
 
@@ -122,7 +132,8 @@ public class ReplenishModule extends Module {
      * @param stack The cached item stack to compare to the ones in the inventory
      */
     private void fillStack(int slot, ItemStack stack) {
-        // if the slot is null (-1) or the stack is null, dont bother handling
+
+        // if the slot is null (-1) or the stack is null, don't bother handling
         if (slot != -1 && stack != null) {
             // find the inventory slot we're gonna use to merge with our hotbar slot
             int replenishSlot = -1;
@@ -131,7 +142,7 @@ public class ReplenishModule extends Module {
             for (int i = 9; i < 36; ++i) {
                 ItemStack itemStack = mc.player.inventory.getStackInSlot(i);
 
-                // if the slot found in the inventory isnt empty
+                // if the slot found in the inventory isn't empty
                 if (!itemStack.isEmpty()) {
 
                     // we cannot merge stacks if they do not have the same name
@@ -159,7 +170,7 @@ public class ReplenishModule extends Module {
                     }
 
                     else {
-                        // if the hotbar item is not a ItemBlock and the items dont match, move on
+                        // if the hotbar item is not a ItemBlock and the items don't match, move on
                         if (!stack.getItem().equals(itemStack.getItem())) {
                             continue;
                         }
@@ -170,7 +181,7 @@ public class ReplenishModule extends Module {
                 }
             }
 
-            // if none was found (as our default is -1), dont handle
+            // if none was found (as our default is -1), don't handle
             if (replenishSlot != -1) {
 
                 // cache the total amount of items combined in each stack

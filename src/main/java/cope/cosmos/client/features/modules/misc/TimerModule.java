@@ -16,10 +16,14 @@ public class TimerModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> multiplier = new Setting<>("Multiplier", 0.1, 4.0, 50.0, 1).setDescription("Multiplier for the client side tick speed");
+    // **************************** speeds ****************************
+
+    public static Setting<Double> multiplier = new Setting<>("Multiplier", 0.1, 4.0, 50.0, 1)
+            .setDescription("Multiplier for the client side tick speed");
 
     @Override
     public void onUpdate() {
+
         // update client ticks
         getCosmos().getTickManager().setClientTicks(multiplier.getValue().floatValue());
     }

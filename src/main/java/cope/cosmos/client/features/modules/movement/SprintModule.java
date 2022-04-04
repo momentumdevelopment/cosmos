@@ -19,9 +19,16 @@ public class SprintModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.DIRECTIONAL).setDescription("Mode for sprint");
-    public static Setting<Boolean> safe = new Setting<>("Safe", true).setDescription("Stops sprinting when you don't have the required hunger");
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Stops sprinting when sneaking and using items");
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.DIRECTIONAL)
+            .setDescription("Mode for sprint");
+
+    public static Setting<Boolean> safe = new Setting<>("Safe", true)
+            .setDescription("Stops sprinting when you don't have the required hunger");
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Stops sprinting when sneaking and using items");
 
     @Override
     public void onUpdate() {

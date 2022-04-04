@@ -20,16 +20,35 @@ public class NoFallModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET).setDescription("How to negate fall damage");
-    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 2.0, 5.0, 1).setDescription("The minimum fall distance before attempting to prevent fall damage");
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL).setDescription("Mode to use when switching to a water bucket").setVisible(() -> mode.getValue().equals(Mode.WATER));
-    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", 0.1, 1.5, 5.0, 1).setDescription("The factor to slow down fall speed").setVisible(() -> mode.getValue().equals(Mode.GLIDE));
-    public static Setting<Boolean> factorize = new Setting<>("Factorize", false).setDescription("Spoof fall distance").setVisible(() -> mode.getValue().equals(Mode.RUBBERBAND));
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.PACKET)
+            .setDescription("How to negate fall damage");
+
+    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 2.0, 5.0, 1)
+            .setDescription("The minimum fall distance before attempting to prevent fall damage");
+
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setDescription("Mode to use when switching to a water bucket")
+            .setVisible(() -> mode.getValue().equals(Mode.WATER));
+
+    // **************************** speeds ****************************
+
+    public static Setting<Double> glideSpeed = new Setting<>("GlideSpeed", 0.1, 1.5, 5.0, 1)
+            .setDescription("The factor to slow down fall speed")
+            .setVisible(() -> mode.getValue().equals(Mode.GLIDE));
+
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> factorize = new Setting<>("Factorize", false)
+            .setDescription("Spoof fall distance")
+            .setVisible(() -> mode.getValue().equals(Mode.RUBBERBAND));
 
     @Override
     public void onUpdate() {
         // make sure our fall distance is past our minimum distance
         if (mc.player.fallDistance >= distance.getValue() && !mc.player.isOverWater()) {
+
             switch (mode.getValue()) {
                 case PACKET:
                     // spoof on-ground state

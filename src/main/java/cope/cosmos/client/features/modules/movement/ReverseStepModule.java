@@ -25,11 +25,23 @@ public class ReverseStepModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MOTION).setDescription("Mode for falling");
-    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 0.4, 10.0, 2).setDescription("Fall speed").setVisible(() -> !mode.getValue().equals(Mode.PACKET));
-    public static Setting<Double> height = new Setting<>("Height", 0.0, 2.0, 5.0, 1).setDescription("Maximum height to fall");
-    public static Setting<Boolean> hole = new Setting<>("OnlyHole", false).setDescription("Only falls into holes");
-    public static Setting<Boolean> webs = new Setting<>("Webs", false).setDescription("Falls in webs");
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MOTION)
+            .setDescription("Mode for falling");
+
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 0.4, 10.0, 2)
+            .setDescription("Fall speed")
+            .setVisible(() -> !mode.getValue().equals(Mode.PACKET));
+
+    public static Setting<Double> height = new Setting<>("Height", 0.0, 2.0, 5.0, 1)
+            .setDescription("Maximum height to fall");
+
+    public static Setting<Boolean> hole = new Setting<>("OnlyHole", false)
+            .setDescription("Only falls into holes");
+
+    public static Setting<Boolean> webs = new Setting<>("Webs", false)
+            .setDescription("Falls in webs");
 
     // fall timer
     private int fallTicks;

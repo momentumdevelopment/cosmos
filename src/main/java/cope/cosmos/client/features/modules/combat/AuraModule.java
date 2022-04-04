@@ -1,7 +1,5 @@
 package cope.cosmos.client.features.modules.combat;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
@@ -45,8 +43,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author linustouchtips
@@ -62,33 +59,32 @@ public class AuraModule extends Module {
 
     // **************************** anticheat ****************************
 
-    public static Setting<Interact> interact = new Setting<>("Interact", Interact.STRICT)
+    public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
             .setDescription("Changes how you attack the target");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
-            .setDescription("Mode for attack rotations");
-    
-    public static Setting<Limit> rotateLimit = new Setting<>("YawLimit", Limit.NONE)
-            .setDescription("Mode for when to restrict rotations")
-            .setVisible(() -> rotate.getValue().equals(Rotate.PACKET));
+    public static Setting<Boolean> swing = new Setting<>("Swing", true)
+            .setDescription("Swings the players hand when attacking");
+
+    // TODO: fix rotation resetting
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+            .setDescription("Rotate to the current process");
+
+    public static Setting<Double> maxAngle = new Setting<>("MaxAngle", 1.0, 180.0, 180.0, 0)
+            .setDescription("Max angle to rotate in one tick")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
+
+    public static Setting<Double> visibilityTicks = new Setting<>("VisibilityTicks", 0.0, 0.0, 5.0, 0)
+            .setDescription("How many ticks you need to stay looking at the current process before continuing")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
     
     public static Setting<Bone> rotateBone = new Setting<>("Bone", Bone.EYES)
             .setDescription("What body part to rotate to");
     
-    public static Setting<Double> rotateRandom = new Setting<>("RandomRotate", 0.0, 0.0, 5.0, 1)
-            .setDescription("Randomize rotations to simulate real rotations");
-
     public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", false)
             .setDescription("Stops sprinting before attacking");
     
     public static Setting<Boolean> stopSneak = new Setting<>("StopSneak", false)
             .setDescription("Stops sneaking before attacking");
-
-    public static Setting<Hand> swing = new Setting<>("Swing", Hand.MAINHAND)
-            .setDescription("Hand to swing");
-    
-    public static Setting<Boolean> raytrace = new Setting<>("Raytrace", false)
-            .setDescription("Verify if target is visible");
 
     // **************************** general ****************************
     
@@ -96,7 +92,7 @@ public class AuraModule extends Module {
             .setDescription("Attacks per iteration");
     
     public static Setting<Double> variation = new Setting<>("Variation", 0.0, 100.0, 100.0, 0)
-            .setDescription("Probability of your hits doing damage");
+            .setDescription("Probability of your attacks doing damage");
     
     public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 7.0, 1)
             .setDescription("Range to attack entities");
@@ -106,7 +102,7 @@ public class AuraModule extends Module {
 
     // **************************** timing ****************************
     
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.VANILLA)
+    public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("Mode for timing attacks");
     
     public static Setting<Delay> delayMode = new Setting<>("Delay", Delay.SWING)
@@ -147,7 +143,8 @@ public class AuraModule extends Module {
     
     public static Setting<Boolean> teleport = new Setting<>("Teleport", false)
             .setDescription("Vanilla teleport to target");
-    
+
+    // TODO: make not chinese bon code
     public static Setting<Boolean> reactive = new Setting<>("Reactive", false)
             .setDescription("Spams attacks when target pops a totem");
     
@@ -204,31 +201,45 @@ public class AuraModule extends Module {
     public static Setting<Boolean> render = new Setting<>("Render", true)
             .setDescription("Render a visual over the target");
 
+    // **************************** targets ****************************
+
     // attack target
     private Entity auraTarget;
+
+    // **************************** timers ****************************
 
     // attack timers
     private final Timer auraTimer = new Timer();
     private final Timer criticalTimer = new Timer();
     private final Timer switchTimer = new Timer();
 
-    // tick clamp
-    private int switchTicks = 10;
-    private int strictTicks;
+    // **************************** ticks ****************************
 
-    // rotation info
-    private boolean yawLimit;
-    private Vec3d attackVector = Vec3d.ZERO;
+    // ticks to pause the process
+    private int waitTicks;
+
+    // ticks to wait after switching
+    private int switchTicks = 10;
+
+    // **************************** rotation ****************************
+
+    // vector that holds the angle we are looking at
+    private Vec3d angleVector;
+
+    // rotation angels
+    private Rotation rotateAngles;
+
+    // rotate wait
+    private boolean rotationLimit;
 
     @Override
     public void onUpdate() {
-        if (strictTicks > 0) {
-            strictTicks--;
-        }
 
-        else {
-            // prefer a player if there is one in range
-            boolean playerBias = false;
+        // prefer a player if there is one in range
+        boolean playerBias = false;
+
+        // we are cleared to process our calculations
+        if (waitTicks <= 0) {
 
             // pause if the player is doing something else
             if (PlayerUtil.isEating() && pauseEating.getValue() || PlayerUtil.isMining() && pauseMining.getValue() || PlayerUtil.isMending() && pauseMending.getValue()) {
@@ -240,14 +251,28 @@ public class AuraModule extends Module {
                 return;
             }
 
+            // update ticks before switching
+            switchTicks++;
+
             // map for potential targets
-            TreeMap<Double, Entity> attackTargets = new TreeMap<>();
+            TreeMap<Double, Entity> validTargets = new TreeMap<>();
 
+            // list of all loaded entities
+            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+            
             // find our target
-            for (Entity entity : mc.world.loadedEntityList) {
+            while (entityList.hasNext()) {
 
+                // next entity in the world
+                Entity entity = entityList.next();
+                
                 // make sure the entity is valid to attack
                 if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                    continue;
+                }
+
+                // don't attack our riding entity
+                if (entity.isBeingRidden() && entity.getRidingEntity().equals(mc.player)) {
                     continue;
                 }
 
@@ -266,33 +291,34 @@ public class AuraModule extends Module {
                     continue;
                 }
 
-                // distance to the entity
+                // check if entity is in range
                 double distance = mc.player.getDistance(entity);
-
-                // vector to trace to
-                double traceOffset = 0;
-
-                // scale by bone
-                switch (rotateBone.getValue()) {
-                    case EYES:
-                        traceOffset = entity.getEyeHeight();
-                        break;
-                    case BODY:
-                        traceOffset = (entity.height / 2);
-                        break;
-                    case FEET:
-                        break;
-                }
-
-                // check if it's in range
-                boolean wallAttack = RaytraceUtil.isNotVisible(entity, traceOffset) && raytrace.getValue();
-                if (distance > (wallAttack ? wallsRange.getValue() : range.getValue())) {
+                if (distance > range.getValue()) {
                     continue;
                 }
 
+                // vector to trace to
+                double traceOffset = getTraceHeight(entity);
+                
+                // visibility to entity
+                boolean isNotVisible = RaytraceUtil.isNotVisible(entity, traceOffset);
+
+                // use wall ranges if not visible
+                if (isNotVisible) {
+                    if (distance > wallsRange.getValue()) {
+                        continue;
+                    }
+                }
+                
                 // make sure the entity is truly visible, useful for strict anticheats
-                Rotation attackAngles = AngleUtil.calculateAngles(entity.getPositionVector());
-                if ((Math.abs(mc.player.rotationYaw - attackAngles.getYaw()) % 180) > fov.getValue()) {
+                Rotation entityAngle = AngleUtil.calculateAngles(entity.getPositionVector());
+                Rotation serverAngle = getCosmos().getRotationManager().getServerRotation();
+                
+                // angle diff
+                double angleDifference = MathHelper.wrapDegrees(serverAngle.getYaw()) - entityAngle.getYaw();
+                
+                // check if entity is within FOV
+                if (Math.abs(angleDifference) > fov.getValue()) {
                     continue;
                 }
 
@@ -302,164 +328,76 @@ public class AuraModule extends Module {
                 }
 
                 // there is at least one player that is attackable
-                if (!playerBias && entity instanceof EntityPlayer) {
-                    playerBias = true;
+                if (entity instanceof EntityPlayer) {
+                    if (!playerBias) {
+                        playerBias = true;
+                    }
                 }
 
                 // calculate priority (minimize)
-                double heuristic = 0;
-                switch (target.getValue()) {
-                    case LOWEST_HEALTH:
-                        heuristic = EnemyUtil.getHealth(entity);
-                        break;
-                    case LOWEST_ARMOR:
-                        heuristic = EnemyUtil.getArmor(entity);
-                        break;
-                    case CLOSEST:
-                        heuristic = distance;
-                        break;
+                double heuristic = getHeuristic(entity);
+
+                // skip
+                if (heuristic > 999) {
+                    continue;
                 }
 
                 // add potential target to our map
-                attackTargets.put(heuristic, entity);
+                validTargets.put(heuristic, entity);
             }
 
-            if (!attackTargets.isEmpty()) {
+            // make sure there are valid targets
+            if (!validTargets.isEmpty()) {
+                
                 // find the nearest player
                 if (playerBias) {
 
-                    // check distance
-                    AtomicDouble closestPlayer = new AtomicDouble(Double.MAX_VALUE);
-                    attackTargets.forEach((distance, entity) -> {
-                        if (entity instanceof EntityPlayer) {
-                            if (distance <= closestPlayer.get()) {
-
-                                // update our closest target
-                                auraTarget = entity;
-                                closestPlayer.set(distance);
-                            }
+                    // remove all non-player entities from list
+                    validTargets.forEach((distance, entity) -> {
+                        
+                        // remove 
+                        if (!(entity instanceof EntityPlayer)) {
+                            validTargets.remove(distance, entity);
                         }
                     });
                 }
 
-                else {
-                    // best target is the first entry
-                    auraTarget = attackTargets.firstEntry().getValue();
-                }
+                // best target is the first entry
+                auraTarget = validTargets.firstEntry().getValue();
             }
 
             // if we found a target to attack, then attack
             if (auraTarget != null) {
 
                 // vector to trace to
-                double traceOffset = 0;
-
-                // scale by bone
-                switch (rotateBone.getValue()) {
-                    case EYES:
-                        traceOffset = auraTarget.getEyeHeight();
-                        break;
-                    case BODY:
-                        traceOffset = (auraTarget.height / 2);
-                        break;
-                    case FEET:
-                        break;
-                }
+                double traceOffset = getTraceHeight(auraTarget);
 
                 /*
-                 * check our distance to the entity as it could have changed since we last calculated our target
+                 * Check our distance to the entity as it could have changed since we last calculated our target
                  * we also check if the Aura target is dead, which will also make the target invalid
                  */
-                boolean wallAttack = RaytraceUtil.isNotVisible(auraTarget, traceOffset) && raytrace.getValue();
+                boolean wallAttack = RaytraceUtil.isNotVisible(auraTarget, traceOffset);
                 if (auraTarget.isDead || mc.player.getDistance(auraTarget) > (wallAttack ? wallsRange.getValue() : range.getValue())) {
                     auraTarget = null; // set our target to null, as it is now invalid
                     return;
                 }
 
-                // pause switch to account for eating
-                if (PlayerUtil.isEating()) {
-                    switchTicks = 0;
-                }
+                // vector to rotate to
+                angleVector = auraTarget.getPositionVector();
 
-                // sync item
-                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
-
-                switchTicks++;
-
-                // switch to our weapon
-                if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && switchTicks > 10) {
-                    getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
-                }
-
-                // make sure we are holding our weapon
-                if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || InventoryUtil.getHighestEnchantLevel() <= 1000 && weaponThirtyTwoK.getValue()) {
-                    return;
-                }
-
-                // teleport to our target, rarely works on an actual server
-                if (teleport.getValue()) {
-                    mc.player.setVelocity(0, 0, 0);
-                    mc.player.setPosition(auraTarget.posX, auraTarget.posY, auraTarget.posZ);
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(auraTarget.posX, auraTarget.posY, auraTarget.posZ, true));
-                }
-
-                if (!rotate.getValue().equals(Rotate.NONE)) {
-                    // vector to rotate to
-                    attackVector = auraTarget.getPositionVector();
-
-                    // scale rotation vector by bone
-                    switch (rotateBone.getValue()) {
-                        case EYES:
-                            attackVector.addVector(0, auraTarget.getEyeHeight(), 0);
-                            break;
-                        case BODY:
-                            attackVector.addVector(0, (auraTarget.height / 2),0);
-                            break;
-                        case FEET:
-                            break;
-                    }
-
-                    // update client rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        Rotation attackAngles = AngleUtil.calculateAngles(attackVector);
-
-                        // update our players rotation
-                        mc.player.rotationYaw = attackAngles.getYaw();
-                        mc.player.rotationYawHead = attackAngles.getYaw();
-                        mc.player.rotationPitch = attackAngles.getPitch();
-                    }
-                }
-
-                // if holding a shield then automatically block before attacking
-                if (weaponBlock.getValue() && InventoryUtil.isHolding(Items.SHIELD)) {
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-                }
-
-                // stops sprinting before attacking
-                boolean sprint = mc.player.isSprinting();
-                if (stopSprint.getValue()) {
-                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                    mc.player.setSprinting(false);
-                }
-
-                // stops sneaking before attacking
-                boolean sneak = mc.player.isSneaking();
-                if (stopSneak.getValue()) {
-                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-                    mc.player.setSneaking(false);
-                }
+                // scale rotation vector by bone
+                angleVector.addVector(0, getTraceHeight(auraTarget), 0);
 
                 // save old fall states
                 boolean onGround = mc.player.onGround;
                 float fallDistance = mc.player.fallDistance;
 
-                // whether or not we are cleared to attack
-                boolean attackCleared = false;
-
                 // randomized delay
                 long randomFactor = 0;
 
                 if (delayRandom.getValue() > 0) {
+
+                    // random factor
                     Random attackRandom = new Random();
 
                     // scale delay by random based on delay mode
@@ -482,6 +420,9 @@ public class AuraModule extends Module {
                     }
                 }
 
+                // whether or not we are cleared to attack
+                boolean attackCleared = false;
+
                 // scale delay based on delay mode
                 switch (delayMode.getValue()) {
                     case SWING:
@@ -502,7 +443,7 @@ public class AuraModule extends Module {
                 }
 
                 // check hurt resistance time
-                if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+                if (timing.getValue().equals(Timing.VANILLA)) {
                     if (auraTarget.hurtResistantTime > 11) {
                         return;
                     }
@@ -510,8 +451,103 @@ public class AuraModule extends Module {
 
                 // if we are cleared to attack, then attack
                 if (attackCleared) {
+
                     // make sure our switch timer has cleared it's time, attacking right after switching flags Updated NCP
                     if (switchTimer.passedTime(delaySwitch.getValue().longValue(), Format.MILLISECONDS)) {
+
+                        // position before attack
+                        Vec3d previousPosition = mc.player.getPositionVector();
+
+                        // teleport to our target, rarely works on an actual server
+                        if (teleport.getValue()) {
+
+                            // stop player movement
+                            mc.player.setVelocity(0, 0, 0);
+
+                            // **************************** pathfinder ****************************
+
+                            // chained path to target
+                            List<Vec3d> chainedTeleports = new ArrayList<>();
+
+                            // target position vector
+                            Vec3d targetPosition = auraTarget.getPositionVector();
+
+                            // diffs
+                            double diffX = previousPosition.x - targetPosition.x;
+                            double diffY = previousPosition.y - targetPosition.y;
+                            double diffZ = previousPosition.x - targetPosition.x;
+
+                            // MAXIMUMS
+                            final float MAX_MOVE = 2.14915679834294F;
+                            final float MAX_JUMP = 1.16610926093821F;
+
+                            // fock
+                            if (mc.player.getDistance(auraTarget) > MAX_MOVE) {
+
+                                // while position difference exists
+                                while (diffX > 0 && diffY > 0 && diffZ > 0) {
+
+                                    // add to teleport chain
+                                    chainedTeleports.add(new Vec3d(previousPosition.x + MAX_MOVE, previousPosition.y + MAX_JUMP, previousPosition.z + MAX_MOVE));
+
+                                    // update diffs
+                                    diffX -= MAX_MOVE;
+                                    diffY -= MAX_JUMP;
+                                    diffZ -= MAX_MOVE;
+                                }
+                            }
+
+                            // close chain
+                            chainedTeleports.add(targetPosition);
+
+                            // teleport to complete chain
+                            chainedTeleports.forEach(tp -> {
+
+                                mc.player.setPosition(tp.x, tp.y, tp.z);
+
+                                // send position packets to keep server updated to movements
+                                mc.player.connection.sendPacket(new CPacketPlayer.Position(tp.x, tp.y, tp.z, true));
+                            });
+                        }
+
+                        // if holding a shield then automatically block before attacking
+                        if (InventoryUtil.isHolding(Items.SHIELD)) {
+                            if (weaponBlock.getValue()) {
+                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+                            }
+                        }
+
+                        // pause switch to account for eating
+                        if (PlayerUtil.isEating()) {
+                            switchTicks = 0;
+                        }
+
+                        // sync item
+                        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+
+                        // switch to our weapon
+                        if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && switchTicks > 10) {
+                            getCosmos().getInventoryManager().switchToItem(weapon.getValue().getItem(), autoSwitch.getValue());
+                        }
+
+                        // make sure we are holding our weapon
+                        if (!InventoryUtil.isHolding(weapon.getValue().getItem()) && weaponOnly.getValue() || InventoryUtil.getHighestEnchantLevel() <= 1000 && weaponThirtyTwoK.getValue()) {
+                            return;
+                        }
+
+                        // stops sprinting before attacking
+                        boolean sprint = mc.player.isSprinting();
+                        if (stopSprint.getValue()) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                            // mc.player.setSprinting(false);
+                        }
+
+                        // stops sneaking before attacking
+                        boolean sneak = mc.player.isSneaking();
+                        if (stopSneak.getValue()) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+                            // mc.player.setSneaking(false);
+                        }
 
                         // if we passed our critical time, then we can attempt a critical attack
                         if (interact.getValue().equals(Interact.NORMAL) && criticalTimer.passedTime(300, Format.MILLISECONDS)) {
@@ -529,19 +565,14 @@ public class AuraModule extends Module {
                             getCosmos().getInteractionManager().attackEntity(auraTarget, packet.getValue(), variation.getValue());
                         }
 
-                        // swing our hand
-                        switch (swing.getValue()) {
-                            case MAINHAND:
-                                mc.player.swingArm(EnumHand.MAIN_HAND);
-                                break;
-                            case OFFHAND:
-                                mc.player.swingArm(EnumHand.OFF_HAND);
-                                break;
-                            case PACKET:
-                                mc.player.connection.sendPacket(new CPacketAnimation(mc.player.getHeldItemMainhand().getItem().equals(Items.END_CRYSTAL) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
-                                break;
-                            case NONE:
-                                break;
+                        // swing the player's arm
+                        if (swing.getValue()) {
+                            mc.player.swingArm(EnumHand.MAIN_HAND);
+                        }
+
+                        // swing with packets
+                        else {
+                            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
                         }
 
                         // reset fall state
@@ -549,27 +580,41 @@ public class AuraModule extends Module {
                             mc.player.fallDistance = fallDistance;
                             mc.player.onGround = onGround;
                         }
+
+                        // reset sneak state
+                        if (stopSneak.getValue() && sneak) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+                            // mc.player.setSneaking(true);
+                        }
+
+                        // reset sprint state
+                        if (stopSprint.getValue() && sprint) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                            // mc.player.setSprinting(true);
+                        }
+
+                        // reset teleport state
+                        if (teleport.getValue()) {
+
+                            // stop player movement
+                            mc.player.setVelocity(0, 0, 0);
+
+                            // tp
+                            mc.player.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
+
+                            // send position packets to keep server updated to movements
+                            mc.player.connection.sendPacket(new CPacketPlayer.Position(previousPosition.x, previousPosition.y, previousPosition.z, true));
+                        }
+
+                        // reset our aura timer
+                        auraTimer.resetTime();
                     }
-
-                    // reset sneak state
-                    if (stopSneak.getValue() && sneak) {
-                        mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
-                        mc.player.setSneaking(true);
-                    }
-
-                    // reset sprint state
-                    if (stopSprint.getValue() && sprint) {
-                        mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                        mc.player.setSprinting(true);
-                    }
-
-                    // reset the client ticks
-                    getCosmos().getTickManager().setClientTicks(1);
-
-                    // reset our aura timer
-                    auraTimer.resetTime();
                 }
             }
+        }
+
+        else {
+            waitTicks--;
         }
     }
 
@@ -578,20 +623,32 @@ public class AuraModule extends Module {
         super.onDisable();
 
         // reset our process for next enable
-        resetProcess();
+        auraTarget = null;
+        rotateAngles = null;
+        switchTicks = 10;
+        waitTicks = 0;
+        rotationLimit = false;
+        angleVector = Vec3d.ZERO;
+        auraTimer.resetTime();
+        criticalTimer.resetTime();
+        switchTimer.resetTime();
     }
 
     @Override
     public void onRender3D() {
 
-        // render a visual around the target
-        if (auraTarget != null && render.getValue()) {
-            RenderUtil.drawCircle(new RenderBuilder()
-                    .setup()
-                    .line(1.5F)
-                    .depth(true)
-                    .blend()
-                    .texture(), InterpolationUtil.getInterpolatedPosition(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
+        if (render.getValue()) {
+            
+            // render a visual around the target
+            if (auraTarget != null) {
+
+                RenderUtil.drawCircle(new RenderBuilder()
+                        .setup()
+                        .line(1.5F)
+                        .depth(true)
+                        .blend()
+                        .texture(), InterpolationUtil.getInterpolatedPosition(auraTarget, 1), auraTarget.width, auraTarget.height * (0.5 * (Math.sin((mc.player.ticksExisted * 3.5) * (Math.PI / 180)) + 1)), ColorUtil.getPrimaryColor());
+            }
         }
     }
 
@@ -602,71 +659,112 @@ public class AuraModule extends Module {
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
-        if (event.getPopEntity().equals(auraTarget) && reactive.getValue()) {
-            new Thread(() -> {
-                // spam attacks a player when they pop a totem, useful for insta-killing people on 32k servers - thanks bon55
+
+        // target has popped a totem
+        if (event.getPopEntity().equals(auraTarget)) {
+
+            // react to pop
+            if (reactive.getValue()) {
+
+                // spam attacks a player when they pop a totem, useful for insta-killing people on 32k servers (thanks bon55)
                 for (int i = 0; i < 5; i++) {
                     getCosmos().getInteractionManager().attackEntity(auraTarget, true, 100);
                 }
-            }).start();
+            }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRotationUpdate(RotationUpdateEvent event) {
-        if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
-            // cancel the existing rotations, we'll send our own
-            event.setCanceled(true);
 
-            // angles to the last attack
-            Rotation packetAngles = AngleUtil.calculateAngles(attackVector);
+        // rotate
+        if (!rotate.getValue().equals(Rotate.NONE)) {
 
-            // add random values to our rotations to simulate vanilla rotations
-            if (rotateRandom.getValue() > 0) {
-                Random randomAngle = new Random();
-                packetAngles.setYaw(packetAngles.getYaw() + (randomAngle.nextFloat() * (randomAngle.nextBoolean() ? rotateRandom.getValue().floatValue() : -rotateRandom.getValue().floatValue())));
-            }
+            // rotate only if we have an interaction vector to rotate to
+            if (angleVector != null) {
 
-            if (!rotateLimit.getValue().equals(Limit.NONE)) {
-                // difference between the new yaw and the server yaw
-                float yawDifference = MathHelper.wrapDegrees(packetAngles.getYaw() - ((IEntityPlayerSP) mc.player).getLastReportedYaw());
+                // cancel the existing rotations, we'll send our own
+                event.setCanceled(true);
 
-                // if it's greater than 55, we need to limit our yaw and skip a tick
-                if (Math.abs(yawDifference) > 55 && !yawLimit) {
-                    packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw());
-                    strictTicks++;
-                    yawLimit = true;
-                }
+                // yaw and pitch to the angle vector
+                rotateAngles = AngleUtil.calculateAngles(angleVector);
 
-                // if our yaw ticks has passed clearance
-                if (strictTicks <= 0) {
-                    // if still need to limit our rotation, clamp them to the rotation limit
-                    if (rotateLimit.getValue().equals(Limit.STRICT)) {
-                        packetAngles.setYaw(((IEntityPlayerSP) mc.player).getLastReportedYaw() + (yawDifference > 0 ? Math.min(Math.abs(yawDifference), 55) : -Math.min(Math.abs(yawDifference), 55)));
+                // server rotation
+                Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+
+                // difference between current and upcoming rotation
+                float angleDifference = MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw();
+
+                // rotating too fast
+                if (Math.abs(angleDifference) > maxAngle.getValue()) {
+
+                    // yaw wrapped
+                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
+
+                    // add max angle
+                    if (angleDifference < 0) {
+                        yaw += maxAngle.getValue();
                     }
 
-                    yawLimit = false;
+                    else {
+                        yaw -= maxAngle.getValue();
+                    }
+
+                    // update rotation
+                    rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                    // update player rotations
+                    if (rotate.getValue().equals(Rotate.CLIENT)) {
+                        mc.player.rotationYaw = rotateAngles.getYaw();
+                        mc.player.rotationYawHead = rotateAngles.getYaw();
+                        mc.player.rotationPitch = rotateAngles.getPitch();
+                    }
+
+                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
+
+                    // we need to wait till we reach our rotation
+                    waitTicks++;
+                }
+
+                else {
+
+                    // we need to face this crystal for this many ticks
+                    if (rotationLimit) {
+                        waitTicks = visibilityTicks.getValue().intValue();
+                        rotationLimit = false;
+                    }
+
+                    // update player rotations
+                    if (rotate.getValue().equals(Rotate.CLIENT)) {
+                        mc.player.rotationYaw = rotateAngles.getYaw();
+                        mc.player.rotationYawHead = rotateAngles.getYaw();
+                        mc.player.rotationPitch = rotateAngles.getPitch();
+                    }
+
+                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
                 }
             }
-
-            // add our rotation to our client rotations
-            getCosmos().getRotationManager().addRotation(new Rotation(packetAngles.getYaw(), packetAngles.getPitch()), 1000);
         }
     }
 
     @SubscribeEvent
     public void onRenderRotations(RenderRotationsEvent event) {
-        if (isActive() && rotate.getValue().equals(Rotate.PACKET)) {
 
-            // cancel the model rendering for rotations, we'll set it to our values
-            event.setCanceled(true);
+        // packet rotations
+        if (rotate.getValue().equals(Rotate.PACKET)) {
 
-            // find the angles from our interaction
-            Rotation packetAngles = AngleUtil.calculateAngles(attackVector);
+            // rotate only if we have an interaction vector to rotate to
+            if (rotateAngles != null) {
 
-            // set our model angles; visual
-            event.setYaw(packetAngles.getYaw());
-            event.setPitch(packetAngles.getPitch());
+                // cancel the model rendering for rotations, we'll set it to our values
+                event.setCanceled(true);
+
+                // set our model angles; visual
+                event.setYaw(rotateAngles.getYaw());
+                event.setPitch(rotateAngles.getPitch());
+            }
         }
     }
 
@@ -689,6 +787,7 @@ public class AuraModule extends Module {
 
     @SubscribeEvent
     public void onRightClickItem(RightClickItemEvent event) {
+
         // don't switch, we are eating
         if (event.getItemStack().getItem() instanceof ItemFood || event.getItemStack().getItem() instanceof ItemPotion) {
             switchTicks = 0;
@@ -696,17 +795,84 @@ public class AuraModule extends Module {
     }
 
     /**
-     * Resets all variables, timers, and lists
+     * Gets the height to trace to
+     * @param entity The entity we are tracing to
+     * @return The height to trace to
      */
-    public void resetProcess() {
-        auraTarget = null;
-        switchTicks = 10;
-        strictTicks = 0;
-        yawLimit = false;
-        attackVector = Vec3d.ZERO;
-        auraTimer.resetTime();
-        criticalTimer.resetTime();
-        switchTimer.resetTime();
+    public double getTraceHeight(Entity entity) {
+        
+        // eyes
+        if (rotateBone.getValue().equals(Bone.EYES)) {
+            
+            // height to eyes
+            double eyeHeight = entity.getEyeHeight();
+
+            // endermen lol
+            if (eyeHeight > entity.height) {
+                return entity.height;
+            }
+            
+            // returns the eye height
+            return eyeHeight;
+        }
+        
+        // body
+        else if (rotateBone.getValue().equals(Bone.BODY)) {
+            
+            // height to center of body
+            double bodyHeight = entity.height / 2;
+            
+            // has a hitbox
+            if (entity.canBeAttackedWithItem()) {
+                
+                // hitbox diff
+                double boxDifference = entity.getEntityBoundingBox().maxY - entity.getEntityBoundingBox().minY;
+                
+                // half of hitbox diff
+                bodyHeight = boxDifference / 2;
+            }
+            
+            return bodyHeight;
+        }
+        
+        // feet
+        return 0;
+    }
+
+    /**
+     * Gets the sorting heuristic
+     * @param entity The entity to find the heuristic for
+     * @return The sorting heuristic
+     */
+    public double getHeuristic(Entity entity) {
+
+        // target distance
+        double distance = mc.player.getDistance(entity);
+
+        if (target.getValue().equals(Target.LOWEST_HEALTH)) {
+
+            // target health
+            double health = EnemyUtil.getHealth(entity);
+
+            // can kill in one hit
+            if (health <= 2) {
+                return distance;
+            }
+
+            return health;
+        }
+
+        else if (target.getValue().equals(Target.LOWEST_ARMOR)) {
+
+            // target armor durability
+            double armor = EnemyUtil.getArmor(entity);
+
+            if (armor > 0) {
+                return armor;
+            }
+        }
+
+        return distance;
     }
 
     public enum Interact {
@@ -719,7 +885,7 @@ public class AuraModule extends Module {
         /**
          * Attacks normally
          */
-        STRICT,
+        VANILLA,
     }
 
     public enum Delay {
@@ -780,6 +946,7 @@ public class AuraModule extends Module {
          */
         PICKAXE(ItemPickaxe.class);
 
+        // weapon item
         private final Class<? extends Item> item;
 
         Weapon(Class<? extends Item> item) {
@@ -793,24 +960,6 @@ public class AuraModule extends Module {
         public Class<? extends Item> getItem() {
             return item;
         }
-    }
-
-    public enum Limit {
-
-        /**
-         * Skips ticks based on yaw limit
-         */
-        NORMAL,
-
-        /**
-         * Limits yaw and skips ticks based on yaw limit
-         */
-        STRICT,
-
-        /**
-         * Doesn't limit yaw
-         */
-        NONE
     }
 
     public enum Bone {

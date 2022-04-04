@@ -26,8 +26,15 @@ public class PingSpoofModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1).setDescription("The delay in seconds to hold off sending packets");
-    public static Setting<Boolean> transactions = new Setting<>("Transactions", false).setDescription("If to cancel confirm transaction packets as well");
+    // **************************** general ****************************
+
+    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1)
+            .setDescription("The delay in seconds to hold off sending packets");
+
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> transactions = new Setting<>("Transactions", false)
+            .setDescription("If to cancel confirm transaction packets as well");
 
     // list of queued packets
     private final List<Packet<?>> packets = new CopyOnWriteArrayList<>();
@@ -37,6 +44,7 @@ public class PingSpoofModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // if we've cleared our time to send
         if (packetTimer.passedTime(delay.getValue().longValue(), Format.SECONDS)) {
 
@@ -80,6 +88,7 @@ public class PingSpoofModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
         // packet that tells the server to keep the connection alive
         // we can also cancel CPacketConfirmTransaction packets if the user specified they want to cancel transaction packets
         if (event.getPacket() instanceof CPacketKeepAlive || (transactions.getValue() && event.getPacket() instanceof CPacketConfirmTransaction)) {

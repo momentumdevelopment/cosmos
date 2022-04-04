@@ -26,10 +26,24 @@ public class BlinkModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MANUAL).setDescription("When to send packets");
-    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 5.0, 50.0, 1).setDescription("The delay in seconds until sending all packets").setVisible(() -> mode.getValue().equals(Mode.DELAY));
-    public static Setting<Double> packets = new Setting<>("Packets", 0.0, 10.0, 200.0, 0).setDescription("The amount of packets until sending all packets").setVisible(() -> mode.getValue().equals(Mode.PACKETS));
-    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 10.0, 20.0, 0).setDescription("The distance in blocks from the last position until sending all packets").setVisible(() -> mode.getValue().equals(Mode.DISTANCE));
+    // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MANUAL)
+            .setDescription("When to send packets");
+
+    // **************************** packets ****************************
+
+    public static Setting<Double> delay = new Setting<>("Delay", 0.1, 5.0, 50.0, 1)
+            .setDescription("The delay in seconds until sending all packets")
+            .setVisible(() -> mode.getValue().equals(Mode.DELAY));
+
+    public static Setting<Double> packets = new Setting<>("Packets", 0.0, 10.0, 200.0, 0)
+            .setDescription("The amount of packets until sending all packets")
+            .setVisible(() -> mode.getValue().equals(Mode.PACKETS));
+
+    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 10.0, 20.0, 0)
+            .setDescription("The distance in blocks from the last position until sending all packets")
+            .setVisible(() -> mode.getValue().equals(Mode.DISTANCE));
 
     // list of withheld packets
     private final List<CPacketPlayer> playerPackets = new CopyOnWriteArrayList<>();

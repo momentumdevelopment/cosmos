@@ -21,10 +21,14 @@ public class NoRotateModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Confirms packets to simulate rotating back");
+    // **************************** anticheat ****************************
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Confirms packets to simulate rotating back");
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // packet for "rubberband"
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
 
@@ -39,9 +43,11 @@ public class NoRotateModule extends Module {
                 ((ISPacketPlayerPosLook) event.getPacket()).setPitch(mc.player.rotationPitch);
 
                 if (strict.getValue()) {
+
                     // check if the yaw difference is greater than 55, this speed flags NCP Updated
                     float yawDifference = Math.abs(mc.player.rotationYaw - packetYaw);
                     if (yawDifference >= 55) {
+
                         // split the yaw, and send a half rotation packet
                         float splitYaw = (packetYaw - mc.player.rotationYaw) / 2;
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(splitYaw, mc.player.rotationPitch, mc.player.onGround));

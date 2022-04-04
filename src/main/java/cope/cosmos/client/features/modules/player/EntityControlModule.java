@@ -20,12 +20,14 @@ public class EntityControlModule extends Module {
 
     @SubscribeEvent
     public void onHorseSteer(HorseSteerEvent event) {
+
         // allow any abstract horse to be steered
         event.setCanceled(true);
     }
 
     @SubscribeEvent
     public void onHorseSaddled(HorseSaddledEvent event) {
+
         // the current riding entity (all entities) are saddled
         event.setCanceled(true);
     }

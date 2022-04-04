@@ -6,6 +6,7 @@ import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -37,8 +38,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.ItemEndCrystal;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraft.network.play.server.SPacketDestroyEntities;
@@ -70,11 +70,16 @@ public class AutoCrystalModule extends Module {
 
             // **************************** TESTING INFO ****************************
 
-            // violation counts total
-            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+            if (mc.getConnection() != null) {
 
-            // INFO
-            return String.valueOf(responseTime);
+                // response time total
+                long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+
+                // INFO
+                return String.valueOf(responseTime);
+            }
+
+            return "";
         });
 
         INSTANCE = this;
@@ -522,6 +527,9 @@ public class AutoCrystalModule extends Module {
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
+        // list of entities in world
+        Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+
         // packet for crystal spawns
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {
 
@@ -543,7 +551,11 @@ public class AutoCrystalModule extends Module {
                 // explode when crystal spawns
                 if (explode.getValue()) {
 
-                    // list of valid crystals
+                    /*
+                     * Map of valid crystals
+                     * Sorted by natural ordering of keys
+                     * Using tree map allows time complexity of O(logN)
+                     */
                     TreeMap<Double, DamageHolder<Integer>> validCrystals = new TreeMap<>();
 
                     // make sure the crystal isn't already set to be exploded; inhibit
@@ -578,7 +590,6 @@ public class AutoCrystalModule extends Module {
                     double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(spawnPosition).addVector(0.5, 0, 0.5), blockDestruction.getValue());
 
                     // search all targets
-                    Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
                     while (entityList.hasNext()) {
 
                         // next entity in the world
@@ -688,7 +699,6 @@ public class AutoCrystalModule extends Module {
             mc.addScheduledTask(() -> {
 
                 // check all entities in the world
-                Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
                 while (entityList.hasNext()) {
 
                     // next entity in the world
@@ -726,7 +736,6 @@ public class AutoCrystalModule extends Module {
         if (event.getPacket() instanceof SPacketExplosion) {
 
             // check all entities in the world
-            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
             while (entityList.hasNext()) {
 
                 // next entity in the world
@@ -780,6 +789,20 @@ public class AutoCrystalModule extends Module {
 
             // reset our switch time, we just switched
             switchTimer.resetTime();
+
+            // pause switch if item we switched to is not a crystal
+            if (!(mc.player.inventory.getStackInSlot(((CPacketHeldItemChange) event.getPacket()).getSlotId()).getItem() instanceof ItemEndCrystal)) {
+                switchTicks = 0;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRightClickItem(RightClickItemEvent event) {
+
+        // don't switch, we are eating
+        if (event.getItemStack().getItem() instanceof ItemFood || event.getItemStack().getItem() instanceof ItemPotion) {
+            switchTicks = 0;
         }
     }
 
@@ -1186,7 +1209,11 @@ public class AutoCrystalModule extends Module {
         // find explode-able crystals
         if (explode.getValue()) {
 
-            // list of valid crystals
+            /*
+             * Map of valid crystals
+             * Sorted by natural ordering of keys
+             * Using tree map allows time complexity of O(logN)
+             */
             TreeMap<Double, DamageHolder<EntityEnderCrystal>> validCrystals = new TreeMap<>();
 
             // list of entities in the world
@@ -1352,7 +1379,11 @@ public class AutoCrystalModule extends Module {
         // find place-able positions
         if (place.getValue()) {
 
-            // list of valid placements
+            /*
+             * Map of valid placements
+             * Sorted by natural ordering of keys
+             * Using tree map allows time complexity of O(logN)
+             */
             TreeMap<Double, DamageHolder<BlockPos>> validPlacements = new TreeMap<>();
 
             // list of entities in the world
