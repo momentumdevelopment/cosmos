@@ -18,13 +18,18 @@ public class ClickGUIModule extends Module {
 	
 	public ClickGUIModule() {
 		super("ClickGUI", Category.CLIENT, "This screen.");
+		INSTANCE = this;
 		setKey(Keyboard.KEY_RSHIFT);
 		setExempt(true);
-		INSTANCE = this;
 	}
 
-	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false).setDescription("Pause the game when in GUI");
-	public static Setting<Boolean> blur = new Setting<>("Blur", false).setDescription("Blur shader for GUI background");
+	// **************************** general ****************************
+
+	public static Setting<Boolean> pauseGame = new Setting<>("PauseGame", false)
+			.setDescription("Pause the game when in GUI");
+
+	public static Setting<Boolean> blur = new Setting<>("Blur", false)
+			.setDescription("Blur shader for GUI background");
 
 	@Override
 	public void onEnable() {
@@ -49,6 +54,7 @@ public class ClickGUIModule extends Module {
 	@SubscribeEvent
 	public void onSettingEnable(SettingUpdateEvent event) {
 		if (event.getSetting().equals(blur)) {
+
 			// blur shader for background
 			if (blur.getValue()) {
 				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));

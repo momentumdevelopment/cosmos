@@ -20,12 +20,18 @@ public class SkyColorModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> sky = new Setting<>("Sky", true).setDescription("Colors the sky");
-    public static Setting<Boolean> fog = new Setting<>("Fog", true).setDescription("Colors the fog");
+    // **************************** general ****************************
+
+    public static Setting<Boolean> sky = new Setting<>("Sky", true)
+            .setDescription("Colors the sky");
+
+    public static Setting<Boolean> fog = new Setting<>("Fog", true)
+            .setDescription("Colors the fog");
 
     @SubscribeEvent
     public void onRenderSky(RenderSkyEvent event) {
         if (sky.getValue()) {
+
             // override sky color
             event.setCanceled(true);
             event.setColor(ColorUtil.getPrimaryColor());
@@ -35,6 +41,7 @@ public class SkyColorModule extends Module {
     @SubscribeEvent
     public void onRenderFogColor(RenderFogColorEvent event) {
         if (fog.getValue()) {
+
             // override fog color
             event.setColor(ColorUtil.getPrimaryColor());
         }

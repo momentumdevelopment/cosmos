@@ -291,6 +291,7 @@ public class HUDModule extends Module {
     @SubscribeEvent
     public void onRenderPotionHUD(RenderPotionHUDEvent event) {
         if (!potionHUD.getValue()) {
+
             // cancel vanilla potion hud from rendering
             event.setCanceled(true);
         }
@@ -299,6 +300,7 @@ public class HUDModule extends Module {
     @SubscribeEvent
     public void onRenderAdvancement(RenderAdvancementEvent event) {
         if (!advancements.getValue()) {
+
             // cancel vanilla advancement notification from rendering
             event.setCanceled(true);
         }

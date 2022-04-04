@@ -20,12 +20,18 @@ public class NotifierModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> enableNotify = new Setting<>("EnableNotify", false).setDescription("Send a chat message when a modules is toggled");
-    public static Setting<Boolean> popNotify = new Setting<>("PopNotify", false).setDescription("Send a chat message when a nearby player is popped");
+    // **************************** general settings ****************************
+
+    public static Setting<Boolean> enableNotify = new Setting<>("EnableNotify", false)
+            .setDescription("Send a chat message when a modules is toggled");
+
+    public static Setting<Boolean> popNotify = new Setting<>("PopNotify", false)
+            .setDescription("Send a chat message when a nearby player is popped");
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
         if (popNotify.getValue()) {
+
             // if the player is in range
             if (mc.player.getDistance(event.getPopEntity()) < 10) {
 
@@ -41,6 +47,7 @@ public class NotifierModule extends Module {
     @SubscribeEvent
     public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
         if (enableNotify.getValue()) {
+
             // make sure the module isn't hidden
             if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
 
@@ -53,6 +60,7 @@ public class NotifierModule extends Module {
     @SubscribeEvent
     public void onModuleDisable(ModuleToggleEvent.ModuleDisableEvent event) {
         if (enableNotify.getValue()) {
+
             // make sure the module isn't hidden
             if (!event.getModule().getCategory().equals(Category.HIDDEN)) {
 

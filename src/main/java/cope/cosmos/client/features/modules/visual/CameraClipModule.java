@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author aesthetical, linustouchtips
  * @since 10/17/2021
  */
-@SuppressWarnings("unused")
 public class CameraClipModule extends Module {
     public static CameraClipModule INSTANCE;
 
@@ -19,10 +18,14 @@ public class CameraClipModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 5.0, 20.0, 0).setDescription("How many blocks the camera should clip through");
+    // **************************** general settings ****************************
+
+    public static Setting<Double> distance = new Setting<>("Distance", 1.0, 5.0, 20.0, 0)
+            .setDescription("How many blocks the camera should clip through");
 
     @SubscribeEvent
     public void onCameraClip(CameraClipEvent event) {
+
         // override the vanilla camera clip distance
         event.setDistance(distance.getValue());
     }

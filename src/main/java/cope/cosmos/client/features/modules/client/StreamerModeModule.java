@@ -24,6 +24,7 @@ public class StreamerModeModule extends Module {
         INSTANCE = this;
     }
 
+    // window
     private JFrame frame;
     private JLabel facing, coordinates, netherCoordinates;
 

@@ -25,15 +25,27 @@ public class TracersModule extends Module {
         INSTANCE = this;
     }
 
-    // Filters
-    public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Draw lines to players");
-    public static Setting<Boolean> passive = new Setting<>("Passive", false).setDescription("Draw lines to passive entities");
-    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", false).setDescription("Draw lines to neutral entities");
-    public static Setting<Boolean> mobs = new Setting<>("Mobs", false).setDescription("Draw lines to monsters");
+    // **************************** entity ****************************
 
-    // Other
-    public static Setting<Float> width = new Setting<>("Width", 0.1F, 0.5F, 1.5F, 1).setDescription("How thick to render the lines");
-    public static Setting<To> to = new Setting<>("To", To.BODY).setDescription("Where to draw the line to");
+    public static Setting<Boolean> players = new Setting<>("Players", true)
+            .setDescription("Draw lines to players");
+
+    public static Setting<Boolean> passive = new Setting<>("Passive", false)
+            .setDescription("Draw lines to passive entities");
+
+    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", false)
+            .setDescription("Draw lines to neutral entities");
+
+    public static Setting<Boolean> mobs = new Setting<>("Mobs", false)
+            .setDescription("Draw lines to monsters");
+
+    // **************************** render ****************************
+
+    public static Setting<Float> width = new Setting<>("Width", 0.1F, 0.5F, 1.5F, 1)
+            .setDescription("How thick to render the lines");
+
+    public static Setting<To> to = new Setting<>("To", To.BODY)
+            .setDescription("Where to draw the line to");
 
 
     @Override

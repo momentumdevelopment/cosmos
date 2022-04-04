@@ -28,9 +28,16 @@ public class AntiAFKModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> chat = new Setting<>("Chat", true).setDescription("Send messages in the chat to avoid AFK detection");
-    public static Setting<Boolean> jump = new Setting<>("Jump", true).setDescription("Jumps to avoid AFK detection");
-    public static Setting<Boolean> rotate = new Setting<>("Rotate", false).setDescription("Rotates to avoid AFK detection");
+    // **************************** general settings ****************************
+
+    public static Setting<Boolean> chat = new Setting<>("Chat", true)
+            .setDescription("Send messages in the chat to avoid AFK detection");
+
+    public static Setting<Boolean> jump = new Setting<>("Jump", true)
+            .setDescription("Jumps to avoid AFK detection");
+
+    public static Setting<Boolean> rotate = new Setting<>("Rotate", false)
+            .setDescription("Rotates to avoid AFK detection");
 
     // timer keeping track of afk time
     private final Timer awayTimer = new Timer();

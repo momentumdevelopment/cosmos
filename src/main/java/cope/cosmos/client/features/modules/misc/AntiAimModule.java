@@ -18,7 +18,6 @@ import java.util.Random;
  * @author linustouchtips
  * @since 07/24/2021
  */
-@SuppressWarnings("unused")
 public class AntiAimModule extends Module {
     public static AntiAimModule INSTANCE;
 
@@ -27,9 +26,16 @@ public class AntiAimModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Yaw> yaw = new Setting<>("Yaw", Yaw.LINEAR).setDescription("Changes how your yaw is rotated");
-    public static Setting<Pitch> pitch = new Setting<>("Pitch", Pitch.NONE).setDescription("Changes how your pitch is rotated");
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET).setDescription("How to rotate");
+    // **************************** general settings ****************************
+
+    public static Setting<Yaw> yaw = new Setting<>("Yaw", Yaw.LINEAR)
+            .setDescription("Changes how your yaw is rotated");
+
+    public static Setting<Pitch> pitch = new Setting<>("Pitch", Pitch.NONE)
+            .setDescription("Changes how your pitch is rotated");
+
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET)
+            .setDescription("How to rotate");
 
     // rotation values
     private float aimYaw, aimPitch;
@@ -39,6 +45,7 @@ public class AntiAimModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // randomized rotations
         Random aimRandom = new Random();
 
@@ -67,6 +74,7 @@ public class AntiAimModule extends Module {
 
         switch (pitch.getValue()) {
             case RANDOM:
+
                 // randomize pitch value
                 aimPitch = aimRandom.nextInt() * 90;
 
@@ -97,8 +105,10 @@ public class AntiAimModule extends Module {
 
     @SubscribeEvent
     public void onRotationUpdate(RotationUpdateEvent event) {
+
         // server-side update our rotations
         if (rotate.getValue().equals(Rotate.PACKET)) {
+
             // cancel vanilla rotations, we'll send our own
             event.setCanceled(true);
 
@@ -110,7 +120,9 @@ public class AntiAimModule extends Module {
     // anti aim renders should be priority for rotation rendering
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRenderRotations(RenderRotationsEvent event) {
+
         if (rotate.getValue().equals(Rotate.PACKET)) {
+
             // cancel the model rendering for rotations, we'll set it to our values
             event.setCanceled(true);
 

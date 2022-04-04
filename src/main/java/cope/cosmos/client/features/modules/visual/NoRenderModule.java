@@ -36,34 +36,81 @@ public class NoRenderModule extends Module {
         INSTANCE = this;
     }
 
-    // overlays
-    public static Setting<Boolean> overlays = new Setting<>("Overlays", true).setDescription("Prevents overlays from rendering");
-    public static Setting<Boolean> overlayFire = new Setting<>("Fire", true).setDescription("Prevents fire overlay from rendering").setParent(overlays);
-    public static Setting<Boolean> overlayLiquid = new Setting<>("Liquid", true).setDescription("Prevents liquid overlay from rendering").setParent(overlays);
-    public static Setting<Boolean> overlayBlock = new Setting<>("Block", true).setDescription("Prevents block overlay from rendering").setParent(overlays);
-    public static Setting<Boolean> overlayBoss = new Setting<>("Boss", true).setDescription("Prevents boss bar overlay from rendering").setParent(overlays);
+    // **************************** overlays ****************************
 
-    // fog
-    public static Setting<Boolean> fog = new Setting<>("Fog", true).setDescription("Prevents fog from rendering");
-    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true).setDescription("Clears fog in liquid").setParent(fog);
-    public static Setting<Double> fogDensity = new Setting<>("Density", 0.0, 0.0, 20.0, 0).setDescription("Density of the fog").setParent(fog);
+    public static Setting<Boolean> overlays = new Setting<>("Overlays", true)
+            .setDescription("Prevents overlays from rendering");
 
-    // misc
-    public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Prevents armor from rendering");
-    public static Setting<Boolean> items = new Setting<>("Items", false).setDescription("Prevents dropped items from rendering");
-    public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false).setDescription("Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering");
-    public static Setting<Boolean> barrier = new Setting<>("Barrier", true).setDescription("Prevents barrier block signs from rendering");
-    public static Setting<Boolean> maps = new Setting<>("Maps", false).setDescription("Prevents maps from rendering");
-    public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true).setDescription("Removes the hurt camera effect");
-    public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true).setDescription("Prevents flying wither skulls from rendering");
-    public static Setting<Boolean> potion = new Setting<>("Potion", false).setDescription("Removes certain potion effects");
-    public static Setting<Boolean> fov = new Setting<>("FOV", true).setDescription("Removes the FOV modifier effect");
-    public static Setting<Boolean> swing = new Setting<>("Swing", false).setDescription("Prevents other player's swing animations from rendering");
-    public static Setting<Boolean> noBob = new Setting<>("NoBob", true).setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
-    public static Setting<Boolean> eating = new Setting<>("Eating", false).setDescription("Removes the eating animation");
+    public static Setting<Boolean> overlayFire = new Setting<>("FireOverlay", true)
+            .setDescription("Prevents fire overlay from rendering")
+            .setVisible(() -> overlays.getValue());
+
+    public static Setting<Boolean> overlayLiquid = new Setting<>("LiquidOverlay", true)
+            .setDescription("Prevents liquid overlay from rendering")
+            .setVisible(() -> overlays.getValue());
+
+    public static Setting<Boolean> overlayBlock = new Setting<>("BlockOverlay", true)
+            .setDescription("Prevents block overlay from rendering")
+            .setVisible(() -> overlays.getValue());
+
+    public static Setting<Boolean> overlayBoss = new Setting<>("BossOverlay", true)
+            .setDescription("Prevents boss bar overlay from rendering")
+            .setVisible(() -> overlays.getValue());
+
+    // **************************** fog ****************************
+
+    public static Setting<Boolean> fog = new Setting<>("Fog", true)
+            .setDescription("Prevents fog from rendering");
+
+    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true)
+            .setDescription("Clears fog in liquid")
+            .setVisible(() -> fog.getValue());
+
+    public static Setting<Double> fogDensity = new Setting<>("FogDensity", 0.0, 0.0, 20.0, 0)
+            .setDescription("Density of the fog")
+            .setVisible(() -> fog.getValue());
+
+    // **************************** other ****************************
+
+    public static Setting<Boolean> armor = new Setting<>("Armor", true)
+            .setDescription("Prevents armor from rendering");
+
+    public static Setting<Boolean> items = new Setting<>("Items", false)
+            .setDescription("Prevents dropped items from rendering");
+
+    public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false)
+            .setDescription("Prevents tile entity effects (enchantment table books, beacon beams, etc.) from rendering");
+
+    public static Setting<Boolean> barrier = new Setting<>("Barrier", true)
+            .setDescription("Prevents barrier block signs from rendering");
+
+    public static Setting<Boolean> maps = new Setting<>("Maps", false)
+            .setDescription("Prevents maps from rendering");
+
+    public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true)
+            .setDescription("Removes the hurt camera effect");
+
+    public static Setting<Boolean> witherSkull = new Setting<>("WitherSkull", true)
+            .setDescription("Prevents flying wither skulls from rendering");
+
+    public static Setting<Boolean> potion = new Setting<>("Potion", false)
+            .setDescription("Removes certain potion effects");
+
+    public static Setting<Boolean> fov = new Setting<>("FOV", true)
+            .setDescription("Removes the FOV modifier effect");
+
+    public static Setting<Boolean> swing = new Setting<>("Swing", false)
+            .setDescription("Prevents other player's swing animations from rendering");
+
+    public static Setting<Boolean> noBob = new Setting<>("NoBob", true)
+            .setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
+
+    public static Setting<Boolean> eating = new Setting<>("Eating", false)
+            .setDescription("Removes the eating animation");
 
     @SubscribeEvent
     public void onRenderItem(RenderItemEvent event) {
+
         // prevent dropped items from rendering
         if (items.getValue()) {
             event.setCanceled(true);

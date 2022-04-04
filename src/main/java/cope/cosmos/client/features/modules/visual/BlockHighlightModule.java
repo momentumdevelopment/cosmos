@@ -25,7 +25,10 @@ public class BlockHighlightModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.OUTLINE).setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE);
+    // **************************** render ****************************
+
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.OUTLINE)
+            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE);
 
     @Override
     public void onRender3D() {

@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author linustouchtips
  * @since 12/02/2021
  */
-@SuppressWarnings("unused")
 public class NametagsModule extends Module {
     public static NametagsModule INSTANCE;
 
@@ -41,27 +40,61 @@ public class NametagsModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> health = new Setting<>("Health", true).setDescription("Displays the player's health");
-    public static Setting<Boolean> healthBar = new Setting<>("HealthBar", false).setDescription("Visualizes the player's health").setParent(health);
+    // **************************** health settings ****************************
 
-    public static Setting<Boolean> ping = new Setting<>("Ping", true).setDescription("Displays the player's ping");
-    public static Setting<Boolean> gamemode = new Setting<>("Gamemode", false).setDescription("Displays the player's gamemode");
-    public static Setting<Boolean> totemPops = new Setting<>("TotemPops", true).setDescription("Displays the number of totems that the player popped");
+    public static Setting<Boolean> health = new Setting<>("Health", true)
+            .setDescription("Displays the player's health");
 
-    public static Setting<Boolean> armor = new Setting<>("Armor", true).setDescription("Displays the player's armor");
+    public static Setting<Boolean> healthBar = new Setting<>("HealthBar", false)
+            .setDescription("Visualizes the player's health")
+            .setVisible(() -> health.getValue());
 
-    public static Setting<Boolean> enchantments = new Setting<>("Enchantments", true).setDescription("Displays the player's item enchantments");
-    public static Setting<Boolean> simpleEnchantments = new Setting<>("SimpleEnchantments", false).setDescription("Simplify enchantment display").setParent(enchantments);
+    // **************************** general settings ****************************
 
-    public static Setting<Boolean> durability = new Setting<>("Durability", true).setDescription("Displays the player's item durability");
-    public static Setting<Boolean> mainhand = new Setting<>("Mainhand", true).setDescription("Displays the player's mainhand item");
-    public static Setting<Boolean> offhand = new Setting<>("Offhand", true).setDescription("Displays the player's offhand item");
-    public static Setting<Boolean> itemName = new Setting<>("ItemName", false).setDescription("Displays the player's mainhand item's name");
+    public static Setting<Boolean> ping = new Setting<>("Ping", true)
+            .setDescription("Displays the player's ping");
 
-    public static Setting<Boolean> background = new Setting<>("Background", true).setDescription("Displays a background behind the nametags");
-    public static Setting<Boolean> outline = new Setting<>("Outline", false).setDescription("Outlines the background");
-    public static Setting<Double> scale = new Setting<>("Scale", 0.1, 0.2, 3.0, 1).setDescription("The scaling of the nametag");
-    public static Setting<Boolean> distanceScale = new Setting<>("DistanceScale", false).setDescription("Scales the nametags size by the distance from the entity").setParent(scale);
+    public static Setting<Boolean> gamemode = new Setting<>("Gamemode", false)
+            .setDescription("Displays the player's gamemode");
+
+    public static Setting<Boolean> totemPops = new Setting<>("TotemPops", true)
+            .setDescription("Displays the number of totems that the player popped");
+
+    public static Setting<Boolean> armor = new Setting<>("Armor", true)
+            .setDescription("Displays the player's armor");
+
+    public static Setting<Boolean> enchantments = new Setting<>("Enchantments", true)
+            .setDescription("Displays the player's item enchantments");
+
+    public static Setting<Boolean> simpleEnchantments = new Setting<>("SimpleEnchantments", false)
+            .setDescription("Simplify enchantment display")
+            .setVisible(() -> enchantments.getValue());
+
+    public static Setting<Boolean> durability = new Setting<>("Durability", true)
+            .setDescription("Displays the player's item durability");
+
+    public static Setting<Boolean> mainhand = new Setting<>("Mainhand", true)
+            .setDescription("Displays the player's mainhand item");
+
+    public static Setting<Boolean> offhand = new Setting<>("Offhand", true)
+            .setDescription("Displays the player's offhand item");
+
+    public static Setting<Boolean> itemName = new Setting<>("ItemName", false)
+            .setDescription("Displays the player's mainhand item's name");
+
+    // **************************** render settings ****************************
+
+    public static Setting<Boolean> background = new Setting<>("Background", true)
+            .setDescription("Displays a background behind the nametags");
+
+    public static Setting<Boolean> outline = new Setting<>("Outline", false)
+            .setDescription("Outlines the background");
+
+    public static Setting<Double> scale = new Setting<>("Scale", 0.1, 0.2, 3.0, 1)
+            .setDescription("The scaling of the nametag");
+
+    public static Setting<Boolean> distanceScale = new Setting<>("DistanceScale", false)
+            .setDescription("Scales the nametags size by the distance from the entity").setParent(scale);
 
     // map of all nametag info
     private Map<EntityPlayer, String> playerInfoMap = new ConcurrentHashMap<>();
@@ -76,6 +109,7 @@ public class NametagsModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // search the player info
         playerInfoMap = searchPlayerInfo();
     }

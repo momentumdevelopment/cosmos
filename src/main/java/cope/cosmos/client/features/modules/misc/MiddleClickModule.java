@@ -26,8 +26,13 @@ public class MiddleClickModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<EntityAction> entityAction = new Setting<>("EntityAction", EntityAction.FRIEND).setDescription("Action to perform when middle-clicking an entity");
-    public static Setting<MissAction> missAction = new Setting<>("MissAction", MissAction.PEARL).setDescription("Action to perform when middle-clicking misses an entity");
+    // **************************** general settings ****************************
+
+    public static Setting<EntityAction> entityAction = new Setting<>("EntityAction", EntityAction.FRIEND)
+            .setDescription("Action to perform when middle-clicking an entity");
+
+    public static Setting<MissAction> missAction = new Setting<>("MissAction", MissAction.PEARL)
+            .setDescription("Action to perform when middle-clicking misses an entity");
 
     @SubscribeEvent
     public void onMouseInput(InputEvent.MouseInputEvent event) {

@@ -20,11 +20,15 @@ public class SocialModule extends Module {
     public SocialModule() {
         super("Social", Category.CLIENT, "Allows the social system to function");
         INSTANCE = this;
+
         setExempt(true);
         setDrawn(false);
     }
 
-    public static Setting<Boolean> friends = new Setting<>("Friends", true).setDescription("Allow friends system to function");
+    // **************************** general ****************************
+
+    public static Setting<Boolean> friends = new Setting<>("Friends", true)
+            .setDescription("Allow friends system to function");
 
     @SubscribeEvent
     public void onTabOverlay(TabOverlayEvent event) {

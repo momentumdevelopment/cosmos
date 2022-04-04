@@ -66,28 +66,63 @@ public class ESPModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SHADER).setDescription("The mode for the render style");
-    public static Setting<FragmentShader> shader = new Setting<>("Shader", FragmentShader.OUTLINE).setDescription("The shader to draw on the entity").setVisible(() -> mode.getValue().equals(Mode.SHADER));
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.25, 5.0, 1).setDescription( "Line width for the visual").setVisible(() -> !mode.getValue().equals(Mode.SHADER));
+    // **************************** general settings ****************************
 
-    // entities
-    public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Highlight players");
-    public static Setting<Boolean> passives = new Setting<>("Passives", true).setDescription("Highlight passives");
-    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", true).setDescription("Highlight neutrals");
-    public static Setting<Boolean> hostiles = new Setting<>("Hostiles", true).setDescription("Highlight hostiles");
-    public static Setting<Boolean> items = new Setting<>("Items", true).setDescription("Highlight items");
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", true).setDescription("Highlight crystals");
-    public static Setting<Boolean> vehicles = new Setting<>("Vehicles", true).setDescription("Highlight vehicles");
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SHADER)
+            .setDescription("The mode for the render style");
 
-    // storages
-    public static Setting<Boolean> chests = new Setting<>("Chests", true).setDescription("Highlight chests");
-    public static Setting<Boolean> enderChests = new Setting<>("EnderChests", true).setDescription("Highlight chests");
-    public static Setting<Boolean> shulkers = new Setting<>("Shulkers", true).setDescription("Highlight shulkers");
-    public static Setting<Boolean> hoppers = new Setting<>("Hoppers", true).setDescription("Highlight hoppers");
-    public static Setting<Boolean> furnaces = new Setting<>("Furnaces", true).setDescription("Highlight furnaces");
+    public static Setting<FragmentShader> shader = new Setting<>("Shader", FragmentShader.OUTLINE)
+            .setDescription("The shader to draw on the entity")
+            .setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
-    // other shit
-    public static Setting<Boolean> chorus = new Setting<>("Chorus", false).setDescription("Highlights chorus teleports");
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.25, 5.0, 1)
+            .setDescription( "Line width for the visual")
+            .setVisible(() -> !mode.getValue().equals(Mode.SHADER));
+
+    // **************************** entity settings ****************************
+
+    public static Setting<Boolean> players = new Setting<>("Players", true)
+            .setDescription("Highlight players");
+
+    public static Setting<Boolean> passives = new Setting<>("Passives", true)
+            .setDescription("Highlight passives");
+
+    public static Setting<Boolean> neutrals = new Setting<>("Neutrals", true)
+            .setDescription("Highlight neutrals");
+
+    public static Setting<Boolean> hostiles = new Setting<>("Hostiles", true)
+            .setDescription("Highlight hostiles");
+
+    public static Setting<Boolean> items = new Setting<>("Items", true)
+            .setDescription("Highlight items");
+
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", true)
+            .setDescription("Highlight crystals");
+
+    public static Setting<Boolean> vehicles = new Setting<>("Vehicles", true)
+            .setDescription("Highlight vehicles");
+
+    // **************************** storages ****************************
+
+    public static Setting<Boolean> chests = new Setting<>("Chests", true)
+            .setDescription("Highlight chests");
+
+    public static Setting<Boolean> enderChests = new Setting<>("EnderChests", true)
+            .setDescription("Highlight chests");
+
+    public static Setting<Boolean> shulkers = new Setting<>("Shulkers", true)
+            .setDescription("Highlight shulkers");
+
+    public static Setting<Boolean> hoppers = new Setting<>("Hoppers", true)
+            .setDescription("Highlight hoppers");
+
+    public static Setting<Boolean> furnaces = new Setting<>("Furnaces", true)
+            .setDescription("Highlight furnaces");
+
+    // **************************** others ****************************
+
+    public static Setting<Boolean> chorus = new Setting<>("Chorus", false)
+            .setDescription("Highlights chorus teleports");
 
     // framebuffer
     private Framebuffer framebuffer;

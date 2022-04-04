@@ -27,9 +27,15 @@ public class AutoDisconnectModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Double> health = new Setting<>("Health", 0.0D, 2.0D, 36.0D, 1).setDescription("Health considered as critical health");
-    public static Setting<Double> totems = new Setting<>("Totems", 0.0D, 0.0D, 10.0D, 0).setDescription("Totem count considered as critical count");
+    // **************************** general settings ****************************
 
+    public static Setting<Double> health = new Setting<>("Health", 0.0D, 2.0D, 36.0D, 1)
+            .setDescription("Health considered as critical health");
+
+    public static Setting<Double> totems = new Setting<>("Totems", 0.0D, 0.0D, 10.0D, 0)
+            .setDescription("Totem count considered as critical count");
+
+    // timer to wait after disconnectig
     private final Timer disconnectTimer = new Timer();
 
     @Override

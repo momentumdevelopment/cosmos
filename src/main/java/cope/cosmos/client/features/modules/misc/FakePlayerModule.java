@@ -23,8 +23,13 @@ public class FakePlayerModule extends Module {
         setExempt(true);
     }
 
-    public static Setting<Boolean> inventory = new Setting<>("Inventory", true).setDescription("Sync the fake player inventory");
-    public static Setting<Boolean> health = new Setting<>("Health", true).setDescription("Sync the fakeplayer health");
+    // **************************** general settings ****************************
+
+    public static Setting<Boolean> inventory = new Setting<>("Inventory", true)
+            .setDescription("Sync the fake player inventory");
+
+    public static Setting<Boolean> health = new Setting<>("Health", true)
+            .setDescription("Sync the fakeplayer health");
 
     // entity id of fakeplayer
     private int id = -1;
@@ -73,6 +78,7 @@ public class FakePlayerModule extends Module {
     @SubscribeEvent
     public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
         if (event.getEntity().equals(mc.player)) {
+
             // remove fake player from world
             mc.world.removeEntityFromWorld(id);
             id = -1;
@@ -84,6 +90,7 @@ public class FakePlayerModule extends Module {
 
     @SubscribeEvent
     public void onDisconnect(DisconnectEvent event) {
+
         // disable module
         disable(true);
     }

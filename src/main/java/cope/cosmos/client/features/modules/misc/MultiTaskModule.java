@@ -19,6 +19,7 @@ public class MultiTaskModule extends Module {
 
     @SubscribeEvent
     public void onDualInteract(DualInteractEvent event) {
+
         // prevent the client from knowing you are already interacting
         event.setCanceled(true);
     }

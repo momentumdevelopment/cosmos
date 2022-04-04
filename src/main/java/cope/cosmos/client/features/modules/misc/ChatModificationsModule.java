@@ -22,7 +22,6 @@ import java.util.Date;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class ChatModificationsModule extends Module {
     public static ChatModificationsModule INSTANCE;
 
@@ -31,10 +30,19 @@ public class ChatModificationsModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Time> time = new Setting<>("Time", Time.NA).setDescription("Time format");
-    public static Setting<Boolean> prefix = new Setting<>("Prefix", false).setDescription("Add a cosmos prefix before chat messages");
-    public static Setting<Boolean> suffix = new Setting<>("Suffix", true).setDescription("Add a cosmos suffix after chat messages");
-    public static Setting<Boolean> colored = new Setting<>("Colored", true).setDescription("Add a > before public messages");
+    // **************************** general settings ****************************
+
+    public static Setting<Time> time = new Setting<>("Time", Time.NA)
+            .setDescription("Time format");
+
+    public static Setting<Boolean> prefix = new Setting<>("Prefix", false)
+            .setDescription("Add a cosmos prefix before chat messages");
+
+    public static Setting<Boolean> suffix = new Setting<>("Suffix", true)
+            .setDescription("Add a cosmos suffix after chat messages");
+
+    public static Setting<Boolean> colored = new Setting<>("Colored", true)
+            .setDescription("Add a > before public messages");
 
     /*
     public static Setting<Boolean> highlight = new Setting<>("Highlight", true);

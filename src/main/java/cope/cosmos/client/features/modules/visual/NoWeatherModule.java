@@ -19,11 +19,17 @@ public class NoWeatherModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Weather> weather = new Setting<>("Weather", Weather.CLEAR).setDescription("Sets the world's weather");
-    public static Setting<Double> time = new Setting<>("Time", 0.0, 6000.0, 24000.0, 0).setDescription("Sets the world's time");
+    // **************************** general ****************************
+
+    public static Setting<Weather> weather = new Setting<>("Weather", Weather.CLEAR)
+            .setDescription("Sets the world's weather");
+
+    public static Setting<Double> time = new Setting<>("Time", 0.0, 6000.0, 24000.0, 0)
+            .setDescription("Sets the world's time");
 
     @Override
     public void onUpdate() {
+
         // update weather
         switch (weather.getValue()) {
             case CLEAR:

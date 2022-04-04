@@ -29,24 +29,56 @@ public class ChamsModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL).setDescription("Mode for Chams");
+    // **************************** general settings ****************************
 
-    // entity highlights
-    public static Setting<Boolean> players = new Setting<>("Players", true).setDescription("Renders chams on players");
-    public static Setting<Boolean> local = new Setting<>("Local", false).setDescription("Renders chams on the local player").setParent(players);
-    public static Setting<Boolean> mobs = new Setting<>("Mobs", true).setDescription("Renders chams on mobs");
-    public static Setting<Boolean> monsters = new Setting<>("Monsters", true).setDescription("Renders chams on monsters");
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", true).setDescription("Renders chams on crystals");
-    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2).setDescription("Scale for crystal model").setParent(crystals);
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.MODEL)
+            .setDescription("Mode for Chams");
 
-    // render options
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2).setDescription("Line width for the model").setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
-    public static Setting<Boolean> texture = new Setting<>("Texture", false).setDescription("Enables entity texture");
-    public static Setting<Boolean> lighting = new Setting<>("Lighting", true).setDescription("Disables vanilla lighting");
-    public static Setting<Boolean> blend = new Setting<>("Blend", false).setDescription("Enables blended texture");
-    public static Setting<Boolean> transparent = new Setting<>("Transparent", true).setDescription("Makes entity models transparent");
-    public static Setting<Boolean> depth = new Setting<>("Depth", true).setDescription("Enables entity depth");
-    public static Setting<Boolean> walls = new Setting<>("Walls", true).setDescription("Renders chams models through walls");
+    // **************************** entity highlights ****************************
+
+    public static Setting<Boolean> players = new Setting<>("Players", true)
+            .setDescription("Renders chams on players");
+
+    public static Setting<Boolean> local = new Setting<>("Local", false)
+            .setDescription("Renders chams on the local player")
+            .setVisible(() -> players.getValue());
+
+    public static Setting<Boolean> mobs = new Setting<>("Mobs", true)
+            .setDescription("Renders chams on mobs");
+
+    public static Setting<Boolean> monsters = new Setting<>("Monsters", true)
+            .setDescription("Renders chams on monsters");
+
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", true)
+            .setDescription("Renders chams on crystals");
+
+    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2)
+            .setDescription("Scale for crystal model")
+            .setVisible(() -> crystals.getValue());
+
+    // **************************** render ****************************
+
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2)
+            .setDescription("Line width for the model")
+            .setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
+
+    public static Setting<Boolean> texture = new Setting<>("Texture", false)
+            .setDescription("Enables entity texture");
+
+    public static Setting<Boolean> lighting = new Setting<>("Lighting", true)
+            .setDescription("Disables vanilla lighting");
+
+    public static Setting<Boolean> blend = new Setting<>("Blend", false)
+            .setDescription("Enables blended texture");
+
+    public static Setting<Boolean> transparent = new Setting<>("Transparent", true)
+            .setDescription("Makes entity models transparent");
+
+    public static Setting<Boolean> depth = new Setting<>("Depth", true)
+            .setDescription("Enables entity depth");
+
+    public static Setting<Boolean> walls = new Setting<>("Walls", true)
+            .setDescription("Renders chams models through walls");
     
     // texture for enchantment glint
     private final ResourceLocation GLINT_TEXTURE = new ResourceLocation("textures/misc/enchanted_item_glint.png");

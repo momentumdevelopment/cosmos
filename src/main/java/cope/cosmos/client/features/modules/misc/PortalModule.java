@@ -14,7 +14,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@SuppressWarnings("unused")
 public class PortalModule extends Module {
     public static PortalModule INSTANCE;
 
@@ -23,13 +22,23 @@ public class PortalModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Boolean> godMode = new Setting<>("GodMode", false).setDescription("Cancels teleport packets");
-    public static Setting<Boolean> screens = new Setting<>("Screens", true).setDescription("Allow the use of screens in portals");
-    public static Setting<Boolean> effect = new Setting<>("Effect", true).setDescription("Cancels the portal overlay effect");
-    public static Setting<Boolean> sounds = new Setting<>("Sounds", false).setDescription("Cancels portal sounds");
+    // **************************** general settings ****************************
+
+    public static Setting<Boolean> godMode = new Setting<>("GodMode", false)
+            .setDescription("Cancels teleport packets");
+
+    public static Setting<Boolean> screens = new Setting<>("Screens", true)
+            .setDescription("Allow the use of screens in portals");
+
+    public static Setting<Boolean> effect = new Setting<>("Effect", true)
+            .setDescription("Cancels the portal overlay effect");
+
+    public static Setting<Boolean> sounds = new Setting<>("Sounds", false)
+            .setDescription("Cancels portal sounds");
 
     @Override
     public void onUpdate() {
+
         // allows you to send messages while in portals
         ((IEntity) mc.player).setInPortal(!screens.getValue() && ((IEntity) mc.player).getInPortal());
 
@@ -58,6 +67,7 @@ public class PortalModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
         // allows you to become invincible while in portals on some servers
         if (event.getPacket() instanceof CPacketConfirmTeleport) {
 

@@ -19,6 +19,7 @@ public class ExtraTabModule extends Module {
 
     @SubscribeEvent
     public void onTabList(TabListSizeEvent event) {
+
         // remove limit on size
         event.setCanceled(true);
     }
