@@ -26,7 +26,11 @@ public class DiscordPresenceModule extends Module {
 
         // start presence
         PresenceManager.startPresence();
-        getCosmos().getChatManager().sendClientMessage("Starting Discord Presence!");
+        
+        // notify user
+        if (nullCheck()) {
+            getCosmos().getChatManager().sendClientMessage("Starting Discord Presence!");
+        }
     }
 
     @Override
@@ -35,6 +39,10 @@ public class DiscordPresenceModule extends Module {
 
         // end presence
         PresenceManager.interruptPresence();
-        getCosmos().getChatManager().sendClientMessage("Shutting down Discord Presence!");
+        
+        // notify user
+        if (nullCheck()) {
+            getCosmos().getChatManager().sendClientMessage("Shutting down Discord Presence!");
+        }
     }
 }
