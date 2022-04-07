@@ -272,7 +272,7 @@ public class AuraModule extends Module {
                 }
 
                 // don't attack our riding entity
-                if (entity.isBeingRidden() && entity.getRidingEntity().equals(mc.player)) {
+                if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
                     continue;
                 }
 

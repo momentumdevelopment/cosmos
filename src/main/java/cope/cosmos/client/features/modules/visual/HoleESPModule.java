@@ -76,17 +76,18 @@ public class HoleESPModule extends Module {
     public static Setting<Boolean> colorSync = new Setting<>("ColorSync", true)
             .setDescription("Syncs holes colors to client colors");
     
-    public static Setting<Color> obsidianColor = new Setting<>("Obsidian", ColorUtil.getPrimaryAlphaColor(45))
+    public static Setting<Color> obsidianColor = new Setting<>("ObsidianColor", new Color(255, 0, 0,45))
             .setDescription("Color of the obsidian holes");
 
-    public static Setting<Color> mixedColor = new Setting<>("Mixed", ColorUtil.getPrimaryAlphaColor(45))
+    public static Setting<Color> mixedColor = new Setting<>("MixedColor", new Color(255, 255, 0,45))
             .setDescription("Color of the mixed holes");
 
-    public static Setting<Color> bedrockColor = new Setting<>("Bedrock", ColorUtil.getPrimaryAlphaColor(45))
+    public static Setting<Color> bedrockColor = new Setting<>("BedrockColor", new Color(0, 255, 0,45))
             .setDescription("Color of the bedrock holes");
 
-    public static Setting<Color> voidColor = new Setting<>("Void", new Color(255, 0, 0, 45))
-            .setDescription("Color of the void holes").setVisible(() -> voids.getValue());
+    public static Setting<Color> voidColor = new Setting<>("VoidColor", new Color(98, 0, 255, 45))
+            .setDescription("Color of the void holes")
+            .setVisible(() -> voids.getValue());
 
     @Override
     public void onRender3D() {

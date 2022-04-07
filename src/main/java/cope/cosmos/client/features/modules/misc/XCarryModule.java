@@ -30,13 +30,5 @@ public class XCarryModule extends Module {
                 event.setCanceled(true);
             }
         }
-
-        if (event.getPacket() instanceof CPacketUseEntity) {
-            getCosmos().getChatManager().sendClientMessage("hit");
-        }
-
-        if (event.getPacket() instanceof CPacketAnimation) {
-            getCosmos().getChatManager().sendClientMessage("swung");
-        }
     }
 }

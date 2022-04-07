@@ -14,6 +14,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.AutoCrystalModule.Violation.ViolationTag;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.entity.EntityUtil;
@@ -70,16 +71,11 @@ public class AutoCrystalModule extends Module {
 
             // **************************** TESTING INFO ****************************
 
-            if (mc.getConnection() != null) {
+            // response time total
+            float responseTime = MathUtil.roundFloat(ping / 10F, 1);
 
-                // response time total
-                long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
-
-                // INFO
-                return String.valueOf(responseTime);
-            }
-
-            return "";
+            // INFO
+            return String.valueOf(responseTime);
         });
 
         INSTANCE = this;
@@ -135,9 +131,6 @@ public class AutoCrystalModule extends Module {
     public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
             .setDescription("Minimum damage done by an action");
 
-    public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 1.0, 5.0, 1)
-            .setDescription("");
-
     public static Setting<Double> lethalMultiplier = new Setting<>("LethalMultiplier", 0.0, 1.0, 5.0, 1)
             .setDescription("Will override damages if we can kill the target in this many crystals");
 
@@ -169,7 +162,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Speed to explode crystals")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 3.0, 0)
+    public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 5.0, 0)
             .setDescription("Factor to explode crystals")
             .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.SEQUENTIAL));
 
@@ -219,6 +212,11 @@ public class AutoCrystalModule extends Module {
             .setDescription("Range to place crystals through walls")
             .setVisible(() -> place.getValue());
 
+    // lel
+    public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 0.0, 3.0, 1)
+            .setDescription("Inhibiting factor for placements")
+            .setVisible(() -> inhibit.getValue());
+
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
             .setDescription("How to switch to crystals")
             .setVisible(() -> place.getValue());
@@ -248,6 +246,11 @@ public class AutoCrystalModule extends Module {
     public static Setting<Text> renderText = new Setting<>("RenderText", Text.NONE)
             .setDescription("Renders the damage of the current process")
             .setVisible(() -> render.getValue());
+
+    // **************************** ping ****************************
+
+    // process ping
+    private static long ping;
 
     // **************************** rotation ****************************
 
@@ -283,6 +286,7 @@ public class AutoCrystalModule extends Module {
 
     // inhibit
     private final Timer inhibitTimer = new Timer();
+    private final Timer yieldTimer = new Timer();
     private final Set<Integer> inhibitCrystals = new ConcurrentSet<>();
 
     // how many crystals we've attacked this tick
@@ -303,7 +307,7 @@ public class AutoCrystalModule extends Module {
     // **************************** violation ****************************
 
     // violation list
-    private static final List<Violation<?>> violations = new ArrayList<>();
+    private final List<Violation<?>> violations = new ArrayList<>();
 
     @Override
     public void onThread() {
@@ -528,7 +532,7 @@ public class AutoCrystalModule extends Module {
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
         // list of entities in world
-        Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+        // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
 
         // packet for crystal spawns
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {
@@ -590,18 +594,23 @@ public class AutoCrystalModule extends Module {
                     double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(spawnPosition).addVector(0.5, 0, 0.5), blockDestruction.getValue());
 
                     // search all targets
-                    while (entityList.hasNext()) {
+                    for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
 
                         // next entity in the world
-                        Entity entity = entityList.next();
+                        // Entity entity = entityList.next();
 
                         // make sure the entity actually exists
-                        if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
+                        if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                             continue;
                         }
 
                         // ignore crystals, they can't be targets
                         if (entity instanceof EntityEnderCrystal) {
+                            continue;
+                        }
+
+                        // don't attack our riding entity
+                        if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
                             continue;
                         }
 
@@ -649,7 +658,7 @@ public class AutoCrystalModule extends Module {
                             if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
 
                                 // passed factor delay??
-                                if (explodeFactor.getValue() <= explodeFactor.getMin() || factorTimer.passedTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS)) {
+                                if (explodeFactor.getValue() <= explodeFactor.getMin() || factorTimer.passedTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 100, Format.MILLISECONDS)) {
 
                                     // face the crystal
                                     angleVector = new Vec3d(spawnPosition).addVector(0.5, 0, 0.5);
@@ -699,10 +708,10 @@ public class AutoCrystalModule extends Module {
             mc.addScheduledTask(() -> {
 
                 // check all entities in the world
-                while (entityList.hasNext()) {
+                for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
 
                     // next entity in the world
-                    Entity crystal = entityList.next();
+                    // Entity crystal = entityList.next();
 
                     // make sure the entity actually exists
                     if (crystal == null || crystal.isDead) {
@@ -727,6 +736,7 @@ public class AutoCrystalModule extends Module {
 
                     // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                     if (merge.getValue().equals(Merge.CONFIRM)) {
+                        crystal.setDead();
                         mc.world.removeEntityDangerously(crystal);
                     }
                 }
@@ -736,10 +746,10 @@ public class AutoCrystalModule extends Module {
         if (event.getPacket() instanceof SPacketExplosion) {
 
             // check all entities in the world
-            while (entityList.hasNext()) {
+            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
 
                 // next entity in the world
-                Entity crystal = entityList.next();
+                // Entity crystal = entityList.next();
 
                 // make sure the entity actually exists
                 if (crystal == null || crystal.isDead) {
@@ -764,6 +774,7 @@ public class AutoCrystalModule extends Module {
 
                 // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                 if (merge.getValue().equals(Merge.CONFIRM)) {
+                    crystal.setDead();
                     mc.world.removeEntityDangerously(crystal);
                 }
             }
@@ -777,7 +788,7 @@ public class AutoCrystalModule extends Module {
         if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
 
             // check if we are placing a crystal
-            if (InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+            if (mc.player.getHeldItem(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getHand()).getItem() instanceof ItemEndCrystal) {
 
                 // add to list of manually placed crystals
                 manualCrystals.add(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos());
@@ -941,7 +952,9 @@ public class AutoCrystalModule extends Module {
                 inhibitTimer.resetTime();
 
                 // remove crystal from our attacked crystals list
-                attackedCrystals.remove(event.getEntity().getEntityId());
+                ping = System.currentTimeMillis() - attackedCrystals.remove(event.getEntity().getEntityId());
+
+                // no longer inhibited
                 inhibitCrystals.remove(event.getEntity().getEntityId());
             }
 
@@ -1217,13 +1230,13 @@ public class AutoCrystalModule extends Module {
             TreeMap<Double, DamageHolder<EntityEnderCrystal>> validCrystals = new TreeMap<>();
 
             // list of entities in the world
-            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+            // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
 
             // check all entities in the world
-            while (entityList.hasNext()) {
+            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
 
                 // next entity in the world
-                Entity crystal = entityList.next();
+                //Entity crystal = entityList.next();
 
                 // make sure the entity actually exists
                 if (crystal == null || crystal.isDead) {
@@ -1267,18 +1280,23 @@ public class AutoCrystalModule extends Module {
                 double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
 
                 // search all targets
-                while (entityList.hasNext()) {
+                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
 
                     // next entity in the world
-                    Entity entity = entityList.next();
+                    // Entity entity = entityList.next();
 
                     // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
+                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                         continue;
                     }
 
                     // ignore crystals, they can't be targets
                     if (entity instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // don't attack our riding entity
+                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
                         continue;
                     }
 
@@ -1387,7 +1405,7 @@ public class AutoCrystalModule extends Module {
             TreeMap<Double, DamageHolder<BlockPos>> validPlacements = new TreeMap<>();
 
             // list of entities in the world
-            Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
+            // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
 
             // check all positions in range
             for (BlockPos position : BlockUtil.getBlocksInArea(mc.player, new AxisAlignedBB(
@@ -1427,18 +1445,23 @@ public class AutoCrystalModule extends Module {
                 double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
 
                 // search all targets
-                while (entityList.hasNext()) {
+                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
 
                     // next entity in the world
-                    Entity entity = entityList.next();
+                    // Entity entity = entityList.next();
 
                     // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity)) {
+                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                         continue;
                     }
 
                     // ignore crystals, they can't be targets
                     if (entity instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // don't attack our riding entity
+                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
                         continue;
                     }
 
@@ -1659,7 +1682,12 @@ public class AutoCrystalModule extends Module {
         /**
          * Times the explosions based on when the last process has completed
          */
-        VANILLA
+        VANILLA,
+
+        /**
+         * No Timing
+         */
+        NONE
     }
 
     public enum Safety {

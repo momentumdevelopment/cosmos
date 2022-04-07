@@ -1,16 +1,11 @@
 package cope.cosmos.asm.mixins.render.entity;
 
-import com.google.common.base.Predicate;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.other.CameraClipEvent;
-import cope.cosmos.client.events.entity.hitbox.HitboxInteractEvent;
 import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
 import cope.cosmos.client.events.render.world.RenderWorldEvent;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.AxisAlignedBB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.util.ArrayList;
-import java.util.List;
 
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
@@ -40,8 +33,9 @@ public abstract class MixinEntityRenderer {
         }
     }
 
+    /*
     @Redirect(method = "getMouseOver", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;getEntitiesInAABBexcluding(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;Lcom/google/common/base/Predicate;)Ljava/util/List;"))
-    public List<Entity> getEntitiesInAABBexcluding(WorldClient worldClient, Entity entityIn, AxisAlignedBB axisAlignedBB, Predicate<? super Entity> predicate) {
+    public List<Entity> onGetEntitiesInAABBexcluding(WorldClient worldClient, Entity entityIn, AxisAlignedBB axisAlignedBB, Predicate<? super Entity> predicate) {
         HitboxInteractEvent hitboxInteractEvent = new HitboxInteractEvent();
         Cosmos.EVENT_BUS.post(hitboxInteractEvent);
 
@@ -53,9 +47,10 @@ public abstract class MixinEntityRenderer {
             return worldClient.getEntitiesInAABBexcluding(entityIn, axisAlignedBB, predicate);
         }
     }
+    */
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 3)
-    private double orientCameraX(double range) {
+    private double onOrientCameraX(double range) {
         CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
         Cosmos.EVENT_BUS.post(cameraClipEvent);
 
@@ -63,7 +58,7 @@ public abstract class MixinEntityRenderer {
     }
 
     @ModifyVariable(method = "orientCamera", at = @At("STORE"), ordinal = 7)
-    private double orientCameraZ(double range) {
+    private double onOrientCameraZ(double range) {
         CameraClipEvent cameraClipEvent = new CameraClipEvent(range);
         Cosmos.EVENT_BUS.post(cameraClipEvent);
 
@@ -74,7 +69,7 @@ public abstract class MixinEntityRenderer {
     protected abstract void applyBobbing(float partialTicks);
 
     @Redirect(method = "setupCameraTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/EntityRenderer;applyBobbing(F)V", remap = false))
-    public void setupCameraTransform(EntityRenderer instance, float f) {
+    public void onSetupCameraTransform(EntityRenderer instance, float f) {
         CrosshairBobEvent crosshairBobEvent = new CrosshairBobEvent();
         Cosmos.EVENT_BUS.post(crosshairBobEvent);
 
