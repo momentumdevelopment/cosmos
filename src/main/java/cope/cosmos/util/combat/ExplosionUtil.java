@@ -37,25 +37,20 @@ public class ExplosionUtil implements Wrapper {
      * @param entity The target player
      * @param vector The position
      * @param blockDestruction If to ignore terrain blocks when calculating block density
-     * @param powerSq The power of the explosion squared
+     * @param doublePower The power of the explosion doubled
      * @param causesFire If the explosion causes fire
      * @param damagesTerrain If the explosion damages the terrain
      * @return the explosion damage to the target player
      */
-    public static float calculateExplosionDamage(Entity entity, Vec3d vector, boolean blockDestruction, double powerSq, boolean causesFire, boolean damagesTerrain) {
-//        if (player == null || player.isCreative() || player.isDead) {
-//            return 0F;
-//        }
-
-        double size = entity.getDistanceSq(vector.x, vector.y, vector.z) / powerSq;
+    public static float calculateExplosionDamage(Entity entity, Vec3d vector, boolean blockDestruction, double doublePower, boolean causesFire, boolean damagesTerrain) {
+        double size = entity.getDistanceSq(vector.x, vector.y, vector.z) / (doublePower * doublePower);
         double density = getBlockDensity(blockDestruction, vector, entity.getEntityBoundingBox());
-        // double density = mc.world.getBlockDensity(vec, player.getEntityBoundingBox());
 
         double impact = (1.0 - size) * density;
-        float damage = (float) ((impact * impact + impact) / 2.0f * 7.0f * powerSq + 1.0);
+        float damage = (float) ((impact * impact + impact) / 2.0f * 7.0f * doublePower + 1.0);
 
         return getBlastReduction(entity, DamageUtil.getScaledDamage(damage),
-                new Explosion(entity.world, entity, vector.x, vector.y, vector.z, (float) (powerSq / 2.0), causesFire, damagesTerrain));
+                new Explosion(entity.world, entity, vector.x, vector.y, vector.z, (float) (doublePower / 2.0), causesFire, damagesTerrain));
     }
 
     /**
