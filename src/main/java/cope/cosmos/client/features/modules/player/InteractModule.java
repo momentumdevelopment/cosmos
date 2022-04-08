@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayerTryUseItemOnBlock;
 import cope.cosmos.client.events.block.LiquidInteractEvent;
+import cope.cosmos.client.events.entity.hitbox.HitboxInteractEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -11,7 +12,13 @@ import cope.cosmos.client.features.modules.combat.BurrowModule;
 import cope.cosmos.client.features.modules.combat.HoleFillModule;
 import cope.cosmos.client.features.modules.combat.SurroundModule;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.player.InventoryUtil;
 import net.minecraft.block.BlockLiquid;
+import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemPickaxe;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
@@ -24,7 +31,7 @@ import java.util.ArrayList;
 
 /**
  * This module attempts to put all the bloat modules (i.e. Swing, LiquidInteract, NoHeightLimit) in one module
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 06/08/2021
  */
 public class InteractModule extends Module {
@@ -61,6 +68,26 @@ public class InteractModule extends Module {
 
     public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", false)
             .setDescription("Allows you to interact with blocks at the world border");
+
+    // **************************** No Entity Trace *********************************
+
+    public static Setting<Boolean> noEntityTrace = new Setting<>("NoEntityTrace", false)
+            .setDescription("Allows you to interact with blocks through an entity");
+
+    public static Setting<Boolean> pickaxe = new Setting<>("NoTracePickaxe", true)
+            .setDescription("Apply NoEntityTrace when holding a pickaxe in your main hand").setVisible(() -> noEntityTrace.getValue());
+
+    public static Setting<Boolean> blocks = new Setting<>("NoTraceBlocks", false)
+            .setDescription("Apply NoEntityTrace when holding a block").setVisible(() -> noEntityTrace.getValue());
+
+    public static Setting<Boolean> all = new Setting<>("NoTraceAll", false)
+            .setDescription("Always apply NoEntityTrace").setVisible(() -> noEntityTrace.getValue());
+
+    public static Setting<Boolean> excludeSword = new Setting<>("NoTraceAllExcludeSword", true)
+            .setDescription("Do not apply NoEntityTrace when holding a sword").setVisible(() -> noEntityTrace.getValue() && all.getValue());
+
+    public static Setting<Boolean> holdingCrystals = new Setting<>("NoTraceHoldingCrystals", false)
+            .setDescription("Apply NoEntityTrace when holding crystals").setVisible(() -> noEntityTrace.getValue());
 
     @SubscribeEvent
     public void onSettingUpdate(SettingUpdateEvent event) {
@@ -147,6 +174,36 @@ public class InteractModule extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onHitboxInteract(HitboxInteractEvent event) {
+        if (noEntityTrace.getValue()) {
+            // Only check if we are holding it in our main hand, we can't use it in our offhand
+            if (pickaxe.getValue() && mc.player.getHeldItemMainhand().getItem() instanceof ItemPickaxe) {
+                event.setCanceled(true);
+            }
+
+            // Check we are holding blocks
+            if (blocks.getValue() && InventoryUtil.isHolding(ItemBlock.class)) {
+                event.setCanceled(true);
+            }
+
+            // Cancel if we are holding crystals
+            if (holdingCrystals.getValue() && InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+                event.setCanceled(true);
+            }
+
+            // Always cancel it
+            if (all.getValue()) {
+                // We don't want to cancel it if we are holding a sword
+                if (excludeSword.getValue() && mc.player.getHeldItemMainhand().getItem() instanceof ItemSword) {
+                    return;
+                }
+
+                event.setCanceled(true);
+            }
+        }
+    }
+
     public enum Hand {
 
         /**
@@ -157,6 +214,6 @@ public class InteractModule extends Module {
         /**
          * Swings the offhand
          */
-        OFFHAND,
+        OFFHAND
     }
 }
