@@ -4,6 +4,7 @@ import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
+import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
@@ -92,6 +93,9 @@ public class AutoCrystalModule extends Module {
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("Timing for processes");
 
+    public static Setting<Clearance> clearance = new Setting<>("Clearance", Clearance.THRESHOLD)
+            .setDescription("Clearance for processes");
+
     // TODO: fix rotation resetting
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current process");
@@ -149,7 +153,6 @@ public class AutoCrystalModule extends Module {
             .setDescription("Multiplier for actions considered unsafe")
             .setVisible(() -> safety.getValue().equals(Safety.BALANCE));
 
-    // TODO: implement
     public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
             .setDescription("Ignores terrain that can be exploded when calculating damages");
 
@@ -214,7 +217,7 @@ public class AutoCrystalModule extends Module {
 
     // lel
     public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 0.0, 3.0, 1)
-            .setDescription("Inhibiting factor for placements")
+            .setDescription("Sacrifices consistency for long term maintenance")
             .setVisible(() -> inhibit.getValue());
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
@@ -278,6 +281,9 @@ public class AutoCrystalModule extends Module {
     private final Timer switchTimer = new Timer();
     private final Timer factorTimer = new Timer();
 
+    // last attack time
+    private final Timer lastAttackTimer = new Timer();
+
     // list of explode-able crystals
     private Set<EntityEnderCrystal> explodeCrystals = new ConcurrentSet<>();
 
@@ -286,8 +292,11 @@ public class AutoCrystalModule extends Module {
 
     // inhibit
     private final Timer inhibitTimer = new Timer();
-    private final Timer yieldTimer = new Timer();
     private final Set<Integer> inhibitCrystals = new ConcurrentSet<>();
+
+    // yield
+    private final Timer yieldTimer = new Timer();
+    private final Timer yieldProtectedTimer = new Timer();
 
     // how many crystals we've attacked this tick
     private int attackedCrystalCount;
@@ -308,6 +317,11 @@ public class AutoCrystalModule extends Module {
 
     // violation list
     private final List<Violation<?>> violations = new ArrayList<>();
+
+    // **************************** pops ****************************
+
+    // map of all latest totem pop times
+    private final Map<Entity, Long> latestTotemPops = new ConcurrentHashMap<>();
 
     @Override
     public void onThread() {
@@ -422,6 +436,15 @@ public class AutoCrystalModule extends Module {
     }
 
     @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // no yield on enable
+        yieldTimer.resetTime();
+        // yieldProtectedTimer.resetTime();
+    }
+
+    @Override
     public void onDisable() {
         super.onDisable();
 
@@ -441,8 +464,11 @@ public class AutoCrystalModule extends Module {
         explodeTimer.resetTime();
         switchTimer.resetTime();
         factorTimer.resetTime();
+        lastAttackTimer.resetTime();
         placeTimer.resetTime();
         inhibitTimer.resetTime();
+        yieldTimer.resetTime();
+        yieldProtectedTimer.resetTime();
     }
 
     @Override
@@ -543,14 +569,18 @@ public class AutoCrystalModule extends Module {
             // **************************** TIMING ****************************
 
             // since it's been confirmed that the crystal spawned, we can move on to our next process
-            if (timing.getValue().equals(Timing.VANILLA)) {
+            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
-                // clear our timers
-                explodeTimer.setTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
-                factorTimer.setTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS);
+                // clear
+                if (clearance.getValue().equals(Clearance.AWAIT)) {
+
+                    // clear our timers
+                    explodeTimer.setTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
+                    factorTimer.setTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS);
+                }
             }
 
-            else if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+            else if (timing.getValue().equals(Timing.VANILLA)) {
 
                 // explode when crystal spawns
                 if (explode.getValue()) {
@@ -562,9 +592,23 @@ public class AutoCrystalModule extends Module {
                      */
                     TreeMap<Double, DamageHolder<Integer>> validCrystals = new TreeMap<>();
 
+                    // yield protected; update timer
+                    {
+                        if (isProtectedByYield()) {
+                            yieldProtectedTimer.resetTime();
+                        }
+
+                        // unprotected yield, don't clear timer
+                        else {
+                            yieldProtectedTimer.setTime(1000, Format.SECONDS);
+                        }
+                    }
+
                     // make sure the crystal isn't already set to be exploded; inhibit
-                    if ((attackedCrystals.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) || inhibitCrystals.contains(((SPacketSpawnObject) event.getPacket()).getEntityID())) && inhibit.getValue()) {
-                        return;
+                    if ((attackedCrystals.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) || inhibitCrystals.contains(((SPacketSpawnObject) event.getPacket()).getEntityID()))) {
+                        if (inhibit.getValue() && !yieldProtectedTimer.passedTime(yieldProtection.getValue().longValue() * 500L, Format.MILLISECONDS)) {
+                            return;
+                        }
                     }
 
                     // there is no chance this crystal has existed for a tick in the world
@@ -652,7 +696,7 @@ public class AutoCrystalModule extends Module {
                         if (bestCrystal.getTargetDamage() > 1.5) {
 
                             // check lethality of crystal
-                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
+                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
 
                             // check if the damage meets our requirements
                             if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
@@ -690,10 +734,14 @@ public class AutoCrystalModule extends Module {
                 if (attackedCrystals.containsKey(entityId)) {
 
                     // since it's been confirmed that the crystal exploded, we can move on to our next process
-                    if (timing.getValue().equals(Timing.VANILLA)) {
+                    if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
-                        // clear our timer
-                        placeTimer.setTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
+                        // clear
+                        if (clearance.getValue().equals(Clearance.AWAIT)) {
+
+                            // clear our timer
+                            placeTimer.setTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
+                        }
                     }
 
                     break;
@@ -792,6 +840,24 @@ public class AutoCrystalModule extends Module {
 
                 // add to list of manually placed crystals
                 manualCrystals.add(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos());
+            }
+        }
+
+        // packet for attacking
+        if (event.getPacket() instanceof CPacketUseEntity) {
+
+            // entity being attacked
+            Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
+
+            // make sure the attacked entity exists in the world
+            if (attackEntity != null && !attackEntity.isDead) {
+
+                // check if the attacked entity was a crystal
+                if (attackEntity instanceof EntityEnderCrystal) {
+
+                    // mark last attack time
+                    lastAttackTimer.resetTime();
+                }
             }
         }
 
@@ -961,6 +1027,13 @@ public class AutoCrystalModule extends Module {
             // remove all violations associated with this crystal
             violations.removeIf(violation -> violation.getViolator().equals(event.getEntity()));
         }
+    }
+
+    @SubscribeEvent
+    public void onTotemPop(TotemPopEvent event) {
+
+        // update latest totem pop time for entity
+        latestTotemPops.put(event.getPopEntity(), System.currentTimeMillis());
     }
 
     /**
@@ -1236,7 +1309,7 @@ public class AutoCrystalModule extends Module {
             for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
 
                 // next entity in the world
-                //Entity crystal = entityList.next();
+                // Entity crystal = entityList.next();
 
                 // make sure the entity actually exists
                 if (crystal == null || crystal.isDead) {
@@ -1248,9 +1321,23 @@ public class AutoCrystalModule extends Module {
                     continue;
                 }
 
+                // yield protected; update timer
+                {
+                    if (isProtectedByYield()) {
+                        yieldProtectedTimer.resetTime();
+                    }
+
+                    // unprotected yield, don't clear timer
+                    else {
+                        yieldProtectedTimer.setTime(1000, Format.SECONDS);
+                    }
+                }
+
                 // make sure the crystal isn't already set to be exploded; inhibit
-                if ((attackedCrystals.containsKey(crystal.getEntityId()) || inhibitCrystals.contains(crystal.getEntityId())) && inhibit.getValue()) {
-                    continue;
+                if ((attackedCrystals.containsKey(crystal.getEntityId()) || inhibitCrystals.contains(crystal.getEntityId()))) {
+                    if (inhibit.getValue() && !yieldProtectedTimer.passedTime(yieldProtection.getValue().longValue() * 500L, Format.MILLISECONDS)) {
+                        continue;
+                    }
                 }
 
                 // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
@@ -1345,7 +1432,7 @@ public class AutoCrystalModule extends Module {
                     if (bestCrystal.getTargetDamage() > 1.5) {
 
                         // check lethality of crystal
-                        boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
+                        boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
 
                         // check if the damage meets our requirements
                         if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
@@ -1367,7 +1454,7 @@ public class AutoCrystalModule extends Module {
                         if (bestCrystal.getTargetDamage() > 1.5) {
 
                             // check lethality of crystal
-                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
+                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
 
                             // check if the damage meets our requirements
                             if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
@@ -1504,7 +1591,7 @@ public class AutoCrystalModule extends Module {
                 if (bestPlacement.getTargetDamage() > 1.5) {
 
                     // check lethality of placement
-                    boolean lethal = getLethality(bestPlacement.getTarget(), bestPlacement.getTargetDamage());
+                    boolean lethal = getLethality(bestPlacement.getTarget(), bestPlacement.getTargetDamage()) || willFailTotem(bestPlacement.getTarget(), bestPlacement.getTargetDamage());
 
                     // check if the damage meets our requirements
                     if (lethal || bestPlacement.getTargetDamage() > damage.getValue()) {
@@ -1620,6 +1707,58 @@ public class AutoCrystalModule extends Module {
     }
 
     /**
+     * Checks whether or not a target will totem fail
+     * @param entity The target to check
+     * @return Whether or not a target will totem fail
+     */
+    public boolean willFailTotem(Entity entity, double targetDamage) {
+
+        // target health
+        double health = EnemyUtil.getHealth(entity);
+
+        // greater than pop health
+        if (health > 11) {
+            return false;
+        }
+
+        // will not kill the target
+        if (health > targetDamage) {
+            return false;
+        }
+
+        // time elapsed since last totem pop
+        long timeSinceLastPop = System.currentTimeMillis() - latestTotemPops.getOrDefault(entity, 0L);
+
+        // check if time is within constraint
+        return timeSinceLastPop <= 500L;
+    }
+
+    /**
+     * Checks the yield protection
+     * @return Whether the yield protection exists
+     */
+    public boolean isProtectedByYield() {
+
+        if (mc.getConnection() != null) {
+
+            // time for yield to pass threshold
+            long yieldTime = Math.min(Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime(), 30) / 5L, 8);
+
+            // passed yield time???
+            if (yieldTimer.passedTime(yieldTime, Format.SECONDS)) {
+
+                // reset time
+                yieldTimer.resetTime();
+
+                // check last attack time
+                return !lastAttackTimer.passedTime(1, Format.SECONDS);
+            }
+        }
+
+        return yieldProtection.getValue() <= yieldProtection.getMin();
+    }
+
+    /**
      * Finds whether or not a crystal can be placed on a specified block
      * @param position The specified block to check if a crystal can be placed
      * @return Whether or not a crystal can be placed at the location
@@ -1682,12 +1821,7 @@ public class AutoCrystalModule extends Module {
         /**
          * Times the explosions based on when the last process has completed
          */
-        VANILLA,
-
-        /**
-         * No Timing
-         */
-        NONE
+        VANILLA
     }
 
     public enum Safety {
@@ -1713,17 +1847,12 @@ public class AutoCrystalModule extends Module {
         /**
          * Waits for current process to finish before continuing
          */
-        SECURE,
-
-        /**
-         * If too many violations -> Marks as dirty and continues
-         */
-        THRESHOLD,
+        AWAIT,
 
         /**
          * No clearance checks
          */
-        NONE
+        THRESHOLD,
     }
 
     public enum Placements {
