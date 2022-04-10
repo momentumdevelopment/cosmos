@@ -167,7 +167,7 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 5.0, 0)
             .setDescription("Factor to explode crystals")
-            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.SEQUENTIAL));
+            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.VANILLA));
 
     public static Setting<Double> explodeRange = new Setting<>("ExplodeRange", 1.0, 5.0, 6.0, 1)
             .setDescription("Range to explode crystals")
@@ -550,7 +550,7 @@ public class AutoCrystalModule extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && waitTicks <= 0 && (!explodeCrystals.isEmpty() || placement != null);
+        return isEnabled() && !explodeCrystals.isEmpty() || placement != null;
     }
 
     @SuppressWarnings("all")
@@ -889,70 +889,74 @@ public class AutoCrystalModule extends Module {
         // rotate
         if (!rotate.getValue().equals(Rotate.NONE)) {
 
-            // rotate only if we have an interaction vector to rotate to
-            if (angleVector != null) {
+            // manipulate packets if process are trying to complete
+            if (isActive()) {
 
-                // cancel the existing rotations, we'll send our own
-                event.setCanceled(true);
+                // rotate only if we have an interaction vector to rotate to
+                if (angleVector != null) {
 
-                // yaw and pitch to the angle vector
-                rotateAngles = AngleUtil.calculateAngles(angleVector);
+                    // cancel the existing rotations, we'll send our own
+                    event.setCanceled(true);
 
-                // server rotation
-                Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+                    // yaw and pitch to the angle vector
+                    rotateAngles = AngleUtil.calculateAngles(angleVector);
 
-                // difference between current and upcoming rotation
-                float angleDifference = Math.abs(MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw());
+                    // server rotation
+                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
 
-                // rotating too fast
-                if (angleDifference > maxAngle.getValue()) {
+                    // difference between current and upcoming rotation
+                    float angleDifference = Math.abs(MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw());
 
-                    // yaw wrapped
-                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
+                    // rotating too fast
+                    if (angleDifference > maxAngle.getValue()) {
 
-                    // add max angle
-                    if (rotateAngles.getYaw() >= MathHelper.wrapDegrees(serverRotation.getYaw())) {
-                        yaw += maxAngle.getValue();
+                        // yaw wrapped
+                        float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
+
+                        // add max angle
+                        if (rotateAngles.getYaw() >= MathHelper.wrapDegrees(serverRotation.getYaw())) {
+                            yaw += maxAngle.getValue();
+                        }
+
+                        else {
+                            yaw -= maxAngle.getValue();
+                        }
+
+                        // update rotation
+                        rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
+
+                        // we need to wait till we reach our rotation
+                        waitTicks++;
                     }
 
                     else {
-                        yaw -= maxAngle.getValue();
+
+                        // we need to face this crystal for this many ticks
+                        if (rotationLimit) {
+                            waitTicks = visibilityTicks.getValue().intValue();
+                            rotationLimit = false;
+                        }
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
                     }
-
-                    // update rotation
-                    rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
-
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
-                    }
-
-                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
-
-                    // we need to wait till we reach our rotation
-                    waitTicks++;
-                }
-
-                else {
-
-                    // we need to face this crystal for this many ticks
-                    if (rotationLimit) {
-                        waitTicks = visibilityTicks.getValue().intValue();
-                        rotationLimit = false;
-                    }
-
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
-                    }
-
-                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
                 }
             }
         }
@@ -964,15 +968,19 @@ public class AutoCrystalModule extends Module {
         // packet rotations
         if (rotate.getValue().equals(Rotate.PACKET)) {
 
-            // rotate only if we have an interaction vector to rotate to
-            if (rotateAngles != null) {
+            // render angles if rotating
+            if (isActive()) {
 
-                // cancel the model rendering for rotations, we'll set it to our values
-                event.setCanceled(true);
+                // rotate only if we have an interaction vector to rotate to
+                if (rotateAngles != null) {
 
-                // set our model angles; visual
-                event.setYaw(rotateAngles.getYaw());
-                event.setPitch(rotateAngles.getPitch());
+                    // cancel the model rendering for rotations, we'll set it to our values
+                    event.setCanceled(true);
+
+                    // set our model angles; visual
+                    event.setYaw(rotateAngles.getYaw());
+                    event.setPitch(rotateAngles.getPitch());
+                }
             }
         }
     }
