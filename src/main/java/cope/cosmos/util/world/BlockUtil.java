@@ -20,13 +20,10 @@ public class BlockUtil implements Wrapper {
     // All blocks that are resistant to explosions
     public static final List<Block> resistantBlocks = Arrays.asList(
             Blocks.OBSIDIAN,
-            Blocks.BEDROCK,
-            Blocks.COMMAND_BLOCK,
-            Blocks.BARRIER,
+            Blocks.ANVIL,
             Blocks.ENCHANTING_TABLE,
-            Blocks.END_PORTAL_FRAME,
-            Blocks.BEACON,
-            Blocks.ANVIL
+            Blocks.ENDER_CHEST,
+            Blocks.BEACON
     );
 
     // All blocks that are unbreakable with tools in survival mode
