@@ -334,7 +334,7 @@ public class AutoCrystalModule extends Module {
         if (mc.getConnection() != null) {
 
             // response time projection
-            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
 
             // check our placed crystals
             placedCrystals.forEach((position, time) -> {
@@ -550,7 +550,7 @@ public class AutoCrystalModule extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && !explodeCrystals.isEmpty() || placement != null;
+        return isEnabled() && (explodeCrystals != null && !explodeCrystals.isEmpty()) || placement != null;
     }
 
     @SuppressWarnings("all")
@@ -1081,7 +1081,7 @@ public class AutoCrystalModule extends Module {
             }
 
             // response time projection
-            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
 
             // limit attacks
             if (inhibit.getValue()) {

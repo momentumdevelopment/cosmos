@@ -82,6 +82,7 @@ public class HoleManager extends Manager {
      * @return List of nearby {@link Hole} Holes
      */
     public List<Hole> searchHoles() {
+
         // list of our found holes
         List<Hole> searchedHoles = new CopyOnWriteArrayList<>();
 
@@ -139,6 +140,7 @@ public class HoleManager extends Manager {
 
                     // reg holes
                     if (standable) {
+
                         // all unbreakable = bedrock hole
                         if (unbreakableSides == HOLE.length) {
                             searchedHoles.add(new Hole(blockPosition, Type.BEDROCK));
@@ -203,6 +205,7 @@ public class HoleManager extends Manager {
 
                             // double holes
                             if (doubleXStandable) {
+
                                 // all unbreakable = bedrock hole
                                 if (unbreakableSides == DOUBLE_HOLE_X.length) {
                                     searchedHoles.add(new Hole(blockPosition, Type.DOUBLE_BEDROCK_X));
@@ -324,7 +327,7 @@ public class HoleManager extends Manager {
                             }
 
                             // quads need at least two or three stop blocks
-                            quadStandable = stopBlocks == 4 || stopBlocks == 2;
+                            quadStandable = stopBlocks != 3;
 
                             // check all offsets
                             for (Vec3i holeSide : QUAD_HOLE) {

@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
+import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -94,6 +95,7 @@ public class OffhandModule extends Module {
 
     @Override
     public void onTick() {
+
         // we are not switching right now;
         stage = Stage.IDLE;
 
@@ -234,14 +236,16 @@ public class OffhandModule extends Module {
 
                 // pick up the item
                 if (itemSlot != -1) {
+
                     // open inventory via packets
-                    if (inventoryStrict.getValue()) {
-                        mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.OPEN_INVENTORY));
+                    if (inventoryStrict.getValue() && mc.getConnection() != null) {
+                        ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.OPEN_INVENTORY), null);
                     }
 
                     mc.playerController.windowClick(0, itemSlot, 0, ClickType.PICKUP, mc.player);
 
                     if (!timing.getValue().equals(Timing.SEQUENTIAL)) {
+
                         // we are now moving the item to the offhand
                         stage = Stage.MOVE_TO_OFFHAND;
 
@@ -272,7 +276,7 @@ public class OffhandModule extends Module {
 
                             // close window
                             if (inventoryStrict.getValue() && mc.getConnection() != null) {
-                                mc.getConnection().getNetworkManager().sendPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId));
+                                ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId), null);
                             }
                         }
 
@@ -283,6 +287,7 @@ public class OffhandModule extends Module {
 
             if (timing.getValue().equals(Timing.SEQUENTIAL)) {
                 if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.MILLISECONDS) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
+
                     // we are now moving the item to the offhand
                     stage = Stage.MOVE_TO_OFFHAND;
 
@@ -304,6 +309,7 @@ public class OffhandModule extends Module {
                 }
 
                 if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.MILLISECONDS) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
+
                     // we are now swapping the old item
                     stage = Stage.SWAP_OLD;
 
@@ -317,6 +323,7 @@ public class OffhandModule extends Module {
                     }
 
                     if (returnSlot != -1) {
+
                         // stop player motion before moving items
                         if (motionStrict.getValue() && MotionUtil.hasMoved()) {
                             mc.player.motionX = 0;
@@ -331,7 +338,7 @@ public class OffhandModule extends Module {
 
                         // close window
                         if (inventoryStrict.getValue() && mc.getConnection() != null) {
-                            mc.getConnection().getNetworkManager().sendPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId));
+                            ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId), null);
                         }
                     }
 

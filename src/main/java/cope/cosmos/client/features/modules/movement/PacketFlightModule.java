@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
+import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
@@ -34,15 +35,36 @@ public class PacketFlightModule extends Module {
         INSTANCE = this;
     }
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.FAST).setDescription("Mode for how to control packet rates");
-    public static Setting<Type> type = new Setting<>("Type", Type.LIMIT_JITTER).setDescription("Mode for confirming packets");
-    public static Setting<Bounds> bounds = new Setting<>("Bounds", Bounds.UP).setDescription("The packet bounds");
-    public static Setting<Phase> phase = new Setting<>("Phase", Phase.FULL).setDescription("How to phase through blocks");
-    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST).setDescription("Applies block friction while phasing");
-    public static Setting<Double> factor = new Setting<>("Factor", 0.0, 1.0, 5.0, 1).setDescription("Speed factor").setVisible(() -> mode.getValue().equals(Mode.FACTOR));
-    public static Setting<Boolean> strict = new Setting<>("Strict", false).setDescription("Accepts server positions when receiving packets");
-    public static Setting<Boolean> overshoot = new Setting<>("Overshoot", false).setDescription("Slightly overshoots the packet positions");
-    public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true).setDescription("Applies gravity to prevent detection by the vanilla anticheat");
+    // **************************** anticheat ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.FAST)
+            .setDescription("Mode for how to control packet rates");
+
+    public static Setting<Type> type = new Setting<>("Type", Type.LIMIT_JITTER)
+            .setDescription("Mode for confirming packets");
+
+    public static Setting<Bounds> bounds = new Setting<>("Bounds", Bounds.UP)
+            .setDescription("The packet bounds");
+
+    public static Setting<Phase> phase = new Setting<>("Phase", Phase.FULL)
+            .setDescription("How to phase through blocks");
+
+    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST)
+            .setDescription("Applies block friction while phasing");
+
+    // idk if this even works
+    public static Setting<Double> factor = new Setting<>("Factor", 0.0, 1.0, 5.0, 1)
+            .setDescription("Speed factor")
+            .setVisible(() -> mode.getValue().equals(Mode.FACTOR));
+
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Accepts server positions when receiving packets");
+
+    public static Setting<Boolean> overshoot = new Setting<>("Overshoot", false)
+            .setDescription("Slightly overshoots the packet positions");
+
+    public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true)
+            .setDescription("Applies gravity to prevent detection by the vanilla anticheat");
 
     // packet map
     private final Map<Integer, Vec3d> packetMap = new ConcurrentHashMap<>();
@@ -52,6 +74,7 @@ public class PacketFlightModule extends Module {
 
     @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
+
         // vanilla packet data
         event.setX(mc.player.posX);
         event.setY(mc.player.getEntityBoundingBox().minY);
@@ -220,23 +243,25 @@ public class PacketFlightModule extends Module {
                         double motionFactorX = (motionX / factorScaled) * (i + 1);
                         double motionFactorZ = (motionZ / factorScaled)* (i + 1);
 
-                        //
-                        mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.x + motionFactorX, playerVector.add(motionVector).y, playerVector.z + motionFactorZ, false));
+                        // move
+                        ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketPlayer.Position(playerVector.x + motionFactorX, playerVector.add(motionVector).y, playerVector.z + motionFactorZ, false), null);
                     }
                 }
 
                 else {
+
                     // we can just move instantly
-                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false));
+                    ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false), null);
                 }
             }
 
             else {
+
                 // we can just move instantly
-                mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false));
+                ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketPlayer.Position(playerVector.add(motionVector).x, playerVector.add(motionVector).y, playerVector.add(motionVector).z, false), null);
             }
 
-            mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(boundVector.x, boundVector.y, boundVector.z, false));
+            ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketPlayer.Position(boundVector.x, boundVector.y, boundVector.z, false), null);
 
             // predict teleport packet
             if (type.getValue().equals(Type.JITTER) || type.getValue().equals(Type.LIMIT_JITTER)) {
@@ -262,6 +287,7 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketPlayer) {
+
             // cancel the packet if we are moving
             if (((ICPacketPlayer) event.getPacket()).isMoving()) {
                 event.setCanceled(true);
@@ -313,11 +339,12 @@ public class PacketFlightModule extends Module {
                 mc.player.setPosition(serverX, serverY, serverZ);
 
                 if (mc.getConnection() != null) {
-                    mc.getConnection().sendPacket(new CPacketPlayer.PositionRotation(serverX, serverY, serverZ, serverYaw, serverPitch, false));
+                    ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketPlayer.PositionRotation(serverX, serverY, serverZ, serverYaw, serverPitch, false), null);
                 }
             }
 
             switch (mode.getValue()) {
+
                 // we already predicted this rubberband and have sent a packet to resolve it, so we can ignore the server request
                 case FAST:
                     if (packetVector.x == serverX && packetVector.y == serverY && packetVector.z == serverZ) {
@@ -363,6 +390,7 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent
     public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
         if (event.getEntity().equals(mc.player)) {
+
             // disable module on death
             disable(true);
         }
@@ -370,6 +398,7 @@ public class PacketFlightModule extends Module {
 
     @SubscribeEvent
     public void onDisconnect(DisconnectEvent event) {
+
         // disable module on disconnect
         disable(true);
     }

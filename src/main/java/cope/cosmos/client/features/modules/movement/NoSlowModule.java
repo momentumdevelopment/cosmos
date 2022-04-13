@@ -56,6 +56,10 @@ public class NoSlowModule extends Module {
     public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", false)
             .setDescription("Allows you to bypass strict NCP servers while on the ground");
 
+    // separated from strict for now
+    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false)
+            .setDescription("Allows inventory movement to bypass strict NCP servers");
+
     // **************************** inventory move ****************************
 
     public static Setting<Boolean> inventoryMove = new Setting<>("InventoryMove", true)
@@ -92,7 +96,8 @@ public class NoSlowModule extends Module {
             mc.gameSettings.keyBindRight,
             mc.gameSettings.keyBindLeft,
             mc.gameSettings.keyBindSprint,
-            mc.gameSettings.keyBindSneak
+            mc.gameSettings.keyBindSneak,
+            mc.gameSettings.keyBindJump
     };
 
     @Override
@@ -193,6 +198,8 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // packet for ticks
         if (event.getPacket() instanceof CPacketPlayer) {
             if (isSlowed()) {
 
@@ -214,14 +221,25 @@ public class NoSlowModule extends Module {
             }
         }
 
+        // packet for clicking window slots
         if (event.getPacket() instanceof CPacketClickWindow) {
 
             // Updated NCP bypass for inventory move
-            if (strict.getValue()) {
+            if (inventoryStrict.getValue()) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING)); // rofl nice patch ncp devs
             }
         }
 
+        // packet for opening inventory
+        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.OPEN_INVENTORY)) {
+
+            // Updated NCP bypass for inventory move
+            if (inventoryStrict.getValue()) {
+                event.setCanceled(true);
+            }
+        }
+
+        // packets for using items
         if (event.getPacket() instanceof CPacketPlayerTryUseItem || event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
 
             // Updated NCP bypass
@@ -233,6 +251,7 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onItemInputUpdate(ItemInputUpdateEvent event) {
+
         // remove vanilla slowdown effect
         if (isSlowed()) {
             event.getMovementInput().moveForward *= 5;
@@ -242,6 +261,7 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onUseItem(EntityUseItemEvent event) {
+
         // send sneaking packet when we use an item
         if (isSlowed() && airStrict.getValue() && !isSneaking) {
             isSneaking = true;
@@ -254,6 +274,7 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onSoulSand(SoulSandEvent event) {
+
         // remove soul sand slowdown effect
         if (soulsand.getValue()) {
             event.setCanceled(true);
@@ -262,6 +283,7 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onSlime(SlimeEvent event) {
+
         // remove soul slime effect
         if (slime.getValue()) {
             event.setCanceled(true);
@@ -270,6 +292,7 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onKeyDown(KeyDownEvent event) {
+
         // remove conflict context when pressing keys
         if (inventoryMove.getValue()) {
             event.setCanceled(true);

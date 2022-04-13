@@ -21,6 +21,7 @@ public class InventoryManager extends Manager {
      * @param swap The switch mode to use
      */
     public void switchToSlot(int in, Switch swap) {
+
         // check if the slot is actually in the hotbar
         if (InventoryPlayer.isHotbar(in)) {
             switch (swap) {
@@ -43,6 +44,7 @@ public class InventoryManager extends Manager {
      * @param swap The switch mode to use
      */
     public void switchToItem(Item in, Switch swap) {
+
         // slot of the item
         int slot = searchSlot(in, InventoryRegion.HOTBAR);
 
@@ -56,6 +58,7 @@ public class InventoryManager extends Manager {
      * @param swap The switch mode to use
      */
     public void switchToItem(Class<? extends Item> in, Switch swap) {
+
         // slot of the item
         int slot = searchSlot(in, InventoryRegion.HOTBAR);
 
@@ -74,6 +77,7 @@ public class InventoryManager extends Manager {
 
         // search our hotbar
         for (int i = InventoryRegion.HOTBAR.getStart(); i <= InventoryRegion.HOTBAR.getBound(); i++) {
+
             // check each of the items
             for (Item item : in) {
                 if (mc.player.inventory.getStackInSlot(i).getItem().equals(item)) {
@@ -107,6 +111,7 @@ public class InventoryManager extends Manager {
      * @param swap The switch mode to use
      */
     public void switchToBlock(Block[] in, Switch swap) {
+
         // array of blocks converted to items
         Item[] blockItems = new Item[in.length];
 
@@ -131,6 +136,7 @@ public class InventoryManager extends Manager {
 
         // search the region for the item
         for (int i = inventoryRegion.getStart(); i <= inventoryRegion.getBound(); i++) {
+
             // if we found the slot, save it and return
             if (mc.player.inventory.getStackInSlot(i).getItem().equals(in)) {
                 slot = i;
@@ -153,6 +159,7 @@ public class InventoryManager extends Manager {
 
         // search the region for the item
         for (int i = inventoryRegion.getStart(); i <= inventoryRegion.getBound(); i++) {
+
             // if we found the slot, save it and return
             if (in.isInstance(mc.player.inventory.getStackInSlot(i).getItem())) {
                 slot = i;

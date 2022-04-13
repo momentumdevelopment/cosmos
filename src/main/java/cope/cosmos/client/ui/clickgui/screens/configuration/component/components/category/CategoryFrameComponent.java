@@ -29,7 +29,7 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
     // module features associated with this frame
     private final List<ModuleComponent> moduleComponents = new ArrayList<>();
 
-    // height of the frame
+    // default height of the frame
     private float height = 196;
 
     // expanding state
@@ -169,9 +169,11 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
                 getCosmos().getSoundManager().playSound("click");
             }
 
-            moduleComponents.forEach(moduleComponent -> {
-                moduleComponent.onClick(in);
-            });
+            if (open) {
+                moduleComponents.forEach(moduleComponent -> {
+                    moduleComponent.onClick(in);
+                });
+            }
         }
     }
 
@@ -179,9 +181,11 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
     public void onType(int in) {
         super.onType(in);
 
-        moduleComponents.forEach(moduleComponent -> {
-            moduleComponent.onType(in);
-        });
+        if (open) {
+            moduleComponents.forEach(moduleComponent -> {
+                moduleComponent.onType(in);
+            });
+        }
     }
 
 
@@ -189,12 +193,15 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
     public void onScroll(int in) {
         super.onScroll(in);
 
-        // update scroll offset
-        scroll += in * 0.05;
+        if (open) {
 
-        moduleComponents.forEach(moduleComponent -> {
-            moduleComponent.onScroll(in);
-        });
+            // update scroll offset
+            scroll += in * 0.05;
+
+            moduleComponents.forEach(moduleComponent -> {
+                moduleComponent.onScroll(in);
+            });
+        }
     }
 
     /**

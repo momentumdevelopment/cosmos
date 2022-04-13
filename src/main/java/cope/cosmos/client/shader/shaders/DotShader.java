@@ -27,11 +27,11 @@ public class DotShader extends Shader {
     }
 
     @Override
-    public void updateConfiguration() {
+    public void updateConfiguration(int radius) {
         glUniform1i(getConfigurations("texture"), 0);
         glUniform2f(getConfigurations("texelSize"), 1F / mc.displayWidth, 1F / mc.displayHeight);
         glUniform4f(getConfigurations("colorFilled"), ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, 100 / 255F);
         glUniform4f(getConfigurations("colorDot"), ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
-        glUniform1f(getConfigurations("radius"), 1);
+        glUniform1f(getConfigurations("radius"), radius);
     }
 }

@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.block.BlockBreakEvent;
 import cope.cosmos.client.events.block.BlockResetEvent;
 import cope.cosmos.client.events.entity.player.interact.ReachEvent;
-import cope.cosmos.util.Wrapper;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,10 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerControllerMP.class)
-public class MixinPlayerControllerMP implements Wrapper {
+public class MixinPlayerControllerMP {
 
     @Inject(method = "onPlayerDestroyBlock", at = @At("RETURN"), cancellable = true)
-    private void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> info) {
+    private void onOnPlayerDestroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> info) {
         BlockBreakEvent blockBreakEvent = new BlockBreakEvent(pos);
         Cosmos.EVENT_BUS.post(blockBreakEvent);
 
@@ -28,7 +27,7 @@ public class MixinPlayerControllerMP implements Wrapper {
     }
 
     @Inject(method = "resetBlockRemoving", at = @At(value = "HEAD"), cancellable = true)
-    private void resetBlock(CallbackInfo info) {
+    private void onResetBlockRemoving(CallbackInfo info) {
         BlockResetEvent blockResetEvent = new BlockResetEvent();
         Cosmos.EVENT_BUS.post(blockResetEvent);
 
@@ -37,7 +36,7 @@ public class MixinPlayerControllerMP implements Wrapper {
     }
 
     @Inject(method = "getBlockReachDistance", at = @At("RETURN"), cancellable = true)
-    private void getReachDistanceHook(final CallbackInfoReturnable<Float> info) {
+    private void onGetReachDistance(final CallbackInfoReturnable<Float> info) {
         ReachEvent reachEvent = new ReachEvent();
         Cosmos.EVENT_BUS.post(reachEvent);
 

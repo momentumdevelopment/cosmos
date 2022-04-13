@@ -1,5 +1,7 @@
 package cope.cosmos.client.shader;
 
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.util.Wrapper;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
@@ -9,14 +11,15 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
  * http://web.archive.org/web/20200703200808/http://wiki.lwjgl.org/wiki/GLSL_Shaders_with_LWJGL.html, Creates an LWJGL Shader that can be attached to a {@link net.minecraft.client.shader.Framebuffer} Framebuffer
  * @author linustouchtips
  * @since 12/22/2021
  */
-public class Shader implements Wrapper {
+public abstract class Shader implements Wrapper {
 
     // the current program id
     private int program;
@@ -58,7 +61,12 @@ public class Shader implements Wrapper {
             }
 
         } catch (Exception exception) {
-            exception.printStackTrace();
+
+            // print exception info
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
+
             return;
         }
 
@@ -79,7 +87,8 @@ public class Shader implements Wrapper {
     /**
      * Starts the shader program
      */
-    public void startShader() {
+    public void startShader(int radius) {
+
         // use the program
         glUseProgram(program);
 
@@ -90,22 +99,18 @@ public class Shader implements Wrapper {
         }
 
         // update the configuration to our custom values
-        updateConfiguration();
+        updateConfiguration(radius);
     }
 
     /**
      * Sets up the configurations (uniforms) to the default values
      */
-    public void setupConfiguration() {
-
-    }
+    public abstract void setupConfiguration();
 
     /**
      * Updates the configurations (uniforms) to custom values
      */
-    public void updateConfiguration() {
-
-    }
+    public abstract void updateConfiguration(int radius);
 
     /**
      * Attempts to create a shader program from the specified fragment and type
@@ -122,6 +127,7 @@ public class Shader implements Wrapper {
 
             // if the shader exists
             if (shader != 0) {
+
                 // compile it to the GPU
                 ARBShaderObjects.glShaderSourceARB(shader, shaderSource);
                 ARBShaderObjects.glCompileShaderARB(shader);
@@ -140,6 +146,7 @@ public class Shader implements Wrapper {
             }
 
         } catch (Exception exception) {
+
             // delete the shader object, we weren't able to create it
             ARBShaderObjects.glDeleteObjectARB(shader);
             throw exception;

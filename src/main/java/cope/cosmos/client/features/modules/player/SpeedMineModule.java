@@ -3,18 +3,17 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.block.BlockResetEvent;
 import cope.cosmos.client.events.block.LeftClickBlockEvent;
-import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.string.ColorUtil;
-import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.BlockUtil.Resistance;
 import net.minecraft.block.Block;
@@ -34,6 +33,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author linustouchtips
@@ -89,7 +90,8 @@ public class SpeedMineModule extends Module {
 
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
             .setDescription("Style for the visual")
-            .setExclusion(Box.GLOW, Box.REVERSE);
+            .setExclusion(Box.GLOW, Box.REVERSE)
+            .setVisible(() -> render.getValue());
 
     // mine info
     private BlockPos minePosition;
@@ -98,6 +100,9 @@ public class SpeedMineModule extends Module {
     // mine damage
     private float mineDamage;
     private int mineBreaks;
+
+    // packet info
+    private final Map<BlockPos, Long> packetsSent = new ConcurrentHashMap<>();
 
     // switch info
     private int previousSlot = -1;
@@ -108,12 +113,28 @@ public class SpeedMineModule extends Module {
     @Override
     public void onUpdate() {
 
+        if (mc.getConnection() != null) {
+
+            // clear our sent packets
+            packetsSent.forEach((position, time) -> {
+
+                // response time projection
+                long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
+
+                // check if we passed predicted response time
+                if (System.currentTimeMillis() - time >= responseTime) {
+
+                    packetsSent.remove(position);
+                }
+            });
+        }
+
         // no reason to speedmine in creative mode, blocks break instantly
         if (!mc.player.capabilities.isCreativeMode) {
             if (strictReMine.getValue()) {
 
                 // limit re-mines
-                if (mineBreaks > 3) {
+                if (mineBreaks >= 3) {
 
                     // reset our block info
                     minePosition = null;
@@ -140,17 +161,24 @@ public class SpeedMineModule extends Module {
                     // if the block is broken
                     if (mineDamage >= 1) {
 
-                        // break block
-                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                        // we've already attempted to break this block
+                        if (!packetsSent.containsKey(minePosition)) {
 
-                        // save our current slot
-                        if (previousSlot != -1) {
+                            // break block
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
 
-                            // switch to our previous slot
-                            mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
+                            // add to sent packet maps
+                            packetsSent.put(minePosition, System.currentTimeMillis());
 
-                            // reset previous slot
-                            previousSlot = -1;
+                            // save our current slot
+                            if (previousSlot != -1) {
+
+                                // switch to our previous slot
+                                mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
+
+                                // reset previous slot
+                                previousSlot = -1;
+                            }
                         }
                     }
 
@@ -198,6 +226,7 @@ public class SpeedMineModule extends Module {
         mineFacing = null;
         mineDamage = 0;
         mineBreaks = 0;
+        packetsSent.clear();
     }
 
     @Override
@@ -303,8 +332,7 @@ public class SpeedMineModule extends Module {
                         if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
 
                             // switch to the most efficient item
-                            int switchSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR);
-                            getCosmos().getInventoryManager().switchToSlot(switchSlot, mineSwitch.getValue());
+                            getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
                         }
                     }
                 }
@@ -318,10 +346,16 @@ public class SpeedMineModule extends Module {
         // packet for block break
         if (event.getPacket() instanceof SPacketBlockChange) {
 
+            // remove position
+            BlockPos blockPosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
+
             // broken block
-            if (((SPacketBlockChange) event.getPacket()).getBlockPosition().equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
+            if (blockPosition.equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
                 mineBreaks++;
             }
+
+            // remove from sent packets
+            packetsSent.remove(blockPosition);
         }
 
         // packet for multiple block breaks
@@ -334,6 +368,9 @@ public class SpeedMineModule extends Module {
                 if (blockUpdateData.getPos().equals(minePosition) && blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
                     mineBreaks++;
                 }
+
+                // remove from sent packets
+                packetsSent.remove(blockUpdateData.getPos());
             }
         }
     }
@@ -478,6 +515,7 @@ public class SpeedMineModule extends Module {
      * @param state {@link IBlockState} The block state of the specified block
      * @return The dig speed of the specified block
      */
+    @SuppressWarnings("all")
     public float getDigSpeed(IBlockState state) {
         // base dig speed
         float digSpeed = getDestroySpeed(state);

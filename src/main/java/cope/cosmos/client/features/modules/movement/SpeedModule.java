@@ -123,7 +123,9 @@ public class SpeedModule extends Module {
     @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
+
         if (friction.getValue().equals(Friction.STRICT)) {
+
             // make sure the player is not in a liquid
             if (PlayerUtil.isInLiquid()) {
                 resetProcess();

@@ -28,6 +28,7 @@ public class ModuleManager extends Manager {
 
 		// add all modules
 		modules = Arrays.asList(
+
 				// client
 				new ClickGUIModule(),
 				new ColorsModule(),
@@ -67,6 +68,7 @@ public class ModuleManager extends Manager {
 				// movement
 				new ElytraFlightModule(),
 				new EntitySpeedModule(),
+				new FlightModule(),
 				new JesusModule(),
 				new LongJumpModule(),
 				new NoSlowModule(),
