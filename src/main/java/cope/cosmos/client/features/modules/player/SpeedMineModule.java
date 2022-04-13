@@ -102,7 +102,7 @@ public class SpeedMineModule extends Module {
     private int mineBreaks;
 
     // packet info
-    private final Map<BlockPos, Long> packetsSent = new ConcurrentHashMap<>();
+    private final Map<BlockPos, Long> breakPackets = new ConcurrentHashMap<>();
 
     // switch info
     private int previousSlot = -1;
@@ -116,7 +116,7 @@ public class SpeedMineModule extends Module {
         if (mc.getConnection() != null) {
 
             // clear our sent packets
-            packetsSent.forEach((position, time) -> {
+            breakPackets.forEach((position, time) -> {
 
                 // response time projection
                 long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
@@ -124,7 +124,7 @@ public class SpeedMineModule extends Module {
                 // check if we passed predicted response time
                 if (System.currentTimeMillis() - time >= responseTime) {
 
-                    packetsSent.remove(position);
+                    breakPackets.remove(position);
                 }
             });
         }
@@ -162,13 +162,13 @@ public class SpeedMineModule extends Module {
                     if (mineDamage >= 1) {
 
                         // we've already attempted to break this block
-                        if (!packetsSent.containsKey(minePosition)) {
+                        if (!breakPackets.containsKey(minePosition)) {
 
                             // break block
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
 
                             // add to sent packet maps
-                            packetsSent.put(minePosition, System.currentTimeMillis());
+                            breakPackets.put(minePosition, System.currentTimeMillis());
 
                             // save our current slot
                             if (previousSlot != -1) {
@@ -226,7 +226,7 @@ public class SpeedMineModule extends Module {
         mineFacing = null;
         mineDamage = 0;
         mineBreaks = 0;
-        packetsSent.clear();
+        breakPackets.clear();
     }
 
     @Override
@@ -355,7 +355,7 @@ public class SpeedMineModule extends Module {
             }
 
             // remove from sent packets
-            packetsSent.remove(blockPosition);
+            breakPackets.remove(blockPosition);
         }
 
         // packet for multiple block breaks
@@ -370,7 +370,7 @@ public class SpeedMineModule extends Module {
                 }
 
                 // remove from sent packets
-                packetsSent.remove(blockUpdateData.getPos());
+                breakPackets.remove(blockUpdateData.getPos());
             }
         }
     }

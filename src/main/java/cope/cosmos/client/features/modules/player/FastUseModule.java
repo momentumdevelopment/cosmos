@@ -1,15 +1,13 @@
 package cope.cosmos.client.features.modules.player;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
-import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemFood;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -108,15 +106,18 @@ public class FastUseModule extends Module {
         }
 
         // fast bow, make sure we are holding a bow and shooting it
-        if (InventoryUtil.isHolding(Items.BOW) && bow.getValue() && mc.player.isHandActive()) {
+        if (InventoryUtil.isHolding(Items.BOW) && mc.player.isHandActive()) {
 
-            // make sure we've held it for at least a minimum of 1 tick
-            if (mc.player.getItemInUseMaxCount() >= MathHelper.clamp(3 + ((speed.getMax().intValue() - speed.getValue().intValue()) * 5), 3, 20)) {
+            if (bow.getValue()) {
 
-                // spam release bow packets
-                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
-                mc.player.stopActiveHand();
+                // make sure we've held it for at least a minimum of 1 tick
+                if (mc.player.getItemInUseMaxCount() >= MathHelper.clamp(3 + ((speed.getMax().intValue() - speed.getValue().intValue()) * 5), 3, 20)) {
+
+                    // spam release bow packets
+                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+                    mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
+                    mc.player.stopActiveHand();
+                }
             }
         }
     }
@@ -127,7 +128,7 @@ public class FastUseModule extends Module {
 
             // cancel place on block packets
             if (ghostFix.getValue()) {
-                if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(Item.getItemFromBlock(Blocks.OBSIDIAN)) && blocks.getValue()) {
+                if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue()) {
                     event.setCanceled(true);
                 }
             }
