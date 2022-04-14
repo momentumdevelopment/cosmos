@@ -92,6 +92,9 @@ public class SpeedModule extends Module {
     // boost speed
     private double boostSpeed;
 
+    // speed accelerate tick
+    private boolean accelerate;
+
     // **************************** ticks ****************************
 
     // strict tick clamp
@@ -111,11 +114,14 @@ public class SpeedModule extends Module {
     @Override
     public void onDisable() {
         super.onDisable();
+
+        // reset all vars
         resetProcess();
     }
 
     @Override
     public void onUpdate() {
+
         // our latest move speed
         latestMoveSpeed = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
@@ -182,8 +188,10 @@ public class SpeedModule extends Module {
          */
         if (mode.getValue().equals(Mode.ON_GROUND)) {
             if (mc.player.onGround && MotionUtil.isMoving()) {
+
                 // fake jump by offsetting packets
                 if (groundStage.equals(GroundStage.FAKE_JUMP)) {
+
                     // offset our y-packets to simulate a jump
                     offsetPackets = true;
 
@@ -251,8 +259,10 @@ public class SpeedModule extends Module {
         }
 
         else {
+
             // timer
             if (timer.getValue()) {
+
                 // update the timer ticks
                 timerTicks++;
 
@@ -284,8 +294,10 @@ public class SpeedModule extends Module {
                 }
 
                 if (mode.getValue().equals(Mode.STRAFE) || mode.getValue().equals(Mode.STRAFE_LOW)) {
+
                     // check if we are inside a burrow
-                    if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                    if (!mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+
                         // boost speed
                         moveSpeed = baseSpeed * 1.38;
                     }
@@ -294,6 +306,7 @@ public class SpeedModule extends Module {
 
             // we are falling
             if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+
                 // check whether or not we are falling
                 double yDifference = mc.player.posY - Math.floor(mc.player.posY);
 
@@ -310,6 +323,7 @@ public class SpeedModule extends Module {
             }
 
             if (!strafeStage.equals(StrafeStage.COLLISION) || !MotionUtil.isMoving()) {
+
                 // start jumping
                 if (strafeStage.equals(StrafeStage.START)) {
                     strafeStage = StrafeStage.JUMP;
@@ -348,6 +362,17 @@ public class SpeedModule extends Module {
                     // acceleration jump factor
                     double acceleration = 2.149;
 
+                    if (mode.getValue().equals(Mode.STRAFE)) {
+
+                        // alternate acceleration ticks
+                        acceleration = 1.395;
+
+                        // if can accelerate, increase speed
+                        if (accelerate) {
+                            acceleration = 1.6835;
+                        }
+                    }
+
                     // since we just jumped, we can now move faster
                     moveSpeed *= acceleration;
                 }
@@ -361,6 +386,9 @@ public class SpeedModule extends Module {
 
                     // scale the move speed
                     moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+
+                    // we've just slowed down and need to alternate acceleration
+                    accelerate = !accelerate;
                 }
 
                 else {
@@ -394,7 +422,8 @@ public class SpeedModule extends Module {
                 }
 
                 // check if we are inside a burrow
-                if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                if (!mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+
                     // final move speed
                     moveSpeed = baseSpeed * 1.38;
                 }
@@ -409,6 +438,7 @@ public class SpeedModule extends Module {
             }
 
             if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+
                 // clamp the value based on the number of ticks passed
                 moveSpeed = Math.min(moveSpeed, strictTicks > 25 ? 0.465 : 0.44);
             }
@@ -580,7 +610,16 @@ public class SpeedModule extends Module {
      * Resets the Speed process and sets all values back to defaults
      */
     public void resetProcess() {
-
+        strafeStage = StrafeStage.COLLISION;
+        groundStage = GroundStage.CHECK_SPACE;
+        moveSpeed = 0;
+        latestMoveSpeed = 0;
+        boostSpeed = 0;
+        strictTicks = 0;
+        timerTicks = 0;
+        boostTicks = 0;
+        accelerate = false;
+        offsetPackets = false;
     }
 
     public enum Mode {
