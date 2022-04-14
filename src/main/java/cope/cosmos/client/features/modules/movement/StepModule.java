@@ -65,6 +65,7 @@ public class StepModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // update our player's step height
         mc.player.stepHeight = height.getValue().floatValue();
 

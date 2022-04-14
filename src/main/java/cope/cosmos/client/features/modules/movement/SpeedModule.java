@@ -296,7 +296,7 @@ public class SpeedModule extends Module {
                 if (mode.getValue().equals(Mode.STRAFE) || mode.getValue().equals(Mode.STRAFE_LOW)) {
 
                     // check if we are inside a burrow
-                    if (!mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                    if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
 
                         // boost speed
                         moveSpeed = baseSpeed * 1.38;
@@ -422,7 +422,7 @@ public class SpeedModule extends Module {
                 }
 
                 // check if we are inside a burrow
-                if (!mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
+                if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
 
                     // final move speed
                     moveSpeed = baseSpeed * 1.38;
@@ -551,6 +551,7 @@ public class SpeedModule extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
         if (event.getPacket() instanceof CPacketEntityAction) {
+
             // slowdown movement
             if (((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SNEAKING)) {
 

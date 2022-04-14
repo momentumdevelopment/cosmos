@@ -18,6 +18,7 @@ import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.client.CPacketEntityAction.Action;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -138,6 +139,7 @@ public class NoSlowModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // update our sneak state
         if (isSneaking && airStrict.getValue() && !mc.player.isHandActive()) {
             isSneaking = false;
@@ -201,22 +203,33 @@ public class NoSlowModule extends Module {
 
         // packet for ticks
         if (event.getPacket() instanceof CPacketPlayer) {
-            if (isSlowed()) {
 
-                // NCP bypass
-                if (strict.getValue()) {
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, mc.player.getPosition(), EnumFacing.DOWN));
-                }
+            // check if we are moving
+            if (((ICPacketPlayer) event.getPacket()).isMoving()) {
 
-                // Updated NCP bypass, specifically strict configurations
-                if (groundStrict.getValue() && ((CPacketPlayer) event.getPacket()).isOnGround()) {
-                    if (groundTimer.passedTime(2, Format.TICKS)) {
-                        ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) + 0.05);
-                        groundTimer.resetTime();
+                // check if we are slowed down
+                if (isSlowed()) {
+
+                    // NCP bypass
+                    if (strict.getValue()) {
+                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, BlockPos.ORIGIN, EnumFacing.DOWN));
                     }
 
-                    // force ground
-                    ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+                    // Updated NCP bypass
+                    if (switchStrict.getValue()) {
+                        mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
+                    }
+
+                    // Updated NCP bypass, specifically strict configurations
+                    if (groundStrict.getValue() && ((CPacketPlayer) event.getPacket()).isOnGround()) {
+                        if (groundTimer.passedTime(2, Format.TICKS)) {
+                            ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) + 0.05);
+                            groundTimer.resetTime();
+                        }
+
+                        // force ground
+                        ((ICPacketPlayer) event.getPacket()).setOnGround(false);
+                    }
                 }
             }
         }
@@ -226,25 +239,25 @@ public class NoSlowModule extends Module {
 
             // Updated NCP bypass for inventory move
             if (inventoryStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING)); // rofl nice patch ncp devs
+
+                // with NCP-Updated, we cannot use items while in inventories, so...
+                if (mc.player.isHandActive()) {
+                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+                }
+
+                // we also cannot be sprinting, because that'll also flag NCP-Updated
+                if (mc.player.isSprinting()) {
+                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, Action.STOP_SPRINTING)); // rofl nice patch ncp devs
+                }
             }
         }
 
         // packet for opening inventory
-        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.OPEN_INVENTORY)) {
+        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(Action.OPEN_INVENTORY)) {
 
             // Updated NCP bypass for inventory move
             if (inventoryStrict.getValue()) {
                 event.setCanceled(true);
-            }
-        }
-
-        // packets for using items
-        if (event.getPacket() instanceof CPacketPlayerTryUseItem || event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
-
-            // Updated NCP bypass
-            if (switchStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
             }
         }
     }
@@ -267,7 +280,7 @@ public class NoSlowModule extends Module {
             isSneaking = true;
 
             if (mc.getConnection() != null) {
-                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, Action.START_SNEAKING));
             }
         }
     }
@@ -300,19 +313,19 @@ public class NoSlowModule extends Module {
     }
 
     /**
-     * Checks if the player is in a screen
-     * @return Whether the player is in a screen
-     */
-    public boolean isInScreen() {
-        return mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiEditSign || mc.currentScreen instanceof GuiRepair);
-    }
-
-    /**
      * Checks if the player is slowed
      * @return Whether the player is slowed
      */
     private boolean isSlowed() {
         return (mc.player.isHandActive() && items.getValue()) && !mc.player.isRiding() && !mc.player.isElytraFlying();
+    }
+
+    /**
+     * Checks if the player is in a screen
+     * @return Whether the player is in a screen
+     */
+    public boolean isInScreen() {
+        return mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiEditSign || mc.currentScreen instanceof GuiRepair);
     }
 
     public enum ConflictContext implements IKeyConflictContext {
