@@ -32,6 +32,7 @@ public class SprintModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // reset sprint state
         mc.player.setSprinting(false);
 
@@ -61,6 +62,7 @@ public class SprintModule extends Module {
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL)) {
+
             // verify if the player's food level allows sprinting
             if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
                 return;

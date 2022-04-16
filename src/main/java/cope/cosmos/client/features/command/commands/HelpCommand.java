@@ -18,6 +18,7 @@ public class HelpCommand extends Command {
                             return 1;
                         })
                 )
+
                 .executes((context) -> {
                     sendHelpList(1);
                     return 1;

@@ -7,25 +7,30 @@ import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
+import cope.cosmos.client.events.render.entity.RenderEntityItemEvent;
 import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
-import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
 import cope.cosmos.client.events.render.entity.ShaderColorEvent;
+import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ColorsModule;
+import cope.cosmos.client.features.modules.client.ColorsModule.Rainbow;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.shader.shaders.DotShader;
 import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
+import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.render.RenderBuilder;
+import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
-import cope.cosmos.util.entity.EntityUtil;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.client.shader.Shader;
@@ -43,7 +48,9 @@ import net.minecraft.tileentity.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.EXTPackedDepthStencil;
@@ -55,7 +62,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Wolfsurge, aesthetical
  * @since 07/21/2021
  */
 public class ESPModule extends Module {
@@ -76,8 +83,7 @@ public class ESPModule extends Module {
             .setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
     public static Setting<Double> width = new Setting<>("Width", 0.0, 1.25, 5.0, 1)
-            .setDescription( "Line width for the visual")
-            .setVisible(() -> !mode.getValue().equals(Mode.SHADER));
+            .setDescription( "Line width for the visual");
 
     // **************************** entity settings ****************************
 
@@ -142,6 +148,7 @@ public class ESPModule extends Module {
     @Override
     public void onUpdate() {
         if (mode.getValue().equals(Mode.GLOW)) {
+
             // set all entities in the world glowing
             mc.world.loadedEntityList.forEach(entity -> {
                 if (entity != null && !entity.equals(mc.player) && hasHighlight(entity)) {
@@ -184,6 +191,7 @@ public class ESPModule extends Module {
     @SubscribeEvent
     public void onSettingUpdate(SettingUpdateEvent event) {
         if (event.getSetting().equals(mode) && !event.getSetting().getValue().equals(Mode.GLOW)) {
+
             // remove glow effect from all entities
             mc.world.loadedEntityList.forEach(entity -> {
                 if (entity != null && entity.isGlowing()) {
@@ -195,12 +203,15 @@ public class ESPModule extends Module {
 
     @SubscribeEvent
     public void onPacket(PacketEvent.PacketReceiveEvent event) {
+
+        // packet for world sound effects
         if (event.getPacket() instanceof SPacketSoundEffect) {
             SPacketSoundEffect packet = (SPacketSoundEffect) event.getPacket();
 
             // if the sound being sent from the server is a chorus teleport, that means someone has eaten a chorus fruit
             // since this sound plays at the position the player teleports at, that's where they'll be teleported
             if (packet.getSound().equals(SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT) || packet.getSound().equals(SoundEvents.ENTITY_ENDERMEN_TELEPORT)) {
+
                 // cache their teleport position
                 chorusTeleports.add(new Vec3d(packet.getX(), packet.getY(), packet.getZ()));
             }
@@ -209,12 +220,17 @@ public class ESPModule extends Module {
 
     @Override
     public void onRender3D() {
+
         // if we can render chorus fruit teleports
         if (chorus.getValue() && !chorusTeleports.isEmpty()) {
+
+            // draw teleports
             chorusTeleports.forEach((pos) -> {
+
+                // i hate milo
                 RenderUtil.drawBox(new RenderBuilder()
-                        .position(new AxisAlignedBB(pos.x, pos.y, pos.z, pos.x, pos.y + 2.0, pos.z))
-                        .box(RenderBuilder.Box.BOTH)
+                        .position(new AxisAlignedBB(pos.x, pos.y, pos.z, pos.x, pos.y + 2, pos.z))
+                        .box(Box.BOTH)
                         .width(width.getValue())
                         .color(ColorUtil.getPrimaryAlphaColor(80))
                         .blend()
@@ -227,7 +243,7 @@ public class ESPModule extends Module {
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
-        if (event.getType().equals(RenderGameOverlayEvent.ElementType.HOTBAR)) {
+        if (event.getType().equals(ElementType.HOTBAR)) {
             if (mode.getValue().equals(Mode.SHADER)) {
                 GlStateManager.enableAlpha();
                 GlStateManager.pushMatrix();
@@ -279,11 +295,13 @@ public class ESPModule extends Module {
                 // draw all storages
                 mc.world.loadedTileEntityList.forEach(tileEntity -> {
                     if (tileEntity != null && hasStorageHighlight(tileEntity)) {
+
                         // get our render offsets.
                         double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
                         double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
                         double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
 
+                        // render
                         TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
                     }
                 });
@@ -305,16 +323,16 @@ public class ESPModule extends Module {
                 GlStateManager.pushMatrix();
 
                 // draw the rainbow shader
-                if (!ColorsModule.rainbow.getValue().equals(ColorsModule.Rainbow.NONE)) {
+                if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
                     switch (shader.getValue()) {
                         case DOTTED:
-                            dotShader.startShader();
+                            dotShader.startShader(width.getValue().intValue());
                             break;
                         case OUTLINE:
-                            rainbowOutlineShader.startShader();
+                            rainbowOutlineShader.startShader(width.getValue().intValue());
                             break;
                         case OUTLINE_FILL:
-                            fillShader.startShader();
+                            fillShader.startShader(width.getValue().intValue());
                             break;
                     }
                 }
@@ -323,13 +341,13 @@ public class ESPModule extends Module {
                 else {
                     switch (shader.getValue()) {
                         case DOTTED:
-                            dotShader.startShader();
+                            dotShader.startShader(width.getValue().intValue());
                             break;
                         case OUTLINE:
-                            outlineShader.startShader();
+                            outlineShader.startShader(width.getValue().intValue());
                             break;
                         case OUTLINE_FILL:
-                            fillShader.startShader();
+                            fillShader.startShader(width.getValue().intValue());
                             break;
                     }
                 }
@@ -457,6 +475,7 @@ public class ESPModule extends Module {
     public void onRenderCrystal(RenderCrystalEvent.RenderCrystalPostEvent event) {
         if (mode.getValue().equals(Mode.OUTLINE)) {
             if (crystals.getValue()) {
+
                 // calculate model rotations
                 float rotation = event.getEntityEnderCrystal().innerRotation + event.getPartialTicks();
                 float rotationMoved = MathHelper.sin(rotation * 0.2F) / 2 + 0.5F;
@@ -712,9 +731,118 @@ public class ESPModule extends Module {
         }
     }
 
+    /*
+
+    @SubscribeEvent
+    public void onRenderEntityItem(RenderEntityItemEvent event) {
+        if (mode.getValue().equals(Mode.OUTLINE)) {
+
+            // make sure items need highlight
+            if (hasHighlight(event.getEntityItem())) {
+
+                // cancel rendering
+                event.setCanceled(true);
+
+                glPushMatrix();
+
+                // item model
+                IBakedModel ibakedmodel = event.getItemRenderer().getItemModelWithOverrides(event.getEntityItem().getItem(), event.getEntityItem().world, null);
+              
+                // render item
+                event.getItemRenderer().renderItem(event.getEntityItem().getItem(), ibakedmodel);
+
+                // setup framebuffer
+                if (mc.getFramebuffer().depthBuffer > -1) {
+
+                    // delete old framebuffer extensions
+                    EXTFramebufferObject.glDeleteRenderbuffersEXT(mc.getFramebuffer().depthBuffer);
+
+                    // generates a new render buffer ID for the depth and stencil extension
+                    int stencilFrameBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
+
+                    // bind a new render buffer
+                    EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // add the depth and stencil extension
+                    EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, EXTPackedDepthStencil.GL_DEPTH_STENCIL_EXT, mc.displayWidth, mc.displayHeight);
+
+                    // add the depth and stencil attachment
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, stencilFrameBufferID);
+
+                    // reset depth buffer
+                    mc.getFramebuffer().depthBuffer = -1;
+                }
+
+                // begin drawing the stencil
+                glPushAttrib(GL_ALL_ATTRIB_BITS);
+                glDisable(GL_ALPHA_TEST);
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glLineWidth(1 + width.getValue().floatValue());
+                glEnable(GL_LINE_SMOOTH);
+                glEnable(GL_STENCIL_TEST);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                glClearStencil(0xF);
+                glStencilFunc(GL_NEVER, 1, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // render item
+                event.getItemRenderer().renderItem(event.getEntityItem().getItem(), ibakedmodel);
+
+                // fill the entity model
+                glStencilFunc(GL_NEVER, 0, 0xF);
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+                // render item
+                event.getItemRenderer().renderItem(event.getEntityItem().getItem(), ibakedmodel);
+
+                // outline the entity model
+                glStencilFunc(GL_EQUAL, 1, 0xF);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // through walls :DDD
+                glDepthMask(false);
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_POLYGON_OFFSET_LINE);
+                glPolygonOffset(3, -2000000);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+
+                // color the stencil and clear the depth
+                glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
+
+                // render item
+                event.getItemRenderer().renderItem(event.getEntityItem().getItem(), ibakedmodel);
+
+                // reset stencil
+                glPolygonOffset(-3, 2000000);
+                glDisable(GL_POLYGON_OFFSET_LINE);
+                glEnable(GL_DEPTH_TEST);
+                glDepthMask(true);
+                glDisable(GL_STENCIL_TEST);
+                glDisable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+                glEnable(GL_BLEND);
+                glEnable(GL_LIGHTING);
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_ALPHA_TEST);
+                glPopAttrib();
+                glPopMatrix();
+            }
+        }
+    }
+
+     */
+
     @SubscribeEvent
     public void onShaderColor(ShaderColorEvent event) {
         if (mode.getValue().equals(Mode.GLOW)) {
+
             // change the shader color
             event.setColor(ColorUtil.getPrimaryColor());
 

@@ -119,6 +119,7 @@ public class NametagsModule extends Module {
         if (mc.renderEngine != null && mc.getRenderManager().options != null) {
             playerInfoMap.forEach((player, info) -> {
                 if (mc.getRenderViewEntity() != null) {
+
                     // get our render offsets.
                     double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
                     double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
@@ -288,8 +289,8 @@ public class NametagsModule extends Module {
                         GlStateManager.enableDepth();
                         GlStateManager.disableCull();
 
-                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (int) itemOffset, (enchantmentSize * -7) - 5);
-                        mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemStack, (int) itemOffset, (enchantmentSize * -7) - 5);
+                        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (int) itemOffset, (enchantmentSize * -7) - 5 - (healthBar.getValue() ? 2 : 0));
+                        mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemStack, (int) itemOffset, (enchantmentSize * -7) - 5 - (healthBar.getValue() ? 2 : 0));
 
                         // reset item z
                         mc.getRenderItem().zLevel = 0;
@@ -337,7 +338,7 @@ public class NametagsModule extends Module {
 
                                 // rescale position
                                 float xScaled = (itemOffset + 3) * 2;
-                                float yScaled = ((enchantmentSize * -7) - 5) * 2;
+                                float yScaled = ((enchantmentSize * -7) - 5 - (healthBar.getValue() ? 2 : 0)) * 2;
 
                                 // draw durability
                                 FontUtil.drawStringWithShadow(String.valueOf(color) + durability + "%", xScaled, yScaled + enchantOffset, -1);
@@ -374,7 +375,7 @@ public class NametagsModule extends Module {
 
                                     // rescale position
                                     float xScaled = (itemOffset + 3) * 2;
-                                    float yScaled = ((enchantmentSize * -7) - 5) * 2;
+                                    float yScaled = ((enchantmentSize * -7) - 5 - (healthBar.getValue() ? 2 : 0)) * 2;
 
                                     // draw enchants
                                     FontUtil.drawStringWithShadow("Max", xScaled, yScaled, -1);
@@ -412,6 +413,7 @@ public class NametagsModule extends Module {
 
                                         // curse of vanishing effect
                                         if (enchantment.getTranslatedName(enchantmentLevel).contains("Vanish")) {
+
                                             // mark as bad enchantment
                                             enchantFormat.append(TextFormatting.DARK_RED);
 
@@ -430,6 +432,7 @@ public class NametagsModule extends Module {
 
                                         // sharpness effect & greater than lvl 100
                                         else if (enchantment.getTranslatedName(enchantmentLevel).contains("Sharp") && enchantmentLevel > 100) {
+
                                             // mark as 32k
                                             enchantFormat.append(TextFormatting.DARK_PURPLE);
 
@@ -452,6 +455,7 @@ public class NametagsModule extends Module {
 
                                             // lvl must be greater than 1
                                             if (enchantmentLevel > 1) {
+
                                                 // 32ks
                                                 if (enchantmentLevel >= 100) {
                                                     enchantFormat.append("+");
@@ -466,7 +470,7 @@ public class NametagsModule extends Module {
 
                                     // rescale position
                                     float xScaled = (itemOffset + 3) * 2;
-                                    float yScaled = ((enchantmentSize * -7) - 5) * 2;
+                                    float yScaled = ((enchantmentSize * -7) - 5 - (healthBar.getValue() ? 2 : 0)) * 2;
 
                                     // draw enchants
                                     FontUtil.drawStringWithShadow(enchantFormat.toString(), xScaled, yScaled + enchantOffset, -1);
@@ -495,7 +499,7 @@ public class NametagsModule extends Module {
 
                             // rescale position
                             float xScaled = ((-8 * displayItems.size()) + 16) * 3.3333334F;
-                            float yScaled = ((enchantmentSize * -6) - FontUtil.getFontHeight() - 12) * 3.3333334F;
+                            float yScaled = ((enchantmentSize * -6) - FontUtil.getFontHeight() - 12 - (healthBar.getValue() ? 2 : 0)) * 3.3333334F;
 
                             // draw item name
                             FontUtil.drawStringWithShadow(itemName, xScaled, yScaled, -1);
@@ -525,13 +529,16 @@ public class NametagsModule extends Module {
         Map<EntityPlayer, String> searchedInfoMap = new ConcurrentHashMap<>();
 
         mc.world.playerEntities.forEach(player -> {
+
             // make sure the player isn't the user
             if (!mc.player.equals(player)) {
+
                 // the player's info
                 StringBuilder playerInfo = new StringBuilder();
 
                 // make sure the player is not dead
                 if (!EnemyUtil.isDead(player)) {
+
                     // if the player is sneaking, highlight their name orange
                     if (player.isSneaking()) {
                         playerInfo.append(TextFormatting.GOLD);
@@ -665,6 +672,7 @@ public class NametagsModule extends Module {
 
     @SubscribeEvent
     public void onRenderNametag(RenderNametagEvent event) {
+
         // cancel vanilla nametag rendering
         event.setCanceled(true);
     }

@@ -44,7 +44,7 @@ public class TickManager extends Manager {
 
             // update our TPS
             if (time != -1) {
-                TPS[tick % TPS.length] = MathHelper.clamp((20 / (System.currentTimeMillis() - time / 1000F)), 0, 20);
+                TPS[tick % TPS.length] = MathHelper.clamp((20 / ((float) (System.currentTimeMillis() - time) / 1000)), 0, 20);
                 tick++;
             }
 
@@ -59,6 +59,7 @@ public class TickManager extends Manager {
      * @return The server TPS
      */
     public float getTPS(TPS tps) {
+
         // do not calculate TPS if we are not on a server
         if (mc.isSingleplayer()) {
             return 20;

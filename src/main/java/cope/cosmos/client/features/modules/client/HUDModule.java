@@ -97,6 +97,8 @@ public class HUDModule extends Module {
 
     @Override
     public void onRender2D() {
+
+        // resolutions
         int SCREEN_WIDTH = new ScaledResolution(mc).getScaledWidth();
         int SCREEN_HEIGHT = new ScaledResolution(mc).getScaledHeight();
 
@@ -243,6 +245,7 @@ public class HUDModule extends Module {
                 armorOffset = 0;
                 mc.player.inventory.armorInventory.forEach(itemStack -> {
                     if (!itemStack.isEmpty()) {
+
                         // y offset
                         int yScaled = 0;
 

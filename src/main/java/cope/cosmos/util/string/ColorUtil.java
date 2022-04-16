@@ -9,14 +9,14 @@ public class ColorUtil {
 	public static Color getPrimaryColor(int offset) {
 		switch (ColorsModule.rainbow.getValue()) {
 			case GRADIENT:
-				return rainbow(offset, ColorsModule.color.getValue().getAlpha());
+				return rainbow(offset, ColorsModule.clientColor.getValue().getAlpha());
 			case STATIC:
-				return rainbow(1L, ColorsModule.color.getValue().getAlpha());
+				return rainbow(1L, ColorsModule.clientColor.getValue().getAlpha());
 			case ALPHA:
-				return alphaCycle(ColorsModule.color.getValue(), (offset * 2) + 10);
+				return alphaCycle(ColorsModule.clientColor.getValue(), (offset * 2) + 10);
 			case NONE:
 			default:
-				return ColorsModule.color.getValue();
+				return ColorsModule.clientColor.getValue();
 		}
 	}
 
@@ -24,12 +24,12 @@ public class ColorUtil {
 		switch (ColorsModule.rainbow.getValue()) {
 			case GRADIENT:
 			case STATIC:
-				return rainbow(1L, ColorsModule.color.getValue().getAlpha());
+				return rainbow(1L, ColorsModule.clientColor.getValue().getAlpha());
 			case ALPHA:
-				return alphaCycle(ColorsModule.color.getValue(), 10);
+				return alphaCycle(ColorsModule.clientColor.getValue(), 10);
 			case NONE:
 			default:
-				return ColorsModule.color.getValue();
+				return ColorsModule.clientColor.getValue();
 		}
 	}
 
@@ -37,9 +37,9 @@ public class ColorUtil {
 		return new Color(getPrimaryColor().getRed(), getPrimaryColor().getGreen(), getPrimaryColor().getBlue(), alpha);
 	}
 
-	public static Color alphaCycle(Color color, int count) {
+	public static Color alphaCycle(Color clientColor, int count) {
 		float[] hsb = new float[3];
-		Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
+		Color.RGBtoHSB(clientColor.getRed(), clientColor.getGreen(), clientColor.getBlue(), hsb);
 		float brightness = Math.abs(((float) (System.currentTimeMillis() % 2000L) / 1000 + 50F / (float) count * 2) % 2 - 1);
 		brightness = 0.5F + 0.5F * brightness;
 		hsb[2] = brightness % 2;

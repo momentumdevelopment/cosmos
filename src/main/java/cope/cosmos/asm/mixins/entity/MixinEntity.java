@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
 @Mixin(Entity.class)
 public class MixinEntity implements Wrapper {
 
@@ -30,14 +29,16 @@ public class MixinEntity implements Wrapper {
             double y = ty;
             double z = tz;
 
-            if (info.isCancelled())
+            if (info.isCancelled()) {
                 return;
+            }
 
             AxisAlignedBB axisAlignedBB = mc.player.getEntityBoundingBox();
 
             if (!mc.player.noClip) {
-                if (type.equals(MoverType.PISTON))
+                if (type.equals(MoverType.PISTON)) {
                     return;
+                }
 
                 mc.world.profiler.startSection("move");
 
@@ -49,12 +50,12 @@ public class MixinEntity implements Wrapper {
                     for (double d5 = 0.05; x != 0 && mc.world.getCollisionBoxes(mc.player, axisAlignedBB.offset(x, -mc.player.stepHeight, 0)).isEmpty(); d2 = x) {
                         if (x < 0.05 && x >= -0.05) {
                             x = 0;
-                        } 
-                        
+                        }
+
                         else if (x > 0) {
                             x -= 0.05;
-                        } 
-                        
+                        }
+
                         else {
                             x += 0.05;
                         }
@@ -63,12 +64,12 @@ public class MixinEntity implements Wrapper {
                     for (; z != 0 && mc.world.getCollisionBoxes(mc.player, axisAlignedBB.offset(0, -mc.player.stepHeight, z)).isEmpty(); d4 = z) {
                         if (z < 0.05 && z >= -0.05) {
                             z = 0;
-                        } 
-                        
+                        }
+
                         else if (z > 0) {
                             z -= 0.05;
-                        } 
-                        
+                        }
+
                         else {
                             z += 0.05;
                         }
@@ -77,12 +78,12 @@ public class MixinEntity implements Wrapper {
                     for (; x != 0 && z != 0 && mc.world.getCollisionBoxes(mc.player, axisAlignedBB.offset(x, -mc.player.stepHeight, z)).isEmpty(); d4 = z) {
                         if (x < 0.05 && x >= -0.05) {
                             x = 0;
-                        } 
-                        
+                        }
+
                         else if (x > 0) {
                             x -= 0.05;
-                        } 
-                        
+                        }
+
                         else {
                             x += 0.05;
                         }
@@ -208,8 +209,8 @@ public class MixinEntity implements Wrapper {
                         z = d19;
                         y = -d8;
                         axisAlignedBB = (axisalignedbb2);
-                    } 
-                    
+                    }
+
                     else {
                         x = d21;
                         z = d22;

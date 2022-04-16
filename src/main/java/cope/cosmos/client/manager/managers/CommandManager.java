@@ -28,7 +28,8 @@ public class CommandManager extends Manager {
 				new PresetCommand(),
 				new HelpCommand(),
 				new DrawnCommand(),
-				new BindCommand()
+				new BindCommand(),
+				new FakePlayerCommand()
 		);
 
 		// register commands to dispatcher

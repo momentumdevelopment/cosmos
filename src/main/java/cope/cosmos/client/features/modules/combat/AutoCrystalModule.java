@@ -93,9 +93,6 @@ public class AutoCrystalModule extends Module {
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("Timing for processes");
 
-    public static Setting<Clearance> clearance = new Setting<>("Clearance", Clearance.THRESHOLD)
-            .setDescription("Clearance for processes");
-
     // TODO: fix rotation resetting
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current process");
@@ -145,7 +142,6 @@ public class AutoCrystalModule extends Module {
             .setDescription("Will force damage override when key is pressed");
 
     // TODO: make AntiSuicide function well, should never kill/pop you
-
     public static Setting<Safety> safety = new Setting<>("Safety", Safety.BALANCE)
             .setDescription("When to consider actions safe");
 
@@ -167,7 +163,7 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 5.0, 0)
             .setDescription("Factor to explode crystals")
-            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.SEQUENTIAL));
+            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.VANILLA));
 
     public static Setting<Double> explodeRange = new Setting<>("ExplodeRange", 1.0, 5.0, 6.0, 1)
             .setDescription("Range to explode crystals")
@@ -223,6 +219,9 @@ public class AutoCrystalModule extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
             .setDescription("How to switch to crystals")
             .setVisible(() -> place.getValue());
+
+    public static Setting<Boolean> await = new Setting<>("Await", false)
+            .setDescription("Waits for processes to clear before continuing");
 
     // **************************** target settings ****************************
 
@@ -334,7 +333,7 @@ public class AutoCrystalModule extends Module {
         if (mc.getConnection() != null) {
 
             // response time projection
-            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
 
             // check our placed crystals
             placedCrystals.forEach((position, time) -> {
@@ -459,7 +458,16 @@ public class AutoCrystalModule extends Module {
         attackedCrystals.clear();
         placedCrystals.clear();
         manualCrystals.clear();
-        explodeCrystals.clear();
+
+        // make sure it exists
+        if (explodeCrystals != null) {
+            explodeCrystals.clear();
+        }
+
+        else {
+            explodeCrystals = new ConcurrentSet<>();
+        }
+
         inhibitCrystals.clear();
         explodeTimer.resetTime();
         switchTimer.resetTime();
@@ -550,7 +558,7 @@ public class AutoCrystalModule extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && waitTicks <= 0 && (!explodeCrystals.isEmpty() || placement != null);
+        return isEnabled() && (explodeCrystals != null && !explodeCrystals.isEmpty()) || placement != null;
     }
 
     @SuppressWarnings("all")
@@ -572,7 +580,7 @@ public class AutoCrystalModule extends Module {
             if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                 // clear
-                if (clearance.getValue().equals(Clearance.AWAIT)) {
+                if (await.getValue()) {
 
                     // clear our timers
                     explodeTimer.setTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
@@ -737,7 +745,7 @@ public class AutoCrystalModule extends Module {
                     if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                         // clear
-                        if (clearance.getValue().equals(Clearance.AWAIT)) {
+                        if (await.getValue()) {
 
                             // clear our timer
                             placeTimer.setTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
@@ -889,70 +897,74 @@ public class AutoCrystalModule extends Module {
         // rotate
         if (!rotate.getValue().equals(Rotate.NONE)) {
 
-            // rotate only if we have an interaction vector to rotate to
-            if (angleVector != null) {
+            // manipulate packets if process are trying to complete
+            if (isActive()) {
 
-                // cancel the existing rotations, we'll send our own
-                event.setCanceled(true);
+                // rotate only if we have an interaction vector to rotate to
+                if (angleVector != null) {
 
-                // yaw and pitch to the angle vector
-                rotateAngles = AngleUtil.calculateAngles(angleVector);
+                    // cancel the existing rotations, we'll send our own
+                    event.setCanceled(true);
 
-                // server rotation
-                Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+                    // yaw and pitch to the angle vector
+                    rotateAngles = AngleUtil.calculateAngles(angleVector);
 
-                // difference between current and upcoming rotation
-                float angleDifference = Math.abs(MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw());
+                    // server rotation
+                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
 
-                // rotating too fast
-                if (angleDifference > maxAngle.getValue()) {
+                    // difference between current and upcoming rotation
+                    float angleDifference = Math.abs(MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw());
 
-                    // yaw wrapped
-                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
+                    // rotating too fast
+                    if (angleDifference > maxAngle.getValue()) {
 
-                    // add max angle
-                    if (rotateAngles.getYaw() >= MathHelper.wrapDegrees(serverRotation.getYaw())) {
-                        yaw += maxAngle.getValue();
+                        // yaw wrapped
+                        float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
+
+                        // add max angle
+                        if (rotateAngles.getYaw() >= MathHelper.wrapDegrees(serverRotation.getYaw())) {
+                            yaw += maxAngle.getValue();
+                        }
+
+                        else {
+                            yaw -= maxAngle.getValue();
+                        }
+
+                        // update rotation
+                        rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
+
+                        // we need to wait till we reach our rotation
+                        waitTicks++;
                     }
 
                     else {
-                        yaw -= maxAngle.getValue();
+
+                        // we need to face this crystal for this many ticks
+                        if (rotationLimit) {
+                            waitTicks = visibilityTicks.getValue().intValue();
+                            rotationLimit = false;
+                        }
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
                     }
-
-                    // update rotation
-                    rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
-
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
-                    }
-
-                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
-
-                    // we need to wait till we reach our rotation
-                    waitTicks++;
-                }
-
-                else {
-
-                    // we need to face this crystal for this many ticks
-                    if (rotationLimit) {
-                        waitTicks = visibilityTicks.getValue().intValue();
-                        rotationLimit = false;
-                    }
-
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
-                    }
-
-                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
                 }
             }
         }
@@ -964,15 +976,19 @@ public class AutoCrystalModule extends Module {
         // packet rotations
         if (rotate.getValue().equals(Rotate.PACKET)) {
 
-            // rotate only if we have an interaction vector to rotate to
-            if (rotateAngles != null) {
+            // render angles if rotating
+            if (isActive()) {
 
-                // cancel the model rendering for rotations, we'll set it to our values
-                event.setCanceled(true);
+                // rotate only if we have an interaction vector to rotate to
+                if (rotateAngles != null) {
 
-                // set our model angles; visual
-                event.setYaw(rotateAngles.getYaw());
-                event.setPitch(rotateAngles.getPitch());
+                    // cancel the model rendering for rotations, we'll set it to our values
+                    event.setCanceled(true);
+
+                    // set our model angles; visual
+                    event.setYaw(rotateAngles.getYaw());
+                    event.setPitch(rotateAngles.getPitch());
+                }
             }
         }
     }
@@ -993,8 +1009,11 @@ public class AutoCrystalModule extends Module {
             // check if this is a crystal that we manually placed
             if (manualCrystals.contains(spawnPosition.down())) {
 
-                // add to explode crystals, we should explode crystals we manually placed
-                explodeCrystals.add((EntityEnderCrystal) event.getEntity());
+                if (explodeCrystals != null) {
+
+                    // add to explode crystals, we should explode crystals we manually placed
+                    explodeCrystals.add((EntityEnderCrystal) event.getEntity());
+                }
 
                 // remove from manual placements
                 manualCrystals.remove(spawnPosition.down());
@@ -1073,7 +1092,7 @@ public class AutoCrystalModule extends Module {
             }
 
             // response time projection
-            long responseTime = Math.max(100, mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50) + 150;
+            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
 
             // limit attacks
             if (inhibit.getValue()) {
@@ -1840,19 +1859,6 @@ public class AutoCrystalModule extends Module {
          * Actions are always considered safe
          */
         NONE
-    }
-
-    public enum Clearance {
-
-        /**
-         * Waits for current process to finish before continuing
-         */
-        AWAIT,
-
-        /**
-         * No clearance checks
-         */
-        THRESHOLD,
     }
 
     public enum Placements {

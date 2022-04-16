@@ -39,7 +39,6 @@ public class StreamerModeModule extends Module {
 
         // set everything to go vertical (y axis)
         frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-
         frame.getContentPane().setBackground(Color.BLACK);
 
         // add our text labels we'll be editing with the data
@@ -91,6 +90,7 @@ public class StreamerModeModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // facing stuff
         EnumFacing direction = mc.player.getHorizontalFacing();
         EnumFacing.AxisDirection axisDirection = direction.getAxisDirection();

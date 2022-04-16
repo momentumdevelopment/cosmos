@@ -26,11 +26,11 @@ public class RainbowOutlineShader extends Shader {
     }
 
     @Override 
-    public void updateConfiguration() {
+    public void updateConfiguration(int radius) {
         glUniform1i(getConfigurations("texture"), 0);
         glUniform2f(getConfigurations("texelSize"), 1F / mc.displayWidth, 1F / mc.displayHeight);
         glUniform4f(getConfigurations("color"), ColorUtil.getPrimaryColor().getRed(), ColorUtil.getPrimaryColor().getGreen(), ColorUtil.getPrimaryColor().getBlue(), ColorUtil.getPrimaryColor().getAlpha());
-        glUniform1f(getConfigurations("radius"), 1);
+        glUniform1f(getConfigurations("radius"), radius);
         glUniform2f(getConfigurations("rainbowStrength"), -(1 / 300F), -(1 / 300F));
         glUniform1f(getConfigurations("rainbowSpeed"), 0.4F);
         glUniform1f(getConfigurations("saturation"), 0.5F);

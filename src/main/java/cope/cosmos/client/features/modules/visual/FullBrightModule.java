@@ -39,6 +39,7 @@ public class FullBrightModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // apply night vision potion effect
         mc.player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION.setPotionName("FullBright"), 80950, 1, false, false));
     }

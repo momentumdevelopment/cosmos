@@ -69,20 +69,17 @@ public class HoleESPModule extends Module {
             .setDescription("Highlights void and roof holes");
 
     // **************************** color settings ****************************
-    
-    public static Setting<Boolean> colors = new Setting<>("Colors", true)
-            .setDescription("Colors for the rendering");
-    
+
     public static Setting<Boolean> colorSync = new Setting<>("ColorSync", true)
             .setDescription("Syncs holes colors to client colors");
     
-    public static Setting<Color> obsidianColor = new Setting<>("ObsidianColor", new Color(255, 0, 0,45))
+    public static Setting<Color> obsidianColor = new Setting<>("ObsidianColor", new Color(184, 40, 40,45))
             .setDescription("Color of the obsidian holes");
 
-    public static Setting<Color> mixedColor = new Setting<>("MixedColor", new Color(255, 255, 0,45))
+    public static Setting<Color> mixedColor = new Setting<>("MixedColor", new Color(203, 203, 42,45))
             .setDescription("Color of the mixed holes");
 
-    public static Setting<Color> bedrockColor = new Setting<>("BedrockColor", new Color(0, 255, 0,45))
+    public static Setting<Color> bedrockColor = new Setting<>("BedrockColor", new Color(48, 179, 67,45))
             .setDescription("Color of the bedrock holes");
 
     public static Setting<Color> voidColor = new Setting<>("VoidColor", new Color(98, 0, 255, 45))

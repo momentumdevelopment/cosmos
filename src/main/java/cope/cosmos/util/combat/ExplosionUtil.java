@@ -165,7 +165,7 @@ public class ExplosionUtil implements Wrapper {
                 IBlockState blockState = mc.world.getBlockState(blockPos);
                 Block block = blockState.getBlock();
 
-                if ((blockState.getCollisionBoundingBox(mc.world, blockPos) != Block.NULL_AABB) && block.canCollideCheck(blockState, false) && (BlockUtil.resistantBlocks.contains(block) || !blockDestruction)) {
+                if ((blockState.getCollisionBoundingBox(mc.world, blockPos) != Block.NULL_AABB) && block.canCollideCheck(blockState, false) && ((BlockUtil.resistantBlocks.contains(block) || BlockUtil.unbreakableBlocks.contains(block)) || !blockDestruction)) {
                     RayTraceResult collisionInterCheck = blockState.collisionRayTrace(mc.world, blockPos, start, end);
 
                     // what??
@@ -302,7 +302,7 @@ public class ExplosionUtil implements Wrapper {
                     block = blockState.getBlock();
 
                     // can collide ?? Should check the non-explosion blocks first
-                    if (block.canCollideCheck(blockState, false) && (BlockUtil.resistantBlocks.contains(block) || !blockDestruction)) {
+                    if (block.canCollideCheck(blockState, false) && ((BlockUtil.resistantBlocks.contains(block) || BlockUtil.unbreakableBlocks.contains(block)) || !blockDestruction)) {
                         RayTraceResult collisionInterCheck = blockState.collisionRayTrace(mc.world, blockPos, start, end);
                         
                         // what??

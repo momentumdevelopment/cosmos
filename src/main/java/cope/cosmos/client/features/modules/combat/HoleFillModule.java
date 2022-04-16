@@ -107,6 +107,7 @@ public class HoleFillModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // we haven't placed any blocks on this tick
         blocksPlaced = 0;
 

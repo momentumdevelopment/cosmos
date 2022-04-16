@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@SuppressWarnings("unused")
 @Mixin(KeyBinding.class)
 public class MixinKeyBinding {
 
@@ -20,7 +19,7 @@ public class MixinKeyBinding {
     private int keyCode;
 
     @Inject(method = "isKeyDown", at = @At("HEAD"), cancellable = true)
-    public void hookIsKeyDown(CallbackInfoReturnable<Boolean> info) {
+    public void onIsKeyDown(CallbackInfoReturnable<Boolean> info) {
         KeyDownEvent keyDownEvent = new KeyDownEvent(keyCode, pressed);
         Cosmos.EVENT_BUS.post(keyDownEvent);
 

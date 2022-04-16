@@ -98,14 +98,14 @@ public class InteractionManager extends Manager {
             boolean sprint = mc.player.isSprinting();
             if (sprint) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                mc.player.setSprinting(false);
+                // mc.player.setSprinting(false);
             }
 
             // sneak if the block is not right-clickable
             boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
-                mc.player.setSneaking(true);
+                // mc.player.setSneaking(true);
             }
 
             // vector to the block
@@ -136,13 +136,13 @@ public class InteractionManager extends Manager {
             // reset sneak
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-                mc.player.setSneaking(false);
+                // mc.player.setSneaking(false);
             }
 
             // reset sprint
             if (sprint) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                mc.player.setSprinting(true);
+                // mc.player.setSprinting(true);
             }
 
             // swing hand
