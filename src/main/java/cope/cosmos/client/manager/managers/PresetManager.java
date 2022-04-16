@@ -725,24 +725,23 @@ public class PresetManager extends Manager {
             OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/wallhack_blocks.toml"), StandardCharsets.UTF_8);
 
             // Output string
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new StringBuilder("blocks = [");
 
-            // write out array of blocks
-            output.append("blocks = [");
-
+            // grab the list of blocks to save
             List<Block> blocksToSave = WallhackModule.WHITELIST;
+
+            // if the blocks to use is empty, we'll go ahead and reset them
             if (blocksToSave.isEmpty()) {
                 blocksToSave = WallhackModule.DEFAULT_BLOCKS;
                 WallhackModule.WHITELIST.addAll(WallhackModule.DEFAULT_BLOCKS);
             }
 
-            for (Block block : blocksToSave) {
-                output
-                        .append("\"")
-                        .append(block.getRegistryName())
-                        .append("\"")
-                        .append(",");
-            }
+            // write our array
+            blocksToSave.forEach((block) -> output
+                    .append("\"")
+                    .append(block.getRegistryName())
+                    .append("\"")
+                    .append(","));
 
             output.append("]");
 
