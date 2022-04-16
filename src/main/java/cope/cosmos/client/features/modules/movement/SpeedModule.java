@@ -283,6 +283,7 @@ public class SpeedModule extends Module {
             }
 
             else {
+
                 // compatibility with Timer module
                 getCosmos().getTickManager().setClientTicks(1);
             }
@@ -299,7 +300,7 @@ public class SpeedModule extends Module {
                     if (mc.world.getBlockState(mc.player.getPosition()).getMaterial().isReplaceable()) {
 
                         // boost speed
-                        moveSpeed = baseSpeed * 1.38;
+                        // moveSpeed = baseSpeed * 1.38;
                     }
                 }
             }
@@ -416,7 +417,7 @@ public class SpeedModule extends Module {
             }
 
             // reset momentum
-            else if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
+            else {
                 if (mc.player.onGround) {
                     strafeStage = StrafeStage.START;
                 }

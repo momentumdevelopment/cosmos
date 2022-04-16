@@ -35,17 +35,22 @@ public class AntiVoidModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // if we are in the void, aka below y-pos 0
         if (mc.player.posY <= 0.5) {
+
             // notify the player that we are attempting to get out of the void
-            getCosmos().getChatManager().sendChatMessage(ChatFormatting.DARK_RED + "Attempting to get player out of void!");
+            getCosmos().getChatManager().sendClientMessage("[AntiVoid] " + ChatFormatting.DARK_RED + "Attempting to get player out of void!");
+
 
             switch (mode.getValue()) {
                 case SUSPEND:
+
                     // stop all vertical motion
                     mc.player.motionY = 0;
                     break;
                 case GLIDE:
+
                     // fall slower
                     if (mc.player.motionY < 0) {
                         mc.player.motionY /= glide.getValue();
@@ -53,14 +58,16 @@ public class AntiVoidModule extends Module {
 
                     break;
                 case RUBBERBAND:
+
                     // stop motion
                     mc.player.setVelocity(0, 0, 0);
 
                     // attempt to rubberband out of the void
-                    mc.player.setPosition(mc.player.posX, mc.player.posY + 4, mc.player.posZ);
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 4, mc.player.posZ, false));
+                    mc.player.setPosition(mc.player.posX, mc.player.posY + 100, mc.player.posZ);
+                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 100, mc.player.posZ, false));
                     break;
                 case RISE:
+
                     // attempt to float up out of the void
                     mc.player.motionY = rise.getValue();
                     break;

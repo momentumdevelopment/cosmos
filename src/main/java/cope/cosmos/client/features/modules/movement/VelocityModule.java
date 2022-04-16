@@ -143,7 +143,7 @@ public class VelocityModule extends Module {
 			}
 		}
 
-		// packet for being pulled
+		// packet for being pulled by fishhooks
 		if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 31) {
 			if (fishHook.getValue()) {
 

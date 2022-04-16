@@ -48,7 +48,19 @@ public class AntiAFKModule extends Module {
     private final Timer rotateTimer = new Timer();
 
     @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // reset time
+        awayTimer.resetTime();
+        chatTimer.resetTime();
+        jumpTimer.resetTime();
+        rotateTimer.resetTime();
+    }
+
+    @Override
     public void onUpdate() {
+
         // if we are moving, then we should reset our away progress
         if (MotionUtil.isMoving() || mc.player.movementInput.jump || mc.player.movementInput.sneak) {
             awayTimer.resetTime();
@@ -82,7 +94,7 @@ public class AntiAFKModule extends Module {
                     String message = PresenceManager.getPresenceDetails()[chatRandom.nextInt(PresenceManager.getPresenceDetails().length - 1)];
 
                     // send chat message
-                    mc.player.connection.sendPacket(new CPacketChatMessage(message));
+                    getCosmos().getChatManager().sendChatMessage(message);
 
                     // reset clearance
                     chatTimer.resetTime();
@@ -110,8 +122,10 @@ public class AntiAFKModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // packet for server chat messages
         if (event.getPacket() instanceof SPacketChat) {
+
             // message in the chat
             String[] chatMessage = ((SPacketChat) event.getPacket()).getChatComponent().getUnformattedText().split(" ");
 

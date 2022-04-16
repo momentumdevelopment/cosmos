@@ -35,6 +35,7 @@ public class AntiHungerModule extends Module {
 
     @Override
     public void onEnable() {
+
         // if we are sprinting, we need to stop sprinting
         if (mc.player.isSprinting() || ((IEntityPlayerSP) (mc.player)).getServerSprintState()) {
             previousSprint = true;
@@ -57,19 +58,28 @@ public class AntiHungerModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
-        // sets all packets to be considered as onGround, to prevent the server from knowing when we are jumping
-        if (stopJump.getValue() && event.getPacket() instanceof CPacketPlayer) {
-            // compatibility with elytras
-            if (!mc.player.isElytraFlying()) {
-                ((ICPacketPlayer) event.getPacket()).setOnGround(true);
+
+        // packet for jumping
+        if (event.getPacket() instanceof CPacketPlayer) {
+
+            if (stopJump.getValue()) {
+
+                // compatibility with elytras
+                if (!mc.player.isRiding() && !mc.player.isElytraFlying()) {
+
+                    // sets all packets to be considered as onGround, to prevent the server from knowing when we are jumping
+                    ((ICPacketPlayer) event.getPacket()).setOnGround(true);
+                }
             }
         }
 
-        // stops the client from sending sprint packets, to prevent the server from knowing when we are sprinting
-        if (stopSprint.getValue() && event.getPacket() instanceof CPacketEntityAction) {
+        // packet for sprinting
+        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING)) {
 
             // start or stop packet
-            if (((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING)) {
+            if (stopSprint.getValue()) {
+
+                // stops the client from sending sprint packets, to prevent the server from knowing when we are sprinting
                 event.setCanceled(true);
             }
         }

@@ -93,9 +93,6 @@ public class AutoCrystalModule extends Module {
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("Timing for processes");
 
-    public static Setting<Clearance> clearance = new Setting<>("Clearance", Clearance.THRESHOLD)
-            .setDescription("Clearance for processes");
-
     // TODO: fix rotation resetting
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current process");
@@ -145,7 +142,6 @@ public class AutoCrystalModule extends Module {
             .setDescription("Will force damage override when key is pressed");
 
     // TODO: make AntiSuicide function well, should never kill/pop you
-
     public static Setting<Safety> safety = new Setting<>("Safety", Safety.BALANCE)
             .setDescription("When to consider actions safe");
 
@@ -223,6 +219,9 @@ public class AutoCrystalModule extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
             .setDescription("How to switch to crystals")
             .setVisible(() -> place.getValue());
+
+    public static Setting<Boolean> await = new Setting<>("Await", false)
+            .setDescription("Waits for processes to clear before continuing");
 
     // **************************** target settings ****************************
 
@@ -459,7 +458,16 @@ public class AutoCrystalModule extends Module {
         attackedCrystals.clear();
         placedCrystals.clear();
         manualCrystals.clear();
-        explodeCrystals.clear();
+
+        // make sure it exists
+        if (explodeCrystals != null) {
+            explodeCrystals.clear();
+        }
+
+        else {
+            explodeCrystals = new ConcurrentSet<>();
+        }
+
         inhibitCrystals.clear();
         explodeTimer.resetTime();
         switchTimer.resetTime();
@@ -572,7 +580,7 @@ public class AutoCrystalModule extends Module {
             if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                 // clear
-                if (clearance.getValue().equals(Clearance.AWAIT)) {
+                if (await.getValue()) {
 
                     // clear our timers
                     explodeTimer.setTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
@@ -737,7 +745,7 @@ public class AutoCrystalModule extends Module {
                     if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
                         // clear
-                        if (clearance.getValue().equals(Clearance.AWAIT)) {
+                        if (await.getValue()) {
 
                             // clear our timer
                             placeTimer.setTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
@@ -1001,8 +1009,11 @@ public class AutoCrystalModule extends Module {
             // check if this is a crystal that we manually placed
             if (manualCrystals.contains(spawnPosition.down())) {
 
-                // add to explode crystals, we should explode crystals we manually placed
-                explodeCrystals.add((EntityEnderCrystal) event.getEntity());
+                if (explodeCrystals != null) {
+
+                    // add to explode crystals, we should explode crystals we manually placed
+                    explodeCrystals.add((EntityEnderCrystal) event.getEntity());
+                }
 
                 // remove from manual placements
                 manualCrystals.remove(spawnPosition.down());
@@ -1848,19 +1859,6 @@ public class AutoCrystalModule extends Module {
          * Actions are always considered safe
          */
         NONE
-    }
-
-    public enum Clearance {
-
-        /**
-         * Waits for current process to finish before continuing
-         */
-        AWAIT,
-
-        /**
-         * No clearance checks
-         */
-        THRESHOLD,
     }
 
     public enum Placements {

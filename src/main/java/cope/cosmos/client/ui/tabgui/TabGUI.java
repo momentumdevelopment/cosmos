@@ -23,18 +23,20 @@ public class TabGUI {
     private int currentSelectedIndex = 0;
 
     public TabGUI() {
+
         // Register to event bus
         Cosmos.EVENT_BUS.register(this);
 
         float yOffset = 0;
         for (Category category : Category.values()) {
+
             // Don't add hidden category
             if (category.equals(Category.HIDDEN)) {
                 continue;
             }
 
             // Add category
-            categoryComponents.add(new CategoryComponent(15, 50 + yOffset, category));
+            categoryComponents.add(new CategoryComponent(2, 16 + yOffset, category));
 
             // Increase y offset
             yOffset += 15;
@@ -46,6 +48,7 @@ public class TabGUI {
     }
 
     public void render() {
+
         // Render categories
         categoryComponents.forEach(categoryComponent -> {
             categoryComponent.render();
@@ -53,10 +56,13 @@ public class TabGUI {
     }
 
     public void onKeyPress(InputEvent.KeyInputEvent event) {
+
         // Check we are inputting a key
         if (Keyboard.getEventKeyState()) {
+
             // Make sure our current category is open
             if (currentSelected.getExpandAnimation().getAnimationFactor() < 1) {
+
                 // Pressing down arrow
                 if (Keyboard.getEventKey() == Keyboard.KEY_DOWN) {
                     currentSelected.setSelected(false);
@@ -73,6 +79,7 @@ public class TabGUI {
                     currentSelected = categoryComponents.get(currentSelectedIndex);
                     currentSelected.setSelected(true);
                 }
+
                 // Pressing up arrow
                 else if (Keyboard.getEventKey() == Keyboard.KEY_UP) {
                     currentSelected.setSelected(false);
@@ -89,12 +96,15 @@ public class TabGUI {
                     currentSelected = categoryComponents.get(currentSelectedIndex);
                     currentSelected.setSelected(true);
                 }
+
                 // Pressing right arrow
                 else if (Keyboard.getEventKey() == Keyboard.KEY_RIGHT) {
+
                     // Set current selected to expanded
                     currentSelected.setExpanded(true);
                 }
             }
+
             // Handle category input
             else {
                 currentSelected.onKeyInput(event);

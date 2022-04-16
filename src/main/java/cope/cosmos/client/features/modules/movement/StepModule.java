@@ -36,6 +36,9 @@ public class StepModule extends Module {
     public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1)
             .setDescription("The maximum height to step up blocks");
 
+    public static Setting<Boolean> useTimer = new Setting<>("Timer", true)
+            .setDescription("Uses timer to slow down packets");
+
     public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false)
             .setDescription("Allows you to step up blocks while riding entities");
 
@@ -94,6 +97,7 @@ public class StepModule extends Module {
             }
 
             else {
+
                 // current step height
                 double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
 
@@ -101,12 +105,14 @@ public class StepModule extends Module {
                 double[] offsets = getOffset(stepHeight);
 
                 if (offsets.length > 1) {
+                    if (useTimer.getValue()) {
 
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
+                        // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
+                        getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
 
-                    // only slow down timer for one tick
-                    timer = true;
+                        // only slow down timer for one tick
+                        timer = true;
+                    }
 
                     // send our NCP offsets
                     for (double offset : offsets) {

@@ -24,7 +24,7 @@ public class ColorsModule extends Module {
 
     // **************************** color ****************************
 
-    public static Setting<Color> color = new Setting<>("Color", new Color(118, 98, 224, 255))
+    public static Setting<Color> clientColor = new Setting<>("ClientColor", new Color(118, 98, 224, 255))
             .setDescription("The primary color for the client");
 
     // **************************** rainbow ****************************

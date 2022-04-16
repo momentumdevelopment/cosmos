@@ -23,17 +23,28 @@ public class FriendCommand extends Command {
                 .then(RequiredArgumentBuilder.argument("action", StringArgumentType.string()).suggests((context, builder) -> suggestActions(builder)).then(RequiredArgumentBuilder.argument("name", StringArgumentType.string()).suggests((context, builder) -> suggestNames(builder))
                     .executes(context -> {
 
+                        // friend name
+                        String friend = StringArgumentType.getString(context, "name");
+
                         // add friend
                         if (StringArgumentType.getString(context, "action").equals("add")) {
-                            Cosmos.INSTANCE.getSocialManager().addSocial(StringArgumentType.getString(context, "name"), Relationship.FRIEND);
-                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Added friend with name " + StringArgumentType.getString(context, "name"));
-                            Cosmos.INSTANCE.getChatManager().sendChatMessage("/w " + StringArgumentType.getString(context, "name") + " I just added you as a friend on Cosmos!");
+                            Cosmos.INSTANCE.getSocialManager().addSocial(friend, Relationship.FRIEND);
+
+                            // command success
+                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Added friend with name " + friend);
+
+                            // send a message to notify the friended player
+                            if (!mc.player.getName().equalsIgnoreCase(friend)) {
+                                Cosmos.INSTANCE.getChatManager().sendChatMessage("/w " + friend + " I just added you as a friend on Cosmos!");
+                            }
                         }
 
                         // remove friend
                         else if (StringArgumentType.getString(context, "action").equals("remove")) {
-                            Cosmos.INSTANCE.getSocialManager().removeSocial(StringArgumentType.getString(context, "name"));
-                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed friend with name " + StringArgumentType.getString(context, "name"));
+                            Cosmos.INSTANCE.getSocialManager().removeSocial(friend);
+
+                            // command success
+                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed friend with name " + friend);
                         }
 
                         return 1;
