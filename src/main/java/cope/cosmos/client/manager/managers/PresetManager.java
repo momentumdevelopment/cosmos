@@ -3,12 +3,14 @@ package cope.cosmos.client.manager.managers;
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
+import cope.cosmos.client.features.modules.visual.WallhackModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.ui.altgui.Alt;
 import cope.cosmos.client.ui.altgui.AltEntry;
 import cope.cosmos.client.ui.altgui.AltManagerGUI;
+import net.minecraft.block.Block;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
@@ -109,6 +111,7 @@ public class PresetManager extends Manager {
         loadSocial();
         loadAlts();
         loadGUI();
+        loadWallhackBlocks();
     }
 
     /**
@@ -120,6 +123,7 @@ public class PresetManager extends Manager {
         saveSocial();
         saveAlts();
         saveGUI();
+        saveWallhackBlocks();
     }
 
     /**
@@ -704,6 +708,85 @@ public class PresetManager extends Manager {
             // notify user
             if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
                 System.out.println("[Cosmos] GUI was loaded successfully!");
+            }
+
+        } catch (Exception exception) {
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    public void saveWallhackBlocks() {
+        try {
+            // File writer
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(mainDirectory.getName() + "/wallhack_blocks.toml"), StandardCharsets.UTF_8);
+
+            // Output string
+            StringBuilder output = new StringBuilder();
+
+            // write out array of blocks
+            output.append("blocks = [");
+
+            List<Block> blocksToSave = WallhackModule.WHITELIST;
+            if (blocksToSave.isEmpty()) {
+                blocksToSave = WallhackModule.DEFAULT_BLOCKS;
+                WallhackModule.WHITELIST.addAll(WallhackModule.DEFAULT_BLOCKS);
+            }
+
+            for (Block block : blocksToSave) {
+                output
+                        .append("\"")
+                        .append(block.getRegistryName())
+                        .append("\"")
+                        .append(",");
+            }
+
+            output.append("]");
+
+            writer.write(output.toString());
+            writer.close();
+
+            // notify user
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Wallhack blocks were saved successfully!");
+            }
+
+        } catch (Exception exception) {
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    public void loadWallhackBlocks() {
+        try {
+            InputStream inputStream = Files.newInputStream(Paths.get(mainDirectory.getName() + "/wallhack_blocks.toml"));
+
+            // Input TOML
+            Toml toml = new Toml().read(inputStream);
+
+            if (toml != null) {
+                toml.<String>getList("blocks").forEach((blockId) -> {
+                    Block block = Block.getBlockFromName(blockId);
+                    if (block != null) {
+                        WallhackModule.WHITELIST.add(block);
+                    }
+                });
+            }
+
+            // if our saved config didn't add any blocks, we'll add the default ones
+            if (WallhackModule.WHITELIST.isEmpty()) {
+                WallhackModule.WHITELIST.addAll(WallhackModule.DEFAULT_BLOCKS);
+            }
+
+            // notify user
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] Wallhack blocks were loaded successfully!");
             }
 
         } catch (Exception exception) {

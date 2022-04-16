@@ -106,7 +106,8 @@ public class ModuleManager extends Manager {
 				new NoWeatherModule(),
 				new SkyColorModule(),
 				new TracersModule(),
-				new ViewModelModule()
+				new ViewModelModule(), // TODO: I need to fix this
+				new WallhackModule()
 		);
 	}
 
