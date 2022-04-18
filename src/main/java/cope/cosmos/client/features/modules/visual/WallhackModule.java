@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.visual;
 
 import com.google.common.collect.Lists;
+import cope.cosmos.client.events.render.block.ColorMultiplierEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -8,12 +9,30 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author aesthetical
+ * @since 04/16/2021
+ */
 public class WallhackModule extends Module {
     public static WallhackModule INSTANCE;
+
+    public WallhackModule() {
+        super("Wallhack", Category.VISUAL, "Allows you to see desired blocks through walls");
+        INSTANCE = this;
+    }
+
+    // **************************** general ****************************
+
+    public static final Setting<Double> opacity = new Setting<>("Opacity", 0.0, 120.0, 255.0, 0)
+            .setDescription("The opacity of non-whitelisted blocks");
+
+    public static final Setting<Boolean> softReload = new Setting<>("SoftReload", false)
+            .setDescription("Soft reload instead of reloading the entire renderer");
 
     public static final List<Block> WHITELIST = new ArrayList<>();
     public static final List<Block> DEFAULT_BLOCKS = Lists.newArrayList(
@@ -52,17 +71,6 @@ public class WallhackModule extends Module {
             Blocks.REDSTONE_BLOCK
     );
 
-    public WallhackModule() {
-        super("Wallhack", Category.VISUAL, "Allows you to see desired blocks through walls");
-        INSTANCE = this;
-    }
-
-    public static final Setting<Double> opacity = new Setting<>("Opacity", 0.0, 120.0, 255.0, 1)
-            .setDescription("The opacity of non-whitelisted blocks");
-
-    public static final Setting<Boolean> softReload = new Setting<>("SoftReload", false)
-            .setDescription("If we should soft reload instead of reloading the entire renderer.");
-
     private boolean forgeLightPipelineEnabled;
 
     // For if this module is enabled whilst world or player is null, we'll reload once we ge the chance
@@ -79,7 +87,9 @@ public class WallhackModule extends Module {
         // reload renderers, or mark to reload later
         if (nullCheck()) {
             reloadRenderers();
-        } else {
+        }
+
+        else {
             markReload = true;
         }
     }
@@ -105,6 +115,17 @@ public class WallhackModule extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onColorMultiplier(ColorMultiplierEvent event) {
+
+        // update block opacity color
+        event.setCanceled(true);
+        event.setOpacity(opacity.getValue().intValue());
+    }
+
+    /**
+     * Reloads minecraft renders
+     */
     private void reloadRenderers() {
 
         if (softReload.getValue()) {
@@ -119,7 +140,9 @@ public class WallhackModule extends Module {
             mc.renderGlobal.markBlockRangeForRenderUpdate(
                     (int) (pos.x) - dist, (int) (pos.y) - dist, (int) (pos.z) - dist,
                     (int) (pos.x) + dist, (int) (pos.y) + dist, (int) (pos.z) + dist);
-        } else {
+        }
+
+        else {
 
             // reload our renders
             mc.renderGlobal.loadRenderers();

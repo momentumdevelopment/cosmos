@@ -22,6 +22,7 @@ import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -29,7 +30,9 @@ import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.server.SPacketBlockBreakAnim;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
+import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -357,7 +360,7 @@ public class SurroundModule extends Module {
 
     @Override
     public boolean isActive() {
-        boolean isSurrounded = true;
+        boolean isSurrounding = true;
         for (Vec3i surroundOffset : calculateOffsets) {
 
             // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
@@ -368,12 +371,12 @@ public class SurroundModule extends Module {
 
             // find if the block is safe or not
             if (!BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) && !BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE)) {
-                isSurrounded = false;
+                isSurrounding = false;
                 break;
             }
         }
 
-        return isSurrounded;
+        return isSurrounding;
     }
 
     @SubscribeEvent
@@ -451,6 +454,7 @@ public class SurroundModule extends Module {
                             BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
 
                             if (changePosition.equals(surroundPosition)) {
+                                
                                 // save the previous slot
                                 previousSlot = mc.player.inventory.currentItem;
 
@@ -458,6 +462,7 @@ public class SurroundModule extends Module {
                                 getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
 
                                 if (InventoryUtil.isHolding(block.getValue().getBlock())) {
+                                    
                                     // update blocks placed
                                     blocksPlaced++;
 
@@ -478,8 +483,54 @@ public class SurroundModule extends Module {
                 }
             }
         }
+        
+        // packet for crystal explosions
+        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
 
-        // packet for block breaking animation
+            if (scatter.getValue()) {
+
+                // the position of the changed block
+                BlockPos soundPosition = new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ());
+
+                // check each of the offsets
+                for (Vec3i surroundOffset : calculateOffsets) {
+
+                    // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
+                    BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+
+                    // the position to place the block
+                    BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+
+                    if (soundPosition.equals(surroundPosition)) {
+
+                        // save the previous slot
+                        previousSlot = mc.player.inventory.currentItem;
+
+                        // switch to obsidian
+                        getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
+
+                        if (InventoryUtil.isHolding(block.getValue().getBlock())) {
+
+                            // update blocks placed
+                            blocksPlaced++;
+
+                            // place a block
+                            getCosmos().getInteractionManager().placeBlock(soundPosition, rotate.getValue(), strict.getValue());
+                        }
+
+                        // switch back to our previous item
+                        if (previousSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
+
+                            // reset previous slot info
+                            previousSlot = -1;
+                        }
+                    }
+                }
+            }
+        }
+
+            // packet for block breaking animation
         if (event.getPacket() instanceof SPacketBlockBreakAnim) {
 
             /*

@@ -36,7 +36,7 @@ public class TabGUI {
             }
 
             // Add category
-            categoryComponents.add(new CategoryComponent(2, 16 + yOffset, category));
+            categoryComponents.add(new CategoryComponent(4, 16 + yOffset, category));
 
             // Increase y offset
             yOffset += 15;

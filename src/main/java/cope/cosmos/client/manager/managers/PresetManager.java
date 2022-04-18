@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Wolfsurge, aesthetical
  * @since 06/08/2021
  */
 public class PresetManager extends Manager {
@@ -639,6 +639,9 @@ public class PresetManager extends Manager {
         }
     }
 
+    /**
+     * Saves the client gui info to gui.toml
+     */
     public void saveGUI() {
         try {
             // File writer
@@ -682,6 +685,9 @@ public class PresetManager extends Manager {
         }
     }
 
+    /**
+     * Load the client gui info from gui.toml
+     */
     public void loadGUI() {
         try {
             // The stream from gui file
@@ -719,6 +725,9 @@ public class PresetManager extends Manager {
         }
     }
 
+    /**
+     * Saves the wallhack block info to wallhack_blocks.toml
+     */
     public void saveWallhackBlocks() {
         try {
             // File writer
@@ -762,6 +771,9 @@ public class PresetManager extends Manager {
         }
     }
 
+    /**
+     * Loads the wallhack block info from wallhack_blocks.toml
+     */
     public void loadWallhackBlocks() {
         try {
             InputStream inputStream = Files.newInputStream(Paths.get(mainDirectory.getName() + "/wallhack_blocks.toml"));

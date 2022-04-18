@@ -101,6 +101,7 @@ public class JesusModule extends Module {
     @SubscribeEvent
     public void onBoundingBoxCollision(CollisionBoundingBoxEvent event) {
         if (event.getEntity() != null && event.getEntity().equals(mc.player)) {
+
             // check if the collision is with a liquid block
             if (event.getBlock() instanceof BlockLiquid) {
 
@@ -108,6 +109,7 @@ public class JesusModule extends Module {
                 if (!event.getBlock().equals(Blocks.FLOWING_LAVA) && !event.getBlock().equals(Blocks.FLOWING_WATER)) {
 
                     if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
+
                         // make sure the player is standing on liquid not inside liquid
                         if (PlayerUtil.isInLiquid() || !isStandingOnLiquid()) {
                             return;

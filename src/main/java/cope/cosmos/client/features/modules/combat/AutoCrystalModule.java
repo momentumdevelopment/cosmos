@@ -1794,13 +1794,13 @@ public class AutoCrystalModule extends Module {
         BlockPos updatedPosition = nativePosition.up();
 
         // check if the native position is air or fire
-        if (!mc.world.getBlockState(nativePosition).getMaterial().isReplaceable()) {
+        if (!mc.world.isAirBlock(nativePosition) && !mc.world.getBlockState(nativePosition).getMaterial().isReplaceable()) {
             return false;
         }
 
         // check if the updated position is air or fire
         if (placements.getValue().equals(Placements.NATIVE)) {
-            if (!mc.world.getBlockState(updatedPosition).getMaterial().isReplaceable()) {
+            if (!mc.world.isAirBlock(updatedPosition) && !mc.world.getBlockState(updatedPosition).getMaterial().isReplaceable()) {
                 return false;
             }
         }
