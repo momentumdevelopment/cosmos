@@ -74,7 +74,7 @@ public class HUDModule extends Module {
 
     // **************************** vanilla HUD ****************************
 
-    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", false)
+    public static Setting<Boolean> potionEffects = new Setting<>("PotionEffects", true)
             .setDescription("Displays the player's active potion effects");
 
     public static Setting<Boolean> potionHUD = new Setting<>("PotionHUD", false)
@@ -178,6 +178,7 @@ public class HUDModule extends Module {
             }
 
             if (speed.getValue()) {
+
                 // distance travelled
                 double distanceX = mc.player.posX - mc.player.prevPosX;
                 double distanceZ = mc.player.posZ - mc.player.prevPosZ;

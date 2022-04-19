@@ -68,12 +68,12 @@ public class ModuleManager extends Manager {
 				// movement
 				new ElytraFlightModule(),
 				new EntitySpeedModule(),
+				new FastFallModule(),
 				new FlightModule(),
 				new JesusModule(),
 				new LongJumpModule(),
 				new NoSlowModule(),
 				new PacketFlightModule(),
-				new ReverseStepModule(),
 				// new Scaffold(),
 				new SpeedModule(),
 				new SprintModule(),
@@ -96,7 +96,7 @@ public class ModuleManager extends Manager {
 
 				// visual
 				new BlockHighlightModule(),
-				new BreadcrumbsModule(),
+				new BreadcrumbsModule(), // TODO: I need to fix this
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),
@@ -108,7 +108,7 @@ public class ModuleManager extends Manager {
 				new NoWeatherModule(),
 				new SkyColorModule(),
 				new TracersModule(),
-				new ViewModelModule(), // TODO: I need to fix this
+				new ViewModelModule(),
 				new WallhackModule()
 		);
 	}

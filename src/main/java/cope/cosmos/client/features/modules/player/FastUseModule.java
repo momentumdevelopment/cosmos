@@ -7,6 +7,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
+import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemFood;
@@ -80,7 +81,7 @@ public class FastUseModule extends Module {
     public void onUpdate() {
 
         // make sure we're holding a valid item
-        if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue()) {
+        if (isHoldingItem()) {
 
             if (ghostFix.getValue()) {
 
@@ -128,8 +129,15 @@ public class FastUseModule extends Module {
 
             // cancel place on block packets
             if (ghostFix.getValue()) {
-                if (InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue()) {
-                    event.setCanceled(true);
+                if (isHoldingItem()) {
+
+                    // interacting block
+                    Block interactBlock = mc.world.getBlockState(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos()).getBlock();
+
+                    // make sure we are not interacting with a sneak block
+                    if (!getCosmos().getInteractionManager().getSneakBlocks().contains(interactBlock)) {
+                        event.setCanceled(true);
+                    }
                 }
             }
         }
@@ -154,8 +162,16 @@ public class FastUseModule extends Module {
         }
     }
 
+    /**
+     * Checks if the player is holding an item that needs fast usage
+     * @return Whether the player is holding an item that needs fast usage
+     */
+    public boolean isHoldingItem() {
+        return InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && exp.getValue() || InventoryUtil.isHolding(Items.END_CRYSTAL) && crystals.getValue() || InventoryUtil.isHolding(Items.SPAWN_EGG) && spawnEggs.getValue() || InventoryUtil.isHolding(Items.FIREWORKS) && fireworks.getValue() || InventoryUtil.isHolding(ItemBlock.class) && blocks.getValue();
+    }
+
     @Override
     public boolean isActive() {
-        return isEnabled() && mc.player.isHandActive();
+        return isEnabled() && isHoldingItem() && mc.player.isHandActive();
     }
 }

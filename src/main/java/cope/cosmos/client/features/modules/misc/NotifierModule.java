@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.client.events.client.ModuleToggleEvent;
 import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -41,6 +42,20 @@ public class NotifierModule extends Module {
                 // send notification
                 getCosmos().getChatManager().sendMessage(TextFormatting.DARK_PURPLE + "[Cosmos] " + TextFormatting.RESET + popMessage);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
+        if (getCosmos().getPopManager().getTotemPops(event.getEntity()) > 0) {
+
+            // notify the player if necessary
+            if (popNotify.getValue()) {
+                getCosmos().getChatManager().sendClientMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + getCosmos().getPopManager().getTotemPops(event.getEntity()) + " totems!");
+            }
+
+            // remove the totem info associated with the entity
+            getCosmos().getPopManager().removePops(event.getEntity());
         }
     }
 

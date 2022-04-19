@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
+import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -83,7 +84,7 @@ public class StepModule extends Module {
         }
 
         // reset our timer if needed
-        if (timer) {
+        if (useTimer.getValue() && timer) {
             getCosmos().getTickManager().setClientTicks(1);
         }
     }
@@ -105,7 +106,7 @@ public class StepModule extends Module {
                 // calculate the packet offsets
                 double[] offsets = getOffset(stepHeight);
 
-                if (offsets.length > 1) {
+                if (offsets != null && offsets.length > 1) {
                     if (useTimer.getValue()) {
 
                         // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
@@ -137,19 +138,55 @@ public class StepModule extends Module {
     public double[] getOffset(double height) {
 
         // list of step heights
-        List<StepHeight> stepHeights = Arrays.asList(
-                new StepHeight(1, 0.42, 0.753),
-                new StepHeight(1.5, 0.42, 0.75, 1.0, 1.16, 1.23, 1.2),
-                new StepHeight(2, 0.42, 0.78, 0.63, 0.51, 0.9, 1.21, 1.45, 1.43),
-                new StepHeight(2.5, 0.425, 0.821, 0.699, 0.599, 1.022, 1.372, 1.652, 1.869, 2.019, 1.907)
+        List<Pair<Double, double[]>> stepHeights = Arrays.asList(
+
+                // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
+                Pair.of(1D, new double[] {
+                        0.42,
+                        0.753
+                }),
+
+
+                Pair.of(1.5D, new double[] {
+                        0.42,
+                        0.75,
+                        1.0,
+                        1.16,
+                        1.23,
+                        1.2
+                }),
+
+                Pair.of(2D, new double[] {
+                        0.42,
+                        0.78,
+                        0.63,
+                        0.51,
+                        0.9,
+                        1.21,
+                        1.45,
+                        1.43
+                }),
+
+                Pair.of(2.5D, new double[] {
+                        0.425,
+                        0.821,
+                        0.699,
+                        0.599,
+                        1.022,
+                        1.372,
+                        1.652,
+                        1.869,
+                        2.019,
+                        1.907
+                })
         );
 
         // find the offsets for the step height
         return stepHeights.stream()
-                .filter(stepHeight -> stepHeight.getHeight() == height)
+                .filter(stepHeight -> stepHeight.first() == height)
                 .findFirst()
-                .orElse(new StepHeight(0, 0))
-                .getOffsets();
+                .orElse(null)
+                .second();
     }
 
     public enum Mode {
@@ -163,33 +200,5 @@ public class StepModule extends Module {
          * Increases step height, does not send packets
          */
         VANILLA
-    }
-
-    public static class StepHeight {
-
-        // step info
-        private final double height;
-        private final double[] offsets;
-
-        public StepHeight(double height, double... offsets) {
-            this.height = height;
-            this.offsets = offsets;
-        }
-
-        /**
-         * Gets the height for the step
-         * @return The height for the step
-         */
-        public double getHeight() {
-            return height;
-        }
-
-        /**
-         * Gets the packet offsets for the step
-         * @return The packet offsets for the step
-         */
-        public double[] getOffsets() {
-            return offsets;
-        }
     }
 }

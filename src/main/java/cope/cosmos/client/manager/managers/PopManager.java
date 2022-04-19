@@ -29,21 +29,9 @@ public class PopManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
+
         // add the entity to our totem pop, or if they are already in the map -> update the entity's pop info
         totemPops.put(event.getPopEntity(), totemPops.containsKey(event.getPopEntity()) ? totemPops.get(event.getPopEntity()) + 1 : 1);
-    }
-
-    @SubscribeEvent
-    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
-        if (totemPops.containsKey(event.getEntity())) {
-            // notify the player if necessary
-            if (NotifierModule.INSTANCE.isEnabled() && NotifierModule.popNotify.getValue()) {
-                getCosmos().getChatManager().sendClientMessage(TextFormatting.DARK_PURPLE + event.getEntity().getName() + TextFormatting.RESET + " died after popping " + totemPops.get(event.getEntity()) + " totems!");
-            }
-
-            // remove the totem info associated with the entity
-            totemPops.remove(event.getEntity());
-        }
     }
 
     /**
@@ -53,5 +41,13 @@ public class PopManager extends Manager implements Wrapper {
      */
     public int getTotemPops(Entity entity) {
         return totemPops.getOrDefault(entity, 0);
+    }
+
+    /**
+     * Removes all pops associated with an entity
+     * @param entity The entity to remove
+     */
+    public void removePops(Entity entity) {
+        totemPops.remove(entity);
     }
 }
