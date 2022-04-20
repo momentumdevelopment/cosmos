@@ -40,7 +40,7 @@ public class JesusModule extends Module {
             .setDescription("Mode to use when walking on water");
 
     // float offset
-    private double floatOffset;
+    private double floatOffset = 1000;
     private int floatTicks;
     private int strictTicks;
 
@@ -64,6 +64,7 @@ public class JesusModule extends Module {
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public void onUpdate() {
+        
         // apply liquid deceleration to player
         if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
             if (!PlayerUtil.isInLiquid() && isStandingOnLiquid()) {
