@@ -36,6 +36,7 @@
         "input.MixinKeyBinding",
         "input.MixinPlayerControllerMP",
         "network.MixinNetworkManager",
+        "network.MixinNettyCompressionDecoder",
         "render.entity.MixinEntityRenderer",
         "render.entity.MixinRenderEnderCrystal",
         "render.entity.MixinRenderEntityItem",

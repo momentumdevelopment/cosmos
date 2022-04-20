@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.misc;
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.client.ExceptionThrownEvent;
+import cope.cosmos.client.events.network.DecodeEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.world.RenderSkylightEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -41,6 +42,9 @@ public class AntiCrashModule extends Module {
 
     public static Setting<Boolean> packets = new Setting<>("Packet", false)
             .setDescription("Prevents you from getting kicked for invalid packets");
+
+    public static Setting<Boolean> bookBan = new Setting<>("BookBan", false)
+            .setDescription("Prevents you from getting kicked for packet size limit");
 
     public static Setting<Boolean> offhand = new Setting<>("Offhand", false)
             .setDescription("Prevents you from getting crashed from item equip sounds");
@@ -107,6 +111,15 @@ public class AntiCrashModule extends Module {
             if (packets.getValue()) {
                 event.setCanceled(true);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onDecode(DecodeEvent event) {
+
+        // prevent packets from having a packet limit
+        if (bookBan.getValue()) {
+            event.setCanceled(true);
         }
     }
 
