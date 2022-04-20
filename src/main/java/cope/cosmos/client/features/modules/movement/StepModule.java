@@ -185,7 +185,7 @@ public class StepModule extends Module {
         return stepHeights.stream()
                 .filter(stepHeight -> stepHeight.first() == height)
                 .findFirst()
-                .orElse(null)
+                .orElse(Pair.of(0D, new double[] {}))
                 .second();
     }
 
