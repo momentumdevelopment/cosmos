@@ -51,12 +51,12 @@ public class FastFallModule extends Module {
     @SubscribeEvent
     public void onMove(MotionEvent event) {
 
-        getCosmos().getTickManager().setClientTicks(1);
-
         // we are already moving, no need to run this event again
         if (moving) {
             return;
         }
+
+        getCosmos().getTickManager().setClientTicks(1);
 
         // NCP will flag these as irregular movements
         if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
@@ -69,7 +69,7 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.player.isSneaking() || SpeedModule.INSTANCE.isEnabled()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.player.isSneaking() || SpeedModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled() || FlightModule.INSTANCE.isEnabled()) {
             return;
         }
 
@@ -191,29 +191,26 @@ public class FastFallModule extends Module {
     @Override
     public void onUpdate() {
 
-        if (mode.getValue().equals(Mode.PACKET)) {
+        // there is something blocking our movement
+        if (!mc.world.isAirBlock(mc.player.getPosition())) {
+            colliding = false;
+            return;
+        }
 
-            // there is something blocking our movement
-            if (!mc.world.isAirBlock(mc.player.getPosition())) {
-                colliding = false;
-                return;
+        // speed up movement
+        if (mc.player.onGround) {
+
+            // check strict time
+            if (strictTimer.passedTime(200 * shiftTicks.getValue().longValue(), Format.MILLISECONDS)) {
+                mc.player.motionY = -0.0784;
             }
 
-            // speed up movement
-            if (mc.player.onGround) {
+            colliding = true;
+        }
 
-                // check strict time
-                if (strictTimer.passedTime(200 * shiftTicks.getValue().longValue(), Format.MILLISECONDS)) {
-                    mc.player.motionY = -0.0784;
-                }
-
-                colliding = true;
-            }
-
-            // ?? somehow we are no longer falling
-            if (mc.player.motionY > 0) {
-                colliding = false;
-            }
+        // ?? somehow we are no longer falling
+        if (mc.player.motionY > 0) {
+            colliding = false;
         }
     }
 
