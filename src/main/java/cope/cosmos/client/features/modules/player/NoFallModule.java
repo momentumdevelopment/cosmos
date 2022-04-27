@@ -6,6 +6,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.util.holder.Rotation;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumHand;
@@ -65,7 +66,7 @@ public class NoFallModule extends Module {
                     getCosmos().getInventoryManager().switchToItem(Items.WATER_BUCKET, autoSwitch.getValue());
 
                     // attempt to rotate and place water to cancel fall damage
-                    mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, 90, false));
+                    getCosmos().getRotationManager().addRotation(new Rotation(mc.player.rotationYaw, 90F), 100);
                     mc.playerController.processRightClick(mc.player, mc.world, EnumHand.MAIN_HAND);
 
                     // switchback to previous slot
