@@ -36,6 +36,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.*;
 import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.client.CPacketPlayerDigging.Action;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -506,9 +508,18 @@ public class AuraModule extends Module {
                             });
                         }
 
+                        // state of if we are blocking our shield or not
+                        boolean blocking = false;
+
                         // if holding a shield then automatically block before attacking
                         if (InventoryUtil.isHolding(Items.SHIELD) && weaponBlock.getValue()) {
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+
+                            // send block packet
+                            // TODO: this should be on pre rotations for NCP
+
+
+                            // we are now blocking, flag
+                            blocking = true;
                         }
 
                         // pause switch to account for eating
@@ -550,6 +561,14 @@ public class AuraModule extends Module {
 
                             // make sure we only try to land a critical attack every 300 milliseconds
                             criticalTimer.resetTime();
+                        }
+
+                        // if we are blocking, unblock
+                        if (blocking) {
+
+                            // send release packet
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+                            blocking = false;
                         }
 
                         // attack the target
