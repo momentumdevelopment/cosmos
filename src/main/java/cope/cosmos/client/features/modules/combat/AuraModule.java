@@ -441,10 +441,8 @@ public class AuraModule extends Module {
                 }
 
                 // check hurt resistance time
-                if (timing.getValue().equals(Timing.VANILLA)) {
-                    if (auraTarget.hurtResistantTime > 11) {
-                        return;
-                    }
+                if (timing.getValue().equals(Timing.VANILLA) && auraTarget.hurtResistantTime > 11) {
+                    return;
                 }
 
                 // if we are cleared to attack, then attack
@@ -509,10 +507,8 @@ public class AuraModule extends Module {
                         }
 
                         // if holding a shield then automatically block before attacking
-                        if (InventoryUtil.isHolding(Items.SHIELD)) {
-                            if (weaponBlock.getValue()) {
-                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-                            }
+                        if (InventoryUtil.isHolding(Items.SHIELD) && weaponBlock.getValue()) {
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
                         }
 
                         // pause switch to account for eating
@@ -537,14 +533,12 @@ public class AuraModule extends Module {
                         boolean sprint = mc.player.isSprinting();
                         if (stopSprint.getValue()) {
                             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                            // mc.player.setSprinting(false);
                         }
 
                         // stops sneaking before attacking
                         boolean sneak = mc.player.isSneaking();
                         if (stopSneak.getValue()) {
                             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-                            // mc.player.setSneaking(false);
                         }
 
                         // if we passed our critical time, then we can attempt a critical attack
@@ -582,13 +576,11 @@ public class AuraModule extends Module {
                         // reset sneak state
                         if (stopSneak.getValue() && sneak) {
                             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
-                            // mc.player.setSneaking(true);
                         }
 
                         // reset sprint state
                         if (stopSprint.getValue() && sprint) {
                             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                            // mc.player.setSprinting(true);
                         }
 
                         // reset teleport state
