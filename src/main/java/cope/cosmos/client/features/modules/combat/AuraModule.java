@@ -52,6 +52,9 @@ import java.util.*;
 public class AuraModule extends Module {
     public static AuraModule INSTANCE;
 
+    // our attack random
+    private static final Random attackRandom = new Random();
+
     public AuraModule() {
         super("Aura", Category.COMBAT, "Attacks nearby entities", () -> StringFormatter.formatEnum(target.getValue()));
         INSTANCE = this;
@@ -394,9 +397,6 @@ public class AuraModule extends Module {
                 long randomFactor = 0;
 
                 if (delayRandom.getValue() > 0) {
-
-                    // random factor
-                    Random attackRandom = new Random();
 
                     // scale delay by random based on delay mode
                     switch (delayMode.getValue()) {
