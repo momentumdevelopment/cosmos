@@ -1,5 +1,7 @@
 package cope.cosmos.client.features.modules.player;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -7,6 +9,7 @@ import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumHand;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author aesthetical, cattyn
@@ -47,17 +50,12 @@ public class NoFallModule extends Module {
     @Override
     public void onUpdate() {
         // make sure our fall distance is past our minimum distance
-        if (mc.player.fallDistance >= distance.getValue() && !mc.player.isOverWater()) {
+        if (shouldNegateFallDamage() && !mc.player.isOverWater()) {
 
             switch (mode.getValue()) {
-                case PACKET:
-                    // spoof on-ground state
-                    mc.player.connection.sendPacket(new CPacketPlayer(true));
-                    break;
                 case GLIDE:
                     // attempt to fall slower
                     mc.player.motionY /= glideSpeed.getValue();
-                    mc.player.connection.sendPacket(new CPacketPlayer(true));
                     break;
                 case WATER:
                     // save our previous slot
@@ -94,6 +92,29 @@ public class NoFallModule extends Module {
                     break;
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // if we are sending a movement packet and we are falling
+        if (event.getPacket() instanceof CPacketPlayer && shouldNegateFallDamage()) {
+
+            // we also only want to spoof our packet if we are using modes PACKET or GLIDE
+            if (mode.getValue().equals(Mode.PACKET) || mode.getValue().equals(Mode.GLIDE)) {
+
+                // spoof our onGround state
+                ((ICPacketPlayer) event.getPacket()).setOnGround(true);
+            }
+        }
+    }
+
+    /**
+     * Checks if we should start to negate fall damage
+     * @return if the fall distance is greater/equal to distance
+     */
+    private boolean shouldNegateFallDamage() {
+        return mc.player.fallDistance >= distance.getValue();
     }
 
     public enum Mode {

@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @since 12/27/2021
  */
 public class LongJumpModule extends Module {
-    public LongJumpModule INSTANCE;
+    public static LongJumpModule INSTANCE;
 
     public LongJumpModule() {
         super("LongJump", Category.MOVEMENT, "Allows you to jump farther");
