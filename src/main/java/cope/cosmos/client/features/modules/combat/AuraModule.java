@@ -304,10 +304,8 @@ public class AuraModule extends Module {
                 boolean isNotVisible = RaytraceUtil.isNotVisible(entity, traceOffset);
 
                 // use wall ranges if not visible
-                if (isNotVisible) {
-                    if (distance > wallsRange.getValue()) {
-                        continue;
-                    }
+                if (isNotVisible && distance > wallsRange.getValue()) {
+                    continue;
                 }
                 
                 // make sure the entity is truly visible, useful for strict anticheats
