@@ -55,7 +55,7 @@ public class StepModule extends Module {
         super.onDisable();
 
         // reset our step heights
-        mc.player.stepHeight = 0.5F;
+        mc.player.stepHeight = 0.6F;
 
         if (entityRiding != null) {
             if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
@@ -71,8 +71,11 @@ public class StepModule extends Module {
     @Override
     public void onUpdate() {
 
-        // update our player's step height
-        mc.player.stepHeight = height.getValue().floatValue();
+        // reset our timer if needed
+        if (timer && mc.player.onGround) {
+            getCosmos().getTickManager().setClientTicks(1);
+            timer = false;
+        }
 
         if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
             entityRiding = mc.player.getRidingEntity();
@@ -83,48 +86,37 @@ public class StepModule extends Module {
             }
         }
 
-        // reset our timer if needed
-        if (useTimer.getValue() && timer) {
-            getCosmos().getTickManager().setClientTicks(1);
-        }
+        // update our player's step height
+        mc.player.stepHeight = height.getValue().floatValue();
     }
 
     @SubscribeEvent
     public void onStep(StepEvent event) {
         if (mode.getValue().equals(Mode.NORMAL)) {
+            // current step height
+            double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
 
-            // don't attempt to step if we are not on the ground
-            if (!mc.player.onGround) {
-                event.setHeight(0.6F);
+            // do not step if we're on the ground or the step height is greater than our max
+            if (stepHeight == 0.0 || stepHeight > height.getValue()) {
+                return;
             }
 
-            else {
+            // calculate the packet offsets
+            double[] offsets = getOffset(stepHeight);
 
-                // current step height
-                double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
+            if (offsets != null && offsets.length > 1) {
+                if (useTimer.getValue()) {
 
-                // calculate the packet offsets
-                double[] offsets = getOffset(stepHeight);
+                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
+                    getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
 
-                if (offsets != null && offsets.length > 1) {
-                    if (useTimer.getValue()) {
-
-                        // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                        getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
-
-                        // only slow down timer for one tick
-                        timer = true;
-                    }
-
-                    // send our NCP offsets
-                    for (double offset : offsets) {
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                    }
+                    // only slow down timer for one tick
+                    timer = true;
                 }
 
-                // as not to cancel any vanilla steps such as stairs, paths
-                else if (stepHeight > 0.5) {
-                    event.setHeight(0.6F);
+                // send our NCP offsets
+                for (double offset : offsets) {
+                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
                 }
             }
         }
@@ -139,6 +131,27 @@ public class StepModule extends Module {
 
         // list of step heights
         List<Pair<Double, double[]>> stepHeights = Arrays.asList(
+
+                // enchantment tables
+                Pair.of(0.75D, new double[] {
+                        0.42,
+                        0.753,
+                        0.654
+                }),
+
+                // end portal frames
+                Pair.of(0.8125D, new double[] {
+                        0.42,
+                        0.753,
+                        0.654
+                }),
+
+                // chests
+                Pair.of(0.875, new double[] {
+                        0.42,
+                        0.753,
+                        0.43
+                }),
 
                 // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
                 Pair.of(1D, new double[] {
