@@ -81,7 +81,7 @@ public class AntiHungerModule extends Module {
             CPacketEntityAction packet = (CPacketEntityAction) event.getPacket();
 
             // if we are starting to sprint - sprinting looses hunger faster
-            if (packet.getAction().equals(Action.START_SPRINTING)) {
+            if (packet.getAction().equals(Action.START_SPRINTING) || packet.getAction().equals(Action.STOP_SPRINTING)) {
 
                 // start or stop packet
                 if (stopSprint.getValue()) {
