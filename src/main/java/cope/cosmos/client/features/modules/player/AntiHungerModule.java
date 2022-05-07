@@ -7,6 +7,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketEntityAction.Action;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -27,7 +28,7 @@ public class AntiHungerModule extends Module {
     public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", true)
             .setDescription("If to cancel sprint packets");
 
-    public static Setting<Boolean> stopJump = new Setting<>("StopJump", true)
+    public static Setting<Boolean> groundSpoof = new Setting<>("GroundSpoof", true)
             .setDescription("Spoof your on ground state");
 
     // previous sprint state
@@ -62,7 +63,7 @@ public class AntiHungerModule extends Module {
         // packet for jumping
         if (event.getPacket() instanceof CPacketPlayer) {
 
-            if (stopJump.getValue()) {
+            if (groundSpoof.getValue()) {
 
                 // compatibility with elytras
                 if (!mc.player.isRiding() && !mc.player.isElytraFlying()) {
@@ -74,13 +75,20 @@ public class AntiHungerModule extends Module {
         }
 
         // packet for sprinting
-        else if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.START_SPRINTING) || ((CPacketEntityAction) event.getPacket()).getAction().equals(CPacketEntityAction.Action.STOP_SPRINTING)) {
+        else if (event.getPacket() instanceof CPacketEntityAction) {
 
-            // start or stop packet
-            if (stopSprint.getValue()) {
+            // FIX: issue #216 - old if statement was incorrectly casted to CPacketEntityAction when packet was actually CPacketAnimation
+            CPacketEntityAction packet = (CPacketEntityAction) event.getPacket();
 
-                // stops the client from sending sprint packets, to prevent the server from knowing when we are sprinting
-                event.setCanceled(true);
+            // if we are starting to sprint - sprinting looses hunger faster
+            if (packet.getAction().equals(Action.START_SPRINTING)) {
+
+                // start or stop packet
+                if (stopSprint.getValue()) {
+
+                    // stops the client from sending sprint packets, to prevent the server from knowing when we are sprinting
+                    event.setCanceled(true);
+                }
             }
         }
     }
