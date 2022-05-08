@@ -37,9 +37,11 @@ public class LongJumpModule extends Module {
 
     // move speed
     private double moveSpeed;
-    
+
+    @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
+
         // make sure the player is not in a liquid
         if (PlayerUtil.isInLiquid()) {
             moveSpeed = 0;
@@ -63,6 +65,7 @@ public class LongJumpModule extends Module {
 
         // attempt jump if we are onGround and are actually trying to move
         if (mc.player.onGround && MotionUtil.isMoving()) {
+
             // set the event motion to 0.42
             event.setY(0.42);
 
@@ -80,6 +83,7 @@ public class LongJumpModule extends Module {
         }
 
         else if (mc.player.motionY < 0) {
+
             // If we are falling, slow our fall
             event.setY(event.getY() * glide.getValue());
         }
@@ -128,6 +132,7 @@ public class LongJumpModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // disable on rubberband or teleport
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             moveSpeed = 0;

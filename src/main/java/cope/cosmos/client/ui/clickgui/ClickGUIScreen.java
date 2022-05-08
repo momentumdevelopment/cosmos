@@ -9,6 +9,7 @@ import cope.cosmos.client.ui.clickgui.screens.configuration.taskbar.Taskbar;
 import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.util.ScissorStack;
+import cope.cosmos.util.Wrapper;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -40,6 +41,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
     private final Taskbar taskbar = new Taskbar();
 
     public ClickGUIScreen() {
+
         // add all categories
         int frameSpace = 0;
         for (Category category : Category.values()) {
@@ -102,6 +104,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
                 mouse.setLeftClick(true);
                 mouse.setLeftHeld(true);
 
+                // iterate reversed category components
                 for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
                     if (isMouseOver(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y, categoryFrameComponent.getWidth(), categoryFrameComponent.getTitle() + categoryFrameComponent.getHeight() + 2)) {
 
@@ -123,6 +126,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
                 mouse.setRightClick(true);
                 mouse.setRightHeld(true);
 
+                // iterate reversed category components
                 for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
                     if (isMouseOver(categoryFrameComponent.getPosition().x, categoryFrameComponent.getPosition().y, categoryFrameComponent.getWidth(), categoryFrameComponent.getTitle() + categoryFrameComponent.getHeight() + 2)) {
 
@@ -193,6 +197,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
 
     @SubscribeEvent
     public void onRenderHUD(RenderGameOverlayEvent.Pre event) {
+
         // prevents HUD overlays/elements from being rendered while in the GUI screen
         if (!event.getType().equals(ElementType.TEXT) && !event.getType().equals(ElementType.CHAT)) {
             event.setCanceled(true);

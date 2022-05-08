@@ -31,17 +31,7 @@ public class NoWeatherModule extends Module {
     public void onUpdate() {
 
         // update weather
-        switch (weather.getValue()) {
-            case CLEAR:
-                mc.world.setRainStrength(0);
-                break;
-            case RAIN:
-                mc.world.setRainStrength(1);
-                break;
-            case THUNDER:
-                mc.world.setRainStrength(2);
-                break;
-        }
+        mc.world.setRainStrength(weather.getValue().getWeatherID());
 
         // update time
         mc.world.setWorldTime(time.getValue().longValue());
@@ -49,9 +39,11 @@ public class NoWeatherModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        // packet for world time updates
         if (event.getPacket() instanceof SPacketTimeUpdate) {
 
-            // cancel time updates
+            // cancel time updates, use module world time
             event.setCanceled(true);
         }
     }
@@ -61,16 +53,31 @@ public class NoWeatherModule extends Module {
         /**
          * No rain
          */
-        CLEAR,
+        CLEAR(0),
 
         /**
          * Rain
          */
-        RAIN,
+        RAIN(1),
 
         /**
          * Rain and thunder
          */
-        THUNDER
+        THUNDER(2);
+
+        // weather id
+        private final int id;
+
+        Weather(int id) {
+            this.id = id;
+        }
+
+        /**
+         * Gets the weather identifier
+         * @return the weather identifier
+         */
+        public int getWeatherID() {
+            return id;
+        }
     }
 }

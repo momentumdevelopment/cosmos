@@ -25,6 +25,7 @@ public class EntityUtil {
      * @return Whether an entity is a passive mob
      */
     public static boolean isPassiveMob(Entity entity) {
+
         // check if its a wolf that isn't angry
         if (entity instanceof EntityWolf) {
             return !((EntityWolf) entity).isAngry();
@@ -63,6 +64,6 @@ public class EntityUtil {
      * @return Whether an entity is a neutral mob
      */
     public static boolean isNeutralMob(Entity entity) {
-        return entity instanceof EntityPigZombie || entity instanceof EntityWolf  || entity instanceof EntityEnderman;
+        return entity instanceof EntityPigZombie && !((EntityPigZombie) entity).isAngry() || entity instanceof EntityWolf && !((EntityWolf) entity).isAngry() || entity instanceof EntityEnderman && ((EntityEnderman) entity).isScreaming();
     }
 }
