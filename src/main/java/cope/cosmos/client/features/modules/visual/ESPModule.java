@@ -379,6 +379,9 @@ public class ESPModule extends Module {
 
                 GlStateManager.popMatrix();
                 GlStateManager.popAttrib();
+
+                // Let the hotbar render over the shader
+                mc.entityRenderer.setupOverlayRendering();
             }
         }
     }
