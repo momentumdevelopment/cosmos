@@ -1,6 +1,6 @@
 package cope.cosmos.client.features.modules.visual;
 
-import cope.cosmos.client.events.entity.PotionEvent;
+import cope.cosmos.client.events.entity.potion.PotionEffectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.LayerArmorEvent;
 import cope.cosmos.client.events.render.entity.RenderBeaconBeamEvent;
@@ -11,14 +11,16 @@ import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import cope.cosmos.client.events.render.other.RenderMapEvent;
 import cope.cosmos.client.events.render.other.RenderParticleEvent;
-import cope.cosmos.client.events.render.player.*;
+import cope.cosmos.client.events.render.player.CrosshairBobEvent;
+import cope.cosmos.client.events.render.player.HurtCameraEvent;
+import cope.cosmos.client.events.render.player.ModifyFOVEvent;
+import cope.cosmos.client.events.render.player.RenderEatingEvent;
 import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.MobEffects;
-import net.minecraft.item.ItemFood;
 import net.minecraft.network.play.server.SPacketAnimation;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraftforge.client.event.RenderBlockOverlayEvent;
@@ -118,7 +120,8 @@ public class NoRenderModule extends Module {
     }
 
     @SubscribeEvent
-    public void onPotion(PotionEvent event) {
+    public void onPotion(PotionEffectEvent.PotionAdd event) {
+
         // remove blinding potion effects
         if (potion.getValue()) {
             if (event.getPotionEffect().getPotion().equals(MobEffects.BLINDNESS) && mc.player.isPotionActive(MobEffects.BLINDNESS)) {
@@ -135,6 +138,7 @@ public class NoRenderModule extends Module {
     @SubscribeEvent
     public void onRenderOverlay(RenderOverlayEvent event) {
         if (overlays.getValue()) {
+
             // cancels fire hud overlay
             if (event.getOverlayType().equals(RenderBlockOverlayEvent.OverlayType.FIRE) && overlayFire.getValue()) {
                 event.setCanceled(true);
@@ -154,12 +158,14 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onRenderBossOverlay(BossOverlayEvent event) {
+
         // cancel boss hud overlay
         event.setCanceled(overlayBoss.getValue());
     }
 
     @SubscribeEvent
     public void onRenderEnchantmentTableBook(RenderEnchantmentTableBookEvent event) {
+
         // cancels rendering of enchantment table books
         if (tileEntities.getValue()) {
             event.setCanceled(true);
@@ -168,6 +174,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onRenderBeaconBeam(RenderBeaconBeamEvent event) {
+
         // cancels rendering of beacon beams
         if (tileEntities.getValue()) {
             event.setCanceled(true);
@@ -176,6 +183,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onRenderMap(RenderMapEvent event) {
+
         // cancels maps from rendering
         if (maps.getValue()) {
             event.setCanceled(true);
@@ -184,6 +192,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onLayerArmor(LayerArmorEvent event) {
+
         // cancels armor rendering
         if (armor.getValue()) {
             event.setCanceled(true);
@@ -217,9 +226,11 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // packet for player swings
         if (event.getPacket() instanceof SPacketAnimation) {
             if (swing.getValue()) {
+
                 // prevent server from rendering swing animations
                 event.setCanceled(true);
             }
@@ -228,6 +239,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onHurtCamera(HurtCameraEvent event) {
+
         // cancels the hurt camera effect
         if (hurtCamera.getValue()) {
             event.setCanceled(true);
@@ -236,6 +248,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onRenderWitherSkull(RenderWitherSkullEvent event) {
+
         // cancels wither skulls from rendering
         if (witherSkull.getValue()) {
             event.setCanceled(true);
@@ -244,6 +257,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onRenderParticle(RenderParticleEvent event) {
+
         // cancels barrier particles from rendering
         if (barrier.getValue() && event.getParticleType().equals(EnumParticleTypes.BARRIER)) {
             event.setCanceled(true);
@@ -276,6 +290,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onFOVModifier(ModifyFOVEvent event) {
+
         // cancels fov modifier effects (from speed potions)
         if (fov.getValue()) {
             event.setCanceled(true);
@@ -284,6 +299,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onCrosshairBob(CrosshairBobEvent event) {
+
         // Lets the hand bobbing animation run without the crosshair bobbing as well
         if (noBob.getValue()) {
             event.setCanceled(true);
@@ -292,6 +308,7 @@ public class NoRenderModule extends Module {
 
     @SubscribeEvent
     public void onEatingRender(RenderEatingEvent event) {
+
         // Prevent the eating animation
         if (eating.getValue()) {
             event.setCanceled(true);

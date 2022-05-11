@@ -84,6 +84,7 @@ public class Cosmos {
     private ChangelogManager changelogManager;
     private SoundManager soundManager;
     private ChatManager chatManager;
+    private PotionManager potionManager;
     private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
@@ -102,7 +103,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 20);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 21);
 
         // load the modules
         moduleManager = new ModuleManager();
@@ -204,6 +205,11 @@ public class Cosmos {
         chatManager = new ChatManager();
         managers.add(chatManager);
         progressManager.step("[Cosmos] Setting up Chat Manager");
+
+        // sets up the potion manager
+        potionManager = new PotionManager();
+        managers.add(potionManager);
+        progressManager.step("[Cosmos] Setting up Potion Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -400,6 +406,14 @@ public class Cosmos {
     }
 
     /**
+     * Gets the client potion manager
+     * @return The client potion manager
+     */
+    public PotionManager getPotionManager() {
+        return potionManager;
+    }
+
+    /**
      * Gets the client notification manager
      * @return The client notification manager
      */
@@ -450,7 +464,8 @@ public class Cosmos {
          * Gets the tag
          * @return The tag
          */
-        public String getTag() {
+        @Override
+        public String toString() {
             return tag;
         }
     }

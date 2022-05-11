@@ -3,29 +3,28 @@ package cope.cosmos.client.manager.managers;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
+import cope.cosmos.client.events.block.LeftClickBlockEvent;
 import cope.cosmos.client.events.combat.CriticalModifierEvent;
 import cope.cosmos.client.events.combat.DeathEvent;
 import cope.cosmos.client.events.combat.TotemPopEvent;
-import cope.cosmos.client.events.motion.movement.KnockBackEvent;
-import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
-import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.entity.player.interact.EntityUseItemEvent;
 import cope.cosmos.client.events.entity.player.interact.ItemInputUpdateEvent;
 import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
+import cope.cosmos.client.events.entity.potion.PotionEffectEvent;
+import cope.cosmos.client.events.motion.movement.KnockBackEvent;
+import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.world.RenderFogColorEvent;
 import cope.cosmos.client.events.render.world.RenderFogEvent;
-import cope.cosmos.client.events.block.LeftClickBlockEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.client.event.*;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -380,5 +379,38 @@ public class EventManager extends Manager implements Wrapper {
 		event.setRed(fogColorEvent.getColor().getRed() / 255F);
 		event.setGreen(fogColorEvent.getColor().getGreen() / 255F);
 		event.setBlue(fogColorEvent.getColor().getBlue() / 255F);
+	}
+
+	@SubscribeEvent
+	public void onPotionAdd(PotionEvent.PotionApplicableEvent event) {
+
+		if (nullCheck() && mc.player.equals(event.getEntity())) {
+			PotionEffectEvent.PotionAdd potionAddEvent = new PotionEffectEvent.PotionAdd(event.getPotionEffect());
+			Cosmos.EVENT_BUS.post(potionAddEvent);
+
+			if (potionAddEvent.isCanceled()) {
+				event.setResult(Result.DENY);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void onPotionRemove(PotionEvent.PotionRemoveEvent event) {
+
+		if (nullCheck() && mc.player.equals(event.getEntity())) {
+
+			PotionEffectEvent.PotionRemove potionRemoveEvent = new PotionEffectEvent.PotionRemove(event.getPotion());
+			Cosmos.EVENT_BUS.post(potionRemoveEvent);
+		}
+	}
+
+	@SubscribeEvent
+	public void onPotionExpiry(PotionEvent.PotionExpiryEvent event) {
+
+		if (nullCheck() && mc.player.equals(event.getEntity())) {
+
+			PotionEffectEvent.PotionRemove potionRemoveEvent = new PotionEffectEvent.PotionRemove(event.getPotionEffect());
+			Cosmos.EVENT_BUS.post(potionRemoveEvent);
+		}
 	}
 }

@@ -43,6 +43,8 @@ public class FastUseModule extends Module {
     public static Setting<Boolean> ghostFix = new Setting<>("GhostFix", false)
             .setDescription("Fixes the item ghost issue on some servers");
 
+    // **************************** general ****************************
+
     public static Setting<Boolean> fastDrop = new Setting<>("FastDrop", false)
             .setDescription("Drops items faster");
 
@@ -155,7 +157,7 @@ public class FastUseModule extends Module {
                 event.getItemStack().getItem().onItemUseFinish(event.getItemStack(), mc.world, mc.player);
 
                 // skip ticks lolololol
-                for (int i = 0; i < speed.getValue() * 8; i++) {
+                for (int i = 0; i < event.getItemStack().getMaxItemUseDuration(); i++) {
                     mc.player.connection.sendPacket(new CPacketPlayer());
                 }
             }

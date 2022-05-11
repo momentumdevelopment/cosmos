@@ -9,23 +9,23 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.movement.SpeedModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
-import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.render.FontUtil;
-import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -118,6 +118,8 @@ public class HUDModule extends Module {
         }
 
         if (mc.currentScreen == null || mc.currentScreen instanceof GuiChat) {
+
+            // arraylist
             if (activeModules.getValue()) {
                 listOffset = 0;
 
@@ -136,7 +138,7 @@ public class HUDModule extends Module {
                     }
 
                     // draw string
-                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (new ScaledResolution(mc).getScaledWidth() - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (SCREEN_WIDTH - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getAnimationFactor();
@@ -145,34 +147,35 @@ public class HUDModule extends Module {
             }
 
             if (potionEffects.getValue()) {
-                mc.player.getActivePotionEffects().forEach(potionEffect -> {
 
-                    // potion name
-                    String potionName = I18n.format(potionEffect.getEffectName());
+                // active potions
+                getCosmos().getPotionManager().getActivePotions().forEach((potionEffect, animation) -> {
 
-                    // potion effects associated with modules
-                    if (!potionName.equals("FullBright") && !potionName.equals("SpeedMine")) {
+                    if (animation.getAnimationFactor() > 0.05) {
 
-                        // potion formatted
-                        StringBuilder potionFormatted = new StringBuilder(potionName);
+                        // potion name
+                        String potionName = I18n.format(potionEffect.getEffectName());
 
-                        // duration
-                        float duration = potionEffect.getDuration() / getCosmos().getTickManager().getTPS(TPS.AVERAGE);
-                        float durationSeconds = duration % 60;
-                        float durationMinutes = (duration / 60) % 60;
+                        // potion effects associated with modules
+                        if (!potionName.equals("FullBright") && !potionName.equals("SpeedMine")) {
 
-                        // time formatter
-                        DecimalFormat minuteFormatter = new DecimalFormat("0");
-                        DecimalFormat secondsFormatter = new DecimalFormat("00");
+                            // potion formatted
+                            StringBuilder potionFormatted = new StringBuilder(potionName);
 
-                        // potion formatted
-                        potionFormatted.append(" ").append(potionEffect.getAmplifier() + 1).append(ChatFormatting.WHITE).append(" ").append(minuteFormatter.format(durationMinutes)).append(":").append(secondsFormatter.format(durationSeconds));
+                            // potion formatted
+                            potionFormatted.append(" ")
+                                    .append(potionEffect.getAmplifier() + 1)
+                                    .append(ChatFormatting.WHITE)
+                                    .append(" ")
+                                    .append(Potion.getPotionDurationString(potionEffect, 1F));
 
-                        FontUtil.drawStringWithShadow(potionFormatted.toString(), SCREEN_WIDTH - FontUtil.getStringWidth(potionFormatted.toString()) - 2, SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+                            // draw string
+                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - ((FontUtil.getStringWidth(potionFormatted.toString()) + 2) * animation.getAnimationFactor())), SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
 
-                        // offset
-                        bottomRight += FontUtil.getFontHeight() + 1;
-                        globalOffset++;
+                            // offset
+                            bottomRight += (FontUtil.getFontHeight() + 1) * animation.getAnimationFactor();
+                            globalOffset++;
+                        }
                     }
                 });
             }
@@ -186,7 +189,7 @@ public class HUDModule extends Module {
                 // speed in kmh
                 float speed = MathUtil.roundFloat(((MathHelper.sqrt(StrictMath.pow(distanceX, 2) + StrictMath.pow(distanceZ, 2)) / 1000) / (0.05F / 3600) * (50 / getCosmos().getTickManager().getTickLength())), 1);
 
-                // future moment
+                // FUTURE CLIENT :tm: moment
                 if (MotionUtil.isMoving() && SpeedModule.INSTANCE.isEnabled()) {
                     speed += 2;
                 }
