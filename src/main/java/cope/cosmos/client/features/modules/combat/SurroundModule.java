@@ -105,7 +105,7 @@ public class SurroundModule extends Module {
             .setDescription("Render a visual of the surround");
 
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL)
-            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE).setParent(render);
+            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE);
 
     // switch info
     private int previousSlot = -1;

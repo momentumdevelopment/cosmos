@@ -3,6 +3,7 @@ package cope.cosmos.util.player;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemTool;
 
 /**
  * @author linustouchtips, aesthetical
@@ -43,7 +44,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is mining
      */
     public static boolean isMining() {
-        return InventoryUtil.isHolding(Items.DIAMOND_PICKAXE) && mc.playerController.getIsHittingBlock();
+        return InventoryUtil.isHolding(ItemTool.class) && mc.playerController.getIsHittingBlock();
     }
 
     /**
