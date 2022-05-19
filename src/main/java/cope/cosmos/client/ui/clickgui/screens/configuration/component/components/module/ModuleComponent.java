@@ -42,7 +42,7 @@ public class ModuleComponent extends DrawableComponent {
     private float settingComponentOffset;
 
     // hover animation
-    private final Animation animation = new Animation(200, false);
+    private final Animation animation = new Animation(300, false);
     private int hoverAnimation;
 
     // open/close state

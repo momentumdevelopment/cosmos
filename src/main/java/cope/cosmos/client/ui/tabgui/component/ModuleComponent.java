@@ -27,7 +27,7 @@ public class ModuleComponent {
     private final float width;
 
     // The selection animation
-    private final Animation animation = new Animation(200, false);
+    private final Animation animation = new Animation(300, false);
 
     public ModuleComponent(float x, float y, float width, Module module) {
         this.x = x;

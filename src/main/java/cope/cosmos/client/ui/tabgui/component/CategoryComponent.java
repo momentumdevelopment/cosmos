@@ -35,10 +35,10 @@ public class CategoryComponent implements Wrapper {
     private boolean selected;
 
     // The selected animation
-    private final Animation selectedAnimation = new Animation(200, false);
+    private final Animation selectedAnimation = new Animation(300, false);
 
     // The animation that plays when we expand the category
-    private final Animation expandAnimation = new Animation(200, false);
+    private final Animation expandAnimation = new Animation(300, false);
 
     // The list of module components in this category
     private final List<ModuleComponent> moduleComponents = new ArrayList<>();

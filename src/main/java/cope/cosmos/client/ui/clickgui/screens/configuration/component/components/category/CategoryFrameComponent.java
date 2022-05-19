@@ -44,7 +44,7 @@ public class CategoryFrameComponent extends FrameComponent<Category> implements 
 
     // animation
     private int hoverAnimation;
-    private final Animation animation = new Animation(200, true);
+    private final Animation animation = new Animation(300, true);
 
     // WHAT THE BLOOP
     private final JFrame frame = new JFrame();

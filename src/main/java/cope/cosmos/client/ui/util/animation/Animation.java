@@ -3,7 +3,7 @@ package cope.cosmos.client.ui.util.animation;
 import net.minecraft.util.math.MathHelper;
 
 /**
- * @author Tigermouthbear, linustouchtips
+ * @author Tigermouthbear, linustouchtips, Wolfsurge
  * @since 06/08/2021
  */
 public class Animation {
@@ -18,6 +18,10 @@ public class Animation {
     // animation previous state
     private State previousState = State.STATIC;
     private boolean initialState;
+
+    // The easing we will use.
+    // TODO: Make this configurable
+    private final Easing easing = Easing.EXPO_IN_OUT;
 
     public Animation(int time, boolean initialState) {
         this.time = time;
@@ -35,11 +39,11 @@ public class Animation {
      */
     public double getAnimationFactor() {
         if (currentState.equals(State.EXPANDING)) {
-            return MathHelper.clamp((System.currentTimeMillis() - currentStateStart) / (double) time, 0, 1);
+            return easing.ease(MathHelper.clamp((System.currentTimeMillis() - currentStateStart) / (double) time, 0, 1));
         }
 
         if (currentState.equals(State.RETRACTING)) {
-            return MathHelper.clamp(((long) time - (System.currentTimeMillis() - currentStateStart)) / (double) time, 0, 1);
+            return easing.ease(MathHelper.clamp(((long) time - (System.currentTimeMillis() - currentStateStart)) / (double) time, 0, 1));
         }
 
         return previousState.equals(State.EXPANDING) ? 1 : 0;

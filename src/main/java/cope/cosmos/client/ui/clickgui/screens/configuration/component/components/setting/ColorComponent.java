@@ -33,7 +33,7 @@ public class ColorComponent extends SettingComponent<Color> {
     private final ColorHSB selectedColor;
 
     // animation
-    private final Animation animation = new Animation(200, false);
+    private final Animation animation = new Animation(300, false);
     private int hoverAnimation;
 
     public ColorComponent(ModuleComponent moduleComponent, Setting<Color> setting) {

@@ -81,7 +81,7 @@ public class Module extends Feature implements Wrapper {
 		key = Keyboard.KEY_NONE;
 
 		// animation
-		animation = new Animation(200, enabled);
+		animation = new Animation(300, enabled);
 	}
 
 	public Module(String name, Category category, String description, Supplier<String> info) {
