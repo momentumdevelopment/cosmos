@@ -52,7 +52,7 @@ public class PotionManager extends Manager {
             ((IEntityLivingBase) mc.player).getActivePotionMap().put(event.getPotionEffect().getPotion(), event.getPotionEffect());
 
             // anim
-            activePotions.put(event.getPotionEffect(), new Animation(200, false));
+            activePotions.put(event.getPotionEffect(), new Animation(300, false));
             activePotions.get(event.getPotionEffect()).setState(true);
 
             // apply effect

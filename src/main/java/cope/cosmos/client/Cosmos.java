@@ -115,7 +115,7 @@ public class Cosmos {
         managers.add(eventManager);
         progressManager.step("[Cosmos] Registering Events");
 
-        // load the commands (Mojang's Brigadier )
+        // load the commands (Mojang's Brigadier)
         commandDispatcher = new CommandDispatcher<>();
         commandManager = new CommandManager();
         managers.add(commandManager);

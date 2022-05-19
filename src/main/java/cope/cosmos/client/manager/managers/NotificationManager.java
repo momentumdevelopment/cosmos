@@ -84,7 +84,7 @@ public class NotificationManager extends Manager {
         private final Type type;
 
         // animation
-        private final Animation animation = new Animation(200, false);
+        private final Animation animation = new Animation(300, false);
         private final Timer timer = new Timer();
 
         public Notification(String message, Type type) {
