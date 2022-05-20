@@ -141,16 +141,18 @@ public class Cosmos {
         managers.add(altManager);
         progressManager.step("[Cosmos] Setting up Alt Manager");
 
+        // sets up the preset manager
+        presetManager = new PresetManager();
+        managers.add(presetManager);
+        progressManager.step("[Cosmos] Setting up Config Manager");
+
         // sets up the GUI
         clickGUI = new ClickGUIScreen();
         tabGUI = new TabGUI();
         progressManager.step("[Cosmos] Setting up GUI's");
 
-        // sets up the preset manager
         // This needs to be after the GUIs are loaded, as it needs to be able to set the GUI frames' positions and sizes
-        presetManager = new PresetManager();
-        managers.add(presetManager);
-        progressManager.step("[Cosmos] Setting up Config Manager");
+        presetManager.loadGUI();
 
         // sets up the reload manager
         reloadManager = new ReloadManager();

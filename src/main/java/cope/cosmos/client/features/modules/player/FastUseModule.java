@@ -85,6 +85,10 @@ public class FastUseModule extends Module {
         // make sure we're holding a valid item
         if (isHoldingValidItem()) {
 
+            // remove exp pickup cooldown
+            mc.player.xpCooldown = 0;
+
+            // fixes ghost items from being spawned
             if (ghostFix.getValue()) {
 
                 // spam the use packet, NCP flags for CPacketPlayerTryUseItemOnBlock too fast so we can use CPacketPlayerTryUseItem instead
