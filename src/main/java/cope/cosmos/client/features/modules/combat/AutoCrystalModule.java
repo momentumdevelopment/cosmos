@@ -2,155 +2,84 @@ package cope.cosmos.client.features.modules.combat;
 
 import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
-import cope.cosmos.asm.mixins.accessor.INetworkManager;
-import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
-import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
-import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
-import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
 import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.combat.AutoCrystalModule.Violation.ViolationTag;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.holder.Rotation;
-import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.RaytraceUtil;
-import io.netty.util.internal.ConcurrentSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.*;
-import net.minecraft.network.play.client.*;
+import net.minecraft.item.ItemEndCrystal;
+import net.minecraft.network.play.client.CPacketAnimation;
+import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
+import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
-import net.minecraft.network.play.server.SPacketDestroyEntities;
-import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.network.play.server.SPacketSpawnObject;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.input.Keyboard;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author linustouchtips
- * @since 02/26/2022
+ * @since 05/08/2022
  */
 public class AutoCrystalModule extends Module {
     public static AutoCrystalModule INSTANCE;
 
     public AutoCrystalModule() {
-        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> {
-
-            // **************************** TESTING INFO ****************************
-
-            // response time total
-            float responseTime = MathUtil.roundFloat(ping / 10F, 1);
-
-            // INFO
-            return String.valueOf(responseTime);
-        });
-
+        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals");
         INSTANCE = this;
     }
 
     // **************************** anticheat settings ****************************
 
-    public static Setting<Boolean> multiTask = new Setting<>("MultiTask", true)
-            .setDescription("Explodes only if we are not preforming any actions with our hands");
-
     public static Setting<Boolean> swing = new Setting<>("Swing", true)
             .setDescription("Swings the players hand when attacking and placing");
 
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
-            .setDescription("Timing for processes");
-
-    // TODO: fix rotation resetting
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
-            .setDescription("Rotate to the current process");
-
-    public static Setting<Double> maxAngle = new Setting<>("MaxAngle", 1.0, 180.0, 180.0, 0)
-            .setDescription("Max angle to rotate in one tick")
-            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
-
-    public static Setting<Double> visibilityTicks = new Setting<>("VisibilityTicks", 0.0, 0.0, 5.0, 0)
-            .setDescription("How many ticks you need to stay looking at the current process before continuing")
-            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
-
-    public static Setting<Double> switchDelay = new Setting<>("SwitchDelay", 0.0, 0.0, 10.0, 1)
-            .setDescription("Delay to pause after switching items");
+    public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
+            .setDescription("Interaction with blocks and crystals");
 
     // **************************** general settings ****************************
-
-    // TODO: Is this even necessary?? Kinda, but is it worth the trouble of implementing??
-    // public static Setting<Trace> trace = new Setting<>("Trace", Trace.FULL)
-    //        .setDescription("How to checks visibility");
 
     public static Setting<Raytrace> raytrace = new Setting<>("Raytrace", Raytrace.LENIENT)
             .setDescription("Verifies placements through walls");
 
-    public static Setting<Merge> merge = new Setting<>("Merge", Merge.CONFIRM)
-            .setDescription("How to synchronize crystal explosions");
-
     public static Setting<Double> offset = new Setting<>("Offset", 1.0, 2.0, 2.0, 0)
             .setDescription("Crystal placement offset");
-
-    // **************************** damage settings ****************************
-
-    // TODO: adjust preferred damages when on MINIMAX
-    public static Setting<Heuristic> heuristic = new Setting<>("Heuristic", Heuristic.MAX)
-            .setDescription("Heuristic for damage algorithm");
-
-    public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
-            .setDescription("Minimum damage done by an action");
-
-    public static Setting<Double> lethalMultiplier = new Setting<>("LethalMultiplier", 0.0, 1.0, 5.0, 1)
-            .setDescription("Will override damages if we can kill the target in this many crystals");
-
-    public static Setting<Double> armorScale = new Setting<>("ArmorScale", 0.0, 10.0, 100.0, 0)
-            .setDescription("Will override damages if we can break the target's armor");
-
-    public static Setting<AtomicInteger> force = new Setting<>("Force", new AtomicInteger(Keyboard.KEY_NONE))
-            .setDescription("Will force damage override when key is pressed");
-
-    // TODO: make AntiSuicide function well, should never kill/pop you
-    public static Setting<Safety> safety = new Setting<>("Safety", Safety.BALANCE)
-            .setDescription("When to consider actions safe");
-
-    public static Setting<Double> safetyBalance = new Setting<>("SafetyBalance", 0.1, 1.1, 3.0, 1)
-            .setDescription("Multiplier for actions considered unsafe")
-            .setVisible(() -> safety.getValue().equals(Safety.BALANCE));
-
-    public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
-            .setDescription("Ignores terrain that can be exploded when calculating damages");
 
     // **************************** explode settings ****************************
 
@@ -161,10 +90,6 @@ public class AutoCrystalModule extends Module {
             .setDescription("Speed to explode crystals")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Double> explodeFactor = new Setting<>("ExplodeFactor", 0.0, 3.0, 5.0, 0)
-            .setDescription("Factor to explode crystals")
-            .setVisible(() -> explode.getValue() && timing.getValue().equals(Timing.VANILLA));
-
     public static Setting<Double> explodeRange = new Setting<>("ExplodeRange", 1.0, 5.0, 6.0, 1)
             .setDescription("Range to explode crystals")
             .setVisible(() -> explode.getValue());
@@ -173,18 +98,21 @@ public class AutoCrystalModule extends Module {
             .setDescription("Range to explode crystals through walls")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Double> maxCrystals = new Setting<>("MaxCrystals", 1.0, 1.0, 5.0, 0)
-            .setDescription("Maximum number of crystals allowed to be exploded in one tick")
-            .setVisible(() -> explode.getValue());
-
     public static Setting<Double> ticksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 5.0, 0)
             .setDescription("Minimum age of the crystal")
             .setVisible(() -> explode.getValue());
 
-    // TODO: fix (FIX), WTF IS THIS FUCKING SETTING (need super secret bypass)
     public static Setting<Boolean> inhibit = new Setting<>("Inhibit", false)
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
+
+    // **************************** damage settings ****************************
+
+    public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
+            .setDescription("Minimum damage done by an action");
+
+    public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
+            .setDescription("Ignores terrain that can be exploded when calculating damages");
 
     // **************************** place settings ****************************
 
@@ -195,8 +123,8 @@ public class AutoCrystalModule extends Module {
             .setDescription("Placement calculations for current version")
             .setVisible(() -> place.getValue());
 
-    public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
-            .setDescription("Limits the direction of placements")
+    public static Setting<Sequential> sequential = new Setting<>("Sequential", Sequential.NORMAL)
+            .setDescription("Timing for placements")
             .setVisible(() -> place.getValue());
 
     public static Setting<Double> placeSpeed = new Setting<>("PlaceSpeed", 1.0, 20.0, 20.0, 1)
@@ -210,18 +138,6 @@ public class AutoCrystalModule extends Module {
     public static Setting<Double> placeWallRange = new Setting<>("PlaceWallRange", 1.0, 3.5, 6.0, 1)
             .setDescription("Range to place crystals through walls")
             .setVisible(() -> place.getValue());
-
-    // lel
-    public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 0.0, 3.0, 1)
-            .setDescription("Sacrifices consistency for long term maintenance")
-            .setVisible(() -> inhibit.getValue());
-
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
-            .setDescription("How to switch to crystals")
-            .setVisible(() -> place.getValue());
-
-    public static Setting<Boolean> await = new Setting<>("Await", false)
-            .setDescription("Waits for processes to clear before continuing");
 
     // **************************** target settings ****************************
 
@@ -249,169 +165,74 @@ public class AutoCrystalModule extends Module {
             .setDescription("Renders the damage of the current process")
             .setVisible(() -> render.getValue());
 
-    // **************************** ping ****************************
-
-    // process ping
-    private static long ping;
-
-    // **************************** rotation ****************************
+    // **************************** rotations ****************************
 
     // vector that holds the angle we are looking at
     private Vec3d angleVector;
-
-    // rotation angels
-    private Rotation rotateAngles;
-
-    // rotate wait
-    private boolean rotationLimit;
-
-    // **************************** ticks ****************************
-
-    // ticks to pause the process
-    private int waitTicks;
-
-    // ticks to wait after switching
-    private int switchTicks = 10;
 
     // **************************** explode ****************************
 
     // explode timers
     private final Timer explodeTimer = new Timer();
-    private final Timer switchTimer = new Timer();
-    private final Timer factorTimer = new Timer();
+    private boolean explodeClearance;
 
-    // last attack time
-    private final Timer lastAttackTimer = new Timer();
-
-    // list of explode-able crystals
-    private Set<EntityEnderCrystal> explodeCrystals = new ConcurrentSet<>();
+    // explosion
+    private DamageHolder<EntityEnderCrystal> explosion;
 
     // map of all attacked crystals
     private final Map<Integer, Long> attackedCrystals = new ConcurrentHashMap<>();
-
-    // inhibit
-    private final Timer inhibitTimer = new Timer();
-    private final Set<Integer> inhibitCrystals = new ConcurrentSet<>();
-
-    // yield
-    private final Timer yieldTimer = new Timer();
-    private final Timer yieldProtectedTimer = new Timer();
-
-    // how many crystals we've attacked this tick
-    private int attackedCrystalCount;
 
     // **************************** place ****************************
 
     // place timers
     private final Timer placeTimer = new Timer();
+    private boolean placeClearance;
+
+    // packet times
+    public int sequentialTicks;
 
     // placement
     private DamageHolder<BlockPos> placement;
 
     // map of all placed crystals
     private final Map<BlockPos, Long> placedCrystals = new ConcurrentHashMap<>();
-    private final List<BlockPos> manualCrystals = new ArrayList<>();
-
-    // **************************** violation ****************************
-
-    // violation list
-    private final List<Violation<?>> violations = new ArrayList<>();
-
-    // **************************** pops ****************************
-
-    // map of all latest totem pop times
-    private final Map<Entity, Long> latestTotemPops = new ConcurrentHashMap<>();
 
     @Override
     public void onThread() {
 
-        // find new crystals and placements
+        // search ideal processes
+        explosion = getCrystal();
         placement = getPlacement();
-        explodeCrystals = getCrystals();
 
-        // find violations
-        if (mc.getConnection() != null) {
+        // we found crystals to explode
+        if (explosion != null) {
 
-            // response time projection
-            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
+            // check if we have passed the explode time
+            if (explodeClearance || explodeSpeed.getValue() >= explodeSpeed.getMax() || explodeTimer.passedTime((long) ((explodeSpeed.getMax() - explodeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
 
-            // check our placed crystals
-            placedCrystals.forEach((position, time) -> {
+                // face the crystal
+                angleVector = explosion.getDamageSource().getPositionVector();
 
-                // check if we passed predicted response time
-                if (System.currentTimeMillis() - time >= responseTime) {
+                // attack crystal
+                if (attackCrystal(explosion.getDamageSource())) {
 
-                    // add violation
-                    violations.add(new Violation<>(position, ViolationTag.PLACE_NO_SPAWN));
-
-                    // remove from placed crystals
-                    placedCrystals.remove(position);
+                    // add it to our list of attacked crystals
+                    attackedCrystals.put(explosion.getDamageSource().getEntityId(), System.currentTimeMillis());
                 }
-            });
 
-            // check our attacked crystals
-            attackedCrystals.forEach((crystal, time) -> {
-
-                // check if we passed predicted response time
-                if (System.currentTimeMillis() - time >= responseTime) {
-
-                    // add violation
-                    violations.add(new Violation<>(crystal, ViolationTag.ATTACK_NO_EXPLODE));
-
-                    // remove from attacked crystals
-                    attackedCrystals.remove(crystal);
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onUpdate() {
-
-        // we haven't attacked any crystals this tick
-        attackedCrystalCount = 0;
-
-        // we are cleared to process our calculations
-        if (waitTicks <= 0) {
-
-            // update ticks before switching
-            switchTicks++;
-
-            // we are no longer waiting
-            rotationLimit = true;
-
-            // we found crystals to explode
-            if (explodeCrystals != null && !explodeCrystals.isEmpty()) {
-
-                // passed explode delay??
-                if ((explodeSpeed.getValue() >= explodeSpeed.getMax() || explodeTimer.passedTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS)) && switchTimer.passedTime(switchDelay.getValue().longValue() * 25L, Format.MILLISECONDS)) {
-
-                    // attack crystals
-                    explodeCrystals.forEach(crystal -> {
-
-                        // face the crystal
-                        angleVector = crystal.getPositionVector();
-
-                        if (attackCrystal(crystal.getEntityId())) {
-
-                            // update attack count
-                            attackedCrystalCount++;
-
-                            // add it to our list of attacked crystals
-                            attackedCrystals.put(crystal.getEntityId(), System.currentTimeMillis());
-                        }
-                    });
-
-                    // we attempted to attack these crystals
-                    explodeTimer.resetTime();
-                }
+                explodeClearance = false;
+                explodeTimer.resetTime();
             }
+        }
+
+        // place on the client thread
+        if (!sequential.getValue().equals(Sequential.NONE)) {
 
             // we found a placement
             if (placement != null) {
 
-                // passed place delay??
-                if (placeSpeed.getValue() >= placeSpeed.getMax() || placeTimer.passedTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS)) {
+                // cleared to place
+                if (sequentialTicks >= sequential.getValue().getTicks()) {
 
                     // face the placement
                     angleVector = new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5);
@@ -423,60 +244,39 @@ public class AutoCrystalModule extends Module {
                         placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
                     }
 
-                    // we attempted to place on these positions
-                    placeTimer.resetTime();
+                    // do not concurrently place on thread
+                    sequentialTicks = 0;
                 }
             }
         }
-
-        else {
-            waitTicks--;
-        }
     }
 
     @Override
-    public void onEnable() {
-        super.onEnable();
+    public void onUpdate() {
 
-        // no yield on enable
-        yieldTimer.resetTime();
-        // yieldProtectedTimer.resetTime();
-    }
+        // update ticks
+        sequentialTicks++;
 
-    @Override
-    public void onDisable() {
-        super.onDisable();
+        // we found a placement
+        if (placement != null) {
 
-        // clear lists and reset variables
-        angleVector = null;
-        rotateAngles = null;
-        placement = null;
-        rotationLimit = false;
-        waitTicks = 0;
-        attackedCrystalCount = 0;
-        violations.clear();
-        attackedCrystals.clear();
-        placedCrystals.clear();
-        manualCrystals.clear();
+            // check if we have passed the place time
+            if (placeClearance || placeSpeed.getValue() >= placeSpeed.getMax() || placeTimer.passedTime((long) ((placeSpeed.getMax() - placeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
 
-        // make sure it exists
-        if (explodeCrystals != null) {
-            explodeCrystals.clear();
+                // face the placement
+                angleVector = new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5);
+
+                // place the crystal
+                if (placeCrystal(placement.getDamageSource())) {
+
+                    // add it to our list of attacked crystals
+                    placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
+                }
+
+                placeClearance = false;
+                placeTimer.resetTime();
+            }
         }
-
-        else {
-            explodeCrystals = new ConcurrentSet<>();
-        }
-
-        inhibitCrystals.clear();
-        explodeTimer.resetTime();
-        switchTimer.resetTime();
-        factorTimer.resetTime();
-        lastAttackTimer.resetTime();
-        placeTimer.resetTime();
-        inhibitTimer.resetTime();
-        yieldTimer.resetTime();
-        yieldProtectedTimer.resetTime();
     }
 
     @Override
@@ -486,7 +286,7 @@ public class AutoCrystalModule extends Module {
         if (render.getValue() && placement != null) {
 
             // only render if we are holding crystals
-            if (InventoryUtil.isHolding(Items.END_CRYSTAL) || autoSwitch.getValue().equals(Switch.PACKET)) {
+            if (InventoryUtil.isHolding(Items.END_CRYSTAL)) {
 
                 // draw a box at the position
                 RenderUtil.drawBox(new RenderBuilder()
@@ -556,17 +356,26 @@ public class AutoCrystalModule extends Module {
         }
     }
 
+
     @Override
-    public boolean isActive() {
-        return isEnabled() && (explodeCrystals != null && !explodeCrystals.isEmpty()) || placement != null;
+    public void onDisable() {
+        super.onDisable();
+
+        // clear lists and reset variables
+        explosion = null;
+        placement = null;
+        angleVector = null;
+        explodeClearance = false;
+        placeClearance = false;
+        sequentialTicks = 0;
+        explodeTimer.resetTime();
+        placeTimer.resetTime();
+        attackedCrystals.clear();
+        placedCrystals.clear();
     }
 
-    @SuppressWarnings("all")
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
-
-        // list of entities in world
-        // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
 
         // packet for crystal spawns
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {
@@ -574,422 +383,39 @@ public class AutoCrystalModule extends Module {
             // position of the spawned crystal
             BlockPos spawnPosition = new BlockPos(((SPacketSpawnObject) event.getPacket()).getX(), ((SPacketSpawnObject) event.getPacket()).getY(), ((SPacketSpawnObject) event.getPacket()).getZ());
 
-            // **************************** TIMING ****************************
-
             // since it's been confirmed that the crystal spawned, we can move on to our next process
-            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+            if (placedCrystals.containsKey(spawnPosition.down())) {
 
-                // clear
-                if (await.getValue()) {
-
-                    // clear our timers
-                    explodeTimer.setTime((explodeSpeed.getMax().longValue() - explodeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
-                    factorTimer.setTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 50, Format.MILLISECONDS);
-                }
-            }
-
-            else if (timing.getValue().equals(Timing.VANILLA)) {
-
-                // explode when crystal spawns
-                if (explode.getValue()) {
-
-                    /*
-                     * Map of valid crystals
-                     * Sorted by natural ordering of keys
-                     * Using tree map allows time complexity of O(logN)
-                     */
-                    TreeMap<Double, DamageHolder<Integer>> validCrystals = new TreeMap<>();
-
-                    // yield protected; update timer
-                    {
-                        if (isProtectedByYield()) {
-                            yieldProtectedTimer.resetTime();
-                        }
-
-                        // unprotected yield, don't clear timer
-                        else {
-                            yieldProtectedTimer.setTime(1000, Format.SECONDS);
-                        }
-                    }
-
-                    // make sure the crystal isn't already set to be exploded; inhibit
-                    if ((attackedCrystals.containsKey(((SPacketSpawnObject) event.getPacket()).getEntityID()) || inhibitCrystals.contains(((SPacketSpawnObject) event.getPacket()).getEntityID()))) {
-                        if (inhibit.getValue() && !yieldProtectedTimer.passedTime(yieldProtection.getValue().longValue() * 500L, Format.MILLISECONDS)) {
-                            return;
-                        }
-                    }
-
-                    // there is no chance this crystal has existed for a tick in the world
-                    if (ticksExisted.getValue() > 0) {
-                        return;
-                    }
-
-                    // distance to crystal
-                    double crystalRange = BlockUtil.getDistanceToCenter(mc.player, spawnPosition);
-
-                    // check if the entity is in range
-                    if (crystalRange > explodeRange.getValue()) {
-                        return;
-                    }
-
-                    // check if crystal is behind a wall
-                    boolean isNotVisible = RaytraceUtil.isNotVisible(spawnPosition, 0.5);
-
-                    // check if entity can be attacked through wall
-                    if (isNotVisible) {
-                        if (crystalRange > explodeWallRange.getValue()) {
-                            return;
-                        }
-                    }
-
-                    // local damage done by the crystal
-                    double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(spawnPosition).addVector(0.5, 0, 0.5), blockDestruction.getValue());
-
-                    // search all targets
-                    for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
-
-                        // next entity in the world
-                        // Entity entity = entityList.next();
-
-                        // make sure the entity actually exists
-                        if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
-                            continue;
-                        }
-
-                        // ignore crystals, they can't be targets
-                        if (entity instanceof EntityEnderCrystal) {
-                            continue;
-                        }
-
-                        // don't attack our riding entity
-                        if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
-                            continue;
-                        }
-
-                        // verify that the entity is a target
-                        if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
-                            continue;
-                        }
-
-                        // distance to target
-                        double entityRange = mc.player.getDistance(entity);
-
-                        // check if the target is in range
-                        if (entityRange > targetRange.getValue()) {
-                            continue;
-                        }
-
-                        // target damage done by the crystal
-                        double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(spawnPosition).addVector(0.5, 0, 0.5), blockDestruction.getValue());
-
-                        // check the safety of the crystal
-                        double crystalSafety = getSafetyIndex(targetDamage, localDamage);
-
-                        // crystal is very unsafe (latter case will kill us)
-                        if (crystalSafety < 0) {
-                            continue;
-                        }
-
-                        // add to map
-                        validCrystals.put(targetDamage, new DamageHolder<>(((SPacketSpawnObject) event.getPacket()).getEntityID(), entity, targetDamage, localDamage));
-                    }
-
-                    // make sure we actually have some valid crystals
-                    if (!validCrystals.isEmpty()) {
-
-                        // best crystal in the map, in a TreeMap this is the last entry
-                        DamageHolder<Integer> bestCrystal = validCrystals.lastEntry().getValue();
-
-                        // no crystal under 1.5 damage is worth exploding
-                        if (bestCrystal.getTargetDamage() > 1.5) {
-
-                            // check lethality of crystal
-                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
-
-                            // check if the damage meets our requirements
-                            if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
-
-                                // passed factor delay??
-                                if (explodeFactor.getValue() <= explodeFactor.getMin() || factorTimer.passedTime((explodeFactor.getMax().longValue() - explodeFactor.getValue().longValue()) * 100, Format.MILLISECONDS)) {
-
-                                    // face the crystal
-                                    angleVector = new Vec3d(spawnPosition).addVector(0.5, 0, 0.5);
-
-                                    if (attackCrystal(bestCrystal.getDamageSource())) {
-
-                                        // update attack count
-                                        attackedCrystalCount++;
-
-                                        // add it to our list of attacked crystals
-                                        attackedCrystals.put(bestCrystal.getDamageSource(), System.currentTimeMillis());
-                                    }
-
-                                    // we attempted to attack on this crystal
-                                    factorTimer.resetTime();
-                                }
-                            }
-                        }
-                    }
-                }
+                // clear timer
+                explodeClearance = true;
+                // getCosmos().getChatManager().sendClientMessage("explodeCleared");
             }
         }
 
-        // packet that confirms entity removal
-        if (event.getPacket() instanceof SPacketDestroyEntities) {
-
-            // check entities
-            for (int entityId : ((SPacketDestroyEntities) event.getPacket()).getEntityIDs()) {
-                if (attackedCrystals.containsKey(entityId)) {
-
-                    // since it's been confirmed that the crystal exploded, we can move on to our next process
-                    if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-
-                        // clear
-                        if (await.getValue()) {
-
-                            // clear our timer
-                            placeTimer.setTime((placeSpeed.getMax().longValue() - placeSpeed.getValue().longValue()) * 50, Format.MILLISECONDS);
-                        }
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        // packet for crystal explosions
+        // packet that confirms crystal removal
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
 
-            // schedule to main mc thread
-            mc.addScheduledTask(() -> {
+            // check all crystals in the world that we've attacked
+            attackedCrystals.forEach((id, time) -> {
 
-                // check all entities in the world
-                for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
+                // crystal entity
+                Entity crystal = mc.world.getEntityByID(id);
 
-                    // next entity in the world
-                    // Entity crystal = entityList.next();
+                // make sure the crystal exists in the world
+                if (crystal != null && !crystal.isDead) {
 
-                    // make sure the entity actually exists
-                    if (crystal == null || crystal.isDead) {
-                        continue;
-                    }
-
-                    // make sure it's a crystal
-                    if (!(crystal instanceof EntityEnderCrystal)) {
-                        continue;
-                    }
-
-                    // entity distance from sound
+                    // crystal distance from sound
                     double soundRange = crystal.getDistance(((SPacketSoundEffect) event.getPacket()).getX() + 0.5, ((SPacketSoundEffect) event.getPacket()).getY() + 0.5, ((SPacketSoundEffect) event.getPacket()).getZ() + 0.5);
 
-                    // make sure the crystal is in range from the sound to be destroyed
-                    if (soundRange > 6) {
-                        continue;
-                    }
+                    // make sure the crystal is within the explosion radius
+                    if (soundRange < 0.5) {
 
-                    // going to be exploded anyway, so don't attempt explosion
-                    inhibitCrystals.add(crystal.getEntityId());
-
-                    // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
-                    if (merge.getValue().equals(Merge.CONFIRM)) {
-                        crystal.setDead();
-                        mc.world.removeEntityDangerously(crystal);
+                        // clear timer
+                        placeClearance = true;
+                        // getCosmos().getChatManager().sendClientMessage("placeCleared");
                     }
                 }
             });
-        }
-
-        if (event.getPacket() instanceof SPacketExplosion) {
-
-            // check all entities in the world
-            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
-
-                // next entity in the world
-                // Entity crystal = entityList.next();
-
-                // make sure the entity actually exists
-                if (crystal == null || crystal.isDead) {
-                    continue;
-                }
-
-                // make sure it's a crystal
-                if (!(crystal instanceof EntityEnderCrystal)) {
-                    continue;
-                }
-
-                // entity distance from explosion
-                double explosionRange = crystal.getDistance(((SPacketExplosion) event.getPacket()).getX(), ((SPacketExplosion) event.getPacket()).getY(), ((SPacketExplosion) event.getPacket()).getZ());
-
-                // make sure the crystal is in range from the explosion to be destroyed
-                if (explosionRange > ((SPacketExplosion) event.getPacket()).getStrength()) {
-                    continue;
-                }
-
-                // going to be exploded anyway, so don't attempt explosion
-                inhibitCrystals.add(crystal.getEntityId());
-
-                // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
-                if (merge.getValue().equals(Merge.CONFIRM)) {
-                    crystal.setDead();
-                    mc.world.removeEntityDangerously(crystal);
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onPacketSend(PacketEvent.PacketSendEvent event) {
-
-        // packet for placing on a block
-        if (event.getPacket() instanceof CPacketPlayerTryUseItemOnBlock) {
-
-            // check if we are placing a crystal
-            if (mc.player.getHeldItem(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getHand()).getItem() instanceof ItemEndCrystal) {
-
-                // add to list of manually placed crystals
-                manualCrystals.add(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos());
-            }
-        }
-
-        // packet for attacking
-        if (event.getPacket() instanceof CPacketUseEntity) {
-
-            // entity being attacked
-            Entity attackEntity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
-
-            // make sure the attacked entity exists in the world
-            if (attackEntity != null && !attackEntity.isDead) {
-
-                // check if the attacked entity was a crystal
-                if (attackEntity instanceof EntityEnderCrystal) {
-
-                    // mark last attack time
-                    lastAttackTimer.resetTime();
-                }
-            }
-        }
-
-        // packet for switching held item
-        if (event.getPacket() instanceof CPacketHeldItemChange) {
-
-            // reset our switch time, we just switched
-            switchTimer.resetTime();
-
-            // pause switch if item we switched to is not a crystal
-            if (!(mc.player.inventory.getStackInSlot(((CPacketHeldItemChange) event.getPacket()).getSlotId()).getItem() instanceof ItemEndCrystal)) {
-                switchTicks = 0;
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onRightClickItem(RightClickItemEvent event) {
-
-        // don't switch, we are eating
-        if (event.getItemStack().getItem() instanceof ItemFood || event.getItemStack().getItem() instanceof ItemPotion) {
-            switchTicks = 0;
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRotationUpdate(RotationUpdateEvent event) {
-
-        // rotate
-        if (!rotate.getValue().equals(Rotate.NONE)) {
-
-            // manipulate packets if process are trying to complete
-            if (isActive()) {
-
-                // rotate only if we have an interaction vector to rotate to
-                if (angleVector != null) {
-
-                    // cancel the existing rotations, we'll send our own
-                    event.setCanceled(true);
-
-                    // yaw and pitch to the angle vector
-                    rotateAngles = AngleUtil.calculateAngles(angleVector);
-
-                    // server rotation
-                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
-
-                    // difference between current and upcoming rotation
-                    float angleDifference = Math.abs(MathHelper.wrapDegrees(serverRotation.getYaw()) - rotateAngles.getYaw());
-
-                    // rotating too fast
-                    if (angleDifference > maxAngle.getValue()) {
-
-                        // yaw wrapped
-                        float yaw = MathHelper.wrapDegrees(serverRotation.getYaw()); // use server rotation, we won't be updating client rotations
-
-                        // add max angle
-                        if (rotateAngles.getYaw() >= MathHelper.wrapDegrees(serverRotation.getYaw())) {
-                            yaw += maxAngle.getValue();
-                        }
-
-                        else {
-                            yaw -= maxAngle.getValue();
-                        }
-
-                        // update rotation
-                        rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
-
-                        // update player rotations
-                        if (rotate.getValue().equals(Rotate.CLIENT)) {
-                            mc.player.rotationYaw = rotateAngles.getYaw();
-                            mc.player.rotationYawHead = rotateAngles.getYaw();
-                            mc.player.rotationPitch = rotateAngles.getPitch();
-                        }
-
-                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
-
-                        // we need to wait till we reach our rotation
-                        waitTicks++;
-                    }
-
-                    else {
-
-                        // we need to face this crystal for this many ticks
-                        if (rotationLimit) {
-                            waitTicks = visibilityTicks.getValue().intValue();
-                            rotationLimit = false;
-                        }
-
-                        // update player rotations
-                        if (rotate.getValue().equals(Rotate.CLIENT)) {
-                            mc.player.rotationYaw = rotateAngles.getYaw();
-                            mc.player.rotationYawHead = rotateAngles.getYaw();
-                            mc.player.rotationPitch = rotateAngles.getPitch();
-                        }
-
-                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                        getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
-                    }
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onRenderRotations(RenderRotationsEvent event) {
-
-        // packet rotations
-        if (rotate.getValue().equals(Rotate.PACKET)) {
-
-            // render angles if rotating
-            if (isActive()) {
-
-                // rotate only if we have an interaction vector to rotate to
-                if (rotateAngles != null) {
-
-                    // cancel the model rendering for rotations, we'll set it to our values
-                    event.setCanceled(true);
-
-                    // set our model angles; visual
-                    event.setYaw(rotateAngles.getYaw());
-                    event.setPitch(rotateAngles.getPitch());
-                }
-            }
         }
     }
 
@@ -1004,23 +430,6 @@ public class AutoCrystalModule extends Module {
 
             // remove position from our placed crystals list
             placedCrystals.remove(spawnPosition.down());
-
-            // manually placed crystals should ideally be placed with intention and should therefore always be exploded
-            // check if this is a crystal that we manually placed
-            if (manualCrystals.contains(spawnPosition.down())) {
-
-                if (explodeCrystals != null) {
-
-                    // add to explode crystals, we should explode crystals we manually placed
-                    explodeCrystals.add((EntityEnderCrystal) event.getEntity());
-                }
-
-                // remove from manual placements
-                manualCrystals.remove(spawnPosition.down());
-            }
-
-            // remove all violations associated with this position
-            violations.removeIf(violation -> violation.getViolator().equals(spawnPosition.down()));
         }
     }
 
@@ -1030,161 +439,306 @@ public class AutoCrystalModule extends Module {
         // crystal being removed from world
         if (event.getEntity() instanceof EntityEnderCrystal) {
 
-            // check if we've attacked this crystal
-            if (attackedCrystals.containsKey(event.getEntity().getEntityId())) {
-
-                // reset inhibit state
-                inhibitTimer.resetTime();
-
-                // remove crystal from our attacked crystals list
-                ping = System.currentTimeMillis() - attackedCrystals.remove(event.getEntity().getEntityId());
-
-                // no longer inhibited
-                inhibitCrystals.remove(event.getEntity().getEntityId());
-            }
-
-            // remove all violations associated with this crystal
-            violations.removeIf(violation -> violation.getViolator().equals(event.getEntity()));
+            // remove crystal from our attacked crystals list
+            attackedCrystals.remove(event.getEntity().getEntityId());
         }
     }
 
-    @SubscribeEvent
-    public void onTotemPop(TotemPopEvent event) {
+    /**
+     * Finds the best explode-able crystal for this tick
+     * @return The best explode-able crystal
+     */
+    public DamageHolder<EntityEnderCrystal> getCrystal() {
 
-        // update latest totem pop time for entity
-        latestTotemPops.put(event.getPopEntity(), System.currentTimeMillis());
+        /*
+         * Map of valid crystals
+         * Sorted by natural ordering of keys
+         * Using tree map allows time complexity of O(logN)
+         */
+        TreeMap<Double, DamageHolder<EntityEnderCrystal>> validCrystals = new TreeMap<>();
+
+        // iterate all crystals in the world
+        for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
+
+            // make sure the entity actually exists
+            if (crystal == null || crystal.isDead) {
+                continue;
+            }
+
+            // check if the entity is a crystal
+            if (!(crystal instanceof EntityEnderCrystal)) {
+                continue;
+            }
+
+            // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
+            if (crystal.ticksExisted < ticksExisted.getValue() && !inhibit.getValue()) {
+                continue;
+            }
+
+            // make sure the crystal isn't already being exploded, prevent unnecessary attacks
+            if (attackedCrystals.containsKey(crystal.getEntityId()) && inhibit.getValue()) {
+                continue;
+            }
+
+            // distance to crystal
+            double crystalRange = mc.player.getDistance(crystal);
+
+            // check if the entity is in range
+            if (crystalRange > explodeRange.getValue()) {
+                continue;
+            }
+
+            // check if crystal is behind a wall
+            boolean isNotVisible = RaytraceUtil.isNotVisible(crystal, crystal.getEyeHeight());
+
+            // check if entity can be attacked through wall
+            if (isNotVisible) {
+                if (crystalRange > explodeWallRange.getValue()) {
+                    continue;
+                }
+            }
+
+            // local damage done by the crystal
+            double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
+
+            // search all targets
+            for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                // make sure the entity actually exists
+                if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                    continue;
+                }
+
+                // ignore crystals, they can't be targets
+                if (entity instanceof EntityEnderCrystal) {
+                    continue;
+                }
+
+                // don't attack our riding entity
+                if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
+                    continue;
+                }
+
+                // verify that the entity is a target
+                if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                    continue;
+                }
+
+                // distance to target
+                double entityRange = mc.player.getDistance(entity);
+
+                // check if the target is in range
+                if (entityRange > targetRange.getValue()) {
+                    continue;
+                }
+
+                // target damage done by the crystal
+                double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, crystal.getPositionVector(), blockDestruction.getValue());
+
+                // add to map
+                validCrystals.put(targetDamage, new DamageHolder<>((EntityEnderCrystal) crystal, entity, targetDamage, localDamage));
+            }
+        }
+
+        // make sure we actually have some valid crystals
+        if (!validCrystals.isEmpty()) {
+
+            // best crystal in the map, in a TreeMap this is the last entry
+            DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
+
+            // no crystal under 1.5 damage is worth exploding
+            if (bestCrystal.getTargetDamage() > 1.5) {
+
+                // check if the damage meets our requirements
+                if (bestCrystal.getTargetDamage() > damage.getValue()) {
+
+                    // mark it as our current explosion
+                    return bestCrystal;
+                }
+            }
+        }
+
+        // we were not able to find any explode-able crystals
+        return null;
     }
 
     /**
-     * Attempts an attack on a specified crystal
-     * @param in The crystal to attack
-     * @return If we were able to attack the crystal
+     * Gets the best placement for this tick
+     * @return The best placement for this tick
+     */
+    public DamageHolder<BlockPos> getPlacement() {
+
+        // find place-able positions
+        if (place.getValue()) {
+
+            /*
+             * Map of valid placements
+             * Sorted by natural ordering of keys
+             * Using tree map allows time complexity of O(logN)
+             */
+            TreeMap<Double, DamageHolder<BlockPos>> validPlacements = new TreeMap<>();
+
+            // check all positions in range
+            for (BlockPos position : BlockUtil.getBlocksInArea(mc.player, new AxisAlignedBB(
+                    -placeRange.getValue(), -placeRange.getValue(), -placeRange.getValue(), placeRange.getValue(), placeRange.getValue(), placeRange.getValue() // area in range of blocks
+            ))) {
+
+                // check if a crystal can be placed at this position
+                if (!canPlaceCrystal(position)) {
+                    continue;
+                }
+
+                // distance to placement
+                double placementRange = BlockUtil.getDistanceToCenter(mc.player, position);
+
+                // check if the placement is within range
+                if (placementRange > placeRange.getValue() || placementRange > explodeRange.getValue()) {
+                    continue;
+                }
+
+                // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
+                boolean isNotVisible = RaytraceUtil.isNotVisible(position, raytrace.getValue().getOffset());
+
+                // check if placement can be placed on through a wall
+                if (isNotVisible) {
+                    if (placementRange > placeWallRange.getValue() || placementRange > explodeWallRange.getValue()) {
+                        continue;
+                    }
+                }
+
+                // local damage done by the placement
+                double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+
+                // search all targets
+                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                    // make sure the entity actually exists
+                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                        continue;
+                    }
+
+                    // ignore crystals, they can't be targets
+                    if (entity instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // don't attack our riding entity
+                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
+                        continue;
+                    }
+
+                    // verify that the entity is a target
+                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                        continue;
+                    }
+
+                    // distance to target
+                    double entityRange = mc.player.getDistance(entity);
+
+                    // check if the target is in range
+                    if (entityRange > targetRange.getValue()) {
+                        continue;
+                    }
+
+                    // target damage done by the placement
+                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+
+                    // add to map
+                    validPlacements.put(targetDamage, new DamageHolder<>(position, entity, targetDamage, localDamage));
+                }
+            }
+
+            // make sure we actually have some valid placements
+            if (!validPlacements.isEmpty()) {
+
+                // best placement in the map, in a TreeMap this is the last entry
+                DamageHolder<BlockPos> bestPlacement = validPlacements.lastEntry().getValue();
+
+                // no placement under 1.5 damage is worth placing
+                if (bestPlacement.getTargetDamage() > 1.5) {
+
+                    // check if the damage meets our requirements
+                    if (bestPlacement.getTargetDamage() > damage.getValue()) {
+
+                        // mark it as our current placement
+                        return bestPlacement;
+                    }
+                }
+            }
+        }
+
+        // we were not able to find any placements
+        return null;
+    }
+
+    /**
+     * Attacks a given endcrystal
+     * @param in The given endcrystal
+     * @return Whether or not the attack was successful
+     */
+    public boolean attackCrystal(EntityEnderCrystal in) {
+        return attackCrystal(in.getEntityId());
+    }
+
+    /**
+     * Attacks a given endcrystal
+     * @param in The entity id of the given endcrystal
+     * @return Whether or not the attack was successful
      */
     @SuppressWarnings("all")
     public boolean attackCrystal(int in) {
 
-        // if we've already attack enough crystals this tick, we won't allow another attack
-        if (attackedCrystalCount >= maxCrystals.getValue()) {
-            return false;
-        }
+        // player sprint state
+        boolean sprintState = false;
 
-        // check whether a crystal is in the offhand
-        boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
+        // on strict anticheat configs, you need to stop sprinting before attacking (keeping consistent with vanilla behavior)
+        if (interact.getValue().equals(Interact.STRICT)) {
 
-        // must be not doing anything
-        if ((PlayerUtil.isEating() && !offhand) && !multiTask.getValue()) {
-            return false;
-        }
-
-        // attack packet
-        CPacketUseEntity packet = new CPacketUseEntity();
-        ((ICPacketUseEntity) packet).setID(in);
-        ((ICPacketUseEntity) packet).setAction(Action.ATTACK);
-
-        if (mc.getConnection() != null) {
-
-            // player sprint state
-            boolean sprintState = mc.player.isSprinting();
+            // update sprint state
+            sprintState = mc.player.isSprinting() || ((IEntityPlayerSP) mc.player).getServerSprintState();
 
             // stop sprinting when attacking an entity
             if (sprintState) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
             }
-
-            // response time projection
-            long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
-
-            // limit attacks
-            if (inhibit.getValue()) {
-
-                // check inhibiting factor
-                if (inhibitTimer.passedTime(responseTime, Format.MILLISECONDS)) {
-
-                    // attack the crystal
-                    mc.getConnection().getNetworkManager().sendPacket(packet);
-                }
-
-                 else {
-                    ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(packet, null);
-                }
-            }
-
-            else {
-
-                // attack the crystal
-                mc.getConnection().getNetworkManager().sendPacket(packet);
-            }
-
-            // swing the player's arm
-            if (swing.getValue()) {
-                mc.player.swingArm(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
-            }
-
-            // swing with packets
-            else {
-                mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
-            }
-
-            // remove the crystal after we break -> i.e. instantly
-            if (merge.getValue().equals(Merge.FAST)) {
-                mc.world.removeEntityFromWorld(in);
-            }
-
-            mc.player.resetCooldown();
-
-            // reset sprint state
-            if (sprintState) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-            }
-
-            // we did attempt an attack, we can verify if it actually did anything later
-            return true;
         }
 
-        return false;
+        // packet for attacking the given endcrystal
+        CPacketUseEntity attackPacket = new CPacketUseEntity();
+        ((ICPacketUseEntity) attackPacket).setAction(Action.ATTACK);
+        ((ICPacketUseEntity) attackPacket).setID(in);
+
+        // send attack packet
+        mc.player.connection.sendPacket(attackPacket);
+
+        // check whether a crystal is in the offhand
+        boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
+
+        // swing the player's arm
+        if (swing.getValue()) {
+            mc.player.swingArm(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+        }
+
+        // swing with packets
+        else {
+            mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
+        }
+
+        // reset sprint state
+        if (sprintState) {
+            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+        }
+
+        // attack was successful
+        return true;
     }
 
     /**
-     * Places a crystal at a specified position
-     * @param in The position to place on
-     * @return If we were able to place the crystal
+     * Places a crystal at a given position
+     * @param in The position to place the crystal on
+     * @return Whether or not the placement was successful
      */
     public boolean placeCrystal(BlockPos in) {
-
-        // make sure the position actually exits
-        if (in == null) {
-            return false;
-        }
-
-        // pause switch to account for eating
-        if (PlayerUtil.isEating()) {
-            switchTicks = 0;
-        }
-
-        // if we are not holding a crystal
-        if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
-
-            if (autoSwitch.getValue().equals(Switch.NORMAL)) {
-
-                // wait for switch pause
-                if (switchTicks <= 10) {
-                    return false;
-                }
-            }
-
-            // switch to a crystal
-            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
-
-            // sync item
-            if (autoSwitch.getValue().equals(Switch.PACKET)) {
-                ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
-            }
-        }
-
-        // make sure we are holding a crystal
-        if (!InventoryUtil.isHolding(Items.END_CRYSTAL) && !autoSwitch.getValue().equals(Switch.PACKET)) {
-            return false;
-        }
 
         // directions of placement
         double facingX = 0;
@@ -1296,485 +850,8 @@ public class AutoCrystalModule extends Module {
             mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
         }
 
-        // switch back after placing, should only switch serverside
-        if (autoSwitch.getValue().equals(Switch.PACKET)) {
-            getCosmos().getInventoryManager().switchToSlot(mc.player.inventory.currentItem, Switch.PACKET);
-        }
-
-        // we did attempt to place
+        // placement was successful
         return true;
-    }
-
-    /**
-     * Finds all explode-able crystals for this tick
-     * @return A list of explode-able crystals
-     */
-    public Set<EntityEnderCrystal> getCrystals() {
-
-        // find explode-able crystals
-        if (explode.getValue()) {
-
-            /*
-             * Map of valid crystals
-             * Sorted by natural ordering of keys
-             * Using tree map allows time complexity of O(logN)
-             */
-            TreeMap<Double, DamageHolder<EntityEnderCrystal>> validCrystals = new TreeMap<>();
-
-            // list of entities in the world
-            // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
-
-            // check all entities in the world
-            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
-
-                // next entity in the world
-                // Entity crystal = entityList.next();
-
-                // make sure the entity actually exists
-                if (crystal == null || crystal.isDead) {
-                    continue;
-                }
-
-                // check if the entity is a crystal
-                if (!(crystal instanceof EntityEnderCrystal)) {
-                    continue;
-                }
-
-                // yield protected; update timer
-                {
-                    if (isProtectedByYield()) {
-                        yieldProtectedTimer.resetTime();
-                    }
-
-                    // unprotected yield, don't clear timer
-                    else {
-                        yieldProtectedTimer.setTime(1000, Format.SECONDS);
-                    }
-                }
-
-                // make sure the crystal isn't already set to be exploded; inhibit
-                if ((attackedCrystals.containsKey(crystal.getEntityId()) || inhibitCrystals.contains(crystal.getEntityId()))) {
-                    if (inhibit.getValue() && !yieldProtectedTimer.passedTime(yieldProtection.getValue().longValue() * 500L, Format.MILLISECONDS)) {
-                        continue;
-                    }
-                }
-
-                // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
-                if (crystal.ticksExisted < ticksExisted.getValue()) {
-                    continue;
-                }
-
-                // distance to crystal
-                double crystalRange = mc.player.getDistance(crystal);
-
-                // check if the entity is in range
-                if (crystalRange > explodeRange.getValue()) {
-                    continue;
-                }
-
-                // check if crystal is behind a wall
-                boolean isNotVisible = RaytraceUtil.isNotVisible(crystal, crystal.getEyeHeight());
-
-                // check if entity can be attacked through wall
-                if (isNotVisible) {
-                    if (crystalRange > explodeWallRange.getValue()) {
-                        continue;
-                    }
-                }
-
-                // local damage done by the crystal
-                double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
-
-                // search all targets
-                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
-
-                    // next entity in the world
-                    // Entity entity = entityList.next();
-
-                    // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
-                        continue;
-                    }
-
-                    // ignore crystals, they can't be targets
-                    if (entity instanceof EntityEnderCrystal) {
-                        continue;
-                    }
-
-                    // don't attack our riding entity
-                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
-                        continue;
-                    }
-
-                    // verify that the entity is a target
-                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
-                        continue;
-                    }
-
-                    // distance to target
-                    double entityRange = mc.player.getDistance(entity);
-
-                    // check if the target is in range
-                    if (entityRange > targetRange.getValue()) {
-                        continue;
-                    }
-
-                    // target damage done by the crystal
-                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, crystal.getPositionVector(), blockDestruction.getValue());
-
-                    // check the safety of the crystal
-                    double crystalSafety = getSafetyIndex(targetDamage, localDamage);
-
-                    // crystal is very unsafe (latter case will kill us)
-                    if (crystalSafety < 0) {
-                        continue;
-                    }
-
-                    // add to map
-                    validCrystals.put(targetDamage, new DamageHolder<>((EntityEnderCrystal) crystal, entity, targetDamage, localDamage));
-                }
-            }
-
-            // make sure we actually have some valid crystals
-            if (!validCrystals.isEmpty()) {
-
-                // filtered list of crystals sorted by best crystals
-                Set<EntityEnderCrystal> bestCrystals = new ConcurrentSet<>();
-
-                // find best crystal
-                if (maxCrystals.getValue() <= 1) {
-
-                    // best crystal in the map, in a TreeMap this is the last entry
-                    DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
-
-                    // no crystal under 1.5 damage is worth exploding
-                    if (bestCrystal.getTargetDamage() > 1.5) {
-
-                        // check lethality of crystal
-                        boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
-
-                        // check if the damage meets our requirements
-                        if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
-
-                            // add it to our list
-                            bestCrystals.add(bestCrystal.getDamageSource());
-                        }
-                    }
-                }
-
-                // find best crystals
-                else {
-                    for (int i = 0; i < maxCrystals.getValue(); i++) {
-
-                        // best crystal in the map, in a TreeMap this is the last entry
-                        DamageHolder<EntityEnderCrystal> bestCrystal = validCrystals.lastEntry().getValue();
-
-                        // no crystal under 1.5 damage is worth exploding
-                        if (bestCrystal.getTargetDamage() > 1.5) {
-
-                            // check lethality of crystal
-                            boolean lethal = getLethality(bestCrystal.getTarget(), bestCrystal.getTargetDamage()) || willFailTotem(bestCrystal.getTarget(), bestCrystal.getTargetDamage());
-
-                            // check if the damage meets our requirements
-                            if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
-
-                                // add it to our list
-                                bestCrystals.add(bestCrystal.getDamageSource());
-                                validCrystals.remove(bestCrystal.getTargetDamage(), bestCrystal);
-                            }
-                        }
-                    }
-                }
-
-                // update list of best crystals
-                return bestCrystals;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the best placement for this tick
-     * @return The best placement for this tick
-     */
-    public DamageHolder<BlockPos> getPlacement() {
-
-        // find place-able positions
-        if (place.getValue()) {
-
-            /*
-             * Map of valid placements
-             * Sorted by natural ordering of keys
-             * Using tree map allows time complexity of O(logN)
-             */
-            TreeMap<Double, DamageHolder<BlockPos>> validPlacements = new TreeMap<>();
-
-            // list of entities in the world
-            // Iterator<Entity> entityList = mc.world.loadedEntityList.iterator();
-
-            // check all positions in range
-            for (BlockPos position : BlockUtil.getBlocksInArea(mc.player, new AxisAlignedBB(
-                    -placeRange.getValue(), -placeRange.getValue(), -placeRange.getValue(), placeRange.getValue(), placeRange.getValue(), placeRange.getValue() // area in range of blocks
-            ))) {
-
-                // check if a crystal can be placed at this position
-                if (!canPlaceCrystal(position)) {
-                    continue;
-                }
-
-                // violations associated with this placement
-                long violationCount = violations
-                        .stream()
-                        .filter(violation -> violation.getViolator().equals(position))
-                        .count();
-
-                // distance to placement
-                double placementRange = BlockUtil.getDistanceToCenter(mc.player, position);
-
-                // check if the placement is within range
-                if (placementRange > placeRange.getValue() || placementRange > explodeRange.getValue()) {
-                    continue;
-                }
-
-                // if the block above the one we can't see through is air, then NCP won't flag us for placing at normal ranges
-                boolean isNotVisible = RaytraceUtil.isNotVisible(position, raytrace.getValue().getOffset());
-
-                // check if placement can be placed on through a wall
-                if (isNotVisible) {
-                    if (placementRange > placeWallRange.getValue() || placementRange > explodeWallRange.getValue()) {
-                        continue;
-                    }
-                }
-
-                // local damage done by the placement
-                double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
-
-                // search all targets
-                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
-
-                    // next entity in the world
-                    // Entity entity = entityList.next();
-
-                    // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
-                        continue;
-                    }
-
-                    // ignore crystals, they can't be targets
-                    if (entity instanceof EntityEnderCrystal) {
-                        continue;
-                    }
-
-                    // don't attack our riding entity
-                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
-                        continue;
-                    }
-
-                    // verify that the entity is a target
-                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
-                        continue;
-                    }
-
-                    // distance to target
-                    double entityRange = mc.player.getDistance(entity);
-
-                    // check if the target is in range
-                    if (entityRange > targetRange.getValue()) {
-                        continue;
-                    }
-
-                    // target damage done by the placement
-                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
-
-                    // check the safety of the placement
-                    double placementSafety = getSafetyIndex(targetDamage, localDamage);
-
-                    // placement is very unsafe (latter case will kill us)
-                    if (placementSafety < 0) {
-                        continue;
-                    }
-
-                    // add to map
-                    validPlacements.put(targetDamage, new DamageHolder<>(position, entity, targetDamage, localDamage));
-                }
-            }
-
-            // make sure we actually have some valid placements
-            if (!validPlacements.isEmpty()) {
-
-                // best placement in the map, in a TreeMap this is the last entry
-                DamageHolder<BlockPos> bestPlacement = validPlacements.lastEntry().getValue();
-
-                // no placement under 1.5 damage is worth placing
-                if (bestPlacement.getTargetDamage() > 1.5) {
-
-                    // check lethality of placement
-                    boolean lethal = getLethality(bestPlacement.getTarget(), bestPlacement.getTargetDamage()) || willFailTotem(bestPlacement.getTarget(), bestPlacement.getTargetDamage());
-
-                    // check if the damage meets our requirements
-                    if (lethal || bestPlacement.getTargetDamage() > damage.getValue()) {
-
-                        // mark it as our current placement
-                        return bestPlacement;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the safety index for a specific process
-     * @param targetDamage The damage done to the target
-     * @param localDamage The damage done to the local player
-     * @return The safety index for the specified process
-     */
-    public double getSafetyIndex(double targetDamage, double localDamage) {
-
-        // local health
-        double health = PlayerUtil.getHealth();
-
-        // incredibly unsafe
-        if (health - localDamage <= 1) {
-            return -9999;
-        }
-
-        // unsafe -> if local damage is greater than target damage
-        else if (safety.getValue().equals(Safety.STABLE)) {
-
-            // target damage and local damage scaled
-            double efficiency = targetDamage - localDamage;
-
-            // too small, we'll be fine :>
-            if (efficiency < 0 && Math.abs(efficiency) < 0.25) {
-                efficiency = 0;
-            }
-
-            return efficiency;
-        }
-
-        // unsafe -> if local damage is greater than balanced target damage
-        else if (safety.getValue().equals(Safety.BALANCE)) {
-
-            // balanced target damage
-            double balance = targetDamage * safetyBalance.getValue();
-
-            // balanced damage, should be proportionate to local damage
-            return balance - localDamage;
-        }
-
-        // safe
-        return 1;
-    }
-
-    /**
-     * Gets the lethality of a given process
-     * @param target The target
-     * @param targetDamage The damage done to the target
-     * @return The lethality of a given process
-     */
-    public boolean getLethality(Entity target, double targetDamage) {
-
-        // target health
-        double health = EnemyUtil.getHealth(target);
-
-        // can kill the target very quickly
-        if (health <= 2) {
-            return true;
-        }
-
-        if (target instanceof EntityPlayer) {
-
-            // total durability
-            float lowestDurability = 100;
-
-            // check durability for each piece of armor
-            for (ItemStack armor : target.getArmorInventoryList()) {
-                if (armor != null && !armor.getItem().equals(Items.AIR)) {
-
-                    // durability of the armor
-                    float armorDurability = (armor.getMaxDamage() - armor.getItemDamage() / (float) armor.getMaxDamage()) * 100;
-
-                    // find lowest durability
-                    if (armorDurability < lowestDurability) {
-                        lowestDurability = armorDurability;
-                    }
-                }
-            }
-
-            // check if armor damage is significant
-            if (lowestDurability <= armorScale.getValue()) {
-                return true;
-            }
-        }
-
-        // force key
-        int forceKey = force.getValue().get();
-
-        // check if we are holding force key
-        if (Keyboard.isKeyDown(forceKey)) {
-            return true;
-        }
-
-        // lethality of the current process
-        double lethality = targetDamage * lethalMultiplier.getValue();
-
-        // will kill the target
-        return health - lethality <= 0.5;
-    }
-
-    /**
-     * Checks whether or not a target will totem fail
-     * @param entity The target to check
-     * @return Whether or not a target will totem fail
-     */
-    public boolean willFailTotem(Entity entity, double targetDamage) {
-
-        // target health
-        double health = EnemyUtil.getHealth(entity);
-
-        // greater than pop health
-        if (health > 11) {
-            return false;
-        }
-
-        // will not kill the target
-        if (health > targetDamage) {
-            return false;
-        }
-
-        // time elapsed since last totem pop
-        long timeSinceLastPop = System.currentTimeMillis() - latestTotemPops.getOrDefault(entity, 0L);
-
-        // check if time is within constraint
-        return timeSinceLastPop <= 500L;
-    }
-
-    /**
-     * Checks the yield protection
-     * @return Whether the yield protection exists
-     */
-    public boolean isProtectedByYield() {
-
-        if (mc.getConnection() != null) {
-
-            // time for yield to pass threshold
-            long yieldTime = Math.min(Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime(), 30) / 5L, 8);
-
-            // passed yield time???
-            if (yieldTimer.passedTime(yieldTime, Format.SECONDS)) {
-
-                // reset time
-                yieldTimer.resetTime();
-
-                // check last attack time
-                return !lastAttackTimer.passedTime(1, Format.SECONDS);
-            }
-        }
-
-        return yieldProtection.getValue() <= yieldProtection.getMin();
     }
 
     /**
@@ -1830,37 +907,6 @@ public class AutoCrystalModule extends Module {
         return unsafeEntities <= 0;
     }
 
-    public enum Timing {
-
-        /**
-         * Times the explosions based on when the crystal spawns
-         */
-        SEQUENTIAL,
-
-        /**
-         * Times the explosions based on when the last process has completed
-         */
-        VANILLA
-    }
-
-    public enum Safety {
-
-        /**
-         * Considers an action unsafe if it does more damage than the multiplier
-         */
-        BALANCE,
-
-        /**
-         * Considers an action unsafe if it does more damage to the player than an enemy
-         */
-        STABLE,
-
-        /**
-         * Actions are always considered safe
-         */
-        NONE
-    }
-
     public enum Placements {
 
         /**
@@ -1892,35 +938,37 @@ public class AutoCrystalModule extends Module {
         NONE
     }
 
-    public enum Heuristic {
+    public enum Sequential {
 
         /**
-         * Heuristic: Best position is the one that deals the most damage
+         * One tick, quick adjust (balances out the timing)
          */
-        MAX,
+        NORMAL(1),
 
         /**
-         * Heuristic: Best position is the one that maximizes damage to the target and minimizes damage to the player
+         * Two ticks, slower adjust (balances out the timing)
          */
-        MINIMAX,
-    }
-
-    public enum Merge {
+        STRICT(2),
 
         /**
-         * Syncs crystals when they are attacked
+         * No timing adjustment
          */
-        FAST,
+        NONE(1000);
+
+        // ticks
+        private final int ticks;
+
+        Sequential(int ticks) {
+            this.ticks = ticks;
+        }
 
         /**
-         * Syncs crystals based on explosion packets
+         * Gets the ticks
+         * @return The ticks
          */
-        CONFIRM,
-
-        /**
-         * Does not sync crystal explosions
-         */
-        NONE
+        public double getTicks() {
+            return ticks;
+        }
     }
 
     public enum Raytrace {
@@ -1956,21 +1004,6 @@ public class AutoCrystalModule extends Module {
         }
     }
 
-    // TODO: implement without reducing FPS significantly; angle resolver
-    @SuppressWarnings("unused")
-    public enum Trace {
-
-        /**
-         * Traces to all points
-         */
-        FULL,
-
-        /**
-         * Traces to center
-         */
-        LAZY
-    }
-
     public enum Text {
 
         /**
@@ -1992,73 +1025,6 @@ public class AutoCrystalModule extends Module {
          * No damage render
          */
         NONE
-    }
-
-    /**
-     * Violation System:
-     *
-     * Violations added to failed processes, certain violations have more weightage than others
-     * After certain number of violations, the process skips
-     *
-     * Violation Tags -> crystal.no_explode, place.no_spawn
-     */
-    public static class Violation<T> {
-
-        // violator
-        private final T violator;
-
-        // tag
-        private final ViolationTag violationTag;
-
-        public Violation(T violator, ViolationTag violationTag) {
-            this.violator = violator;
-            this.violationTag = violationTag;
-        }
-
-        /**
-         * Gets the damage source that has caused this violation
-         * @return The damage source that has caused this violation
-         */
-        public T getViolator() {
-            return violator;
-        }
-
-        /**
-         * Gets the violation tag associated with this violation
-         * @return The violation tag associated with this violation
-         */
-        public ViolationTag getViolationTag() {
-            return violationTag;
-        }
-
-        public enum ViolationTag {
-
-            /**
-             * We have attempted to place here, but the crystal never spawned
-             */
-            PLACE_NO_SPAWN("place.no_spawn"),
-
-            /**
-             * We have attacked a crystal, but the crystal never exploded
-             */
-            ATTACK_NO_EXPLODE("crystal.no_explode");
-
-            // identity tag
-            private final String identifier;
-
-            ViolationTag(String identifier) {
-                this.identifier = identifier;
-            }
-
-            /**
-             * Gets the identifier used to identify this violation tag
-             * @return The identifier used to identify this violation tag
-             */
-            @Override
-            public String toString() {
-                return identifier;
-            }
-        }
     }
 
     public static class DamageHolder<T> {
