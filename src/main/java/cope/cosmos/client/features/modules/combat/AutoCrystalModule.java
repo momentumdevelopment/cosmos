@@ -49,6 +49,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,13 +107,9 @@ public class AutoCrystalModule extends Module {
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
 
-    // **************************** damage settings ****************************
-
-    public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
-            .setDescription("Minimum damage done by an action");
-
-    public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
-            .setDescription("Ignores terrain that can be exploded when calculating damages");
+    public static Setting<Boolean> await = new Setting<>("Await", false)
+            .setDescription("Prevents excessive attacks on crystals")
+            .setVisible(() -> explode.getValue());
 
     // **************************** place settings ****************************
 
@@ -138,6 +135,14 @@ public class AutoCrystalModule extends Module {
     public static Setting<Double> placeWallRange = new Setting<>("PlaceWallRange", 1.0, 3.5, 6.0, 1)
             .setDescription("Range to place crystals through walls")
             .setVisible(() -> place.getValue());
+
+    // **************************** damage settings ****************************
+
+    public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
+            .setDescription("Minimum damage done by an action");
+
+    public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
+            .setDescription("Ignores terrain that can be exploded when calculating damages");
 
     // **************************** target settings ****************************
 
@@ -181,6 +186,7 @@ public class AutoCrystalModule extends Module {
 
     // map of all attacked crystals
     private final Map<Integer, Long> attackedCrystals = new ConcurrentHashMap<>();
+    private final List<EntityEnderCrystal> inhibitCrystals = new ArrayList<>();
 
     // **************************** place ****************************
 
@@ -189,7 +195,7 @@ public class AutoCrystalModule extends Module {
     private boolean placeClearance;
 
     // packet times
-    public int sequentialTicks;
+    private int sequentialTicks;
 
     // placement
     private DamageHolder<BlockPos> placement;
@@ -356,6 +362,14 @@ public class AutoCrystalModule extends Module {
         }
     }
 
+    @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // cleared on enable
+        explodeClearance = false;
+        placeClearance = false;
+    }
 
     @Override
     public void onDisable() {
@@ -365,12 +379,11 @@ public class AutoCrystalModule extends Module {
         explosion = null;
         placement = null;
         angleVector = null;
-        explodeClearance = false;
-        placeClearance = false;
         sequentialTicks = 0;
         explodeTimer.resetTime();
         placeTimer.resetTime();
         attackedCrystals.clear();
+        inhibitCrystals.clear();
         placedCrystals.clear();
     }
 
@@ -387,49 +400,45 @@ public class AutoCrystalModule extends Module {
             if (placedCrystals.containsKey(spawnPosition.down())) {
 
                 // clear timer
-                explodeClearance = true;
-                // getCosmos().getChatManager().sendClientMessage("explodeCleared");
+                if (await.getValue()) {
+                    explodeClearance = true;
+                }
+
+                // no longer needs to be accounted for
+                placedCrystals.remove(spawnPosition.down());
             }
         }
 
         // packet that confirms crystal removal
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
 
-            // check all crystals in the world that we've attacked
-            attackedCrystals.forEach((id, time) -> {
+            // attempt to clear crystals
+            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
 
-                // crystal entity
-                Entity crystal = mc.world.getEntityByID(id);
-
-                // make sure the crystal exists in the world
-                if (crystal != null && !crystal.isDead) {
-
-                    // crystal distance from sound
-                    double soundRange = crystal.getDistance(((SPacketSoundEffect) event.getPacket()).getX() + 0.5, ((SPacketSoundEffect) event.getPacket()).getY() + 0.5, ((SPacketSoundEffect) event.getPacket()).getZ() + 0.5);
-
-                    // make sure the crystal is within the explosion radius
-                    if (soundRange < 0.5) {
-
-                        // clear timer
-                        placeClearance = true;
-                        // getCosmos().getChatManager().sendClientMessage("placeCleared");
-                    }
+                // make sure the entity actually exists
+                if (crystal == null || crystal.isDead) {
+                    continue;
                 }
-            });
-        }
-    }
 
-    @SubscribeEvent
-    public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
+                // make sure it's a crystal
+                if (!(crystal instanceof EntityEnderCrystal)) {
+                    continue;
+                }
 
-        // crystal being added to the world
-        if (event.getEntity() instanceof EntityEnderCrystal) {
+                // entity distance from sound
+                double soundRange = crystal.getDistance(((SPacketSoundEffect) event.getPacket()).getX() + 0.5, ((SPacketSoundEffect) event.getPacket()).getY() + 0.5, ((SPacketSoundEffect) event.getPacket()).getZ() + 0.5);
 
-            // positions of spawn
-            BlockPos spawnPosition = event.getEntity().getPosition();
+                // make sure the crystal is in range from the sound to be destroyed
+                if (soundRange > 6) {
+                    continue;
+                }
 
-            // remove position from our placed crystals list
-            placedCrystals.remove(spawnPosition.down());
+                // don't attack these crystals they're going to be exploded anyways
+                inhibitCrystals.add((EntityEnderCrystal) crystal);
+
+                // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
+                crystal.setDead();
+            }
         }
     }
 
@@ -476,7 +485,7 @@ public class AutoCrystalModule extends Module {
             }
 
             // make sure the crystal isn't already being exploded, prevent unnecessary attacks
-            if (attackedCrystals.containsKey(crystal.getEntityId()) && inhibit.getValue()) {
+            if (inhibitCrystals.contains(crystal) && inhibit.getValue()) {
                 continue;
             }
 
