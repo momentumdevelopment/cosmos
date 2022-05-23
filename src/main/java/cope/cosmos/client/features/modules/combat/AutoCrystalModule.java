@@ -9,6 +9,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.util.combat.DamageUtil;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.entity.EntityUtil;
@@ -18,6 +19,7 @@ import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -68,6 +70,9 @@ public class AutoCrystalModule extends Module {
 
     // **************************** anticheat settings ****************************
 
+    public static Setting<Boolean> multiTask = new Setting<>("MultiTask", true)
+            .setDescription("Explodes only if we are not preforming any actions with our hands");
+
     public static Setting<Boolean> swing = new Setting<>("Swing", true)
             .setDescription("Swings the players hand when attacking and placing");
 
@@ -103,12 +108,12 @@ public class AutoCrystalModule extends Module {
             .setDescription("Minimum age of the crystal")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Boolean> inhibit = new Setting<>("Inhibit", false)
+    public static Setting<Boolean> inhibit = new Setting<>("Inhibit", true)
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Boolean> await = new Setting<>("Await", false)
-            .setDescription("Prevents excessive attacks on crystals")
+    public static Setting<Boolean> await = new Setting<>("Await", true)
+            .setDescription("Runs delays on packet time")
             .setVisible(() -> explode.getValue());
 
     // **************************** place settings ****************************
@@ -140,6 +145,13 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
             .setDescription("Minimum damage done by an action");
+
+    public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE)
+            .setDescription("Safety check for processes");
+
+    public static Setting<Double> safetyBalance = new Setting<>("SafetyBalance", 0.1, 1.1, 3.0, 1)
+            .setDescription("Multiplier for actions considered unsafe")
+            .setVisible(() -> safety.getValue().equals(Safety.BALANCE));
 
     public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
             .setDescription("Ignores terrain that can be exploded when calculating damages");
@@ -508,7 +520,7 @@ public class AutoCrystalModule extends Module {
             }
 
             // local damage done by the crystal
-            double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
+            double localDamage = ExplosionUtil.getDamageFromExplosion(mc.player, crystal.getPositionVector(), blockDestruction.getValue());
 
             // search all targets
             for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
@@ -543,6 +555,50 @@ public class AutoCrystalModule extends Module {
 
                 // target damage done by the crystal
                 double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, crystal.getPositionVector(), blockDestruction.getValue());
+
+                // check the safety of the crystal
+                double safetyIndex = 1;
+
+                // check if we can take damage
+                if (DamageUtil.canTakeDamage()) {
+
+                    // local health
+                    double health = PlayerUtil.getHealth();
+
+                    // incredibly unsafe
+                    if (localDamage + 0.5 > health) {
+                        safetyIndex = -9999;
+                    }
+
+                    // unsafe -> if local damage is greater than target damage
+                    else if (safety.getValue().equals(Safety.STABLE)) {
+
+                        // target damage and local damage scaled
+                        double efficiency = targetDamage - localDamage;
+
+                        // too small, we'll be fine :>
+                        if (efficiency < 0 && Math.abs(efficiency) < 0.25) {
+                            efficiency = 0;
+                        }
+
+                        safetyIndex = efficiency;
+                    }
+
+                    // unsafe -> if local damage is greater than balanced target damage
+                    else if (safety.getValue().equals(Safety.BALANCE)) {
+
+                        // balanced target damage
+                        double balance = targetDamage * safetyBalance.getValue();
+
+                        // balanced damage, should be proportionate to local damage
+                        safetyIndex = balance - localDamage;
+                    }
+                }
+
+                // crystal is unsafe
+                if (safetyIndex < 0) {
+                    continue;
+                }
 
                 // add to map
                 validCrystals.put(targetDamage, new DamageHolder<>((EntityEnderCrystal) crystal, entity, targetDamage, localDamage));
@@ -616,7 +672,7 @@ public class AutoCrystalModule extends Module {
                 }
 
                 // local damage done by the placement
-                double localDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+                double localDamage = ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
 
                 // search all targets
                 for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
@@ -651,6 +707,50 @@ public class AutoCrystalModule extends Module {
 
                     // target damage done by the placement
                     double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(position).addVector(0.5, 1, 0.5), blockDestruction.getValue());
+
+                    // check the safety of the placement
+                    double safetyIndex = 1;
+
+                    // check if we can take damage
+                    if (DamageUtil.canTakeDamage()) {
+
+                        // local health
+                        double health = PlayerUtil.getHealth();
+
+                        // incredibly unsafe
+                        if (localDamage + 0.5 > health) {
+                            safetyIndex = -9999;
+                        }
+
+                        // unsafe -> if local damage is greater than target damage
+                        else if (safety.getValue().equals(Safety.STABLE)) {
+
+                            // target damage and local damage scaled
+                            double efficiency = targetDamage - localDamage;
+
+                            // too small, we'll be fine :>
+                            if (efficiency < 0 && Math.abs(efficiency) < 0.25) {
+                                efficiency = 0;
+                            }
+
+                            safetyIndex = efficiency;
+                        }
+
+                        // unsafe -> if local damage is greater than balanced target damage
+                        else if (safety.getValue().equals(Safety.BALANCE)) {
+
+                            // balanced target damage
+                            double balance = targetDamage * safetyBalance.getValue();
+
+                            // balanced damage, should be proportionate to local damage
+                            safetyIndex = balance - localDamage;
+                        }
+                    }
+
+                    // placement is unsafe
+                    if (safetyIndex < 0) {
+                        continue;
+                    }
 
                     // add to map
                     validPlacements.put(targetDamage, new DamageHolder<>(position, entity, targetDamage, localDamage));
@@ -697,6 +797,14 @@ public class AutoCrystalModule extends Module {
     @SuppressWarnings("all")
     public boolean attackCrystal(int in) {
 
+        // check whether a crystal is in the offhand
+        boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
+
+        // must be not doing anything
+        if ((PlayerUtil.isEating() && !offhand) && multiTask.getValue()) {
+            return false;
+        }
+
         // player sprint state
         boolean sprintState = false;
 
@@ -719,9 +827,6 @@ public class AutoCrystalModule extends Module {
 
         // send attack packet
         mc.player.connection.sendPacket(attackPacket);
-
-        // check whether a crystal is in the offhand
-        boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
 
         // swing the player's arm
         if (swing.getValue()) {
@@ -943,6 +1048,24 @@ public class AutoCrystalModule extends Module {
 
         /**
          * Places on the top block face, no facing directions
+         */
+        NONE
+    }
+
+    public enum Safety {
+
+        /**
+         * Considers an action unsafe if it does more damage than the multiplier
+         */
+        BALANCE,
+
+        /**
+         * Considers an action unsafe if it does more damage to the player than an enemy
+         */
+        STABLE,
+
+        /**
+         * Actions are always considered safe
          */
         NONE
     }

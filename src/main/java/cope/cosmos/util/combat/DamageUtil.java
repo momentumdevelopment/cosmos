@@ -26,4 +26,12 @@ public class DamageUtil implements Wrapper {
         int diff = world.getDifficulty().getDifficultyId();
         return damage * ((float) diff * 0.5f);
     }
+
+    /**
+     * Checks whether the player can actually take damage
+     * @return Whether the player can actually take damage
+     */
+    public static boolean canTakeDamage() {
+        return !mc.player.capabilities.isCreativeMode;
+    }
 }
