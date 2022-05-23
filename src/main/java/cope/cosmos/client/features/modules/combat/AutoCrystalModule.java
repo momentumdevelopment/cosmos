@@ -4,7 +4,9 @@ import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -14,6 +16,7 @@ import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.holder.Rotation;
+import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
@@ -48,6 +51,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -78,6 +82,10 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
             .setDescription("Interaction with blocks and crystals");
+
+    // TODO: fix rotation priority
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+            .setDescription("Rotate to the current process");
 
     // **************************** general settings ****************************
 
@@ -186,6 +194,9 @@ public class AutoCrystalModule extends Module {
 
     // vector that holds the angle we are looking at
     private Vec3d angleVector;
+
+    // rotation angels
+    private Rotation rotateAngles;
 
     // **************************** explode ****************************
 
@@ -399,6 +410,11 @@ public class AutoCrystalModule extends Module {
         placedCrystals.clear();
     }
 
+    @Override
+    public boolean isActive() {
+        return isEnabled() && (explosion != null || placement != null);
+    }
+
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
@@ -462,6 +478,62 @@ public class AutoCrystalModule extends Module {
 
             // remove crystal from our attacked crystals list
             attackedCrystals.remove(event.getEntity().getEntityId());
+            inhibitCrystals.remove((EntityEnderCrystal) event.getEntity());
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onRotationUpdate(RotationUpdateEvent event) {
+
+        // rotate
+        if (!rotate.getValue().equals(Rotate.NONE)) {
+
+            // manipulate packets if process are trying to complete
+            if (isActive()) {
+
+                // rotate only if we have an interaction vector to rotate to
+                if (angleVector != null) {
+
+                    // cancel the existing rotations, we'll send our own
+                    event.setCanceled(true);
+
+                    // yaw and pitch to the angle vector
+                    rotateAngles = AngleUtil.calculateAngles(angleVector);
+
+                    // update player rotations
+                    if (rotate.getValue().equals(Rotate.CLIENT)) {
+                        mc.player.rotationYaw = rotateAngles.getYaw();
+                        mc.player.rotationYawHead = rotateAngles.getYaw();
+                        mc.player.rotationPitch = rotateAngles.getPitch();
+                    }
+
+                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                    getCosmos().getRotationManager().addRotation(rotateAngles, Integer.MAX_VALUE);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderRotations(RenderRotationsEvent event) {
+
+        // packet rotations
+        if (rotate.getValue().equals(Rotate.PACKET)) {
+
+            // render angles if rotating
+            if (isActive()) {
+
+                // rotate only if we have an interaction vector to rotate to
+                if (rotateAngles != null) {
+
+                    // cancel the model rendering for rotations, we'll set it to our values
+                    event.setCanceled(true);
+
+                    // set our model angles; visual
+                    event.setYaw(rotateAngles.getYaw());
+                    event.setPitch(rotateAngles.getPitch());
+                }
+            }
         }
     }
 
@@ -853,6 +925,16 @@ public class AutoCrystalModule extends Module {
      * @return Whether or not the placement was successful
      */
     public boolean placeCrystal(BlockPos in) {
+
+        // make sure the position actually exits
+        if (in == null) {
+            return false;
+        }
+
+        // make sure we are holding a crystal
+        if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+            return false;
+        }
 
         // directions of placement
         double facingX = 0;

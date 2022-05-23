@@ -17,6 +17,7 @@ public class AngleUtil implements Wrapper {
      * @return The rotations to the vector
      */
     public static Rotation calculateAngles(Vec3d to) {
+
         // find the yaw and pitch to the vector
         float yaw = (float) (Math.toDegrees(Math.atan2(to.subtract(mc.player.getPositionEyes(1)).z, to.subtract(mc.player.getPositionEyes(1)).x)) - 90);
         float pitch = (float) Math.toDegrees(-Math.atan2(to.subtract(mc.player.getPositionEyes(1)).y, Math.hypot(to.subtract(mc.player.getPositionEyes(1)).x, to.subtract(mc.player.getPositionEyes(1)).z)));
