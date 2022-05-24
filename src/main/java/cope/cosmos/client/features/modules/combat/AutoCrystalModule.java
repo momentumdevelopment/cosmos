@@ -36,6 +36,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemEndCrystal;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -153,6 +154,16 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> damage = new Setting<>("Damage", 2.0, 4.0, 10.0, 1)
             .setDescription("Minimum damage done by an action");
+
+    public static Setting<Double> lethalMultiplier = new Setting<>("LethalMultiplier", 0.0, 1.0, 5.0, 1)
+            .setDescription("Will override damages if we can kill the target in this many crystals");
+
+    public static Setting<Boolean> armorBreaker = new Setting<>("ArmorBreaker", true)
+            .setDescription("Attempts to break enemy armor with crystals");
+
+    public static Setting<Double> armorScale = new Setting<>("ArmorScale", 0.0, 5.0, 40.0, 0)
+            .setDescription("Will override damages if we can break the target's armor")
+            .setVisible(() -> armorBreaker.getValue());
 
     public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE)
             .setDescription("Safety check for processes");
@@ -686,8 +697,48 @@ public class AutoCrystalModule extends Module {
             // no crystal under 1.5 damage is worth exploding
             if (bestCrystal.getTargetDamage() > 1.5) {
 
+                // lethality of the crystal
+                boolean lethal = false;
+
+                // target health
+                double health = EnemyUtil.getHealth(bestCrystal.getTarget());
+
+                // can kill the target very quickly
+                if (health <= 2) {
+                    lethal = true;
+                }
+
+                // attempt to break armor; considered lethal
+                if (armorBreaker.getValue()) {
+                    if (bestCrystal.getTarget() instanceof EntityPlayer) {
+
+                        // check durability for each piece of armor
+                        for (ItemStack armor : bestCrystal.getTarget().getArmorInventoryList()) {
+                            if (armor != null && !armor.getItem().equals(Items.AIR)) {
+
+                                // durability of the armor
+                                float armorDurability = ((armor.getMaxDamage() - armor.getItemDamage()) / (float) armor.getMaxDamage()) * 100;
+
+                                // find lowest durability
+                                if (armorDurability < armorScale.getValue()) {
+                                    lethal = true; // check if armor damage is significant
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // lethality factor of the crystal
+                double lethality = bestCrystal.getTargetDamage() * lethalMultiplier.getValue();
+
+                // will kill the target
+                if (health - lethality < 0.5) {
+                    lethal = true;
+                }
+
                 // check if the damage meets our requirements
-                if (bestCrystal.getTargetDamage() > damage.getValue()) {
+                if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
 
                     // mark it as our current explosion
                     return bestCrystal;
@@ -838,8 +889,48 @@ public class AutoCrystalModule extends Module {
                 // no placement under 1.5 damage is worth placing
                 if (bestPlacement.getTargetDamage() > 1.5) {
 
+                    // lethality of the placement
+                    boolean lethal = false;
+
+                    // target health
+                    double health = EnemyUtil.getHealth(bestPlacement.getTarget());
+
+                    // can kill the target very quickly
+                    if (health <= 2) {
+                        lethal = true;
+                    }
+
+                    // attempt to break armor; considered lethal
+                    if (armorBreaker.getValue()) {
+                        if (bestPlacement.getTarget() instanceof EntityPlayer) {
+
+                            // check durability for each piece of armor
+                            for (ItemStack armor : bestPlacement.getTarget().getArmorInventoryList()) {
+                                if (armor != null && !armor.getItem().equals(Items.AIR)) {
+
+                                    // durability of the armor
+                                    float armorDurability = ((armor.getMaxDamage() - armor.getItemDamage()) / (float) armor.getMaxDamage()) * 100;
+
+                                    // find lowest durability
+                                    if (armorDurability < armorScale.getValue()) {
+                                        lethal = true;  // check if armor damage is significant
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // lethality factor of the placement
+                    double lethality = bestPlacement.getTargetDamage() * lethalMultiplier.getValue();
+
+                    // will kill the target
+                    if (health - lethality < 0.5) {
+                        lethal = true;
+                    }
+
                     // check if the damage meets our requirements
-                    if (bestPlacement.getTargetDamage() > damage.getValue()) {
+                    if (lethal || bestPlacement.getTargetDamage() > damage.getValue()) {
 
                         // mark it as our current placement
                         return bestPlacement;
