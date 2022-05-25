@@ -78,6 +78,9 @@ public class AutoCrystalModule extends Module {
     public static Setting<Boolean> multiTask = new Setting<>("MultiTask", true)
             .setDescription("Explodes only if we are not preforming any actions with our hands");
 
+    public static Setting<Boolean> whileMining = new Setting<>("WhileMining", true)
+            .setDescription("Explodes only if we are not mining");
+
     public static Setting<Boolean> swing = new Setting<>("Swing", true)
             .setDescription("Swings the players hand when attacking and placing");
 
@@ -964,7 +967,12 @@ public class AutoCrystalModule extends Module {
         boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
 
         // must be not doing anything
-        if ((PlayerUtil.isEating() && !offhand) && multiTask.getValue()) {
+        if ((PlayerUtil.isEating() && !offhand) && !multiTask.getValue()) {
+            return false;
+        }
+
+        // must be not mining
+        if ((PlayerUtil.isMining() && !offhand) && !whileMining.getValue()) {
             return false;
         }
 

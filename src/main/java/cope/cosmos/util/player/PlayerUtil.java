@@ -1,6 +1,7 @@
 package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemTool;
@@ -44,7 +45,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is mining
      */
     public static boolean isMining() {
-        return InventoryUtil.isHolding(ItemTool.class) && mc.playerController.getIsHittingBlock();
+        return InventoryUtil.isHolding(ItemTool.class) && mc.playerController.getIsHittingBlock() && BlockUtil.isBreakable(mc.objectMouseOver.getBlockPos()) && !mc.world.isAirBlock(mc.objectMouseOver.getBlockPos());
     }
 
     /**
