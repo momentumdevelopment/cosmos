@@ -202,7 +202,7 @@ public class HoleFillModule extends Module {
             for (EntityPlayer player : mc.world.playerEntities) {
 
                 // make sure the entity is valid to fill
-                if (player == null || player == mc.player || EnemyUtil.isDead(player) || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
+                if (player == null || player.equals(mc.player) || player.getEntityId() < 0 || EnemyUtil.isDead(player) || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 

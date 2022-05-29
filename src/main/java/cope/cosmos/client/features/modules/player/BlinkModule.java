@@ -102,6 +102,7 @@ public class BlinkModule extends Module {
         switch (mode.getValue()) {
             case DELAY: {
                 if (packetTimer.passedTime(delay.getValue().longValue(), Format.SECONDS)) {
+
                     // remove our old model from the world
                     mc.world.removeEntityFromWorld(-100);
 

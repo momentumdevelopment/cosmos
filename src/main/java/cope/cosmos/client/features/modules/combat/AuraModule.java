@@ -272,7 +272,7 @@ public class AuraModule extends Module {
                 Entity entity = entityList.next();
                 
                 // make sure the entity is valid to attack
-                if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                if (entity == null || entity.equals(mc.player) || entity.getEntityId() < 0 || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 

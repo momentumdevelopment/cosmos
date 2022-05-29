@@ -27,6 +27,7 @@
         "accessor.ITimer",
         "accessor.INetworkManager",
         "accessor.IEntityLivingBase",
+        "accessor.IGameProfile",
         "entity.player.MixinAbstractClientPlayer",
         "entity.player.MixinEntityPlayer",
         "entity.player.MixinEntityPlayerSP",

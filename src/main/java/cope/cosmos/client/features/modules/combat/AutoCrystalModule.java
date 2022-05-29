@@ -612,7 +612,7 @@ public class AutoCrystalModule extends Module {
             for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
 
                 // make sure the entity actually exists
-                if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                if (entity == null || entity.equals(mc.player) || entity.getEntityId() < 0 || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 
@@ -804,7 +804,7 @@ public class AutoCrystalModule extends Module {
                 for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
 
                     // make sure the entity actually exists
-                    if (entity == null || entity.equals(mc.player) || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                    if (entity == null || entity.equals(mc.player) || entity.getEntityId() < 0 || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
                         continue;
                     }
 
