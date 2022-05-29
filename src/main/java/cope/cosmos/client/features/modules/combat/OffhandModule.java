@@ -3,7 +3,9 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.movement.FlightModule;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.combat.DamageUtil;
 import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.player.InventoryUtil;
@@ -69,17 +71,6 @@ public class OffhandModule extends Module {
     public static Setting<Boolean> recursive = new Setting<>("Recursive", false)
             .setDescription("Allow hotbar items to be moved to the offhand");
 
-    // **************************** pause ****************************
-
-    public static Setting<Boolean> pauseLiquid = new Setting<>("PauseLiquid", false)
-            .setDescription("When in liquid");
-
-    public static Setting<Boolean> pauseAir = new Setting<>("PauseAir", true)
-            .setDescription("When falling or flying");
-
-    public static Setting<Boolean> pauseElytra = new Setting<>("PauseElytra", true)
-            .setDescription("When elytra flying");
-
 
     // offhand stage
     private Stage stage = Stage.IDLE;
@@ -105,16 +96,22 @@ public class OffhandModule extends Module {
             // the item to switch to
             Item switchItem = item.getValue().getItem();
 
-            // if don't have out main item, try our fallback item
-            int itemCount = InventoryUtil.getItemCount(item.getValue().getItem());
-            if (itemCount <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
-                switchItem = fallBack.getValue().getItem();
-            }
+            // wait for previous swap
+            if (!stage.equals(Stage.MOVE_TO_OFFHAND)) {
 
-            // if we don't have anything to switch to, then we break the process
-            int fallbackCount = InventoryUtil.getItemCount(fallBack.getValue().getItem());
-            if (fallbackCount <= 0 && !stage.equals(Stage.MOVE_TO_OFFHAND)) {
-                return;
+                // offhand item counts
+                int itemCount = InventoryUtil.getItemCount(item.getValue().getItem());
+                int fallbackCount = InventoryUtil.getItemCount(fallBack.getValue().getItem());
+
+                // if don't have out main item, try our fallback item
+                if (itemCount <= 0 && fallbackCount > 0) {
+                    switchItem = fallBack.getValue().getItem();
+                }
+
+                // if we don't have anything to switch to, then we break the process
+                else {
+                    return;
+                }
             }
 
             // dynamically switch to a gapple if needed
@@ -147,73 +144,90 @@ public class OffhandModule extends Module {
                     break;
             }
 
-            // make sure we are not in a situation where we need to pause the offhand
-            if (pauseLiquid.getValue() && PlayerUtil.isInLiquid()) {
-                switchItem = Items.TOTEM_OF_UNDYING;
-            }
+            /* make sure we are not in a situation where we need to pause the offhand */
 
-            else if (pauseAir.getValue() && mc.player.fallDistance > 5) {
-                switchItem = Items.TOTEM_OF_UNDYING;
-            }
+            // make sure we are not below our critical health
+            if (DamageUtil.canTakeDamage()) {
 
-            else if (pauseElytra.getValue() && mc.player.isElytraFlying()) {
-                switchItem = Items.TOTEM_OF_UNDYING;
-            }
-            
-            // check possible unsafe situations
-            switch (safety.getValue()) {
-                case ARMOR:
-                    // make sure none of our armor pieces are missing
-                    for (ItemStack stack : mc.player.getArmorInventoryList()) {
+                // player health
+                double playerHealth = PlayerUtil.getHealth();
 
-                        // armor stack is empty
-                        if (stack == null || stack.getItem().equals(Items.AIR)) {
-                            switchItem = Items.TOTEM_OF_UNDYING;
-                            break;
-                        }
-                    }
-                    
-                    break;
-                case DAMAGE:
+                // check possible unsafe situations
+                switch (safety.getValue()) {
+                    case FULL:
 
-                    // check nearby crystals
-                    for (Entity entity : mc.world.loadedEntityList) {
-                        if (mc.player.getDistance(entity) > 6) {
-                            continue;
-                        }
+                        // make sure none of our armor pieces are missing
+                        for (ItemStack stack : mc.player.getArmorInventoryList()) {
 
-                        if (entity instanceof EntityEnderCrystal) {
-
-                            // player health
-                            double health = PlayerUtil.getHealth();
-
-                            // damage from crystal
-                            double damage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
-
-                            // crystal will kill us
-                            if (health - damage <= 1) {
+                            // armor stack is empty
+                            if (stack == null || stack.getItem().equals(Items.AIR)) {
                                 switchItem = Items.TOTEM_OF_UNDYING;
                                 break;
                             }
                         }
+
+                        // check nearby crystals
+                        for (Entity entity : mc.world.loadedEntityList) {
+
+                            // make sure the entity exists
+                            if (entity == null || entity.isDead) {
+                                continue;
+                            }
+
+                            // make sure crystal is in range
+                            if (mc.player.getDistance(entity) > 6) {
+                                continue;
+                            }
+
+                            if (entity instanceof EntityEnderCrystal) {
+
+                                // player health
+                                double health = PlayerUtil.getHealth();
+
+                                // damage from crystal
+                                double damage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
+
+                                // crystal will kill us
+                                if (health - damage <= 1) {
+                                    switchItem = Items.TOTEM_OF_UNDYING;
+                                    break;
+                                }
+                            }
+                        }
+
+                        break;
+                    case NONE:
+                    default:
+                        break;
+                }
+
+                // fall damage might kill us (TODO: add fall damage calcs)
+                if  (!mc.player.isOverWater() && mc.player.fallDistance > 5) {
+                    switchItem = Items.TOTEM_OF_UNDYING;
+                }
+
+                // flight friction/collision could possibly kill us
+                if (FlightModule.INSTANCE.isActive() || mc.player.isElytraFlying() || mc.player.capabilities.isFlying) {
+                    switchItem = Items.TOTEM_OF_UNDYING;
+                }
+
+                if (timing.getValue().equals(Timing.DYNAMIC)) {
+
+                    // some anticheats only have offhand patched if the player is holding a gapple, so this is a partial offhand bypass for those servers
+                    if (InventoryUtil.isHolding(Items.GOLDEN_APPLE)) {
+                        switchItem = Items.TOTEM_OF_UNDYING;
                     }
-                case NONE:
-                default:
-                    break;
-            }
+                }
 
-            // some anticheats only have offhand patched if the player is holding a gapple, so this is a partial offhand bypass for those servers
-            if (timing.getValue().equals(Timing.DYNAMIC) && InventoryUtil.isHolding(Items.GOLDEN_APPLE)) {
-                switchItem = Items.TOTEM_OF_UNDYING;
-            }
-
-            // make sure we are not below our critical health
-            if (PlayerUtil.getHealth() < health.getValue() && !mc.player.capabilities.isCreativeMode) {
-                switchItem = Items.TOTEM_OF_UNDYING;
+                // make sure we are not below our critical health
+                if (playerHealth < health.getValue()) {
+                    switchItem = Items.TOTEM_OF_UNDYING;
+                }
             }
 
             // make sure we've passed our delay and we're not already holding the item
             if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.MILLISECONDS) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
+
                 // we are now picking up the item
                 stage = Stage.PICKUP_ITEM;
 
@@ -442,14 +456,9 @@ public class OffhandModule extends Module {
     public enum Safety {
 
         /**
-         * Swaps when you're armor is missing or too low
+         * Swaps when you're armor is missing or too low or when crystal damages will kill you
          */
-        ARMOR,
-
-        /**
-         * Swaps when the damage you would take is too high
-         */
-        DAMAGE,
+        FULL,
 
         /**
          * No safety calculations
