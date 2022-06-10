@@ -107,11 +107,6 @@ public class OffhandModule extends Module {
                 if (itemCount <= 0 && fallbackCount > 0) {
                     switchItem = fallBack.getValue().getItem();
                 }
-
-                // if we don't have anything to switch to, then we break the process
-                else {
-                    return;
-                }
             }
 
             // dynamically switch to a gapple if needed
@@ -146,7 +141,7 @@ public class OffhandModule extends Module {
 
             /* make sure we are not in a situation where we need to pause the offhand */
 
-            // make sure we are not below our critical health
+            // make sure we can take damage
             if (DamageUtil.canTakeDamage()) {
 
                 // player health
@@ -181,14 +176,11 @@ public class OffhandModule extends Module {
 
                             if (entity instanceof EntityEnderCrystal) {
 
-                                // player health
-                                double health = PlayerUtil.getHealth();
-
                                 // damage from crystal
-                                double damage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
+                                double damage = ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
 
                                 // crystal will kill us
-                                if (health - damage <= 1) {
+                                if (playerHealth - damage < 0.5) {
                                     switchItem = Items.TOTEM_OF_UNDYING;
                                     break;
                                 }
@@ -202,7 +194,7 @@ public class OffhandModule extends Module {
                 }
 
                 // fall damage might kill us (TODO: add fall damage calcs)
-                if  (!mc.player.isOverWater() && mc.player.fallDistance > 5) {
+                if  (mc.player.fallDistance > 5 && !mc.player.isOverWater()) {
                     switchItem = Items.TOTEM_OF_UNDYING;
                 }
 

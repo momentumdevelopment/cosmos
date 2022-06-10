@@ -315,11 +315,11 @@ public class SpeedModule extends Module {
                     strafeStage = StrafeStage.FALL;
 
                     // falling motion
-                    mc.player.motionY -= 0.08;
+                    // mc.player.motionY -= 0.08;
 
                     // our pos should be slightly lower
-                    event.setY(event.getY() - 0.09316090325960147);
-                    mc.player.posY -= 0.09316090325960147;
+                    // event.setY(event.getY() - 0.09316090325960147);
+                    // mc.player.posY -= 0.09316090325960147;
                 }
             }
 
