@@ -2,10 +2,12 @@ package cope.cosmos.client.features.modules.combat;
 
 import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
+import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -34,6 +36,7 @@ import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemEndCrystal;
 import net.minecraft.item.ItemStack;
@@ -42,8 +45,11 @@ import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
+import net.minecraft.network.play.server.SPacketAnimation;
+import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.network.play.server.SPacketSpawnObject;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
@@ -52,6 +58,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -119,6 +126,10 @@ public class AutoCrystalModule extends Module {
     public static Setting<Double> ticksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 5.0, 0)
             .setDescription("Minimum age of the crystal")
             .setVisible(() -> explode.getValue());
+
+    // public static Setting<Switch> antiWeakness = new Setting<>("AntiWeakness", Switch.NONE)
+    //        .setDescription("Switches to a tool before breaking when player has weakness effect")
+    //        .setVisible(() -> explode.getValue());
 
     public static Setting<Boolean> inhibit = new Setting<>("Inhibit", true)
             .setDescription("Prevents excessive attacks on crystals")
@@ -224,6 +235,7 @@ public class AutoCrystalModule extends Module {
     // map of all attacked crystals
     private final Map<Integer, Long> attackedCrystals = new ConcurrentHashMap<>();
     private final List<EntityEnderCrystal> inhibitCrystals = new ArrayList<>();
+    private final List<EntityEnderCrystal> deadCrystal = new ArrayList<>();
 
     // **************************** place ****************************
 
@@ -251,7 +263,7 @@ public class AutoCrystalModule extends Module {
         if (explosion != null) {
 
             // check if we have passed the explode time
-            if (explodeClearance || explodeSpeed.getValue() >= explodeSpeed.getMax() || explodeTimer.passedTime((long) ((explodeSpeed.getMax() - explodeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
+            if (explodeClearance || explodeTimer.passedTime((long) (((explodeSpeed.getMax() + 1) - explodeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
 
                 // face the crystal
                 angleVector = explosion.getDamageSource().getPositionVector();
@@ -268,43 +280,11 @@ public class AutoCrystalModule extends Module {
             }
         }
 
-        // place on the client thread
-        if (!sequential.getValue().equals(Sequential.NONE)) {
-
-            // we found a placement
-            if (placement != null) {
-
-                // cleared to place
-                if (sequentialTicks >= sequential.getValue().getTicks()) {
-
-                    // face the placement
-                    angleVector = new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5);
-
-                    // place the crystal
-                    if (placeCrystal(placement.getDamageSource())) {
-
-                        // add it to our list of attacked crystals
-                        placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
-                    }
-
-                    // do not concurrently place on thread
-                    sequentialTicks = 0;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onUpdate() {
-
-        // update ticks
-        sequentialTicks++;
-
         // we found a placement
         if (placement != null) {
 
             // check if we have passed the place time
-            if (placeClearance || placeSpeed.getValue() >= placeSpeed.getMax() || placeTimer.passedTime((long) ((placeSpeed.getMax() - placeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
+            if (placeClearance || placeTimer.passedTime((long) (((placeSpeed.getMax() + 1) - placeSpeed.getValue()) * 50), Format.MILLISECONDS)) {
 
                 // face the placement
                 angleVector = new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5);
@@ -313,7 +293,7 @@ public class AutoCrystalModule extends Module {
                 if (placeCrystal(placement.getDamageSource())) {
 
                     // add it to our list of attacked crystals
-                    placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
+                    placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());  // place on the client thread
                 }
 
                 placeClearance = false;
@@ -421,6 +401,7 @@ public class AutoCrystalModule extends Module {
         placeTimer.resetTime();
         attackedCrystals.clear();
         inhibitCrystals.clear();
+        deadCrystal.clear();
         placedCrystals.clear();
     }
 
@@ -429,8 +410,84 @@ public class AutoCrystalModule extends Module {
         return isEnabled() && (explosion != null || placement != null);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        // packet that confirms crystal removal
+        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
+
+            // with this on the main thread there's no reason
+            // why we need all the concurrency stuff...?
+            mc.addScheduledTask(() -> {
+
+                // attempt to clear crystals
+                for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                    // make sure the entity actually exists
+                    if (crystal == null || crystal.isDead) {
+                        continue;
+                    }
+
+                    // make sure it's a crystal
+                    if (!(crystal instanceof EntityEnderCrystal)) {
+                        continue;
+                    }
+
+                    // entity distance from sound
+                    double soundRange = crystal.getDistance(((SPacketSoundEffect) event.getPacket()).getX() + 0.5, ((SPacketSoundEffect) event.getPacket()).getY() + 0.5, ((SPacketSoundEffect) event.getPacket()).getZ() + 0.5);
+
+                    // make sure the crystal is in range from the sound to be destroyed
+                    if (soundRange > 11) {
+                        continue;
+                    }
+
+                    // don't attack these crystals they're going to be exploded anyways
+                    inhibitCrystals.add((EntityEnderCrystal) crystal);
+
+                    // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
+                    crystal.setDead();
+                    deadCrystal.add((EntityEnderCrystal) crystal);
+                }
+           });
+        }
+
+        // packet for general explosions
+        if (event.getPacket() instanceof SPacketExplosion) {
+
+            // with this on the main thread there's no reason
+            // why we need all the concurrency stuff...?
+           mc.addScheduledTask(() -> {
+
+                // attempt to clear crystals
+                for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                    // make sure the entity actually exists
+                    if (crystal == null || crystal.isDead) {
+                        continue;
+                    }
+
+                    // make sure it's a crystal
+                    if (!(crystal instanceof EntityEnderCrystal)) {
+                        continue;
+                    }
+
+                    // entity distance from sound
+                    double soundRange = crystal.getDistance(((SPacketExplosion) event.getPacket()).getX() + 0.5, ((SPacketExplosion) event.getPacket()).getY() + 0.5, ((SPacketExplosion) event.getPacket()).getZ() + 0.5);
+
+                    // make sure the crystal is in range from the sound to be destroyed
+                    if (soundRange > ((SPacketExplosion) event.getPacket()).getStrength()) {
+                        continue;
+                    }
+
+                    // don't attack these crystals they're going to be exploded anyways
+                    inhibitCrystals.add((EntityEnderCrystal) crystal);
+
+                    // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
+                    crystal.setDead();
+                    deadCrystal.add((EntityEnderCrystal) crystal);
+                }
+            });
+        }
 
         // packet for crystal spawns
         if (event.getPacket() instanceof SPacketSpawnObject && ((SPacketSpawnObject) event.getPacket()).getType() == 51) {
@@ -438,48 +495,196 @@ public class AutoCrystalModule extends Module {
             // position of the spawned crystal
             BlockPos spawnPosition = new BlockPos(((SPacketSpawnObject) event.getPacket()).getX(), ((SPacketSpawnObject) event.getPacket()).getY(), ((SPacketSpawnObject) event.getPacket()).getZ());
 
-            // since it's been confirmed that the crystal spawned, we can move on to our next process
-            if (placedCrystals.containsKey(spawnPosition.down())) {
+            // clear timer
+            if (await.getValue()) {
 
-                // clear timer
-                if (await.getValue()) {
-                    explodeClearance = true;
+                /*
+                 * Map of valid crystals
+                 * Sorted by natural ordering of keys
+                 * Using tree map allows time complexity of O(logN)
+                 */
+                TreeMap<Double, DamageHolder<Integer>> validCrystals = new TreeMap<>();
+
+                // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
+                if (ticksExisted.getValue() > 0 && !inhibit.getValue()) {
+                    return;
                 }
 
-                // no longer needs to be accounted for
-                placedCrystals.remove(spawnPosition.down());
+                // distance to crystal
+                double crystalRange = BlockUtil.getDistanceToCenter(mc.player, spawnPosition);
+
+                // check if the entity is in range
+                if (crystalRange > explodeRange.getValue()) {
+                    return;
+                }
+
+                // check if crystal is behind a wall
+                boolean isNotVisible = RaytraceUtil.isNotVisible(spawnPosition, Raytrace.EXPECTED.getOffset());
+
+                // check if entity can be attacked through wall
+                if (isNotVisible) {
+                    if (crystalRange > explodeWallRange.getValue()) {
+                        return;
+                    }
+                }
+
+                // local damage done by the crystal
+                double localDamage = ExplosionUtil.getDamageFromExplosion(mc.player, new Vec3d(spawnPosition.add(0.5, 0.5, 0.5)), blockDestruction.getValue());
+
+                // search all targets
+                for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                    // make sure the entity actually exists
+                    if (entity == null || entity.equals(mc.player) || entity.getEntityId() < 0 || EnemyUtil.isDead(entity) || getCosmos().getSocialManager().getSocial(entity.getName()).equals(Relationship.FRIEND)) {
+                        continue;
+                    }
+
+                    // ignore crystals, they can't be targets
+                    if (entity instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // don't attack our riding entity
+                    if (entity.isBeingRidden() && entity.getPassengers().contains(mc.player)) {
+                        continue;
+                    }
+
+                    // verify that the entity is a target
+                    if (entity instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(entity) && !targetPassives.getValue() || EntityUtil.isNeutralMob(entity) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(entity) && !targetHostiles.getValue()) {
+                        continue;
+                    }
+
+                    // distance to target
+                    double entityRange = mc.player.getDistance(entity);
+
+                    // check if the target is in range
+                    if (entityRange > targetRange.getValue()) {
+                        continue;
+                    }
+
+                    // target damage done by the crystal
+                    double targetDamage = ExplosionUtil.getDamageFromExplosion(entity, new Vec3d(spawnPosition.add(0.5, 0.5, 0.5)), blockDestruction.getValue());
+
+                    // check the safety of the crystal
+                    double safetyIndex = 1;
+
+                    // check if we can take damage
+                    if (DamageUtil.canTakeDamage()) {
+
+                        // local health
+                        double health = PlayerUtil.getHealth();
+
+                        // incredibly unsafe
+                        if (localDamage + 0.5 > health) {
+                            safetyIndex = -9999;
+                        }
+
+                        // unsafe -> if local damage is greater than target damage
+                        else if (safety.getValue().equals(Safety.STABLE)) {
+
+                            // target damage and local damage scaled
+                            double efficiency = targetDamage - localDamage;
+
+                            // too small, we'll be fine :>
+                            if (efficiency < 0 && Math.abs(efficiency) < 0.25) {
+                                efficiency = 0;
+                            }
+
+                            safetyIndex = efficiency;
+                        }
+
+                        // unsafe -> if local damage is greater than balanced target damage
+                        else if (safety.getValue().equals(Safety.BALANCE)) {
+
+                            // balanced target damage
+                            double balance = targetDamage * safetyBalance.getValue();
+
+                            // balanced damage, should be proportionate to local damage
+                            safetyIndex = balance - localDamage;
+                        }
+                    }
+
+                    // crystal is unsafe
+                    if (safetyIndex < 0) {
+                        continue;
+                    }
+
+                    // add to map
+                    validCrystals.put(targetDamage, new DamageHolder<>(((SPacketSpawnObject) event.getPacket()).getEntityID(), entity, targetDamage, localDamage));
+                }
+
+                // make sure we actually have some valid crystals
+                if (!validCrystals.isEmpty()) {
+
+                    // best crystal in the map, in a TreeMap this is the last entry
+                    DamageHolder<Integer> bestCrystal = validCrystals.lastEntry().getValue();
+
+                    // no crystal under 1.5 damage is worth exploding
+                    if (bestCrystal.getTargetDamage() > 1.5) {
+
+                        // lethality of the crystal
+                        boolean lethal = false;
+
+                        // target health
+                        double health = EnemyUtil.getHealth(bestCrystal.getTarget());
+
+                        // can kill the target very quickly
+                        if (health <= 2) {
+                            lethal = true;
+                        }
+
+                        // attempt to break armor; considered lethal
+                        if (armorBreaker.getValue()) {
+                            if (bestCrystal.getTarget() instanceof EntityPlayer) {
+
+                                // check durability for each piece of armor
+                                for (ItemStack armor : bestCrystal.getTarget().getArmorInventoryList()) {
+                                    if (armor != null && !armor.getItem().equals(Items.AIR)) {
+
+                                        // durability of the armor
+                                        float armorDurability = ((armor.getMaxDamage() - armor.getItemDamage()) / (float) armor.getMaxDamage()) * 100;
+
+                                        // find lowest durability
+                                        if (armorDurability < armorScale.getValue()) {
+                                            lethal = true; // check if armor damage is significant
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // lethality factor of the crystal
+                        double lethality = bestCrystal.getTargetDamage() * lethalMultiplier.getValue();
+
+                        // will kill the target
+                        if (health - lethality < 0.5) {
+                            lethal = true;
+                        }
+
+                        // check if the damage meets our requirements
+                        if (lethal || bestCrystal.getTargetDamage() > damage.getValue()) {
+
+                            // mark it as our current explosion
+                            explodeClearance = true; // since it's been confirmed that the crystal spawned, we can move on to our next process
+                        }
+                    }
+                }
             }
+
+            // no longer needs to be accounted for
+            placedCrystals.remove(spawnPosition.down());
         }
+    }
 
-        // packet that confirms crystal removal
-        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
+    @SubscribeEvent
+    public void onRenderCrystal(RenderCrystalEvent.RenderCrystalPreEvent event) {
 
-            // attempt to clear crystals
-            for (Entity crystal : new ArrayList<>(mc.world.loadedEntityList)) {
+        // don't render "dead" crystals
+        if (deadCrystal.contains((EntityEnderCrystal) event.getEntity())) {
 
-                // make sure the entity actually exists
-                if (crystal == null || crystal.isDead) {
-                    continue;
-                }
-
-                // make sure it's a crystal
-                if (!(crystal instanceof EntityEnderCrystal)) {
-                    continue;
-                }
-
-                // entity distance from sound
-                double soundRange = crystal.getDistance(((SPacketSoundEffect) event.getPacket()).getX() + 0.5, ((SPacketSoundEffect) event.getPacket()).getY() + 0.5, ((SPacketSoundEffect) event.getPacket()).getZ() + 0.5);
-
-                // make sure the crystal is in range from the sound to be destroyed
-                if (soundRange > 6) {
-                    continue;
-                }
-
-                // don't attack these crystals they're going to be exploded anyways
-                inhibitCrystals.add((EntityEnderCrystal) crystal);
-
-                // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
-                crystal.setDead();
+            if (sequential.getValue().equals(Sequential.NORMAL)) {
+                // event.setCanceled(true);
             }
         }
     }
@@ -963,6 +1168,10 @@ public class AutoCrystalModule extends Module {
     @SuppressWarnings("all")
     public boolean attackCrystal(int in) {
 
+        // strength and weakness effects on the player
+        PotionEffect weaknessEffect = mc.player.getActivePotionEffect(MobEffects.WEAKNESS);
+        PotionEffect strengthEffect = mc.player.getActivePotionEffect(MobEffects.STRENGTH);
+
         // check whether a crystal is in the offhand
         boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
 
@@ -975,6 +1184,37 @@ public class AutoCrystalModule extends Module {
         if ((PlayerUtil.isMining() && !offhand) && !whileMining.getValue()) {
             return false;
         }
+
+        // previous slot
+        int previousSlot = -1;
+
+        /*
+        if (!antiWeakness.getValue().equals(Switch.NONE)) {
+
+            // mark previous slot
+            previousSlot = mc.player.inventory.currentItem;
+
+            // verify that we cannot break the crystal due to weakness
+            if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
+
+                // tool slots
+                int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.INVENTORY);
+                int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.INVENTORY);
+
+                if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
+
+                    // prefer the sword over a pickaxe
+                    if (swordSlot != -1) {
+                        getCosmos().getInventoryManager().switchToSlot(swordSlot, antiWeakness.getValue());
+                    }
+
+                    else if (pickSlot != -1) {
+                        getCosmos().getInventoryManager().switchToSlot(pickSlot, antiWeakness.getValue());
+                    }
+                }
+            }
+        }
+         */
 
         // player sprint state
         boolean sprintState = false;
@@ -1001,21 +1241,47 @@ public class AutoCrystalModule extends Module {
 
         // swing the player's arm
         if (swing.getValue()) {
-            mc.player.swingArm(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+            // held item stack
+            ItemStack stack = mc.player.getHeldItem(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+            // check stack
+            if (!stack.isEmpty()) {
+                if (!stack.getItem().onEntitySwing(mc.player, stack)) {
+
+                    // apply swing progress
+                    if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
+                        mc.player.swingProgressInt = -1;
+                        mc.player.isSwingInProgress = true;
+                        mc.player.swingingHand = (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+                        // send animation packet
+                        if (mc.player.world instanceof WorldServer) {
+                            ((WorldServer) mc.player.world).getEntityTracker().sendToTracking(mc.player, new SPacketAnimation(mc.player, offhand ? 3 : 0));
+                        }
+                    }
+                }
+            }
         }
 
         // swing with packets
-        else {
-            mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
-        }
+        mc.player.connection.sendPacket(new CPacketAnimation(!offhand || weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier()) ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND));
 
         // reset sprint state
         if (sprintState) {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
         }
 
+        /*
+        if (!antiWeakness.getValue().equals(Switch.NONE)) {
+
+            // switch back
+            getCosmos().getInventoryManager().switchToSlot(previousSlot, antiWeakness.getValue());
+        }
+         */
+
         // attack was successful
-        return true;
+        return deadCrystal.add((EntityEnderCrystal) mc.world.getEntityByID(in));
     }
 
     /**
@@ -1137,13 +1403,31 @@ public class AutoCrystalModule extends Module {
 
         // swing the player's arm
         if (swing.getValue()) {
-            mc.player.swingArm(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+            // held item stack
+            ItemStack stack = mc.player.getHeldItem(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+            // check stack
+            if (!stack.isEmpty()) {
+                if (!stack.getItem().onEntitySwing(mc.player, stack)) {
+
+                    // apply swing progress
+                    if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
+                        mc.player.swingProgressInt = -1;
+                        mc.player.isSwingInProgress = true;
+                        mc.player.swingingHand = (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+                        // send animation packet
+                        if (mc.player.world instanceof WorldServer) {
+                            ((WorldServer) mc.player.world).getEntityTracker().sendToTracking(mc.player, new SPacketAnimation(mc.player, offhand ? 3 : 0));
+                        }
+                    }
+                }
+            }
         }
 
         // swing with packets
-        else {
-            mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
-        }
+        mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
 
         // placement was successful
         return true;
@@ -1289,12 +1573,12 @@ public class AutoCrystalModule extends Module {
         /**
          * Raytrace to the center of the expected crystal position
          */
-        EXPECTED(1.5),
+        EXPECTED(1.7),
 
         /**
          * Raytrace to the highest position of the expected crystal, wall ranges will be more accurate
          */
-        LENIENT(2.5),
+        LENIENT(2.7),
 
         /**
          * No raytrace to the position

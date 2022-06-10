@@ -20,4 +20,7 @@ public interface IEntityLivingBase {
 
     @Invoker("onChangedPotionEffect")
     void hookOnChangedPotionEffect(PotionEffect potionEffectIn, boolean in);
+
+    @Invoker("getArmSwingAnimationEnd")
+    int hookGetArmSwingAnimationEnd();
 }
