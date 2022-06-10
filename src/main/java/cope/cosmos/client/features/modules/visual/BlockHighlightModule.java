@@ -30,6 +30,9 @@ public class BlockHighlightModule extends Module {
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.OUTLINE)
             .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE);
 
+    public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1F, 1.5F, 5F, 1)
+            .setDescription("Width of the visual");
+
     @Override
     public void onRender3D() {
 
@@ -48,7 +51,7 @@ public class BlockHighlightModule extends Module {
                     .color(ColorUtil.getPrimaryAlphaColor(60))
                     .box(renderMode.getValue())
                     .setup()
-                    .line(1.5F)
+                    .line(lineWidth.getValue())
                     .depth(true)
                     .blend()
                     .texture()

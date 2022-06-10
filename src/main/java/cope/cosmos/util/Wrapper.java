@@ -2,6 +2,8 @@ package cope.cosmos.util;
 
 import cope.cosmos.client.Cosmos;
 import net.minecraft.client.Minecraft;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author bon55, linustouchtips
@@ -26,5 +28,13 @@ public interface Wrapper {
 	 */
 	default Cosmos getCosmos() {
 		return Cosmos.INSTANCE;
+	}
+
+	/**
+	 * Gets the logger instance
+	 * @return The logger instance
+	 */
+	default Logger getLogger() {
+		return LogManager.getLogger(Cosmos.NAME + " | " + Cosmos.VERSION);
 	}
 }
