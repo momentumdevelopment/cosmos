@@ -2,10 +2,7 @@ package cope.cosmos.client.features.modules.visual;
 
 import cope.cosmos.client.events.entity.potion.PotionEffectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.render.entity.LayerArmorEvent;
-import cope.cosmos.client.events.render.entity.RenderBeaconBeamEvent;
-import cope.cosmos.client.events.render.entity.RenderItemEvent;
-import cope.cosmos.client.events.render.entity.RenderWitherSkullEvent;
+import cope.cosmos.client.events.render.entity.*;
 import cope.cosmos.client.events.render.gui.BossOverlayEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
@@ -73,6 +70,9 @@ public class NoRenderModule extends Module {
             .setVisible(() -> fog.getValue());
 
     // **************************** other ****************************
+
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
+            .setDescription("Prevents end crystals from rendering");
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true)
             .setDescription("Prevents armor from rendering");
@@ -311,6 +311,15 @@ public class NoRenderModule extends Module {
 
         // Prevent the eating animation
         if (eating.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderCrystal(RenderCrystalEvent.RenderCrystalPreEvent event) {
+
+        // prevent crystals from rendering
+        if (crystals.getValue()) {
             event.setCanceled(true);
         }
     }
