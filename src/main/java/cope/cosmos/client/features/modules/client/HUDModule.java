@@ -149,9 +149,9 @@ public class HUDModule extends Module {
             if (potionEffects.getValue()) {
 
                 // active potions
-                getCosmos().getPotionManager().getActivePotions().forEach((potionEffect, animation) -> {
+                mc.player.getActivePotionEffects().forEach(potionEffect -> {
 
-                    if (animation.getAnimationFactor() > 0.05) {
+                    // if (animation.getAnimationFactor() > 0.05) {
 
                         // potion name
                         String potionName = I18n.format(potionEffect.getEffectName());
@@ -170,13 +170,13 @@ public class HUDModule extends Module {
                                     .append(Potion.getPotionDurationString(potionEffect, 1F));
 
                             // draw string
-                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - ((FontUtil.getStringWidth(potionFormatted.toString()) + 2) * animation.getAnimationFactor())), SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
 
                             // offset
-                            bottomRight += (FontUtil.getFontHeight() + 1) * animation.getAnimationFactor();
+                            bottomRight += FontUtil.getFontHeight() + 1;
                             globalOffset++;
                         }
-                    }
+                   //  }
                 });
             }
 
