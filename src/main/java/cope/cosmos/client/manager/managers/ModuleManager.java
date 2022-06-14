@@ -97,6 +97,7 @@ public class ModuleManager extends Manager {
 				// visual
 				new BlockHighlightModule(),
 				new BreadcrumbsModule(), // TODO: I need to fix this
+				new BreakESPModule(),
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),

@@ -1,8 +1,8 @@
 package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.client.ui.util.ScissorStack;
+import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -14,14 +14,11 @@ import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
-import static org.lwjgl.opengl.GL11.glDisable;
-
 /**
  * @author Wolfsurge
  * @since 02/05/2022
  */
-public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
+public class AltManagerGUI extends GuiScreen {
 
     // Last GUI screen
     private final GuiScreen lastScreen;
@@ -45,6 +42,7 @@ public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
         buttonList.add(new GuiButton(2, scaledResolution.getScaledWidth() / 2 + 50, scaledResolution.getScaledHeight() - 23, 100, 20, "Back"));
 
         altEntryOffset = 41;
+
         if (!Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
             getFirstAlt().setOffset(altEntryOffset);
         }
@@ -143,8 +141,10 @@ public class AltManagerGUI extends GuiScreen implements InterfaceWrapper {
                 if (getSelectedAltEntry() != null) {
                     // Remove the entry
                     Cosmos.INSTANCE.getAltManager().getAltEntries().remove(getSelectedAltEntry());
+
                     // Decrease the offset
                     altEntryOffset -= 32;
+
                     // Refresh positions of all other alts
                     if (!Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
                         getFirstAlt().setOffset(41);
