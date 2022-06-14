@@ -14,19 +14,29 @@ import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 
+import static cope.cosmos.util.render.RenderBuilder.Box;
+
 /**
  * @author Wolfsurge
  * @since 04/06/22
  */
 public class BreakESPModule extends Module {
 
-    // Render settings
-    public static Setting<RenderBuilder.Box> renderMode = new Setting<>("RenderMode", RenderBuilder.Box.BOTH)
+    public static BreakESPModule INSTANCE;
+
+    public BreakESPModule() {
+        super("BreakESP", Category.VISUAL, "Highlights blocks that are being broken");
+
+        INSTANCE = this;
+    }
+
+    // **************************** render ****************************
+    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
             .setDescription("How to render the highlight");
 
     public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1f, 1.0f, 3f, 1)
             .setDescription("The width of the outline")
-            .setVisible(() -> !renderMode.getValue().equals(RenderBuilder.Box.FILL));
+            .setVisible(() -> !renderMode.getValue().equals(Box.FILL));
 
     public static Setting<Boolean> percent = new Setting<>("Percent", true)
             .setDescription("Show the percentage the block has been broken by");
@@ -37,13 +47,9 @@ public class BreakESPModule extends Module {
     public static Setting<Float> alpha = new Setting<>("Alpha", 0f, 100f, 255f, 0)
             .setDescription("The alpha of the color");
 
-    // Other settings
+    // **************************** other ****************************
     public static Setting<Float> range = new Setting<>("Range", 1f, 20f, 50f, 1)
             .setDescription("The maximum distance a highlighted block can be");
-
-    public BreakESPModule() {
-        super("BreakESP", Category.VISUAL, "Highlights blocks that are being broken");
-    }
 
     @Override
     public void onRender3D() {
