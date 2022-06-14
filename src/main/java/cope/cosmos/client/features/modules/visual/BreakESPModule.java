@@ -60,7 +60,7 @@ public class BreakESPModule extends Module {
                 BlockPos blockPos = progress.getPosition();
 
                 // Don't care about air
-                if (mc.world.getBlockState(blockPos).getBlock() == Blocks.AIR) {
+                if (mc.world.getBlockState(blockPos).getBlock().equals(Blocks.AIR)) {
                     return;
                 }
 
