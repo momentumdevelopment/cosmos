@@ -93,14 +93,8 @@ public class AltEntry implements Wrapper, InterfaceWrapper {
             loginString = getAlt().getLogin();
         }
 
-        // Email / Error Message
-        if (getAlt().getAltSession() != null) {
-            FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.CRACKED ? TextFormatting.GRAY + " | " + getAlt().getAltSession().getUsername() : ""), (scaledResolution.getScaledWidth() / 2F) - 120, getOffset() + 5, 0xFFFFFF);
-        }
-
-        else {
-            FontUtil.drawStringWithShadow(TextFormatting.DARK_RED + "Invalid User. Possible Rate Limit.", (scaledResolution.getScaledWidth() / 2F) - 120, getOffset() + 5, 0xFFFFFF);
-        }
+        // Email
+        FontUtil.drawStringWithShadow(loginString + (getAlt().getAltType() != Alt.AltType.CRACKED ? TextFormatting.GRAY : ""), (scaledResolution.getScaledWidth() / 2F) - 120, getOffset() + 5, 0xFFFFFF);
 
         // Password
         if (getAlt().getAltType() != Alt.AltType.CRACKED) {
@@ -108,7 +102,7 @@ public class AltEntry implements Wrapper, InterfaceWrapper {
         }
 
         // Alt Type
-        FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]", (scaledResolution.getScaledWidth() / 2F) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[INVALID]")), getOffset() + 11, 0xFFFFFF);
+        FontUtil.drawStringWithShadow(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[NO SESSION]", (scaledResolution.getScaledWidth() / 2F) + (145 - FontUtil.getStringWidth(getAlt().getAltSession() != null ? getAlt().getAltType().name() : "[NO SESSION]")), getOffset() + 11, 0xFFFFFF);
     }
 
     /**
@@ -124,10 +118,8 @@ public class AltEntry implements Wrapper, InterfaceWrapper {
      * Called when the button is clicked
      */
     public void whenClicked() {
-        // Login if the session isn't null, and if the entry is already selected
-        if (getAlt().getAltSession() != null) {
-            ((IMinecraft) mc).setSession(getAlt().getAltSession());
-        }
+        // Login
+        getAlt().login();
     }
 
     /**
