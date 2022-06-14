@@ -4,11 +4,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.string.ColorUtil;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedList;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -29,7 +26,7 @@ public class BreadcrumbsModule extends Module {
     public static Setting<Boolean> infinite = new Setting<>("Infinite", false)
             .setDescription("Makes breadcrumbs last forever");
 
-    public static Setting<Float> lifespan = new Setting<>("Lifespan", 1F, 2F, 10F, 0)
+    public static Setting<Float> lifespan = new Setting<>("Lifespan", 1F, 2F, 10F, 1)
             .setDescription("The lifespan of the positions in seconds")
             .setVisible(() -> !infinite.getValue());
 
@@ -37,7 +34,8 @@ public class BreadcrumbsModule extends Module {
             .setDescription("The width of the lines");
 
     // List of positions
-    private final Map<Vec3d, Long> positions = new ConcurrentHashMap<>();
+    // Would prefer to use a map, but ConcurrentHashMap does some weird shit when rendering the line, LinkedHashMap throws ConcurrentModificationExceptions, and there isn't a ConcurrentLinkedHashMap :(
+    private final LinkedList<Position> positions = new LinkedList<>();
 
     @Override
     public void onDisable() {
@@ -56,16 +54,10 @@ public class BreadcrumbsModule extends Module {
 
         // Add the player's position
         // We are adding the player's last position so it is just behind the player, and will not be obvious on the screen (especially when elytra flying)
-        positions.put(new Vec3d(mc.player.lastTickPosX, mc.player.lastTickPosY, mc.player.lastTickPosZ), System.currentTimeMillis());
+        positions.add(new Position(new Vec3d(mc.player.lastTickPosX, mc.player.lastTickPosY, mc.player.lastTickPosZ), System.currentTimeMillis()));
 
         // Remove positions that are too old
-        positions.forEach((position, time) -> {
-
-            // passed lifespan
-            if (System.currentTimeMillis() - time >= lifespan.getValue() * 1000) {
-                positions.remove(position);
-            }
-        });
+        positions.removeIf(position -> System.currentTimeMillis() - position.getTime() >= lifespan.getValue() * 1000 && !infinite.getValue());
     }
 
     @Override
@@ -81,27 +73,56 @@ public class BreadcrumbsModule extends Module {
         // disable render lighting
         mc.entityRenderer.disableLightmap();
 
+        glBegin(GL_LINE_STRIP);
+
         // Render positions
-        positions.forEach((position, time) -> {
-
-            glBegin(GL_LINE_STRIP);
-
+        positions.forEach(position -> {
             // Set line colour
-            glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, MathHelper.clamp((System.currentTimeMillis() - time) / lifespan.getValue(), 0, 1));
+            glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, 1);
 
             // draw line
-            glVertex3d(position.x - mc.getRenderManager().viewerPosX, position.y - mc.getRenderManager().viewerPosY, position.z - mc.getRenderManager().viewerPosZ);
-
-            // Reset colour
-            glColor4d(1, 1, 1, 1);
-
-            glEnd();
+            glVertex3d(position.getVec().x - mc.getRenderManager().viewerPosX, position.getVec().y - mc.getRenderManager().viewerPosY, position.getVec().z - mc.getRenderManager().viewerPosZ);
         });
 
+        // Reset colour
+        glColor4d(1, 1, 1, 1);
+
+        glEnd();
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);
         glPopMatrix();
+    }
+
+    class Position {
+
+        // The position's vector
+        private final Vec3d vec;
+
+        // The System.currentTimeMillis() at the time of instantiating the position
+        private final long time;
+
+        public Position(Vec3d vec, long time) {
+            this.vec = vec;
+            this.time = time;
+        }
+
+        /**
+         * Gets the position's vector
+         * @return The position's vector
+         */
+        public Vec3d getVec() {
+            return vec;
+        }
+
+        /**
+         * Gets the creation time
+         * @return The creation time
+         */
+        public long getTime() {
+            return time;
+        }
+
     }
 }
