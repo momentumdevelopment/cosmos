@@ -9,6 +9,7 @@ import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,20 @@ public class PopManager extends Manager implements Wrapper {
 
         // add the entity to our totem pop, or if they are already in the map -> update the entity's pop info
         totemPops.put(event.getPopEntity(), totemPops.containsKey(event.getPopEntity()) ? totemPops.get(event.getPopEntity()) + 1 : 1);
+    }
+
+    @SubscribeEvent
+    public void onRemoveEntity(EntityWorldEvent.EntityRemoveEvent event) {
+
+        // reset on death
+        totemPops.remove(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+
+        // clear on logout
+        totemPops.clear();
     }
 
     /**
