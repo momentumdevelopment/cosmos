@@ -6,7 +6,7 @@ import net.minecraft.world.World;
 /**
  * Calculates general damages
  *
- * @author aesthetical
+ * @author aesthetical, linustouchtips
  * @since 3/19/22
  */
 public class DamageUtil implements Wrapper {

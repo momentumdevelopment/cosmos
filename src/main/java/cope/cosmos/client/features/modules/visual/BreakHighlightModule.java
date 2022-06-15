@@ -20,21 +20,20 @@ import static cope.cosmos.util.render.RenderBuilder.Box;
  * @author Wolfsurge
  * @since 04/06/22
  */
-public class BreakESPModule extends Module {
+public class BreakHighlightModule extends Module {
+    public static BreakHighlightModule INSTANCE;
 
-    public static BreakESPModule INSTANCE;
-
-    public BreakESPModule() {
-        super("BreakESP", Category.VISUAL, "Highlights blocks that are being broken");
-
+    public BreakHighlightModule() {
+        super("BreakHighlight", Category.VISUAL, "Highlights blocks that are being broken");
         INSTANCE = this;
     }
 
     // **************************** render ****************************
+
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
             .setDescription("How to render the highlight");
 
-    public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1f, 1.0f, 3f, 1)
+    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1f, 1.0f, 3f, 1)
             .setDescription("The width of the outline")
             .setVisible(() -> !renderMode.getValue().equals(Box.FILL));
 
@@ -48,14 +47,17 @@ public class BreakESPModule extends Module {
             .setDescription("The alpha of the color");
 
     // **************************** other ****************************
+
     public static Setting<Float> range = new Setting<>("Range", 1f, 20f, 50f, 1)
             .setDescription("The maximum distance a highlighted block can be");
 
     @Override
     public void onRender3D() {
+
         // Iterate through all blocks being broken
         ((IRenderGlobal) mc.renderGlobal).getDamagedBlocks().forEach((pos, progress) -> {
             if (progress != null) {
+
                 // Get the block being broken
                 BlockPos blockPos = progress.getPosition();
 
@@ -66,6 +68,7 @@ public class BreakESPModule extends Module {
 
                 // Check block is within range
                 if (blockPos.getDistance((int) mc.player.posX, (int) mc.player.posY, (int) mc.player.posZ) <= range.getValue()) {
+
                     // Block damage. Clamping this as it can go above 8 for other players, breaking the colour and throwing an exception
                     int damage = MathHelper.clamp(progress.getPartialBlockDamage(), 0, 8);
 
@@ -106,5 +109,4 @@ public class BreakESPModule extends Module {
             }
         });
     }
-
 }

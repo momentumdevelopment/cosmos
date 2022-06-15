@@ -308,6 +308,7 @@ public class HoleFillModule extends Module {
     }
 
     public enum Completion {
+
         /**
          * Disables when there are no more holes to fill
          */

@@ -95,7 +95,7 @@ public class BreadcrumbsModule extends Module {
         glPopMatrix();
     }
 
-    class Position {
+    public static class Position {
 
         // The position's vector
         private final Vec3d vec;
@@ -123,6 +123,5 @@ public class BreadcrumbsModule extends Module {
         public long getTime() {
             return time;
         }
-
     }
 }

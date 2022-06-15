@@ -135,7 +135,7 @@ public class ExplosionUtil implements Wrapper {
     }
     
     // ******************* WHAT??? **********************
-    // ----------> I really don't understand any of this, sum mc spaghetti code - linus
+    // I really don't understand any of this, sum mc spaghetti code - linus
 
     /**
      * A wrapper for vanilla raytracing with blockDestruction
