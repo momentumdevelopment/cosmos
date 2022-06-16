@@ -67,7 +67,7 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
     public void onClick(ClickType in) {
 
         // move to the next mode if clicked
-        if (in.equals(ClickType.LEFT) && isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT)) {
+        if (isMouseOver(getModuleComponent().getCategoryFrameComponent().getPosition().x, featureHeight, getModuleComponent().getCategoryFrameComponent().getWidth(), HEIGHT)) {
 
             // module feature bounds
             float highestPoint = featureHeight;
@@ -75,10 +75,20 @@ public class EnumComponent extends SettingComponent<Enum<?>> {
 
             // check if it's able to be interacted with
             if (highestPoint >= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + 2 && lowestPoint <= getModuleComponent().getCategoryFrameComponent().getPosition().y + getModuleComponent().getCategoryFrameComponent().getTitle() + getModuleComponent().getCategoryFrameComponent().getHeight() + 2) {
-                Enum<?> nextValue = getSetting().getNextMode();
+                Enum<?> nextValue = null;
+
+                if (in.equals(ClickType.LEFT)) {
+                    nextValue = getSetting().getNextMode();
+                }
+
+                else if (in.equals(ClickType.RIGHT)) {
+                    nextValue = getSetting().getLastMode();
+                }
 
                 // update values
-                getSetting().setValue(nextValue);
+                if (nextValue != null) {
+                    getSetting().setValue(nextValue);
+                }
             }
 
             // play a sound to make the user happy :)
