@@ -7,6 +7,8 @@
     "mixins": [
         "accessor.ICPacketChatMessage",
         "accessor.ICPacketCloseWindow",
+        "accessor.ICPacketConfirmTransaction",
+        "accessor.ICPacketKeepAlive",
         "accessor.ICPacketPlayer",
         "accessor.ICPacketPlayerTryUseItemOnBlock",
         "accessor.ICPacketUseEntity",

@@ -1,5 +1,7 @@
 package cope.cosmos.client.features.modules.player;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketConfirmTransaction;
+import cope.cosmos.asm.mixins.accessor.ICPacketKeepAlive;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -31,6 +33,9 @@ public class PingSpoofModule extends Module {
     public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1)
             .setDescription("The delay in seconds to hold off sending packets");
 
+    public static Setting<Boolean> zero = new Setting<>("Zero", false)
+            .setDescription("Spoofs your ping to 0 on some servers");
+
     // **************************** anticheat ****************************
 
     public static Setting<Boolean> transactions = new Setting<>("Transactions", false)
@@ -54,6 +59,14 @@ public class PingSpoofModule extends Module {
                 // we can now begin processing packets
                 packets.forEach(packet -> {
                     if (packet != null) {
+                        if (zero.getValue()) {
+                            if (packet instanceof CPacketKeepAlive) {
+                                ((ICPacketKeepAlive) packet).setKey(-1);
+                            } else if (packet instanceof CPacketConfirmTransaction) {
+                                ((ICPacketConfirmTransaction) packet).setUid((short) -6);
+                            }
+                        }
+
                         // send all queued packets
                         mc.player.connection.sendPacket(packet);
                     }
