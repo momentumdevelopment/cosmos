@@ -1,22 +1,10 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketCloseWindow;
-import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.setting.Setting;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketCloseWindow;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraft.network.play.server.SPacketConfirmTransaction;
-import net.minecraft.network.play.server.SPacketSoundEffect;
-import net.minecraft.network.play.server.SPacketSpawnObject;
-import net.minecraft.network.play.server.SPacketTimeUpdate;
-import net.minecraft.network.status.server.SPacketPong;
-import net.minecraft.util.SoundCategory;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**

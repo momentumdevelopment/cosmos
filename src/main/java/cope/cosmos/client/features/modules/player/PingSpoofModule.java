@@ -33,8 +33,8 @@ public class PingSpoofModule extends Module {
     public static Setting<Double> delay = new Setting<>("Delay", 0.1, 0.5, 5.0, 1)
             .setDescription("The delay in seconds to hold off sending packets");
 
-    public static Setting<Boolean> zero = new Setting<>("Zero", false)
-            .setDescription("Spoofs your ping to 0 on some servers");
+    public static Setting<Boolean> reduction = new Setting<>("Reduction", false)
+            .setDescription("Lowers your ping on some servers");
 
     // **************************** anticheat ****************************
 
@@ -59,10 +59,14 @@ public class PingSpoofModule extends Module {
                 // we can now begin processing packets
                 packets.forEach(packet -> {
                     if (packet != null) {
-                        if (zero.getValue()) {
+
+                        // modify packet data
+                        if (reduction.getValue()) {
                             if (packet instanceof CPacketKeepAlive) {
                                 ((ICPacketKeepAlive) packet).setKey(-1);
-                            } else if (packet instanceof CPacketConfirmTransaction) {
+                            }
+
+                            else if (packet instanceof CPacketConfirmTransaction) {
                                 ((ICPacketConfirmTransaction) packet).setUid((short) -6);
                             }
                         }

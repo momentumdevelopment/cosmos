@@ -154,6 +154,11 @@ public class SpeedModule extends Module {
         // cancel vanilla movement, we'll send our own movements
         event.setCanceled(true);
 
+        // sneak reset
+        if (mc.player.isSneaking()) {
+            mc.player.setSneaking(false);
+        }
+
         // base move speed
         double baseSpeed = 0.2873;
 

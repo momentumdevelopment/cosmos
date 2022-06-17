@@ -92,7 +92,9 @@ public class StepModule extends Module {
 
     @SubscribeEvent
     public void onStep(StepEvent event) {
+
         if (mode.getValue().equals(Mode.NORMAL)) {
+
             // current step height
             double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
 

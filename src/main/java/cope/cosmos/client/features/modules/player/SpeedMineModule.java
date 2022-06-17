@@ -8,7 +8,9 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -22,19 +24,20 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.network.play.client.CPacketClickWindow;
+import net.minecraft.network.play.client.CPacketConfirmTransaction;
 import net.minecraft.network.play.client.CPacketPlayerDigging;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author linustouchtips
@@ -64,23 +67,14 @@ public class SpeedMineModule extends Module {
     // **************************** anticheat ****************************
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
-            .setDescription("Mines on the opposite face")
+            .setDescription("Mines on the correct direction")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
-    public static Setting<Boolean> strictSwitch = new Setting<>("StrictSwitch", false)
-            .setDescription("Switches to a tool when mining first")
-            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
-
-    // TODO: FIX, should not keep mining lol
     public static Setting<Boolean> strictReMine = new Setting<>("StrictBreak", true)
             .setDescription("Limits re-mines")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
-    public static Setting<Boolean> swing = new Setting<>("NoSwing", false)
-            .setDescription("Cancels swinging packets")
-            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
-
-    public static Setting<Boolean> reset = new Setting<>("Reset", false)
+    public static Setting<Boolean> reset = new Setting<>("Stabilize", false)
             .setDescription("Doesn't allow block break progress to be reset");
 
     // **************************** render ****************************
@@ -90,7 +84,7 @@ public class SpeedMineModule extends Module {
 
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
             .setDescription("Style for the visual")
-            .setExclusion(Box.GLOW, Box.REVERSE)
+            .setExclusion(Box.GLOW, Box.REVERSE, Box.NONE)
             .setVisible(() -> render.getValue());
 
     // mine info
@@ -101,33 +95,11 @@ public class SpeedMineModule extends Module {
     private float mineDamage;
     private int mineBreaks;
 
-    // packet info
-    private final Map<BlockPos, Long> breakPackets = new ConcurrentHashMap<>();
-
-    // switch info
-    private int previousSlot = -1;
-
     // potion info
     private int previousHaste;
 
     @Override
     public void onUpdate() {
-
-        if (mc.getConnection() != null) {
-
-            // clear our sent packets
-            breakPackets.forEach((position, time) -> {
-
-                // response time projection
-                long responseTime = Math.max(mc.getConnection().getPlayerInfo(mc.player.getUniqueID()).getResponseTime() + 50, 100) + 150;
-
-                // check if we passed predicted response time
-                if (System.currentTimeMillis() - time >= responseTime) {
-
-                    breakPackets.remove(position);
-                }
-            });
-        }
 
         // no reason to speedmine in creative mode, blocks break instantly
         if (!mc.player.capabilities.isCreativeMode) {
@@ -144,6 +116,11 @@ public class SpeedMineModule extends Module {
                 }
             }
 
+            /*
+             * Idea behind this mode is that blocks often are considered broken on NCP before the damage is
+             * greater than 1, so by breaking them at an earlier time we can break the block slightly faster
+             *  (working on NCP)
+             */
             if (mode.getValue().equals(Mode.DAMAGE)) {
 
                 // if the damage is greater than our specified damage, set the block to full damage
@@ -156,28 +133,73 @@ public class SpeedMineModule extends Module {
             }
 
             else if (mode.getValue().equals(Mode.PACKET)) {
-                if (minePosition != null) {
+                if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
 
-                    // if the block is broken
-                    if (mineDamage >= 1) {
+                    // we've already attempted to break this block
+                    if (InventoryUtil.isHolding(getEfficientItem(mc.world.getBlockState(minePosition)).getItem()) || !BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
 
-                        // we've already attempted to break this block
-                        if (!breakPackets.containsKey(minePosition)) {
+                        // if the block is broken
+                        if (mineDamage >= 1) {
 
-                            // break block
+                            // previous slot
+                            int previousSlot = mc.player.inventory.currentItem;
+
+                            // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                            int swapSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR) + 36;
+
+                            // swap with window clicks
+                            if (strict.getValue()) {
+
+                                // transaction id
+                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                // window click
+                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+                            }
+
+                            else {
+
+                                // switch to the most efficient item
+                                getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+                            }
+
+                            // break the block
                             mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, EnumFacing.UP));
 
-                            // add to sent packet maps
-                            breakPackets.put(minePosition, System.currentTimeMillis());
+                            // FAST SPEED FAST SPEED
+                            if (strict.getValue()) {
+                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing));
+                            }
+
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
 
                             // save our current slot
                             if (previousSlot != -1) {
 
-                                // switch to our previous slot
-                                mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
+                                // swap with window clicks
+                                if (strict.getValue()) {
 
-                                // reset previous slot
-                                previousSlot = -1;
+                                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                                    // int swapSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR) + 36;
+
+                                    // transaction id
+                                    short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                    // window click
+                                    ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                    mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+                                    // confirm packets
+                                    mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+                                }
+
+                                else {
+
+                                    // switch to our previous slot
+                                    getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
+                                }
                             }
                         }
                     }
@@ -185,6 +207,15 @@ public class SpeedMineModule extends Module {
                     // update block damage
                     mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
                 }
+
+                /*
+                else {
+                    minePosition = null; // not currently mining
+                    mineFacing = null;
+                    mineDamage = 0;
+                    mineBreaks = 0;
+                }
+                 */
             }
 
             else if (mode.getValue().equals(Mode.VANILLA)) {
@@ -226,7 +257,6 @@ public class SpeedMineModule extends Module {
         mineFacing = null;
         mineDamage = 0;
         mineBreaks = 0;
-        breakPackets.clear();
     }
 
     @Override
@@ -236,9 +266,12 @@ public class SpeedMineModule extends Module {
         if (mode.getValue().equals(Mode.PACKET) && !mc.player.capabilities.isCreativeMode) {
             if (minePosition != null && !mc.world.isAirBlock(minePosition)) {
 
+                // box of the mine
+                AxisAlignedBB mineBox = mc.world.getBlockState(minePosition).getSelectedBoundingBox(mc.world, minePosition);
+
                 // draw box
                 RenderUtil.drawBox(new RenderBuilder()
-                        .position(minePosition)
+                        .position(mineBox)
                         .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
                         .box(renderMode.getValue())
                         .setup()
@@ -268,37 +301,71 @@ public class SpeedMineModule extends Module {
 
             if (mode.getValue().equals(Mode.PACKET)) {
 
-                // save our current slot
-                previousSlot = mc.player.inventory.currentItem;
-
-                // switch before mine
-                if (strictSwitch.getValue()) {
-                    getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), Switch.PACKET);
-                }
-
-                // re-click
+                    // re-click
                 if (event.getPos().equals(minePosition)) {
-                    if (mode.getValue().equals(Mode.PACKET)) {
+                    if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
 
                         // if our damage is enough to destroy the block then we switch to the best item
                         if (mineDamage >= 1) {
 
-                            if (BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
+                            // previous slot
+                            int previousSlot = mc.player.inventory.currentItem;
+
+                            // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                            int swapSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR) + 36;
+
+                            // swap with window clicks
+                            if (strict.getValue()) {
+
+                                // transaction id
+                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                // window click
+                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+                            }
+
+                            else {
 
                                 // switch to the most efficient item
                                 getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
+                            }
 
-                                // break the block
-                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                            // break the block
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, EnumFacing.UP));
 
-                                // save our current slot
-                                if (previousSlot != -1) {
+                            // FAST SPEED FAST SPEED
+                            if (strict.getValue()) {
+                                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing));
+                            }
+
+                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.STOP_DESTROY_BLOCK, minePosition, mineFacing));
+
+                            // save our current slot
+                            if (previousSlot != -1) {
+
+                                // swap with window clicks
+                                if (strict.getValue()) {
+
+                                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                                    // int swapSlot = getCosmos().getInventoryManager().searchSlot(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), InventoryRegion.HOTBAR) + 36;
+
+                                    // transaction id
+                                    short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                    // window click
+                                    ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                    mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+                                    // confirm packets
+                                    mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+                                }
+
+                                else {
 
                                     // switch to our previous slot
-                                    mc.player.connection.sendPacket(new CPacketHeldItemChange(previousSlot));
-
-                                    // reset previous slot
-                                    previousSlot = -1;
+                                    getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
                                 }
                             }
                         }
@@ -318,22 +385,7 @@ public class SpeedMineModule extends Module {
 
                         // send the packets to mine the position
                         mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing));
-
-                        // mine on the opposite facing
-                        if (strict.getValue()) {
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
-                        }
-
-                        // cancel the swinging animation
-                        if (swing.getValue()) {
-                            mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, mineFacing.getOpposite()));
-                        }
-
-                        if (!BlockUtil.getResistance(minePosition).equals(Resistance.RESISTANT)) {
-
-                            // switch to the most efficient item
-                            getCosmos().getInventoryManager().switchToItem(getEfficientItem(mc.world.getBlockState(minePosition)).getItem(), mineSwitch.getValue());
-                        }
+                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, minePosition, EnumFacing.UP));
                     }
                 }
             }
@@ -353,9 +405,6 @@ public class SpeedMineModule extends Module {
             if (blockPosition.equals(minePosition) && ((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
                 mineBreaks++;
             }
-
-            // remove from sent packets
-            breakPackets.remove(blockPosition);
         }
 
         // packet for multiple block breaks
@@ -368,9 +417,6 @@ public class SpeedMineModule extends Module {
                 if (blockUpdateData.getPos().equals(minePosition) && blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
                     mineBreaks++;
                 }
-
-                // remove from sent packets
-                breakPackets.remove(blockUpdateData.getPos());
             }
         }
     }
@@ -517,6 +563,7 @@ public class SpeedMineModule extends Module {
      */
     @SuppressWarnings("all")
     public float getDigSpeed(IBlockState state) {
+
         // base dig speed
         float digSpeed = getDestroySpeed(state);
 

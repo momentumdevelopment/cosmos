@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.setting;
 
+import cope.cosmos.util.Wrapper;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -8,7 +9,7 @@ import org.lwjgl.input.Mouse;
  * @author Wolfsurge
  * @since 09/06/22
  */
-public class Bind {
+public class Bind implements Wrapper {
 
     // The button index
     private final int buttonCode;
@@ -24,8 +25,13 @@ public class Bind {
         this.device = device;
     }
 
+    /**
+     * Checks if the bind has been pressed
+     * @return Whether the bind has been pressed
+     */
     public boolean isPressed() {
-        if (buttonCode <= 1 || Minecraft.getMinecraft().currentScreen != null) {
+
+        if (buttonCode <= 1 || mc.currentScreen != null) {
             return false;
         }
 
@@ -33,20 +39,26 @@ public class Bind {
         boolean pressed = device.equals(Device.KEYBOARD) && Keyboard.isKeyDown(buttonCode) || device.equals(Device.MOUSE) && Mouse.isButtonDown(buttonCode);
 
         if (pressed) {
+
             // We haven't already pressed the key
             if (!alreadyPressed) {
-                this.alreadyPressed = true;
+                alreadyPressed = true;
                 return true;
-            } else {
+            }
+
+            else {
                 return false;
             }
-        } else {
-            this.alreadyPressed = false;
+        }
+
+        else {
+            alreadyPressed = false;
             return false;
         }
     }
 
     public enum Device {
+
         /**
          * A key on the keyboard
          */
@@ -63,6 +75,7 @@ public class Bind {
      * @return The button name
      */
     public String getButtonName() {
+
         // Invalid button
         if (buttonCode < 1) {
             return "None";
@@ -76,7 +89,7 @@ public class Bind {
             return Mouse.getButtonName(buttonCode);
         }
 
-        return "test";
+        return "Unrecognized";
     }
 
     /**
