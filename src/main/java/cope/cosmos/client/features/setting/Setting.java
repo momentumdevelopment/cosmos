@@ -134,6 +134,26 @@ public class Setting<T> extends Feature implements Wrapper {
 	}
 
 	/**
+	 * Gets the last value in an Enum setting
+	 * @return The last value in an Enum setting
+	 */
+	@SuppressWarnings("unchecked")
+	public T getLastMode() {
+		if (value instanceof Enum<?>) {
+			Enum<?> enumVal = (Enum<?>) value;
+
+			// search all values
+			String[] values = Arrays.stream(enumVal.getClass().getEnumConstants()).filter(in -> !isExclusion((T) in)).map(Enum::name).toArray(String[]::new);
+			index = index - 1 < 0 ? values.length - 1 : index - 1;
+
+			// use value index
+			return (T) Enum.valueOf(enumVal.getClass(), values[index]);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Gets the rounding scale in a number setting
 	 * @return The rounding scale in the number setting
 	 */
