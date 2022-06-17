@@ -47,9 +47,8 @@ public class PresetManager extends Manager {
         presets.add("default");
         currentPreset = "default";
 
-        // load and save the default config
+        // load the default config
         load();
-        save();
 
         // save the config when the game is closed
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -113,7 +112,6 @@ public class PresetManager extends Manager {
         loadModules();
         loadSocial();
         loadAlts();
-        loadGUI();
         loadWallhackBlocks();
     }
 
