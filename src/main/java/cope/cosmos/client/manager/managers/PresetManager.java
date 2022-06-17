@@ -4,6 +4,7 @@ import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.features.modules.visual.WallhackModule;
+import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
@@ -21,6 +22,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
  * @author linustouchtips, Wolfsurge, aesthetical
@@ -44,9 +47,8 @@ public class PresetManager extends Manager {
         presets.add("default");
         currentPreset = "default";
 
-        // load and save the default config
+        // load the default config
         load();
-        save();
 
         // save the config when the game is closed
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -110,7 +112,6 @@ public class PresetManager extends Manager {
         loadModules();
         loadSocial();
         loadAlts();
-        loadGUI();
         loadWallhackBlocks();
     }
 
@@ -171,7 +172,6 @@ public class PresetManager extends Manager {
                         outputTOML.append("[").append(module.getName()).append("]").append("\r\n");
                         outputTOML.append("Enabled = ").append(module.isEnabled()).append("\r\n");
                         outputTOML.append("Drawn = ").append(module.isDrawn()).append("\r\n");
-                        outputTOML.append("Bind = ").append(module.getKey()).append("\r\n");
 
                         module.getSettings().forEach(setting -> {
                             if (setting != null) {
@@ -196,6 +196,10 @@ public class PresetManager extends Manager {
 
                                     else if (setting.getValue() instanceof Color) {
                                         outputTOML.append(((Color) setting.getValue()).getRGB());
+                                    }
+
+                                    else if (setting.getValue() instanceof Bind) {
+                                        outputTOML.append('"').append(((Bind) setting.getValue()).getButtonCode()).append(":").append(((Bind) setting.getValue()).getDevice().name()).append('"');
                                     }
 
                                     else {
@@ -268,12 +272,6 @@ public class PresetManager extends Manager {
                                 module.setDrawn(drawn);
                             }
 
-                            // set the keybind
-                            if (inputTOML.getLong(module.getName() + ".Bind") != null) {
-                                int key = inputTOML.getLong(module.getName() + ".Bind", 0L).intValue();
-                                module.setKey(key);
-                            }
-
                             // set the setting values
                             module.getSettings().forEach(setting -> {
                                 if (setting != null) {
@@ -325,6 +323,14 @@ public class PresetManager extends Manager {
                                                 Color value = new Color(inputTOML.getLong(identifier, -1L).intValue(), true);
                                                 ((Setting<Color>) setting).setValue(value);
                                            }
+                                        }
+
+                                        else if (setting.getValue() instanceof Bind) {
+                                            if (inputTOML.getString(identifier) != null) {
+                                                String[] parts = inputTOML.getString(identifier).split(":");
+
+                                                ((Setting<Bind>) setting).setValue(new Bind(Integer.parseInt(parts[0]), Enum.valueOf(Device.class, parts[1])));
+                                            }
                                         }
 
                                     } catch (Exception exception) {

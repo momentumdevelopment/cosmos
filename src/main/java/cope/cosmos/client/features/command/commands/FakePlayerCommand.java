@@ -13,7 +13,7 @@ public class FakePlayerCommand extends Command {
     public FakePlayerCommand() {
         super("fakeplayer", "Manages the fakeplayer", LiteralArgumentBuilder.literal("fakeplayer")
                 .executes((ctx) -> {
-                    FakePlayerModule.INSTANCE.toggle();;
+                    FakePlayerModule.INSTANCE.toggle();
                     return 0;
                 }));
     }

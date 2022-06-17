@@ -1,6 +1,7 @@
 package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module;
 
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.DrawableComponent;
@@ -65,8 +66,8 @@ public class ModuleComponent extends DrawableComponent {
                     settingComponents.add(new EnumComponent(this, (Setting<Enum<?>>) setting));
                 }
 
-                else if (setting.getValue() instanceof AtomicInteger) {
-                    settingComponents.add(new BindComponent(this, (Setting<AtomicInteger>) setting));
+                else if (setting.getValue() instanceof Bind) {
+                    settingComponents.add(new BindComponent(this, (Setting<Bind>) setting));
                 }
 
                 else if (setting.getValue() instanceof AtomicBoolean) {
@@ -86,9 +87,8 @@ public class ModuleComponent extends DrawableComponent {
                 }
             });
 
-            // all module features have a bind and drawn feature
+            // all module features have a drawn feature
             settingComponents.add(new DrawnComponent(this, new Setting<>("Drawn", new AtomicBoolean(true))));
-            settingComponents.add(new BindComponent(this, new Setting<>("Bind", null)));
         }
     }
 
@@ -146,7 +146,7 @@ public class ModuleComponent extends DrawableComponent {
                 float scaledWidth = (categoryFrameComponent.getPosition().x + categoryFrameComponent.getWidth() - (FontUtil.getStringWidth("...") * 0.8F) - 3) * 1.25F;
 
                 FontUtil.drawStringWithShadow(getModule().getName(), scaledX, scaledY, getModule().isEnabled() ? ColorUtil.getPrimaryColor().getRGB() : Color.WHITE.getRGB());
-                FontUtil.drawStringWithShadow("...", scaledWidth, scaledY, new Color(255, 255, 255).getRGB());
+                FontUtil.drawStringWithShadow("...", scaledWidth, scaledY - 3, new Color(255, 255, 255).getRGB());
             }
 
             glScaled(1.25, 1.25, 1.25);

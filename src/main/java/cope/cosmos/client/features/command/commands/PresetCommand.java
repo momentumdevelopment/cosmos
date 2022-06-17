@@ -31,12 +31,12 @@ public class PresetCommand extends Command {
                 )
 
                 .executes(context -> {
-                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the name of the preset!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the name of the preset!");
                     return 1;
                 }))
 
                 .executes(context -> {
-                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the correct action, was expecting save, remove, or load!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the correct action, was expecting save, remove, or load!");
                     return 1;
                 })
         );
