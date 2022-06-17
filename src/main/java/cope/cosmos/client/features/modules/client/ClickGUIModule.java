@@ -4,10 +4,13 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
+
+import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
  * @author bon55, linustouchtips
@@ -19,7 +22,7 @@ public class ClickGUIModule extends Module {
 	public ClickGUIModule() {
 		super("ClickGUI", Category.CLIENT, "This screen.");
 		INSTANCE = this;
-		setKey(Keyboard.KEY_RSHIFT);
+		getBind().setValue(new Bind(Keyboard.KEY_RSHIFT, Device.KEYBOARD));
 		setExempt(true);
 	}
 

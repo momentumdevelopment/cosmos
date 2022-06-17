@@ -22,7 +22,7 @@ public class DrawnCommand extends Command {
                 )
 
                 .executes(context -> {
-                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occured!", "Please enter the module to draw/hide!");
+                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the module to draw/hide!");
                     return 1;
                 })
         );
