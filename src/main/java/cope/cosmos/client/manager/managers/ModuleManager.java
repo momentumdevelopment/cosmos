@@ -114,6 +114,15 @@ public class ModuleManager extends Manager {
 		);
 	}
 
+	@Override
+	public void onThread() {
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if (module.getBind().getValue().isPressed()) {
+				module.toggle();
+			}
+		});
+	}
+
 	/**
 	 * Gets a list of all the client's modules
 	 * @return List of all the client's modules

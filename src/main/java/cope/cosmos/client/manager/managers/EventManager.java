@@ -90,10 +90,6 @@ public class EventManager extends Manager implements Wrapper {
 		}
 
 		mc.mcProfiler.endSection();
-
-		// if (mc.currentScreen instanceof GuiMainMenu && !Cosmos.SETUP) {
-		//		mc.displayGuiScreen(new SetUpGUI());
-		// }
 	}
 
 	@SubscribeEvent
@@ -135,12 +131,6 @@ public class EventManager extends Manager implements Wrapper {
 						exception.printStackTrace();
 					}
 				}
-			}
-		});
-
-		getCosmos().getModuleManager().getAllModules().forEach(module -> {
-			if (module.getBind().getValue().isPressed()) {
-				module.toggle();
 			}
 		});
 
