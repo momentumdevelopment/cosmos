@@ -32,7 +32,8 @@ public class BlockUtil implements Wrapper {
             Blocks.COMMAND_BLOCK,
             Blocks.CHAIN_COMMAND_BLOCK,
             Blocks.END_PORTAL_FRAME,
-            Blocks.BARRIER
+            Blocks.BARRIER,
+            Blocks.PORTAL
     );
 
     /**

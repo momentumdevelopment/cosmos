@@ -39,6 +39,7 @@ public class BreadcrumbsModule extends Module {
 
     @Override
     public void onDisable() {
+        super.onDisable();
 
         // Clear positions
         positions.clear();
@@ -47,6 +48,7 @@ public class BreadcrumbsModule extends Module {
     @Override
     public void onUpdate() {
         if (!nullCheck() || mc.player.ticksExisted <= 20) {
+
             // We may have just loaded into a world, so we need to clear the positions
             positions.clear();
             return;

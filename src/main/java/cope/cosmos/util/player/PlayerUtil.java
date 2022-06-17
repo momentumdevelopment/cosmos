@@ -37,7 +37,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is mending
      */
     public static boolean isMending() {
-        return mc.player.isHandActive() && mc.player.getActiveItemStack().getItem().equals(Items.EXPERIENCE_BOTTLE) && mc.gameSettings.keyBindUseItem.isKeyDown();
+        return InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && mc.gameSettings.keyBindUseItem.isKeyDown();
     }
 
     /**

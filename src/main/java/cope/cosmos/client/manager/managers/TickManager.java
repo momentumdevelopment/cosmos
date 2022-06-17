@@ -16,8 +16,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  */
 public class TickManager extends Manager {
 
-    // array of last 20 TPS calculations
-    private final float[] TPS = new float[20];
+    // array of last 20 latestTicks calculations
+    private final float[] latestTicks = new float[20];
 
     // time
     private long time;
@@ -29,8 +29,8 @@ public class TickManager extends Manager {
         time = -1;
 
         // initialize an empty array
-        for (int i = 0, len = TPS.length; i < len; i++) {
-            TPS[i] = 0;
+        for (int i = 0, len = latestTicks.length; i < len; i++) {
+            latestTicks[i] = 0;
         }
 
         Cosmos.EVENT_BUS.register(this);
@@ -42,9 +42,9 @@ public class TickManager extends Manager {
         // packet for server time updates
         if (event.getPacket() instanceof SPacketTimeUpdate) {
 
-            // update our TPS
+            // update our latestTicks
             if (time != -1) {
-                TPS[tick % TPS.length] = MathHelper.clamp((20 / ((float) (System.currentTimeMillis() - time) / 1000)), 0, 20);
+                latestTicks[tick % latestTicks.length] = MathHelper.clamp((20 / ((float) (System.currentTimeMillis() - time) / 1000)), 0, 20);
                 tick++;
             }
 
@@ -54,29 +54,29 @@ public class TickManager extends Manager {
     }
 
     /**
-     * Gets the current TPS
-     * @param tps the TPS mode to use
-     * @return The server TPS
+     * Gets the current latestTicks
+     * @param tps the latestTicks mode to use
+     * @return The server latestTicks
      */
     public float getTPS(TPS tps) {
 
-        // do not calculate TPS if we are not on a server
-        if (mc.isSingleplayer()) {
+        // do not calculate latestTicks if we are not on a server
+        if (mc.isSingleplayer() || tps.equals(TPS.NONE)) {
             return 20;
         }
 
         else {
             switch (tps) {
                 case CURRENT:
-                    // use the last TPS calculation
-                    return MathUtil.roundFloat(MathHelper.clamp(TPS[0], 0, 20), 2);
+                    // use the last latestTicks calculation
+                    return MathUtil.roundFloat(MathHelper.clamp(latestTicks[0], 0, 20), 2);
                 case AVERAGE:
                 default:
                     int tickCount = 0;
                     float tickRate = 0;
 
-                    // calculate the average TPS
-                    for (float tick : TPS) {
+                    // calculate the average latestTicks
+                    for (float tick : latestTicks) {
                         if (tick > 0) {
                             tickRate += tick;
                             tickCount++;
@@ -107,17 +107,17 @@ public class TickManager extends Manager {
     public enum TPS {
 
         /**
-         * Uses the latest TPS calculation
+         * Uses the latest latestTicks calculation
          */
         CURRENT,
 
         /**
-         * Uses the average TPS (over last 20 ticks) calculation
+         * Uses the average latestTicks (over last 20 ticks) calculation
          */
         AVERAGE,
 
         /**
-         * Does not calculate TPS
+         * Does not calculate latestTicks
          */
         NONE
     }

@@ -1,5 +1,6 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.manager.Manager;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -33,6 +34,7 @@ public class InventoryManager extends Manager {
                 case PACKET:
                     // send a switch packet to the server, should be silent client-side
                     mc.player.connection.sendPacket(new CPacketHeldItemChange(in));
+                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                     break;
             }
         }
@@ -125,12 +127,22 @@ public class InventoryManager extends Manager {
     }
 
     /**
+     * Checks if a given item is in the player's hotbar
+     * @param in The item to search
+     * @return Whether the given item is in the player's hotbar
+     */
+    public boolean isInHotbar(Item in) {
+        return searchSlot(in, InventoryRegion.HOTBAR) != -1;
+    }
+
+    /**
      * Searches the slot id of a given item
      * @param in The given item
      * @param inventoryRegion The inventory region to search
      * @return The slot id of the given item
      */
     public int searchSlot(Item in, InventoryRegion inventoryRegion) {
+
         // slot of the item
         int slot = -1;
 
@@ -141,6 +153,34 @@ public class InventoryManager extends Manager {
             if (mc.player.inventory.getStackInSlot(i).getItem().equals(in)) {
                 slot = i;
                 break;
+            }
+        }
+
+        return slot;
+    }
+
+    /**
+     * Searches the slot id of a given item
+     * @param in The given item
+     * @param inventoryRegion The inventory region to search
+     * @return The slot id of the given item
+     */
+    public int searchSlot(Block[] in, InventoryRegion inventoryRegion) {
+
+        // slot of the item
+        int slot = -1;
+
+        // search the region for the item
+        for (int i = inventoryRegion.getStart(); i <= inventoryRegion.getBound(); i++) {
+
+            // check block list
+            for (Block block : in) {
+
+                // if we found the slot, save it and return
+                if (mc.player.inventory.getStackInSlot(i).getItem().equals(Item.getItemFromBlock(block))) {
+                    slot = i;
+                    break;
+                }
             }
         }
 
