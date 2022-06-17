@@ -138,6 +138,12 @@ public class EventManager extends Manager implements Wrapper {
 			}
 		});
 
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if (module.getBind().getValue().isPressed()) {
+				module.toggle();
+			}
+		});
+
 		mc.mcProfiler.endSection();
 	}
 	
@@ -229,22 +235,6 @@ public class EventManager extends Manager implements Wrapper {
 		});
 
 		mc.mcProfiler.endSection();
-	}
-	
-	@SubscribeEvent
-	public void onKeyInput(KeyInputEvent event) {
-		
-		// pressed key
-		int key = Keyboard.getEventKey();
-
-		// toggle
-		if (key != 0 && Keyboard.getEventKeyState()) {
-			getCosmos().getModuleManager().getAllModules().forEach(module -> {
-				if (module.getKey() == key) {
-					module.toggle();
-				}
-			});
-		}
 	}
 
 	@SubscribeEvent

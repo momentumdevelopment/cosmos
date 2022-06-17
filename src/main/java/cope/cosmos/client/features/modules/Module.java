@@ -5,6 +5,7 @@ import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.PersistentFeature;
+import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.Wrapper;
@@ -15,8 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static cope.cosmos.client.features.setting.Bind.Device;
+
 /**
- * @author bon55, linustouchtips
+ * @author bon55, linustouchtips, Wolfsurge
  * @since 05/05/2021
  */
 public class Module extends Feature implements Wrapper {
@@ -34,7 +37,8 @@ public class Module extends Feature implements Wrapper {
 	private boolean exempt;
 
 	// module key bind, pressing this key will toggle the enable state
-	private int key;
+	private final Setting<Bind> bind = new Setting<>("Bind", new Bind(0, Device.KEYBOARD))
+			.setDescription("The bind of the module");
 
 	// the module Category
 	private final Category category;
@@ -76,9 +80,11 @@ public class Module extends Feature implements Wrapper {
 					}
 				});
 
+		// Add bind
+		settings.add(bind);
+
 		// default module state
 		drawn = true;
-		key = Keyboard.KEY_NONE;
 
 		// animation
 		animation = new Animation(300, enabled);
@@ -267,19 +273,12 @@ public class Module extends Feature implements Wrapper {
 	}
 
 	/**
-	 * Sets the module's keybind
-	 * @param in The module's new keybind
+	 * Gets the module's bind
+	 *
+	 * @return The module's bind
 	 */
-	public void setKey(int in) {
-		key = in;
-	}
-
-	/**
-	 * Gets the module's keybind
-	 * @return The module's keybind
-	 */
-	public int getKey() {
-		return key;
+	public Setting<Bind> getBind() {
+		return bind;
 	}
 
 	/**

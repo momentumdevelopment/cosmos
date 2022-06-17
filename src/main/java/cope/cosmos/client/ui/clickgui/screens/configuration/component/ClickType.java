@@ -21,7 +21,17 @@ public enum ClickType {
     /**
      * Middle mouse click
      */
-    MIDDLE(2);
+    MIDDLE(2),
+
+    /**
+     * First side button
+     */
+    SIDE_TOP(3),
+
+    /**
+     * Second side button
+     */
+    SIDE_BOTTOM(4);
 
     // button identity
     private final int identifier;

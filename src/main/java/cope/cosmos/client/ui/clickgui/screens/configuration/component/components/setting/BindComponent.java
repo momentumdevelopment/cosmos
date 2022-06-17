@@ -1,5 +1,6 @@
 package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting;
 
+import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
@@ -9,15 +10,15 @@ import cope.cosmos.util.string.ColorUtil;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.opengl.GL11.glScaled;
+import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, Wolfsurge
  * @since 02/02/2022
  */
-public class BindComponent extends SettingComponent<AtomicInteger> {
+public class BindComponent extends SettingComponent<Bind> {
 
     // feature offset
     private float featureHeight;
@@ -28,7 +29,7 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
     // binding state
     private boolean binding;
 
-    public BindComponent(ModuleComponent moduleComponent, Setting<AtomicInteger> setting) {
+    public BindComponent(ModuleComponent moduleComponent, Setting<Bind> setting) {
         super(moduleComponent, setting);
     }
 
@@ -55,17 +56,7 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
         glScaled(0.55, 0.55, 0.55); {
 
             // key name
-            String keyName;
-
-            // key setting name
-            if (getSetting().getValue() != null) {
-                keyName = Keyboard.getKeyName(getSetting().getValue().get());
-            }
-
-            // key module name
-            else {
-                keyName = Keyboard.getKeyName(getModuleComponent().getModule().getKey());
-            }
+            String keyName = getSetting().getValue().getButtonName();
 
             float scaledX = (getModuleComponent().getCategoryFrameComponent().getPosition().x + 6) * 1.81818181F;
             float scaledY = (featureHeight + 5) * 1.81818181F;
@@ -97,6 +88,15 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
 
             // play a sound to make the user happy :)
             getCosmos().getSoundManager().playSound("click");
+
+            return;
+        }
+
+        // Set mouse bind
+        if (binding) {
+            getSetting().setValue(new Bind(in.getIdentifier(), Device.MOUSE));
+
+            binding = false;
         }
     }
 
@@ -107,23 +107,11 @@ public class BindComponent extends SettingComponent<AtomicInteger> {
 
                 // backspace -> no bind
                 if (in == Keyboard.KEY_BACK || in == Keyboard.KEY_DELETE) {
-                    if (getSetting().getValue() != null) {
-                        getSetting().setValue(new AtomicInteger(Keyboard.KEY_NONE));
-                    }
-
-                    else {
-                        getModuleComponent().getModule().setKey(Keyboard.KEY_NONE);
-                    }
+                    getSetting().setValue(new Bind(Keyboard.KEY_NONE, Device.KEYBOARD));
                 }
 
                 else {
-                    if (getSetting().getValue() != null) {
-                        getSetting().setValue(new AtomicInteger(in));
-                    }
-
-                    else {
-                        getModuleComponent().getModule().setKey(in);
-                    }
+                    getSetting().setValue(new Bind(in, Device.KEYBOARD));
                 }
 
                 // we are no longer binding

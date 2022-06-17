@@ -137,11 +137,16 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
                 }
 
                 break;
+
             default:
+                if (ClickType.getByIdentifier(mouseButton) != null) {
+                    for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
+                        categoryFrameComponent.onClick(ClickType.getByIdentifier(mouseButton));
+                    }
+                }
+
                 break;
         }
-
-        // push frame to the front of the stack
     }
 
     @Override
