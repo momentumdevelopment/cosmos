@@ -74,8 +74,11 @@ public class BurrowModule extends Module {
 		// reset our position, since we've already placed
 		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
-		// switch back to our previous slot
-		getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
+		if (previousSlot != -1) {
+
+			// switch back to our previous slot
+			getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
+		}
 
 		// send an out of bounds packet, ideally NCP will rubberband us back and we will be inside the block position
 		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));

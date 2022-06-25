@@ -216,7 +216,7 @@ public class AuraModule extends Module {
         if (render.getValue()) {
 
             // render a visual around the target
-            if (attackTarget != null) {
+            if (isActive()) {
 
                 // circle (anim based on sin wave)
                 RenderUtil.drawCircle(new RenderBuilder()
@@ -241,7 +241,7 @@ public class AuraModule extends Module {
 
     @Override
     public boolean isActive() {
-        return isEnabled() && attackTarget != null && (isHoldingWeapon() || !weaponOnly.getValue());
+        return isEnabled() && attackTarget != null && (isHoldingWeapon() || !weaponOnly.getValue()) && !AutoCrystalModule.INSTANCE.isActive();
     }
 
     @SubscribeEvent
@@ -284,7 +284,7 @@ public class AuraModule extends Module {
                     }
 
                     // add our rotation to our client rotations
-                    getCosmos().getRotationManager().addRotation(rotateAngles, 100);
+                    getCosmos().getRotationManager().setRotation(rotateAngles);
                 }
             }
         }

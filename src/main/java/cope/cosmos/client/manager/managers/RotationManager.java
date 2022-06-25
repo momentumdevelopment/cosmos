@@ -1,9 +1,12 @@
+
+
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;
@@ -11,23 +14,29 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.TreeMap;
-
 /**
  * @author linustouchtips
  * @since 07/30/2021
  */
 public class RotationManager extends Manager implements Wrapper {
 
-    // all client rotations
-    private final TreeMap<Integer, Rotation> rotationMap = new TreeMap<>();
-
     // the current server rotation
     private final Rotation serverRotation = new Rotation(Float.NaN, Float.NaN);
+
+    // current rotation
+    private Rotation rotation = new Rotation(Float.NaN, Float.NaN);
+    private long stay = 0L;
 
     public RotationManager() {
         super("RotationManager", "Keeps track of server rotations");
         Cosmos.EVENT_BUS.register(this);
+    }
+
+    @Override
+    public void onTick() {
+        if (System.currentTimeMillis() - stay >= 250L && rotation.isValid()) {
+            rotation = new Rotation(Float.NaN, Float.NaN);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -51,11 +60,7 @@ public class RotationManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
-        if (!rotationMap.isEmpty()) {
-
-            // rotation with the highest priority
-            Rotation rotation = rotationMap.lastEntry().getValue();
-
+        if (rotation.isValid()) {
             // cancel, we'll send our own rotations
             event.setCanceled(true);
 
@@ -68,19 +73,32 @@ public class RotationManager extends Manager implements Wrapper {
             // set the rotation to be our custom value
             event.setYaw(rotation.getYaw());
             event.setPitch(rotation.getPitch());
+        }
+    }
 
-            // clear our rotations
-            rotationMap.clear();
+    @SubscribeEvent
+    public void onRenderRotations(RenderRotationsEvent event) {
+
+        // we only want to force rotation rendering if we are currently rotating
+        if (rotation.isValid()) {
+
+            // cancel, we'll render our own rotations
+            event.setCanceled(true);
+
+            // we should render rotations on the server rotation rather than our client side rotations
+            // as the two could not match
+            event.setYaw(serverRotation.getYaw());
+            event.setPitch(serverRotation.getPitch());
         }
     }
 
     /**
      * Queues a rotation to be sent on the next tick
-     * @param rotation The rotation to be sent on the next tick
-     * @param priority The priority, for compatability between multiple rotations
+     * @param in The rotation to be sent on the next tick
      */
-    public void addRotation(Rotation rotation, int priority) {
-        rotationMap.put(priority, rotation);
+    public void setRotation(Rotation in) {
+        rotation = in;
+        stay = System.currentTimeMillis();
     }
 
     /**

@@ -113,7 +113,7 @@ public class AntiAimModule extends Module {
             event.setCanceled(true);
 
             // send rotations
-            getCosmos().getRotationManager().addRotation(new Rotation(aimYaw, aimPitch), -100);
+            getCosmos().getRotationManager().setRotation(new Rotation(aimYaw, aimPitch));
         }
     }
 
