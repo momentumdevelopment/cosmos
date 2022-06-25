@@ -127,14 +127,14 @@ public class HUDModule extends Module {
                         .getModules(module -> module.isDrawn())
                         .stream()
                         .filter(module -> module.getAnimation().getAnimationFactor() > 0.05)
-                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1))
+                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " [" + module.getInfo() : "]")) * -1))
                         .forEach(module -> {
 
                     // formatted string
                     StringBuilder moduleString = new StringBuilder(module.getName());
 
                     if (!module.getInfo().equals("")) {
-                        moduleString.append(TextFormatting.WHITE).append(" ").append(module.getInfo());
+                        moduleString.append(TextFormatting.GRAY).append(" [").append(TextFormatting.WHITE).append(module.getInfo()).append(TextFormatting.GRAY).append("]");
                     }
 
                     // draw string

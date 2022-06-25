@@ -323,4 +323,13 @@ public class NoRenderModule extends Module {
             event.setCanceled(true);
         }
     }
+
+    @SubscribeEvent
+    public void onCrystalUpdate(CrystalUpdateEvent event) {
+
+        // prevent crystals from updating
+        if (crystals.getValue()) {
+            event.setCanceled(true);
+        }
+    }
 }
