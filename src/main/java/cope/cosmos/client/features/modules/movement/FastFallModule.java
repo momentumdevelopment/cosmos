@@ -1,16 +1,16 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
-import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
-import cope.cosmos.client.events.motion.movement.MotionEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.PlayerUtil;
-import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -34,29 +34,31 @@ public class FastFallModule extends Module {
             .setDescription("Fall speed")
             .setVisible(() -> !mode.getValue().equals(Mode.PACKET));
 
-    public static Setting<Double> shiftTicks = new Setting<>("ShiftTicks", 1.0, 1.0, 5.0, 0)
-            .setDescription("Ticks to shift forward when falling")
-            .setVisible(() -> mode.getValue().equals(Mode.PACKET));
+    public static Setting<Double> height = new Setting<>("Height", 0.0, 2.0, 10.0, 1)
+            .setDescription("Maximum height to be pulled down");
 
     public static Setting<Boolean> webs = new Setting<>("Webs", false)
             .setDescription("Falls in webs");
 
-    // state
-    public boolean colliding;
-    public boolean moving;
-
-    // strict fall timer
+    // fall timers
+    private int fallTicks;
+    private int fallStartTicks;
     private final Timer strictTimer = new Timer();
 
-    @SubscribeEvent
-    public void onMove(MotionEvent event) {
+    @Override
+    public void onUpdate() {
 
-        // we are already moving, no need to run this event again
-        if (moving) {
+        // update ticks
+        fallTicks--;
+
+        // wait for packets to process
+        if (fallTicks > 0) {
+            mc.player.motionX = 0;
+            mc.player.motionY = 0;
+            mc.player.motionZ = 0;
+            mc.player.setVelocity(0, 0, 0);
             return;
         }
-
-        getCosmos().getTickManager().setClientTicks(1);
 
         // NCP will flag these as irregular movements
         if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
@@ -69,159 +71,113 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.player.isSneaking() || SpeedModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled() || FlightModule.INSTANCE.isEnabled()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled()) {
             return;
         }
 
-        // if we are not falling, don't attempt to speed
-        if (!colliding || mc.player.onGround || event.getY() > 0) {
-            return;
-        }
+        // only fast fall if the player is on the ground
+        if (mc.player.onGround && mc.world.isAirBlock(new BlockPos(mc.player.getPositionVector()).down())) {
 
-        switch (mode.getValue()) {
-            case PACKET:
+            // fall start
+            fallStartTicks = 0;
 
-                if (strictTimer.passedTime(200 * shiftTicks.getValue().longValue(), Format.MILLISECONDS)) {
+            // attempt to fall faster by adjusting player velocity
+            if (mode.getValue().equals(Mode.MOTION)) {
 
-                    // cancel vanilla movements
-                    event.setCanceled(true);
+                // check all blocks within the height
+                for (double fallHeight = 0; fallHeight < height.getValue() + 0.5; fallHeight += 0.01) {
 
-                    // shift ticks
-                    for (int i = 0; i < shiftTicks.getValue(); i++) {
+                    // check if the fall area is empty
+                    if (!mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, -fallHeight, 0)).isEmpty()) {
 
-                        // move player
-                        moving = true;
-                        mc.player.move(event.getType(), 0, event.getY(), 0);
-                        moving = false;
-
-                        // see {@link EntityPlayerSP.class}
-
-                        if (mc.player.isSprinting() != ((IEntityPlayerSP) mc.player).getServerSprintState()) {
-                            if (mc.player.isSprinting()) {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                            }
-
-                            else {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                            }
-
-                            ((IEntityPlayerSP) mc.player).setServerSprintState(mc.player.isSprinting());
-                        }
-
-                        if (mc.player.isSneaking() != ((IEntityPlayerSP) mc.player).getServerSneakState()) {
-                            if (mc.player.isSneaking()) {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
-                            }
-
-                            else {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
-                            }
-
-                            ((IEntityPlayerSP) mc.player).setServerSneakState(mc.player.isSneaking());
-                        }
-
-                        double updatedPosX = mc.player.posX - ((IEntityPlayerSP) mc.player).getLastReportedPosX();
-                        double updatedPosY = mc.player.getEntityBoundingBox().minY - ((IEntityPlayerSP) mc.player).getLastReportedPosY();
-                        double updatedPosZ = mc.player.posZ - ((IEntityPlayerSP) mc.player).getLastReportedPosZ();
-
-                        double updatedRotationYaw = mc.player.rotationYaw - ((IEntityPlayerSP) mc.player).getLastReportedYaw();
-                        double updatedRotationPitch = mc.player.rotationPitch - ((IEntityPlayerSP) mc.player).getLastReportedPitch();
-
-                        int positionUpdateTicks = ((IEntityPlayerSP) mc.player).getPositionUpdateTicks();
-                        ((IEntityPlayerSP) mc.player).setPositionUpdateTicks(positionUpdateTicks + 1);
-
-                        boolean positionUpdate = updatedPosX * updatedPosX + updatedPosY * updatedPosY + updatedPosZ * updatedPosZ > 9.0E-4 || ((IEntityPlayerSP) mc.player).getPositionUpdateTicks() >= 20;
-                        boolean rotationUpdate = updatedRotationYaw != 0 || updatedRotationPitch != 0;
-
-                        if (mc.player.isRiding()) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.motionX, -999, mc.player.motionZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
-                            positionUpdate = false;
-                        }
-
-                        else if (positionUpdate && rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.getEntityBoundingBox().minY, mc.player.posZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
-                        }
-
-                        else if (positionUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.getEntityBoundingBox().minY, mc.player.posZ, mc.player.onGround));
-                        }
-
-                        else if (rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
-                        }
-
-                        else if (((IEntityPlayerSP) mc.player).getPreviousOnGround() != mc.player.onGround) {
-                            mc.player.connection.sendPacket(new CPacketPlayer(mc.player.onGround));
-                        }
-
-                        if (positionUpdate) {
-                            ((IEntityPlayerSP) mc.player).setLastReportedPosX(mc.player.posX);
-                            ((IEntityPlayerSP) mc.player).setLastReportedPosY(mc.player.getEntityBoundingBox().minY);
-                            ((IEntityPlayerSP) mc.player).setLastReportedPosZ(mc.player.posZ);
-                            ((IEntityPlayerSP) mc.player).setPositionUpdateTicks(0);
-                        }
-
-                        if (rotationUpdate) {
-                            ((IEntityPlayerSP) mc.player).setLastReportedYaw(mc.player.rotationYaw);
-                            ((IEntityPlayerSP) mc.player).setLastReportedPitch(mc.player.rotationPitch);
-                        }
-
-                        ((IEntityPlayerSP) mc.player).setPreviousOnGround(mc.player.onGround);
+                        // adjust player velocity
+                        // mc.player.connection.sendPacket(new CPacketPlayer(false));
+                        mc.player.motionY = -speed.getValue();
+                        break;
                     }
-
-                    strictTimer.resetTime();
                 }
-
-                break;
-            case MOTION:
-
-                // adjust player velocity
-                // mc.player.connection.sendPacket(new CPacketPlayer(false));
-                mc.player.motionY = -speed.getValue();
-                // mc.player.setVelocity(0, -speed.getValue(), 0);
-                break;
-            case TIMER:
-
-                // speed up client ticks
-                getCosmos().getTickManager().setClientTicks(speed.getValue().floatValue() * 2);
-                break;
-        }
-    }
-
-    @Override
-    public void onUpdate() {
-
-        // there is something blocking our movement
-        if (!mc.world.isAirBlock(mc.player.getPosition())) {
-            colliding = false;
-            return;
-        }
-
-        // speed up movement
-        if (mc.player.onGround) {
-
-            // check strict time
-            if (strictTimer.passedTime(200 * shiftTicks.getValue().longValue(), Format.MILLISECONDS)) {
-                mc.player.motionY = -0.0784;
             }
-
-            colliding = true;
         }
 
-        // ?? somehow we are no longer falling
-        if (mc.player.motionY > 0) {
-            colliding = false;
+        // we are falling
+        else {
+            fallStartTicks++;
+        }
+
+        // we are stepping down a block
+        if (mc.player.fallDistance > 0 && (fallStartTicks > 0 && fallStartTicks < 10)) {
+
+            // attempt to fall faster by sending packets and instantly adjusting player position
+            if (mode.getValue().equals(Mode.PACKET)) {
+
+                // check all blocks within the height
+                for (double fallHeight = 0; fallHeight < height.getValue() + 0.5; fallHeight += 0.01) {
+
+                    // check if the fall area is empty
+                    if (!mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0, -fallHeight, 0)).isEmpty()) {
+
+                        // only attempt fast fall other second, prevents flag for SURVIVAL_FLY
+                        if (strictTimer.passedTime(1, Format.SECONDS)) {
+
+                            // send packets to simulate falling
+                            if (mc.getConnection() != null) {
+                                if (fallHeight > 0.5) {
+                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 0.07840000152, mc.player.posZ, false));
+                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 0.23363200604, mc.player.posZ, false));
+                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 0.46415937495, mc.player.posZ, false));
+                                    mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 0.76847620241, mc.player.posZ, false));
+                                    fallTicks = 4;
+
+                                    if (fallHeight >= 1.5) {
+                                        mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 1.14510670065, mc.player.posZ, false));
+                                        mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 1.59260459764, mc.player.posZ, false));
+                                        fallTicks = 6;
+
+                                        if (fallHeight >= 2.5) {
+                                            mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 2.10955254674, mc.player.posZ, false));
+                                            mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 2.69456154825, mc.player.posZ, false));
+                                            fallTicks = 8;
+
+                                            if (fallHeight >= 3.5) {
+                                                mc.getConnection().getNetworkManager().sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY - 3.34627038241, mc.player.posZ, false));
+                                                fallTicks = 9;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // speed up
+                        // mc.player.motionY -= 0.08;
+                        mc.player.setPosition(mc.player.posX, mc.player.posY - fallHeight + 0.1, mc.player.posZ);
+                        mc.player.motionX = 0;
+                        mc.player.motionY = 0;
+                        mc.player.motionZ = 0;
+                        mc.player.setVelocity(0, 0, 0);
+                        strictTimer.resetTime();
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    @Override
-    public void onEnable() {
-        super.onEnable();
+    @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
 
-        // reset states
-        colliding = false;
-        moving = false;
-        strictTimer.resetTime();
+        // packet for player updates
+        if (event.getPacket() instanceof CPacketPlayer) {
+
+            // if the packet is a movement packet
+            if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+
+                // prevent packet from sending
+                if (fallTicks > 0) {
+                    event.setCanceled(true);
+                }
+            }
+        }
     }
 
     public enum Mode {
@@ -235,10 +191,5 @@ public class FastFallModule extends Module {
          * Sends position packets to instantly fall server side
          */
         PACKET,
-
-        /**
-         * Speeds up client ticks while falling
-         */
-        TIMER
     }
 }
