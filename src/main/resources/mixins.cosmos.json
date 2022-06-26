@@ -30,6 +30,7 @@
         "accessor.INetworkManager",
         "accessor.IEntityLivingBase",
         "accessor.IGameProfile",
+        "accessor.INetHandlerPlayClient",
         "entity.player.MixinAbstractClientPlayer",
         "entity.player.MixinEntityPlayer",
         "entity.player.MixinEntityPlayerSP",
