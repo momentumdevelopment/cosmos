@@ -91,14 +91,17 @@ public class PacketFlightModule extends Module {
         mc.player.noClip = false;
     }
 
-    @SubscribeEvent
-    public void onMotion(MotionEvent event) {
+    @Override
+    public void onTick() {
 
         // if we are dead, turn off packetfly
         if (EnemyUtil.isDead(mc.player)) {
             disable(true);
-            return;
         }
+    }
+
+    @SubscribeEvent
+    public void onMotion(MotionEvent event) {
 
         // set our move speed
         moveSpeed = 0.2873;
@@ -121,7 +124,8 @@ public class PacketFlightModule extends Module {
             if (antiKick.getValue() && !isPhased()) {
 
                 // every two seconds, we'll move down a bit
-                if (mc.player.ticksExisted % 40 == 0) {
+                // we should also not try to anti-kick when we're on the ground
+                if (mc.player.ticksExisted % 40 == 0 && !mc.player.onGround) {
                     motionY = -0.04;
                 }
             }
@@ -235,11 +239,14 @@ public class PacketFlightModule extends Module {
             mc.player.connection.sendPacket(new CPacketConfirmTeleport(teleportID));
         }
 
-        // set our player motion
+        // cancel, we'll use our own movement
         event.setCanceled(true);
+
+        // set our player motion
         event.setX(mc.player.motionX);
         event.setY(motionY);
         event.setZ(mc.player.motionZ);
+
 
         // if we should phase, set noClip to true.
         if (!phasing.getValue().equals(Phasing.NONE)) {
@@ -313,7 +320,6 @@ public class PacketFlightModule extends Module {
 
                             // confirm that we got this teleport
                             mc.player.connection.sendPacket(new CPacketConfirmTeleport(id));
-
                             return;
                         }
                     }
@@ -342,6 +348,10 @@ public class PacketFlightModule extends Module {
         event.setCanceled(true);
     }
 
+    /**
+     * Sends a position packet based on the given vector
+     * @param vec the given vector
+     */
     private void sendPacket(Vec3d vec) {
 
         // create our position packet

@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.player;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.movement.PacketFlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.network.play.client.CPacketPlayer;
 
@@ -36,8 +37,8 @@ public class AntiVoidModule extends Module {
     @Override
     public void onUpdate() {
 
-        // can't void if spectator
-        if (!mc.player.isSpectator()) {
+        // can't void if spectator or if packetfly is on
+        if (!mc.player.isSpectator() && !PacketFlightModule.INSTANCE.isEnabled()) {
 
             // if we are in the void, aka below y-pos 0
             if (mc.player.posY <= 0.5) {
