@@ -2,6 +2,10 @@ package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -43,6 +47,15 @@ public class BlockUtil implements Wrapper {
      */
     public static boolean isBreakable(BlockPos position) {
         return !getResistance(position).equals(Resistance.UNBREAKABLE);
+    }
+
+    /**
+     * Checks if a block is replaceable
+     * @param pos the position to check
+     * @return if this block pos can be placed at
+     */
+    public static boolean isReplaceable(BlockPos pos) {
+        return mc.world.getBlockState(pos).getMaterial().isReplaceable() && isBreakable(pos);
     }
 
     /**

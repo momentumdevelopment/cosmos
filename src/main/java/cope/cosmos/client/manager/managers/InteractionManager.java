@@ -67,6 +67,11 @@ public class InteractionManager extends Manager {
     );
 
     /**
+     * If a block is being place in the interaction manager
+     */
+    private boolean placing = false;
+
+    /**
      * Places a block at a specified position
      * @param position Position of the block to place on
      * @param rotate Mode for rotating {@link Rotate}
@@ -94,6 +99,8 @@ public class InteractionManager extends Manager {
                 continue;
             }
 
+            placing = true;
+
             // stop sprinting before preforming actions
             boolean sprint = mc.player.isSprinting();
             if (sprint) {
@@ -111,6 +118,8 @@ public class InteractionManager extends Manager {
             // vector to the block
             Vec3d interactVector = new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5));
 
+            // Rotation oldRotation = getCosmos().getRotationManager().getServerRotation();
+
             // rotate to block
             if (!rotate.equals(Rotate.NONE)) {
                 Rotation blockAngles = AngleUtil.calculateAngles(interactVector);
@@ -123,7 +132,13 @@ public class InteractionManager extends Manager {
                         mc.player.rotationPitch = blockAngles.getPitch();
                         break;
                     case PACKET:
+
+                        // force a rotation - should this be done?
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
+
+                        // submit to rotation manager
+                        getCosmos().getRotationManager().setRotation(blockAngles);
+
                         // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
                         // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
                         break;
@@ -149,7 +164,13 @@ public class InteractionManager extends Manager {
             if (placeResult != EnumActionResult.FAIL) {
                 mc.player.swingArm(EnumHand.MAIN_HAND);
                 ((IMinecraft) mc).setRightClickDelayTimer(4);
-                return;
+//
+//                // force a rotation - should this be done?
+//                mc.player.connection.sendPacket(new CPacketPlayer.Rotation(oldRotation.getYaw(), oldRotation.getPitch(), mc.player.onGround));
+//
+//                // submit to rotation manager
+//                getCosmos().getRotationManager().setRotation(oldRotation);
+                break;
             }
 
             /*
@@ -158,6 +179,8 @@ public class InteractionManager extends Manager {
             }
              */
         }
+
+        placing = false;
     }
 
     /**
@@ -176,15 +199,16 @@ public class InteractionManager extends Manager {
             // attack
             if (packet) {
                 mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+
+                // reset the attack cooldown
+                // we only reset the cooldown in this condition because PlayerControllerMP#attackEntity already resets the cooldown
+                mc.player.resetCooldown();
             }
 
             else {
                 mc.playerController.attackEntity(mc.player, entity);
             }
         }
-
-        // reset the attack cooldown
-        mc.player.resetCooldown();
     }
 
     /**
@@ -260,5 +284,13 @@ public class InteractionManager extends Manager {
      */
     public List<Block> getSneakBlocks() {
         return sneakBlocks;
+    }
+
+    /**
+     * If a block is being placed by the interaction manager
+     * @return if a block is not done placing
+     */
+    public boolean isPlacing() {
+        return placing;
     }
 }

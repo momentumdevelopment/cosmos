@@ -1,19 +1,43 @@
 package cope.cosmos.client.manager.managers;
 
-import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.network.PacketEvent.PacketSendEvent;
 import cope.cosmos.client.manager.Manager;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, aesthetical
  * @since 12/30/2021
  */
 public class InventoryManager extends Manager {
+
+    // held item slot (serverside)
+    private int serverSlot = -1;
+
     public InventoryManager() {
         super("InventoryManager", "Manages player hotbar and inventory actions");
+        Cosmos.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onPacketSend(PacketSendEvent event) {
+
+        // packet for switching items
+        if (event.getPacket() instanceof CPacketHeldItemChange) {
+
+            // bounds check - prevents getting kicked by NCP updated in case we accidentally send an invalid swap packet
+            if (!InventoryPlayer.isHotbar(((CPacketHeldItemChange) event.getPacket()).getSlotId())) {
+                event.setCanceled(true);
+                return;
+            }
+
+            // update server slot
+            serverSlot = ((CPacketHeldItemChange) event.getPacket()).getSlotId();
+        }
     }
 
     /**
@@ -34,7 +58,7 @@ public class InventoryManager extends Manager {
                 case PACKET:
                     // send a switch packet to the server, should be silent client-side
                     mc.player.connection.sendPacket(new CPacketHeldItemChange(in));
-                    ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+                    // ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                     break;
             }
         }
@@ -93,7 +117,7 @@ public class InventoryManager extends Manager {
                 break;
             }
         }
-        
+
         // switch to the found slot
         switchToSlot(slot, swap);
     }
@@ -177,7 +201,7 @@ public class InventoryManager extends Manager {
             for (Block block : in) {
 
                 // if we found the slot, save it and return
-                if (mc.player.inventory.getStackInSlot(i).getItem().equals(Item.getItemFromBlock(block))) {
+                if (slot == -1 && mc.player.inventory.getStackInSlot(i).getItem().equals(Item.getItemFromBlock(block))) {
                     slot = i;
                     break;
                 }
@@ -208,6 +232,23 @@ public class InventoryManager extends Manager {
         }
 
         return slot;
+    }
+
+    /**
+     * Gets the slot we are on server side
+     * @return the server side slot
+     */
+    public int getServerSlot() {
+        return serverSlot;
+    }
+
+    /**
+     * Resyncs the client with the server slot
+     */
+    public void syncSlot() {
+        if (serverSlot != mc.player.inventory.currentItem) {
+            mc.player.inventory.currentItem = serverSlot;
+        }
     }
 
     public enum Switch {
