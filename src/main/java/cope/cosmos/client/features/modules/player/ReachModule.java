@@ -21,7 +21,7 @@ public class ReachModule extends Module {
     public static ReachModule INSTANCE;
 
     public ReachModule() {
-        super("Reach", Category.PLAYER, "Extends your reach");
+        super("Reach", Category.PLAYER, "Extends your reach", () -> String.valueOf((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + reach.getValue().floatValue()));
         INSTANCE = this;
     }
 
