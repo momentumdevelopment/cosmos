@@ -66,7 +66,7 @@ public class SpeedMineModule extends Module {
 
     // **************************** anticheat ****************************
 
-    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+    public static Setting<Boolean> strict = new Setting<>("Strict", true)
             .setDescription("Mines on the correct direction")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 

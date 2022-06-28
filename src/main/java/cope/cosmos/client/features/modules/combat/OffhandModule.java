@@ -354,6 +354,11 @@ public class OffhandModule extends Module {
         }
     }
 
+    @Override
+    public boolean isActive() {
+        return isEnabled() && !stage.equals(Stage.IDLE);
+    }
+
     public enum Stage {
 
         /**

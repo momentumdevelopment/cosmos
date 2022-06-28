@@ -79,6 +79,7 @@ public class InteractionManager extends Manager {
      */
     public void placeBlock(BlockPos position, Rotate rotate, boolean strict) {
         for (EnumFacing direction : EnumFacing.values()) {
+
             // find a block to place against
             BlockPos directionOffset = position.offset(direction);
 
@@ -170,6 +171,106 @@ public class InteractionManager extends Manager {
 //
 //                // submit to rotation manager
 //                getCosmos().getRotationManager().setRotation(oldRotation);
+                break;
+            }
+
+            /*
+            if (!mc.playerController.getCurrentGameType().equals(GameType.CREATIVE)) {
+                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.START_DESTROY_BLOCK, directionOffset, EnumFacing.UP));
+            }
+             */
+        }
+
+        placing = false;
+    }
+
+    /**
+     * Places a block at a specified position
+     * @param position Position of the block to place on
+     * @param rotate Mode for rotating {@link Rotate}
+     * @param strict Only place on visible offsets
+     */
+    public void placeBlockWithEntities(BlockPos position, Rotate rotate, boolean strict) {
+        for (EnumFacing direction : EnumFacing.values()) {
+
+            // find a block to place against
+            BlockPos directionOffset = position.offset(direction);
+
+            // make sure the side is visible, strict NCP flags for non-visible interactions
+            if (strict && !getVisibleSides(directionOffset).contains(direction.getOpposite())) {
+                continue;
+            }
+
+            // make sure the offset is empty
+            if (mc.world.getBlockState(directionOffset).getMaterial().isReplaceable()) {
+                continue;
+            }
+
+            placing = true;
+
+            // stop sprinting before preforming actions
+            boolean sprint = mc.player.isSprinting();
+            if (sprint) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                // mc.player.setSprinting(false);
+            }
+
+            // sneak if the block is not right-clickable
+            boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            if (sneak) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
+                // mc.player.setSneaking(true);
+            }
+
+            // vector to the block
+            Vec3d interactVector = new Vec3d(directionOffset).addVector(0.5, 0.5, 0.5).add(new Vec3d(direction.getOpposite().getDirectionVec()).scale(0.5));
+
+            // Rotation oldRotation = getCosmos().getRotationManager().getServerRotation();
+
+            // rotate to block
+            if (!rotate.equals(Rotate.NONE)) {
+                Rotation blockAngles = AngleUtil.calculateAngles(interactVector);
+
+                // rotate via packet, server should confirm instantly?
+                switch (rotate) {
+                    case CLIENT:
+                        mc.player.rotationYaw = blockAngles.getYaw();
+                        mc.player.rotationYawHead = blockAngles.getYaw();
+                        mc.player.rotationPitch = blockAngles.getPitch();
+                        break;
+                    case PACKET:
+
+                        // force a rotation - should this be done?
+                        mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
+
+                        // submit to rotation manager
+                        getCosmos().getRotationManager().setRotation(blockAngles);
+
+                        // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
+                        // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
+                        break;
+                }
+            }
+
+            // right click direction offset block
+            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+
+            // reset sneak
+            if (sneak) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+                // mc.player.setSneaking(false);
+            }
+
+            // reset sprint
+            if (sprint) {
+                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                // mc.player.setSprinting(true);
+            }
+
+            // swing hand
+            if (placeResult != EnumActionResult.FAIL) {
+                mc.player.swingArm(EnumHand.MAIN_HAND);
+                ((IMinecraft) mc).setRightClickDelayTimer(4);
                 break;
             }
 

@@ -8,6 +8,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,7 +21,7 @@ public class FlightModule extends Module {
     public static FlightModule INSTANCE;
 
     public FlightModule() {
-        super("Flight", Category.MOVEMENT, "Allows player to fly");
+        super("Flight", Category.MOVEMENT, "Allows player to fly", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 

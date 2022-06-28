@@ -83,6 +83,7 @@ public class ModuleManager extends Manager {
 				// player
 				new AntiHungerModule(),
 				new AntiVoidModule(),
+				new AutoRespawnModule(),
 				new BlinkModule(),
 				new EntityControlModule(),
 				new FastUseModule(),

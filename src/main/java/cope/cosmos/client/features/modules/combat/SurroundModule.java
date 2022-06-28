@@ -78,15 +78,15 @@ public class SurroundModule extends Module {
     public static Setting<Center> center = new Setting<>("Center", Center.NONE)
             .setDescription("Mode to center the player position");
 
-    // cached positions to place at, updated on a new thread
-    private List<BlockPos> positions = new ArrayList<>();
+    // cached placements to place at, updated on a new thread
+    private List<BlockPos> placements = new ArrayList<>();
     private List<BlockPos> replacements = new ArrayList<>();
 
     // clear
     private final Timer clearTimer = new Timer();
 
     // blocks placed per tick counter
-    private int placed = 0;
+    private int placed;
 
     // start info
     private double startY;
@@ -101,7 +101,7 @@ public class SurroundModule extends Module {
         // if we need to be centered
         if (!center.getValue().equals(Center.NONE)) {
 
-            // center positions
+            // center placements
             double centerX = Math.floor(mc.player.posX) + 0.5;
             double centerZ = Math.floor(mc.player.posZ) + 0.5;
 
@@ -128,7 +128,8 @@ public class SurroundModule extends Module {
     public void onDisable() {
         super.onDisable();
 
-        positions.clear();
+        // reset placements
+        placements.clear();
         replacements.clear();
     }
 
@@ -139,7 +140,7 @@ public class SurroundModule extends Module {
         BlockPos origin = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
         // get place positions
-        positions = getPlacements(origin);
+        placements = getPlacements(origin);
         replacements = getReplacements();
     }
 
@@ -287,7 +288,7 @@ public class SurroundModule extends Module {
                 BlockPos changePosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
 
                 // if our placement has been changed then we need to replace it
-                if (positions.contains(changePosition)) {
+                if (placements.contains(changePosition)) {
 
                     // player ping
                     int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
@@ -371,9 +372,9 @@ public class SurroundModule extends Module {
                     }
 
                     // place block
-                    if (placeBlock(changePosition)) {
-                        placed++;
-                    }
+                    getCosmos().getInteractionManager().placeBlockWithEntities(changePosition, rotate.getValue(), strict.getValue());
+                    // getCosmos().getChatManager().sendClientMessage("placed");
+                    placed++;
 
                     // switch back to previous slot
                     if (previousSlot != -1) {
@@ -392,7 +393,7 @@ public class SurroundModule extends Module {
                     BlockPos changePosition = blockUpdateData.getPos();
 
                     // if our placement has been changed then we need to replace it
-                    if (positions.contains(changePosition)) {
+                    if (placements.contains(changePosition)) {
 
                         // player ping
                         int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
@@ -476,9 +477,9 @@ public class SurroundModule extends Module {
                         }
 
                         // place block
-                        if (placeBlock(changePosition)) {
-                            placed++;
-                        }
+                        getCosmos().getInteractionManager().placeBlockWithEntities(changePosition, rotate.getValue(), strict.getValue());
+                        // getCosmos().getChatManager().sendClientMessage("placed");
+                        placed++;
 
                         // switch back to previous slot
                         if (previousSlot != -1) {
@@ -502,7 +503,7 @@ public class SurroundModule extends Module {
         }
 
         // place block
-        getCosmos().getInteractionManager().placeBlock(in, rotate.getValue(), strict.getValue());
+        getCosmos().getInteractionManager().placeBlockWithEntities(in, rotate.getValue(), strict.getValue());
 
         // block placement was successful
         return true;
@@ -620,7 +621,7 @@ public class SurroundModule extends Module {
         if (support.getValue()) {
 
             // check each block about to be queued
-            queue.forEach(position -> {
+            for (BlockPos position : new ArrayList<>(queue)) {
 
                 // checks if the position needs support
                 boolean support = true;
@@ -636,6 +637,7 @@ public class SurroundModule extends Module {
 
                         // block needs support if we want to place on it
                         support = false;
+                        break;
                     }
                 }
 
@@ -643,7 +645,7 @@ public class SurroundModule extends Module {
                 if (support) {
                     queue.add(position.down());
                 }
-            });
+            }
 
             // reverse queue since we need support blocks first
             Collections.reverse(queue);
@@ -662,7 +664,7 @@ public class SurroundModule extends Module {
         List<BlockPos> replacements = new ArrayList<>();
 
         // check our placements if they have been removed, we need to replace them
-        for (BlockPos position : positions) {
+        for (BlockPos position : placements) {
             if (BlockUtil.isReplaceable(position)) {
                 replacements.add(position);
             }

@@ -549,8 +549,12 @@ public class NametagsModule extends Module {
                         playerInfo.append(TextFormatting.AQUA);
                     }
 
+                    // add the player's name
+                    playerInfo.append(player.getName()).append(" ");
+
                     // add the player's gamemode
                     if (gamemode.getValue()) {
+
                         // first letter of gamemode
                         if (player.isCreative()) {
                             playerInfo.append("[C] ");
@@ -564,9 +568,6 @@ public class NametagsModule extends Module {
                             playerInfo.append("[S] ");
                         }
                     }
-
-                    // add the player's name
-                    playerInfo.append(player.getName()).append(" ");
 
                     // add the player's ping
                     if (ping.getValue() && mc.getConnection() != null) {

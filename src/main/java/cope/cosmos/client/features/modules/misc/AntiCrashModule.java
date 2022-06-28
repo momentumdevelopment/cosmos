@@ -5,6 +5,8 @@ import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.client.ExceptionThrownEvent;
 import cope.cosmos.client.events.network.DecodeEvent;
 import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.entity.CrystalUpdateEvent;
+import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.world.RenderSkylightEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -51,6 +53,9 @@ public class AntiCrashModule extends Module {
 
     public static Setting<Boolean> fireworks = new Setting<>("Fireworks", true)
             .setDescription("Prevents firework spam from crashing you");
+
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", true)
+            .setDescription("Prevents stacked crystals spam from lagging you");
 
     public static Setting<Boolean> skylight = new Setting<>("Skylight", true)
             .setDescription("Prevents skylight updates from crashing you");
@@ -191,6 +196,24 @@ public class AntiCrashModule extends Module {
 
         // cancels skylight updates
         if (skylight.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderCrystal(RenderCrystalEvent.RenderCrystalPreEvent event) {
+
+        // prevent crystals from rendering
+        if (crystals.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onCrystalUpdate(CrystalUpdateEvent event) {
+
+        // prevent crystals from updating
+        if (crystals.getValue()) {
             event.setCanceled(true);
         }
     }

@@ -3,11 +3,15 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.client.manager.managers.InventoryManager.*;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.holder.Rotation.Rotate;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.CPacketClickWindow;
+import net.minecraft.network.play.client.CPacketConfirmTransaction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.BlockPos;
 
@@ -29,6 +33,9 @@ public class BurrowModule extends Module {
 
 	public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
 			.setDescription("Mode for attack rotations");
+
+	public static Setting<Boolean> strict = new Setting<>("Strict", false)
+			.setDescription("Switches in a way that doesn't flag anticheats");
 
 	public static Setting<Double> offset = new Setting<>("Offset", -10.0, 2.2, 10.0, 1)
 			.setDescription("How high to rubberband");
@@ -63,8 +70,24 @@ public class BurrowModule extends Module {
 		// save our previous slot
 		int previousSlot = mc.player.inventory.currentItem;
 
+		// slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+		int swapSlot = getCosmos().getInventoryManager().searchSlot(mode.getValue().getBlocks(), InventoryRegion.HOTBAR) + 36;
+
+		// alt switch
+		if (strict.getValue()) {
+
+			// transaction id
+			short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+			// window click
+			ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+			mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+		}
+
 		// switch to our block slot
-		getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
+		else {
+			getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
+		}
 
 		// place at our previous position
 		if (InventoryUtil.isHolding(mode.getValue().getBlocks())) {
@@ -74,7 +97,21 @@ public class BurrowModule extends Module {
 		// reset our position, since we've already placed
 		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
 
-		if (previousSlot != -1) {
+		// swap with window clicks
+		if (strict.getValue()) {
+
+			// transaction id
+			short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+			// window click
+			ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+			mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+			// confirm packets
+			mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+		}
+
+		else if (previousSlot != -1) {
 
 			// switch back to our previous slot
 			getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);

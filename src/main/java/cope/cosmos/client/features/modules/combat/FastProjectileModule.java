@@ -4,6 +4,7 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
@@ -43,7 +44,7 @@ public class FastProjectileModule extends Module {
             }
 
             // display time
-            return String.valueOf(timeTillCharge);
+            return String.valueOf(MathUtil.roundDouble(timeTillCharge / 1000D, 1));
         });
 
         INSTANCE = this;
@@ -51,7 +52,7 @@ public class FastProjectileModule extends Module {
 
     // **************************** general ****************************
 
-    public static Setting<Double> packets = new Setting<>("Packets", 1.0D, 10.0D, 100.0D, 0)
+    public static Setting<Double> power = new Setting<>("Power", 1.0D, 10.0D, 100.0D, 0)
             .setDescription("How many times to send packets");
 
     public static Setting<Boolean> bows = new Setting<>("Bows", false)
@@ -85,7 +86,7 @@ public class FastProjectileModule extends Module {
                     Random projectileRandom = new Random();
 
                     // set the position at crazy bounds, makes server think we have crazy velocity -> more velocity = more projectile damage
-                    for (int tick = 0; tick < packets.getValue(); tick++) {
+                    for (int tick = 0; tick < power.getValue(); tick++) {
 
                         // player directions from rotation
                         double sin = -Math.sin(Math.toRadians(mc.player.rotationYaw));

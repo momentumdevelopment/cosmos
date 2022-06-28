@@ -6,6 +6,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.init.MobEffects;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,11 +21,14 @@ public class LongJumpModule extends Module {
     public static LongJumpModule INSTANCE;
 
     public LongJumpModule() {
-        super("LongJump", Category.MOVEMENT, "Allows you to jump farther");
+        super("LongJump", Category.MOVEMENT, "Allows you to jump farther", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
     // **************************** general ****************************
+
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.NORMAL)
+            .setDescription("Mode of jump");
 
     public static Setting<Double> boost = new Setting<>("Boost", 0.1D, 4.5D, 10.0D, 1)
             .setDescription("The boost speed");
@@ -190,5 +194,19 @@ public class LongJumpModule extends Module {
          * Checks for head space and slows down
          */
         COLLISION
+    }
+
+    public enum Mode {
+
+        /**
+         * Preset jump motion
+         * TODO: implement
+         */
+        COWABUNGA,
+
+        /**
+         * Strafe boost long jump
+         */
+        NORMAL
     }
 }

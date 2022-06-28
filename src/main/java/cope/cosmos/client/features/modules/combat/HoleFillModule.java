@@ -46,7 +46,7 @@ public class HoleFillModule extends Module {
 
     // **************************** general ****************************
 
-    public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED)
+    public static Setting<Filler> mode = new Setting<>("Mode", Filler.ALL)
             .setDescription("Mode for the filler");
 
     public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN)

@@ -10,6 +10,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayer.Position;
@@ -34,7 +35,7 @@ public class PacketFlightModule extends Module {
     public static PacketFlightModule INSTANCE;
 
     public PacketFlightModule() {
-        super("PacketFlight", Category.MOVEMENT, "Allows you to fly with silent packet movements");
+        super("PacketFlight", Category.MOVEMENT, "Allows you to fly with silent packet movements", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 

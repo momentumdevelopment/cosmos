@@ -30,7 +30,7 @@ public class BreadcrumbsModule extends Module {
             .setDescription("The lifespan of the positions in seconds")
             .setVisible(() -> !infinite.getValue());
 
-    public static Setting<Float> width = new Setting<>("Width", 0.1F, 3F, 5F, 1)
+    public static Setting<Float> width = new Setting<>("Width", 0.1F, 2F, 5F, 1)
             .setDescription("The width of the lines");
 
     // List of positions
@@ -79,6 +79,7 @@ public class BreadcrumbsModule extends Module {
 
         // Render positions
         positions.forEach(position -> {
+
             // Set line colour
             glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, 1);
 
