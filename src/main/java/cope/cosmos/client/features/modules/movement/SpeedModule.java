@@ -445,8 +445,27 @@ public class SpeedModule extends Module {
 
             if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
 
+                // base speeds
+                double baseStrictSpeed = 0.465;
+                double baseRestrictedSpeed = 0.44;
+
+                // scale move speed if Speed or Slowness potion effect is active
+                if (potionFactor.getValue()) {
+                    if (mc.player.isPotionActive(MobEffects.SPEED)) {
+                        double amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
+                        baseStrictSpeed *= 1 + (0.2 * (amplifier + 1));
+                        baseRestrictedSpeed *= 1 + (0.2 * (amplifier + 1));
+                    }
+
+                    if (mc.player.isPotionActive(MobEffects.SLOWNESS)) {
+                        double amplifier = mc.player.getActivePotionEffect(MobEffects.SLOWNESS).getAmplifier();
+                        baseStrictSpeed /= 1 + (0.2 * (amplifier + 1));
+                        baseRestrictedSpeed /= 1 + (0.2 * (amplifier + 1));
+                    }
+                }
+
                 // clamp the value based on the number of ticks passed
-                moveSpeed = Math.min(moveSpeed, strictTicks > 25 ? 0.465 : 0.44);
+                moveSpeed = Math.min(moveSpeed, strictTicks > 25 ? baseStrictSpeed : baseRestrictedSpeed);
             }
 
             // update & reset our tick count

@@ -40,8 +40,8 @@ public class JesusModule extends Module {
             .setDescription("Mode to use when walking on water");
 
     // float offset
-    private double floatOffset = 1000;
-    private int floatTicks;
+    private double floatOffset;
+    private int floatTicks = 1000;
     private int strictTicks;
 
     // water timers
