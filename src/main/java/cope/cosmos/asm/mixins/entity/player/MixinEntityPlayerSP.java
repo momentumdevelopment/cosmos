@@ -1,18 +1,17 @@
 package cope.cosmos.asm.mixins.entity.player;
 
-import com.mojang.authlib.GameProfile;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.entity.LivingUpdateEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.entity.player.UpdateWalkingPlayerEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
-import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.MoverType;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,10 +21,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityPlayerSP.class)
 public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
-    public MixinEntityPlayerSP(World worldIn, GameProfile playerProfile) {
-        super(worldIn, playerProfile);
+    public MixinEntityPlayerSP() {
+        super(Minecraft.getMinecraft().world, Minecraft.getMinecraft().player.getGameProfile());
     }
 
+    // locks the update function
+    private boolean updateLock;
+
+    // mc
     @Shadow
     protected Minecraft mc;
 
@@ -62,6 +65,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
     @Shadow
     protected abstract boolean isCurrentViewEntity();
 
+    @Shadow public abstract void onUpdate();
+
     @Redirect(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"))
     public void move(AbstractClientPlayer player, MoverType type, double x, double y, double z) {
         MotionEvent motionEvent = new MotionEvent(type, x, y, z);
@@ -92,11 +97,13 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
     @Inject(method = "onUpdateWalkingPlayer", at = @At("HEAD"), cancellable = true)
     public void onUpdateMovingPlayer(CallbackInfo info) {
+
         // pre
         RotationUpdateEvent rotationUpdateEvent = new RotationUpdateEvent();
         Cosmos.EVENT_BUS.post(rotationUpdateEvent);
 
         if (rotationUpdateEvent.isCanceled()) {
+
             // post
             MotionUpdateEvent motionUpdateEvent = new MotionUpdateEvent();
             Cosmos.EVENT_BUS.post(motionUpdateEvent);
@@ -171,6 +178,104 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
                     prevOnGround = motionUpdateEvent.getOnGround();
                     autoJumpEnabled = mc.gameSettings.autoJump;
+                }
+            }
+        }
+    }
+
+    @Inject(method = "onUpdate", at = @At(value = "INVOKE", target = "net/minecraft/client/entity/EntityPlayerSP.onUpdateWalkingPlayer()V", ordinal = 0, shift = At.Shift.AFTER))
+    public void onUpdateMovingPlayerPost(CallbackInfo info) {
+
+        // event is locked
+        if (updateLock) {
+            return;
+        }
+
+        UpdateWalkingPlayerEvent updateWalkingPlayerEvent = new UpdateWalkingPlayerEvent();
+        Cosmos.EVENT_BUS.post(updateWalkingPlayerEvent);
+
+        if (updateWalkingPlayerEvent.isCanceled()) {
+
+            // idk
+            if (updateWalkingPlayerEvent.getIterations() > 0) {
+
+                // run
+                for (int i = 0; i < updateWalkingPlayerEvent.getIterations(); i++) {
+
+                    // lock
+                    updateLock = true;
+
+                    onUpdate();
+
+                    // unlock
+                    updateLock = false;
+
+                    boolean sprintUpdate = isSprinting();
+                    if (sprintUpdate != serverSprintState) {
+                        if (sprintUpdate) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.START_SPRINTING));
+                        }
+
+                        else {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.STOP_SPRINTING));
+                        }
+
+                        serverSprintState = sprintUpdate;
+                    }
+
+                    boolean sneakUpdate = isSneaking();
+                    if (sneakUpdate != serverSneakState) {
+                        if (sneakUpdate) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.START_SNEAKING));
+                        }
+
+                        else {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.STOP_SNEAKING));
+                        }
+
+                        serverSneakState = sneakUpdate;
+                    }
+
+                    if (isCurrentViewEntity()) {
+                        boolean movementUpdate = StrictMath.pow(mc.player.posX - lastReportedPosX, 2) + StrictMath.pow(mc.player.posY - lastReportedPosY, 2) + StrictMath.pow(mc.player.posZ - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
+                        boolean rotationUpdate = mc.player.rotationYaw - lastReportedYaw != 0.0D || mc.player.rotationPitch - lastReportedPitch != 0.0D;
+
+                        if (isRiding()) {
+                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                            movementUpdate = false;
+                        }
+
+                        else if (movementUpdate && rotationUpdate) {
+                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                        }
+
+                        else if (movementUpdate) {
+                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.onGround));
+                        }
+
+                        else if (rotationUpdate) {
+                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                        }
+
+                        else if (prevOnGround != mc.player.onGround) {
+                            mc.player.connection.sendPacket(new CPacketPlayer(mc.player.onGround));
+                        }
+
+                        if (movementUpdate) {
+                            lastReportedPosX = mc.player.posX;
+                            lastReportedPosY = mc.player.posY;
+                            lastReportedPosZ = mc.player.posZ;
+                            positionUpdateTicks = 0;
+                        }
+
+                        if (rotationUpdate) {
+                            lastReportedYaw = mc.player.rotationYaw;
+                            lastReportedPitch = mc.player.rotationPitch;
+                        }
+
+                        prevOnGround = mc.player.onGround;
+                        autoJumpEnabled = mc.gameSettings.autoJump;
+                    }
                 }
             }
         }

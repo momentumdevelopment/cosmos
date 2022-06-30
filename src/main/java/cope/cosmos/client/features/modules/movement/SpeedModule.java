@@ -443,6 +443,7 @@ public class SpeedModule extends Module {
                 moveSpeed = Math.max(moveSpeed, boostSpeed);
             }
 
+            // clamp speeds
             if (mode.getValue().equals(Mode.STRAFE_STRICT)) {
 
                 // base speeds
@@ -589,6 +590,7 @@ public class SpeedModule extends Module {
 
         if (event.getPacket() instanceof CPacketPlayer) {
             if (((ICPacketPlayer) event.getPacket()).isMoving() && offsetPackets) {
+
                 // offset packets
                 ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(0) + 4);
                 offsetPackets = false;
@@ -598,6 +600,7 @@ public class SpeedModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // reset our process on a rubberband
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             resetProcess();

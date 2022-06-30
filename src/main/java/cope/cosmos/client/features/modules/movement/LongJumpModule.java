@@ -31,6 +31,7 @@ public class LongJumpModule extends Module {
             .setDescription("Mode of jump");
 
     public static Setting<Double> boost = new Setting<>("Boost", 0.1D, 4.5D, 10.0D, 1)
+            .setVisible(() -> mode.getValue().equals(Mode.NORMAL))
             .setDescription("The boost speed");
 
     public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true)

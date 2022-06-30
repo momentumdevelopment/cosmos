@@ -85,7 +85,7 @@ public class AuraModule extends Module {
     public static Setting<TPS> tps = new Setting<>("TPS", TPS.NONE)
             .setDescription("Server TPS factor");
 
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 7.0, 1)
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 6.0, 1)
             .setDescription("Range to attack entities");
 
     public static Setting<Double> wallsRange = new Setting<>("WallsRange", 0.0, 6.0, 7.0, 1)
