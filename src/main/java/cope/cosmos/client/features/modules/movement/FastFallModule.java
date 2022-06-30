@@ -31,7 +31,7 @@ public class FastFallModule extends Module {
             .setDescription("Fall speed")
             .setVisible(() -> !mode.getValue().equals(Mode.PACKET));
 
-    public static Setting<Double> shiftTicks = new Setting<>("ShiftTicks", 1.0, 1.0, 5.0, 0)
+    public static Setting<Double> shiftTicks = new Setting<>("ShiftTicks", 1.0, 3.0, 5.0, 0)
             .setDescription("Ticks to shift forward when falling")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
