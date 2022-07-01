@@ -142,13 +142,6 @@ public class SurroundModule extends Module {
         // get place positions
         placements = getPlacements(origin);
         replacements = getReplacements();
-    }
-
-    @Override
-    public void onTick() {
-
-        // haven't placed any blocks on this tick yet
-        placed = 0;
 
         // we are no long in the same spot
         // to linus: if someone mines the block under us we want to keep surrounded, and the Math.abs will return the
@@ -268,6 +261,13 @@ public class SurroundModule extends Module {
                 toggle();
             }
         }
+    }
+
+    @Override
+    public void onTick() {
+
+        // haven't placed any blocks on this tick yet
+        placed = 0;
     }
 
     @Override

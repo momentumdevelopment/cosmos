@@ -130,7 +130,7 @@ public class FastFallModule extends Module {
                         // wait for 1 second, fast falling too frequently flags NCP Updated
                         if (strictTimer.passedTime(1, Format.SECONDS)) {
 
-                            // fall
+                            // fall, update packets; multiple iterations of onUpdateWalkingPlayer in {@link EntityPlayerSP.class}
                             mc.player.motionX = 0;
                             mc.player.motionZ = 0;
                             event.setIterations(shiftTicks.getValue().intValue());

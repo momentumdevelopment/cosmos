@@ -49,79 +49,87 @@ public class BurrowModule extends Module {
 	public void onEnable() {
 		super.onEnable();
 
-		// set timer to 10
-		getCosmos().getTickManager().setClientTicks(10);
+		// origin position
+		BlockPos origin = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
 
-		// send a random on ground packet
-		mc.player.connection.sendPacket(new CPacketPlayer(ThreadLocalRandom.current().nextBoolean()));
+		// check if we are already burrowed or can't place at feet
+		if (mc.world.isAirBlock(origin)) {
 
-		// save our current position
-		BlockPos previousPosition = new BlockPos(mc.player.getPositionVector());
+			// set timer to 10
+			getCosmos().getTickManager().setClientTicks(10);
 
-		// send fake jump packets
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.7531999805211997, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.00133597911214, mc.player.posZ, true));
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ, true));
+			// send a random on ground packet
+			mc.player.connection.sendPacket(new CPacketPlayer(ThreadLocalRandom.current().nextBoolean()));
 
-		// sync serverside position to client side position, since we need to place a block at our previous position
-		mc.player.setPosition(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ);
+			// save our current position
+			BlockPos previousPosition = new BlockPos(mc.player.getPositionVector());
 
-		// save our previous slot
-		int previousSlot = mc.player.inventory.currentItem;
+			// send fake jump packets
+			mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
+			mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.7531999805211997, mc.player.posZ, true));
+			mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.00133597911214, mc.player.posZ, true));
+			mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ, true));
 
-		// slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
-		int swapSlot = getCosmos().getInventoryManager().searchSlot(mode.getValue().getBlocks(), InventoryRegion.HOTBAR) + 36;
+			// sync serverside position to client side position, since we need to place a block at our previous position
+			mc.player.setPosition(mc.player.posX, mc.player.posY + 1.16610926093821, mc.player.posZ);
 
-		// alt switch
-		if (strict.getValue()) {
+			// save our previous slot
+			int previousSlot = mc.player.inventory.currentItem;
 
-			// transaction id
-			short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+			// slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+			int swapSlot = getCosmos().getInventoryManager().searchSlot(mode.getValue().getBlocks(), InventoryRegion.HOTBAR) + 36;
 
-			// window click
-			ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-			mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+			// alt switch
+			if (strict.getValue()) {
+
+				// transaction id
+				short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+				// window click
+				ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+				mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+			}
+
+			// switch to our block slot
+			else {
+				getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
+			}
+
+			// place at our previous position
+			if (InventoryUtil.isHolding(mode.getValue().getBlocks())) {
+				getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
+			}
+
+			// reset our position, since we've already placed
+			mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
+
+			// swap with window clicks
+			if (strict.getValue()) {
+
+				// transaction id
+				short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+				// window click
+				ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+				mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+				// confirm packets
+				mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+			}
+
+			else if (previousSlot != -1) {
+
+				// switch back to our previous slot
+				getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
+			}
+
+			// send an out of bounds packet, ideally NCP will rubberband us back and we will be inside the block position
+			mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));
+
+			// update our timer
+			getCosmos().getTickManager().setClientTicks(2500);
 		}
 
-		// switch to our block slot
-		else {
-			getCosmos().getInventoryManager().switchToBlock(mode.getValue().getBlocks(), Switch.NORMAL);
-		}
-
-		// place at our previous position
-		if (InventoryUtil.isHolding(mode.getValue().getBlocks())) {
-			getCosmos().getInteractionManager().placeBlock(previousPosition, rotate.getValue(), false);
-		}
-
-		// reset our position, since we've already placed
-		mc.player.setPosition(mc.player.posX, mc.player.posY - 1.16610926093821, mc.player.posZ);
-
-		// swap with window clicks
-		if (strict.getValue()) {
-
-			// transaction id
-			short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
-
-			// window click
-			ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-			mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
-
-			// confirm packets
-			mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
-		}
-
-		else if (previousSlot != -1) {
-
-			// switch back to our previous slot
-			getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
-		}
-
-		// send an out of bounds packet, ideally NCP will rubberband us back and we will be inside the block position
-		mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset.getValue(), mc.player.posZ, false));
-
-		// update our timer
-		getCosmos().getTickManager().setClientTicks(2500);
 		disable(true);
 	}
 
