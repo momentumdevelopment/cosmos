@@ -39,14 +39,12 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.item.ItemEndCrystal;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
-import net.minecraft.network.play.server.SPacketAnimation;
-import net.minecraft.network.play.server.SPacketExplosion;
-import net.minecraft.network.play.server.SPacketSoundEffect;
-import net.minecraft.network.play.server.SPacketSpawnObject;
+import net.minecraft.network.play.server.*;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -170,6 +168,10 @@ public class AutoCrystalModule extends Module {
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
             .setDescription("Switching to crystals before placement")
             .setVisible(() -> place.getValue());
+
+    public static Setting<Boolean> alternativeSwitch = new Setting<>("AlternativeSwitch", false)
+            .setDescription("Alternative method for switching to crystals")
+            .setVisible(() -> place.getValue() && autoSwitch.getValue().equals(Switch.PACKET));
 
     // **************************** damage settings ****************************
 
@@ -455,8 +457,23 @@ public class AutoCrystalModule extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
+        // check if there has been any external explosions (i.e. crystals not broken by the local player)
+        boolean externalExplosion = false;
+
         // packet that confirms crystal removal
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
+
+            // crystal entities within the packet position
+            List<EntityEnderCrystal> soundCrystals = mc.world.getEntitiesWithinAABB(EntityEnderCrystal.class, new AxisAlignedBB(new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ())));
+
+            // check all entities
+            for (EntityEnderCrystal crystal : soundCrystals) {
+
+                // check if we have already counted this explosion
+                if (!inhibitCrystals.contains(crystal)) {
+                    externalExplosion = true;
+                }
+            }
 
             // with this on the main thread there's no reason
             // why we need all the concurrency stuff...?
@@ -500,6 +517,18 @@ public class AutoCrystalModule extends Module {
         // packet for general explosions
         if (event.getPacket() instanceof SPacketExplosion) {
 
+            // crystal entities within the packet position
+            List<EntityEnderCrystal> explosionCrystals = mc.world.getEntitiesWithinAABB(EntityEnderCrystal.class, new AxisAlignedBB(new BlockPos(((SPacketExplosion) event.getPacket()).getX(), ((SPacketExplosion) event.getPacket()).getY(), ((SPacketExplosion) event.getPacket()).getZ())));
+
+            // check all entities
+            for (EntityEnderCrystal crystal : explosionCrystals) {
+
+                // check if we have already counted this explosion
+                if (!inhibitCrystals.contains(crystal)) {
+                    externalExplosion = true;
+                }
+            }
+
             // with this on the main thread there's no reason
             // why we need all the concurrency stuff...?
             mc.addScheduledTask(() -> {
@@ -537,6 +566,35 @@ public class AutoCrystalModule extends Module {
                     }
                 }
             });
+        }
+
+        // packet for destroyed entities
+        if (event.getPacket() instanceof SPacketDestroyEntities) {
+
+            // check all entities being destroyed by the packet
+            for (int entityId : ((SPacketDestroyEntities) event.getPacket()).getEntityIDs()) {
+
+                // get entity from id
+                Entity crystal = mc.world.getEntityByID(entityId);
+
+                // make sure its a crystal
+                if (crystal instanceof EntityEnderCrystal) {
+
+                    // check if we have already counted this explosion
+                    if (!inhibitCrystals.contains(crystal)) {
+                        externalExplosion = true;
+                    }
+                }
+            }
+        }
+
+        // if there's been an external explosion then we can place again
+        if (externalExplosion) {
+
+            // clear place
+            if (sequential.getValue().equals(Sequential.NORMAL)) {
+                placeClearance = true;
+            }
         }
 
         // packet for crystal spawns
@@ -1353,14 +1411,30 @@ public class AutoCrystalModule extends Module {
             autoSwitchTimer.resetTime();
         }
 
+        // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+        int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
+
         // if we are not holding a crystal
         if (!isHoldingCrystal()) {
 
             // wait for switch pause
             if (autoSwitchTimer.passedTime(500, Format.MILLISECONDS)) {
 
+                // alt switch
+                if (alternativeSwitch.getValue()) {
+
+                    // transaction id
+                    short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                    // window click
+                    ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                    mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+                }
+
                 // switch to a crystal
-                getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
+                else {
+                    getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
+                }
             }
         }
 
@@ -1499,7 +1573,25 @@ public class AutoCrystalModule extends Module {
 
         // switch back after placing, should only switch serverside
         if (autoSwitch.getValue().equals(Switch.PACKET)) {
-            getCosmos().getInventoryManager().switchToSlot(mc.player.inventory.currentItem, Switch.PACKET);
+
+            // alt switch
+            if (alternativeSwitch.getValue()) {
+
+                // transaction id
+                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                // window click
+                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+                // confirm packets
+                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+            }
+
+            // switch back
+            else {
+                getCosmos().getInventoryManager().switchToSlot(mc.player.inventory.currentItem, Switch.PACKET);
+            }
         }
 
         // placement was successful
