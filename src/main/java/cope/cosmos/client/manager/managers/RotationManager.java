@@ -61,6 +61,7 @@ public class RotationManager extends Manager implements Wrapper {
     @SubscribeEvent
     public void onMotionUpdate(MotionUpdateEvent event) {
         if (rotation.isValid()) {
+
             // cancel, we'll send our own rotations
             event.setCanceled(true);
 
@@ -99,6 +100,14 @@ public class RotationManager extends Manager implements Wrapper {
     public void setRotation(Rotation in) {
         rotation = in;
         stay = System.currentTimeMillis();
+    }
+
+    /**
+     * Gets the current client rotations
+     * @return The current client rotations
+     */
+    public Rotation getRotation() {
+        return rotation;
     }
 
     /**

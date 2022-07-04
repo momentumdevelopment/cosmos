@@ -6,6 +6,7 @@ import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.entity.player.UpdateWalkingPlayerEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.motion.movement.MotionUpdateEvent;
+import cope.cosmos.util.Wrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -20,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityPlayerSP.class)
-public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
+public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implements Wrapper {
     public MixinEntityPlayerSP() {
         super(Minecraft.getMinecraft().world, Minecraft.getMinecraft().player.getGameProfile());
     }
@@ -194,6 +195,10 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         UpdateWalkingPlayerEvent updateWalkingPlayerEvent = new UpdateWalkingPlayerEvent();
         Cosmos.EVENT_BUS.post(updateWalkingPlayerEvent);
 
+        // rots
+        float yaw = getCosmos().getRotationManager().getRotation().isValid() ? getCosmos().getRotationManager().getRotation().getYaw() : mc.player.rotationYaw;
+        float pitch = getCosmos().getRotationManager().getRotation().isValid() ? getCosmos().getRotationManager().getRotation().getPitch() : mc.player.rotationPitch;
+
         if (updateWalkingPlayerEvent.isCanceled()) {
 
             // idk
@@ -238,15 +243,15 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
                     if (isCurrentViewEntity()) {
                         boolean movementUpdate = StrictMath.pow(mc.player.posX - lastReportedPosX, 2) + StrictMath.pow(mc.player.posY - lastReportedPosY, 2) + StrictMath.pow(mc.player.posZ - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
-                        boolean rotationUpdate = mc.player.rotationYaw - lastReportedYaw != 0.0D || mc.player.rotationPitch - lastReportedPitch != 0.0D;
+                        boolean rotationUpdate = yaw - lastReportedYaw != 0.0D || pitch - lastReportedPitch != 0.0D;
 
                         if (isRiding()) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, yaw, pitch, mc.player.onGround));
                             movementUpdate = false;
                         }
 
                         else if (movementUpdate && rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY, mc.player.posZ, yaw, pitch, mc.player.onGround));
                         }
 
                         else if (movementUpdate) {
@@ -254,7 +259,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                         }
 
                         else if (rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.rotationYaw, mc.player.rotationPitch, mc.player.onGround));
+                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(yaw, pitch, mc.player.onGround));
                         }
 
                         else if (prevOnGround != mc.player.onGround) {
@@ -269,8 +274,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
                         }
 
                         if (rotationUpdate) {
-                            lastReportedYaw = mc.player.rotationYaw;
-                            lastReportedPitch = mc.player.rotationPitch;
+                            lastReportedYaw = yaw;
+                            lastReportedPitch = pitch;
                         }
 
                         prevOnGround = mc.player.onGround;

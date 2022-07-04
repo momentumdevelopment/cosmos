@@ -134,6 +134,7 @@ public class FastFallModule extends Module {
                             mc.player.motionX = 0;
                             mc.player.motionZ = 0;
                             event.setIterations(shiftTicks.getValue().intValue());
+                            strictTimer.resetTime();
                             break;
                         }
                     }
