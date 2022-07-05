@@ -2,12 +2,15 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.entity.player.UpdateWalkingPlayerEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.combat.BurrowModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.PlayerUtil;
+import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -45,6 +48,7 @@ public class FastFallModule extends Module {
     private boolean previousOnGround;
 
     // fall timers
+    private final Timer rubberbandTimer = new Timer();
     private final Timer strictTimer = new Timer();
 
     @Override
@@ -68,7 +72,12 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || BurrowModule.INSTANCE.isActive() || PacketFlightModule.INSTANCE.isActive()) {
+            return;
+        }
+
+        // recently rubberbanded or teleported
+        if (!rubberbandTimer.passedTime(1, Format.SECONDS)) {
             return;
         }
 
@@ -108,7 +117,12 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || BurrowModule.INSTANCE.isActive() || PacketFlightModule.INSTANCE.isActive()) {
+            return;
+        }
+
+        // recently rubberbanded or teleported
+        if (!rubberbandTimer.passedTime(1, Format.SECONDS)) {
             return;
         }
 
@@ -140,6 +154,15 @@ public class FastFallModule extends Module {
                     }
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        // packet for rubberbands
+        if (event.getPacket() instanceof SPacketPlayerPosLook) {
+            rubberbandTimer.resetTime();
         }
     }
 

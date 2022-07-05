@@ -9,6 +9,8 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.MathUtil;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -18,6 +20,7 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.network.play.server.SPacketExplosion;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -40,40 +43,33 @@ public class SpeedModule extends Module {
     public static Setting<BaseSpeed> speed = new Setting<>("Speed", BaseSpeed.NORMAL)
             .setDescription("Base speed when moving");
 
-    public static Setting<Friction> friction = new Setting<>("Friction", Friction.FAST)
+    public static Setting<Friction> friction = new Setting<>("Friction", Friction.CUTOFF)
             .setDescription("Friction for moving through objects");
 
     // **************************** anticheat ****************************
 
-    public static Setting<Boolean> velocityFactor = new Setting<>("VelocityFactor", false)
+    public static Setting<Boolean> boost = new Setting<>("Boost", false)
             .setDescription("Boosts speed when taking knockback");
 
     public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true)
             .setDescription("Applies potions effects to speed");
 
-    public static Setting<Boolean> retain = new Setting<>("Retain", false)
-            .setDescription("Quickly restarts strafe after collision");
-
-    public static Setting<Boolean> airStrafe = new Setting<>("AirStrafe", false)
-            .setDescription("Allows you to boost your speed and control movement in the air");
-
     public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false)
-            .setDescription("Use slightly higher and therefore slower jumps to bypass better");
+            .setDescription("Use slightly higher and therefore slower jumps to bypass better")
+            .setVisible(() -> mode.getValue().equals(Mode.STRAFE_STRICT));
 
     public static Setting<Boolean> strictCollision = new Setting<>("StrictCollision", false)
-            .setDescription("Collision reset");
+            .setDescription("Collision reset")
+            .setVisible(() -> mode.getValue().equals(Mode.STRAFE_STRICT));
 
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false)
-            .setDescription("Maintains sprint while moving");
+            .setDescription("Maintains sprint while moving")
+            .setVisible(() -> mode.getValue().equals(Mode.STRAFE_STRICT));
 
     // **************************** timer ****************************
 
     public static Setting<Boolean> timer = new Setting<>("Timer", true)
             .setDescription("Uses timer to speed up strafe");
-
-    public static Setting<Double> timerTick = new Setting<>("Ticks", 1.0, 1.2, 2.0, 1)
-            .setDescription("Timer speed")
-            .setVisible(() -> timer.getValue());
 
     // **************************** stages ****************************
 
@@ -91,6 +87,7 @@ public class SpeedModule extends Module {
 
     // boost speed
     private double boostSpeed;
+    private final Timer boostTimer = new Timer();
 
     // speed accelerate tick
     private boolean accelerate;
@@ -102,9 +99,6 @@ public class SpeedModule extends Module {
 
     // timer tick
     private int timerTicks;
-
-    // ticks boosted
-    private int boostTicks;
 
     // **************************** packets ****************************
 
@@ -130,7 +124,7 @@ public class SpeedModule extends Module {
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
 
-        if (friction.getValue().equals(Friction.STRICT)) {
+        if (friction.getValue().equals(Friction.CUTOFF)) {
 
             // make sure the player is not in a liquid
             if (PlayerUtil.isInLiquid()) {
@@ -162,7 +156,7 @@ public class SpeedModule extends Module {
         // base move speed
         double baseSpeed = 0.2873;
 
-        if (speed.getValue().equals(BaseSpeed.VANILLA)) {
+        if (speed.getValue().equals(BaseSpeed.OLD)) {
             baseSpeed = 0.272;
         }
 
@@ -239,9 +233,9 @@ public class SpeedModule extends Module {
             }
 
             // allow speed boost in air
-            if (airStrafe.getValue()) {
-                mc.player.jumpMovementFactor = 0.029F;
-            }
+            // if (airStrafe.getValue()) {
+            // mc.player.jumpMovementFactor = 0.029F;
+            // }
 
             // the current movement input values of the user
             float forward = mc.player.movementInput.moveForward;
@@ -279,7 +273,7 @@ public class SpeedModule extends Module {
 
                 // set the timer if the player is moving
                 else if (MotionUtil.isMoving()) {
-                    getCosmos().getTickManager().setClientTicks(timerTick.getValue().floatValue());
+                    getCosmos().getTickManager().setClientTicks(1.088F);
 
                     // slight boost
                     event.setX(event.getX() * 1.02);
@@ -337,12 +331,16 @@ public class SpeedModule extends Module {
                     // the jump height
                     double jumpSpeed = 0.3999999463558197;
 
+                    // origin position
+                    BlockPos origin = new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+
                     // jump slightly higher (i.e. slower, this uses vanilla jump height)
-                    if (strictJump.getValue()) {
+                    if (strictJump.getValue() || !mc.world.getBlockState(origin).getMaterial().isReplaceable()) {
                         jumpSpeed = 0.42;
                     }
 
-                    if (speed.getValue().equals(BaseSpeed.VANILLA)) {
+                    // vanilla jump heights
+                    if (speed.getValue().equals(BaseSpeed.OLD)) {
                         if (mode.getValue().equals(Mode.STRAFE_LOW)) {
                             jumpSpeed = 0.31;
                         }
@@ -403,9 +401,9 @@ public class SpeedModule extends Module {
                         strafeStage = StrafeStage.COLLISION;
 
                         // restart, disregard slowdown
-                        if (retain.getValue()) {
-                            strafeStage = StrafeStage.START;
-                        }
+                        // if (retain.getValue()) {
+                        //    strafeStage = StrafeStage.START;
+                        // }
                     }
 
                     double collisionSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
@@ -438,9 +436,13 @@ public class SpeedModule extends Module {
             // the final move speed, finds the higher speed
             moveSpeed = Math.max(moveSpeed, baseSpeed);
 
-            // boost the move speed for 10 ticks
-            if (velocityFactor.getValue() && boostTicks <= 10) {
-                moveSpeed = Math.max(moveSpeed, boostSpeed);
+            // boost the move speed for 75ms
+            if (!boostTimer.passedTime(75, Format.MILLISECONDS)) {
+
+                // boost speed
+                if (boost.getValue()) {
+                    moveSpeed = Math.max(moveSpeed, boostSpeed);
+                }
             }
 
             // clamp speeds
@@ -471,11 +473,6 @@ public class SpeedModule extends Module {
 
             // update & reset our tick count
             strictTicks++;
-
-            // update boost ticks
-            if (moveSpeed >= boostSpeed && boostSpeed > 0) {
-                boostTicks++;
-            }
 
             // reset strict ticks every 50 ticks
             if (strictTicks > 50) {
@@ -611,27 +608,31 @@ public class SpeedModule extends Module {
 
             // velocity from explosion
             double boostMotionX = StrictMath.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
-            double boostMotionZ = StrictMath.pow(((SPacketExplosion) event.getPacket()).getMotionX(), 2);
+            double boostMotionZ = StrictMath.pow(((SPacketExplosion) event.getPacket()).getMotionZ(), 2);
 
             // boost our speed
             boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
 
             // start our timer
-            boostTicks = 0;
+            boostTimer.resetTime();
         }
 
         // boost our speed when taking knockback damage
         if (event.getPacket() instanceof SPacketEntityVelocity) {
 
-            // velocity from knockback
-            double boostMotionX = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
-            double boostMotionZ = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX(), 2);
+            // check if the velocity is applied to the player
+            if (((SPacketEntityVelocity) event.getPacket()).getEntityID() == mc.player.getEntityId()) {
 
-            // boost our speed
-            boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
+                // velocity from knockback
+                double boostMotionX = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionX() / 8000F, 2);
+                double boostMotionZ = StrictMath.pow(((SPacketEntityVelocity) event.getPacket()).getMotionZ() / 8000F, 2);
 
-            // start our timer
-            boostTicks = 0;
+                // boost our speed
+                boostSpeed = Math.sqrt(boostMotionX + boostMotionZ);
+
+                // start our timer
+                boostTimer.resetTime();
+            }
         }
     }
 
@@ -646,7 +647,6 @@ public class SpeedModule extends Module {
         boostSpeed = 0;
         strictTicks = 0;
         timerTicks = 0;
-        boostTicks = 0;
         accelerate = false;
         offsetPackets = false;
     }
@@ -687,9 +687,9 @@ public class SpeedModule extends Module {
         NORMAL,
 
         /**
-         * Base speed for Vanilla
+         * Base speed for Old NCP
          */
-        VANILLA
+        OLD
     }
 
     public enum Friction {
@@ -707,7 +707,7 @@ public class SpeedModule extends Module {
         /**
          * Stop all speed when experiencing friction
          */
-        STRICT
+        CUTOFF
     }
 
     public enum StrafeStage {

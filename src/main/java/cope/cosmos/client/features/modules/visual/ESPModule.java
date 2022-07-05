@@ -7,7 +7,6 @@ import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
-import cope.cosmos.client.events.render.entity.RenderEntityItemEvent;
 import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
 import cope.cosmos.client.events.render.entity.ShaderColorEvent;
 import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
@@ -16,6 +15,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.modules.client.ColorsModule.Rainbow;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.shader.shaders.DotShader;
 import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
@@ -29,8 +29,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.client.shader.Shader;
@@ -48,13 +46,13 @@ import net.minecraft.tileentity.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.EXTPackedDepthStencil;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -326,13 +324,13 @@ public class ESPModule extends Module {
                 if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
                     switch (shader.getValue()) {
                         case DOTTED:
-                            dotShader.startShader(width.getValue().intValue());
+                            dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                         case OUTLINE:
-                            rainbowOutlineShader.startShader(width.getValue().intValue());
+                            rainbowOutlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                         case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue());
+                            fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                     }
                 }
@@ -341,13 +339,13 @@ public class ESPModule extends Module {
                 else {
                     switch (shader.getValue()) {
                         case DOTTED:
-                            dotShader.startShader(width.getValue().intValue());
+                            dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                         case OUTLINE:
-                            outlineShader.startShader(width.getValue().intValue());
+                            outlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                         case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue());
+                            fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
                             break;
                     }
                 }
@@ -447,7 +445,7 @@ public class ESPModule extends Module {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
                 // color the stencil and clear the depth
-                glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
+                glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, getColor(event.getEntityLivingBase()).getAlpha() / 255F);
                 glDepthMask(false);
                 glDisable(GL_DEPTH_TEST);
                 glEnable(GL_POLYGON_OFFSET_LINE);
@@ -847,11 +845,20 @@ public class ESPModule extends Module {
         if (mode.getValue().equals(Mode.GLOW)) {
 
             // change the shader color
-            event.setColor(ColorUtil.getPrimaryColor());
+            event.setColor(getColor(event.getEntity()));
 
             // remove vanilla team color
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * Gets the color for a given entity
+     * @param in The entity
+     * @return The color for the entity
+     */
+    public Color getColor(Entity in) {
+        return getCosmos().getSocialManager().getSocial(in.getName()).equals(Relationship.FRIEND) ? Color.CYAN : ColorUtil.getPrimaryColor();
     }
 
     /**
