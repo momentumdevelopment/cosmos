@@ -120,6 +120,9 @@ public class StepModule extends Module {
                 for (double offset : offsets) {
                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
                 }
+
+                // confirm step height (helps bypass on NCP Updated)
+                mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + stepHeight, mc.player.posZ, false));
             }
         }
     }
