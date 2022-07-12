@@ -602,7 +602,7 @@ public class NametagsModule extends Module {
                                 }
                             }
 
-                            playerInfo.append(color).append(responseTime).append("ms ");
+                            playerInfo.append(responseTime).append("ms ");
                         }
                     }
 

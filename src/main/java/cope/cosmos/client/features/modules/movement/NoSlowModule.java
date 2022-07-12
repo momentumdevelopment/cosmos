@@ -1,12 +1,12 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
-import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.block.SlimeEvent;
+import cope.cosmos.client.events.block.SoulSandEvent;
 import cope.cosmos.client.events.entity.player.interact.EntityUseItemEvent;
 import cope.cosmos.client.events.entity.player.interact.ItemInputUpdateEvent;
 import cope.cosmos.client.events.entity.player.interact.KeyDownEvent;
-import cope.cosmos.client.events.block.SlimeEvent;
-import cope.cosmos.client.events.block.SoulSandEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -20,7 +20,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketEntityAction.Action;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.settings.IKeyConflictContext;
@@ -43,23 +42,13 @@ public class NoSlowModule extends Module {
     // **************************** anticheat ****************************
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
-            .setDescription("Allows you to bypass normal NCP server");
+            .setDescription("Allows you to bypass strict NCP server");
 
     public static Setting<Boolean> airStrict = new Setting<>("AirStrict", false)
             .setDescription("Allows you to bypass strict NCP servers while in the air");
 
-    public static Setting<Boolean> switchStrict = new Setting<>("SwitchStrict", false)
-            .setDescription("Allows you to bypass strict NCP servers");
-
-    public static Setting<Boolean> placeStrict = new Setting<>("PlaceStrict", false)
-            .setDescription("Allows you to bypass strict servers");
-
     public static Setting<Boolean> groundStrict = new Setting<>("GroundStrict", false)
             .setDescription("Allows you to bypass strict NCP servers while on the ground");
-
-    // separated from strict for now
-    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false)
-            .setDescription("Allows inventory movement to bypass strict NCP servers");
 
     // **************************** inventory move ****************************
 
@@ -153,9 +142,9 @@ public class NoSlowModule extends Module {
         if (isSlowed()) {
 
             // Old NCP bypass
-            if (placeStrict.getValue()) {
-                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(BlockPos.ORIGIN, EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
-            }
+            // if (placeStrict.getValue()) {
+            //    mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(BlockPos.ORIGIN, EnumFacing.UP, EnumHand.MAIN_HAND, 0, 0, 0));
+            // }
         }
 
         // allows you to move normally while in GUI screens
@@ -211,12 +200,12 @@ public class NoSlowModule extends Module {
                 if (isSlowed()) {
 
                     // NCP bypass
-                    if (strict.getValue()) {
-                        mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, BlockPos.ORIGIN, EnumFacing.DOWN));
-                    }
+                    // if (strict.getValue()) {
+                    //    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, BlockPos.ORIGIN, EnumFacing.DOWN));
+                    // }
 
                     // Updated NCP bypass
-                    if (switchStrict.getValue()) {
+                    if (strict.getValue()) {
                         mc.player.connection.sendPacket(new CPacketHeldItemChange(mc.player.inventory.currentItem)); // lolololololo thanks FencingF
                     }
 
@@ -238,7 +227,7 @@ public class NoSlowModule extends Module {
         if (event.getPacket() instanceof CPacketClickWindow) {
 
             // Updated NCP bypass for inventory move
-            if (inventoryStrict.getValue()) {
+            if (strict.getValue()) {
 
                 // with NCP-Updated, we cannot use items while in inventories, so...
                 if (mc.player.isHandActive()) {
@@ -256,7 +245,7 @@ public class NoSlowModule extends Module {
         if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(Action.OPEN_INVENTORY)) {
 
             // Updated NCP bypass for inventory move
-            if (inventoryStrict.getValue()) {
+            if (strict.getValue()) {
                 event.setCanceled(true);
             }
         }
