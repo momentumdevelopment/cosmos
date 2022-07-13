@@ -30,12 +30,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.*;
-import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.SPacketAnimation;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -60,6 +60,14 @@ public class AuraModule extends Module {
 
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current attack");
+
+    public static Setting<Boolean> yawStep = new Setting<>("YawStep", false)
+            .setDescription("Limits yaw rotations")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
+
+    public static Setting<Double> yawStepThreshold = new Setting<>("YawStepThreshold", 1.0, 180.0, 180.0, 0)
+            .setDescription("Max angle to rotate in one tick")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE) && yawStep.getValue());
 
     public static Setting<Boolean> stopSprint = new Setting<>("StopSprint", false)
             .setDescription("Stops sprinting and sneaking before attacking");
@@ -102,6 +110,9 @@ public class AuraModule extends Module {
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
             .setDescription("Mode for switching to weapon");
+
+    public static Setting<Boolean> autoBlock = new Setting<>("AutoBlock", false)
+            .setDescription("Automatically blocks with a shield");
 
     // **************************** targeting ****************************
 
@@ -147,6 +158,9 @@ public class AuraModule extends Module {
     // rotation angels
     private Rotation rotateAngles;
 
+    // ticks to pause the process
+    private int rotateTicks;
+
     @Override
     public void onUpdate() {
 
@@ -158,55 +172,63 @@ public class AuraModule extends Module {
         // search ideal targets
         attackTarget = getTarget();
 
-        // we found a target to attack
-        if (attackTarget != null) {
+        // we are cleared to process our calculations
+        if (rotateTicks <= 0) {
 
-            // we have waited the proper time ???
-            boolean delayed;
-
-            // should delay attack
-            if (attackDelay.getValue()) {
-
-                // ticks to adjust (based on server's TPS)
-                float adjustTicks = 20 - getCosmos().getTickManager().getTPS(tps.getValue());
-
-                // cooldown between attacks
-                float cooldown = mc.player.getCooledAttackStrength(adjustTicks);
-
-                // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
-                long swapDelay = switchDelay.getValue().longValue() * 25L;
+            // we found a target to attack
+            if (attackTarget != null) {
 
                 // we have waited the proper time ???
-                delayed = cooldown >= 1 && switchTimer.passedTime(swapDelay, Format.MILLISECONDS);
-            }
+                boolean delayed;
 
-            // custom delays (based on millis instead of vanilla attack delay)
-            else {
+                // should delay attack
+                if (attackDelay.getValue()) {
 
-                // calculate if we have passed delays
-                // attack delay based on attack speeds
-                long attackDelay = (long) ((attackSpeed.getMax() - attackSpeed.getValue()) * 50);
+                    // ticks to adjust (based on server's TPS)
+                    float adjustTicks = 20 - getCosmos().getTickManager().getTPS(tps.getValue());
 
-                // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
-                long swapDelay = switchDelay.getValue().longValue() * 25L;
+                    // cooldown between attacks
+                    float cooldown = mc.player.getCooledAttackStrength(adjustTicks);
 
-                // custom delay
-                delayed = attackTimer.passedTime(attackDelay, Format.MILLISECONDS) && switchTimer.passedTime(swapDelay, Format.MILLISECONDS);
-            }
+                    // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
+                    long swapDelay = switchDelay.getValue().longValue() * 25L;
 
-            // check if we have passed the place time
-            if (delayed) {
+                    // we have waited the proper time ???
+                    delayed = cooldown >= 1 && switchTimer.passedTime(swapDelay, Format.MILLISECONDS);
+                }
 
-                // attack the target
-                if (attackTarget(attackTarget)) {
+                // custom delays (based on millis instead of vanilla attack delay)
+                else {
 
-                    // face the target
-                    angleVector = attackTarget.getPositionVector();
+                    // calculate if we have passed delays
+                    // attack delay based on attack speeds
+                    long attackDelay = (long) ((attackSpeed.getMax() - attackSpeed.getValue()) * 50);
 
-                    // clear
-                    attackTimer.resetTime();
+                    // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
+                    long swapDelay = switchDelay.getValue().longValue() * 25L;
+
+                    // custom delay
+                    delayed = attackTimer.passedTime(attackDelay, Format.MILLISECONDS) && switchTimer.passedTime(swapDelay, Format.MILLISECONDS);
+                }
+
+                // check if we have passed the place time
+                if (delayed) {
+
+                    // attack the target
+                    if (attackTarget(attackTarget)) {
+
+                        // face the target
+                        angleVector = attackTarget.getPositionVector();
+
+                        // clear
+                        attackTimer.resetTime();
+                    }
                 }
             }
+        }
+
+        else {
+            rotateTicks--;
         }
     }
 
@@ -276,15 +298,68 @@ public class AuraModule extends Module {
                     // yaw and pitch to the angle vector
                     rotateAngles = AngleUtil.calculateAngles(angleVector);
 
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
+                    // rotation that we have serverside
+                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+
+                    // wrapped yaw value
+                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
+
+                    // difference between current and upcoming rotation
+                    float angleDifference = rotateAngles.getYaw() - yaw;
+
+                    // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
+                    // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
+                    // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
+                    if (Math.abs(angleDifference) > 180) {
+
+                        // adjust yaw
+                        float adjust = angleDifference > 0 ? -360 : 360;
+                        angleDifference += adjust;
                     }
 
-                    // add our rotation to our client rotations
-                    getCosmos().getRotationManager().setRotation(rotateAngles);
+                    // use absolute angle diff
+                    // rotating too fast
+                    if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
+
+                        // check if we need to yaw step
+                        if (yawStep.getValue()) {
+
+                            // ideal rotation direction
+                            int rotationDirection = angleDifference > 0 ? 1 : -1;
+
+                            // add max angle
+                            yaw += yawStepThreshold.getValue() * rotationDirection;
+
+                            // update rotation
+                            rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                            // update player rotations
+                            if (rotate.getValue().equals(Rotate.CLIENT)) {
+                                mc.player.rotationYaw = rotateAngles.getYaw();
+                                mc.player.rotationYawHead = rotateAngles.getYaw();
+                                mc.player.rotationPitch = rotateAngles.getPitch();
+                            }
+
+                            // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                            getCosmos().getRotationManager().setRotation(rotateAngles);
+
+                            // we need to wait till we reach our rotation
+                            rotateTicks++;
+                        }
+                    }
+
+                    else {
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().setRotation(rotateAngles);
+                    }
                 }
             }
         }
@@ -425,6 +500,20 @@ public class AuraModule extends Module {
             }
         }
 
+        // player shield state
+        boolean shieldState = false;
+
+        // stop blocking with a shield
+        if (autoBlock.getValue()) {
+
+            // update shield state
+            shieldState = mc.player.getHeldItemOffhand().getItem() instanceof ItemShield && mc.player.isActiveItemStackBlocking();
+
+            if (shieldState) {
+                mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, new BlockPos(mc.player), EnumFacing.getFacingFromVector((float) mc.player.posX, (float) mc.player.posY, (float) mc.player.posZ)));
+            }
+        }
+
         // player sprint state
         boolean sprintState = false;
 
@@ -471,6 +560,11 @@ public class AuraModule extends Module {
 
         // swing with packets
         mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+
+        // reset shield state
+        if (shieldState && isHoldingWeapon()) {
+            mc.playerController.processRightClick(mc.player, mc.world, EnumHand.OFF_HAND);
+        }
 
         // reset sprint state
         if (sprintState) {

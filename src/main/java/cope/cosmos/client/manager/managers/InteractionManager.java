@@ -12,8 +12,8 @@ import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -138,7 +138,7 @@ public class InteractionManager extends Manager {
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
 
                         // submit to rotation manager
-                        getCosmos().getRotationManager().setRotation(blockAngles);
+                        // getCosmos().getRotationManager().setRotation(blockAngles);
 
                         // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
                         // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
@@ -147,7 +147,13 @@ public class InteractionManager extends Manager {
             }
 
             // right click direction offset block
-            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+            // EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+
+            float facingX = (float) (interactVector.x - directionOffset.getZ());
+            float facingY = (float) (interactVector.y - directionOffset.getY());
+            float facingZ = (float) (interactVector.z - directionOffset.getZ());
+
+            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
 
             // reset sneak
             if (sneak) {
@@ -162,17 +168,15 @@ public class InteractionManager extends Manager {
             }
 
             // swing hand
-            if (placeResult != EnumActionResult.FAIL) {
-                mc.player.swingArm(EnumHand.MAIN_HAND);
-                ((IMinecraft) mc).setRightClickDelayTimer(4);
+            mc.player.swingArm(EnumHand.MAIN_HAND);
+            ((IMinecraft) mc).setRightClickDelayTimer(4);
 //
 //                // force a rotation - should this be done?
 //                mc.player.connection.sendPacket(new CPacketPlayer.Rotation(oldRotation.getYaw(), oldRotation.getPitch(), mc.player.onGround));
 //
 //                // submit to rotation manager
 //                getCosmos().getRotationManager().setRotation(oldRotation);
-                break;
-            }
+            break;
 
             /*
             if (!mc.playerController.getCurrentGameType().equals(GameType.CREATIVE)) {
@@ -189,8 +193,9 @@ public class InteractionManager extends Manager {
      * @param position Position of the block to place on
      * @param rotate Mode for rotating {@link Rotate}
      * @param strict Only place on visible offsets
+     * @param safeEntities  Entities that are able to be placed on
      */
-    public void placeBlockWithEntities(BlockPos position, Rotate rotate, boolean strict) {
+    public void placeBlock(BlockPos position, Rotate rotate, boolean strict, List<Class<? extends Entity>> safeEntities) {
         for (EnumFacing direction : EnumFacing.values()) {
 
             // find a block to place against
@@ -199,6 +204,13 @@ public class InteractionManager extends Manager {
             // make sure the side is visible, strict NCP flags for non-visible interactions
             if (strict && !getVisibleSides(directionOffset).contains(direction.getOpposite())) {
                 continue;
+            }
+
+            // make sure there is no entity on the block
+            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
+                if (!safeEntities.contains(entity.getClass())) {
+                    return;
+                }
             }
 
             // make sure the offset is empty
@@ -253,7 +265,13 @@ public class InteractionManager extends Manager {
             }
 
             // right click direction offset block
-            EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+            // EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+
+            float facingX = (float) (interactVector.x - directionOffset.getZ());
+            float facingY = (float) (interactVector.y - directionOffset.getY());
+            float facingZ = (float) (interactVector.z - directionOffset.getZ());
+
+            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
 
             // reset sneak
             if (sneak) {
@@ -268,11 +286,9 @@ public class InteractionManager extends Manager {
             }
 
             // swing hand
-            if (placeResult != EnumActionResult.FAIL) {
-                mc.player.swingArm(EnumHand.MAIN_HAND);
-                ((IMinecraft) mc).setRightClickDelayTimer(4);
-                break;
-            }
+            mc.player.swingArm(EnumHand.MAIN_HAND);
+            ((IMinecraft) mc).setRightClickDelayTimer(4);
+            break;
 
             /*
             if (!mc.playerController.getCurrentGameType().equals(GameType.CREATIVE)) {

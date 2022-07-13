@@ -615,7 +615,7 @@ public class AutoCrystalModule extends Module {
                     crystal.setDead();
 
                     // force remove entity
-                    mc.world.removeEntity(crystal);
+                    // mc.world.removeEntity(crystal);
 
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
@@ -623,7 +623,7 @@ public class AutoCrystalModule extends Module {
                     }
 
                     else {
-                        mc.world.removeEntityDangerously(crystal);
+                        // mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -676,7 +676,7 @@ public class AutoCrystalModule extends Module {
                     crystal.setDead();
 
                     // force remove entity
-                    mc.world.removeEntity(crystal);
+                    // mc.world.removeEntity(crystal);
 
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
@@ -684,7 +684,7 @@ public class AutoCrystalModule extends Module {
                     }
 
                     else {
-                        mc.world.removeEntityDangerously(crystal);
+                        // mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -711,8 +711,8 @@ public class AutoCrystalModule extends Module {
 
                     // remove quicker to make the autocrystal look faster (as the world will remove these entities anyway
                     mc.addScheduledTask(() -> {
-                        mc.world.removeEntity(crystal);
-                        mc.world.removeEntityDangerously(crystal);
+                        // mc.world.removeEntity(crystal);
+                        // mc.world.removeEntityDangerously(crystal);
                     });
                 }
             }
