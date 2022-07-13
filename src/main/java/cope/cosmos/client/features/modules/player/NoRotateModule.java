@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.player;
 
+import cope.cosmos.asm.mixins.accessor.INetHandlerPlayClient;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -28,6 +29,11 @@ public class NoRotateModule extends Module {
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
+        if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
+            return;
+        }
 
         // packet for "rubberband"
         if (event.getPacket() instanceof SPacketPlayerPosLook) {

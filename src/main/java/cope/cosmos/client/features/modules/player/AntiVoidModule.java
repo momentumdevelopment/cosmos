@@ -66,7 +66,7 @@ public class AntiVoidModule extends Module {
                         mc.player.setVelocity(0, 0, 0);
 
                         // attempt to rubberband out of the void
-                        mc.player.setPosition(mc.player.posX, mc.player.posY + 100, mc.player.posZ);
+                        // mc.player.setPosition(mc.player.posX, mc.player.posY + 100, mc.player.posZ);
                         mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 100, mc.player.posZ, false));
                         break;
                     case RISE:
