@@ -109,9 +109,10 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
             MotionUpdateEvent motionUpdateEvent = new MotionUpdateEvent();
             Cosmos.EVENT_BUS.post(motionUpdateEvent);
 
-            if (motionUpdateEvent.isCanceled()) {
-                info.cancel();
+            // prevent vanilla packets from sending
+            info.cancel();
 
+            if (motionUpdateEvent.isCanceled()) {
                 positionUpdateTicks++;
 
                 boolean sprintUpdate = isSprinting();

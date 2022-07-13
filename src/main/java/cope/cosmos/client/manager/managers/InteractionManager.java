@@ -244,7 +244,7 @@ public class InteractionManager extends Manager {
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
 
                         // submit to rotation manager
-                        getCosmos().getRotationManager().setRotation(blockAngles);
+                        // getCosmos().getRotationManager().setRotation(blockAngles);
 
                         // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
                         // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);

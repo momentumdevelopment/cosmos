@@ -75,10 +75,12 @@ public class HoleFillModule extends Module {
     // **************************** targeting ****************************
 
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST)
-            .setDescription("Priority for searching target");
+            .setDescription("Priority for searching target")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0)
-            .setDescription("Range to consider a player a target");
+            .setDescription("Range to consider a player a target")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1)
             .setDescription("Target's distance from hole for it to be considered fill-able")

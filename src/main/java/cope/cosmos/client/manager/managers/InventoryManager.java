@@ -1,5 +1,6 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.network.PacketEvent.PacketSendEvent;
 import cope.cosmos.client.manager.Manager;
@@ -57,6 +58,7 @@ public class InventoryManager extends Manager {
                     break;
                 case PACKET:
                     // send a switch packet to the server, should be silent client-side
+                    ((IPlayerControllerMP) mc.playerController).setCurrentPlayerItem(in);
                     mc.player.connection.sendPacket(new CPacketHeldItemChange(in));
                     // ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
                     break;

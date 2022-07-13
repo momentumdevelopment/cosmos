@@ -131,7 +131,7 @@ public class CriticalsModule extends Module {
             }
 
             // make sure the attacked entity exists
-            if (attackEntity != null && !attackEntity.isDead) {
+            if (attackEntity != null && attackEntity.isEntityAlive()) {
 
                 // destroying a vehicle takes 5 hits -> regardless of damage
                 if (EntityUtil.isVehicleMob(attackEntity)) {

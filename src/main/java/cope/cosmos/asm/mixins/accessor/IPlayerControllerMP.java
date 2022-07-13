@@ -17,6 +17,9 @@ public interface IPlayerControllerMP {
     @Accessor("blockHitDelay")
     void setBlockHitDelay(int blockHitDelay);
 
+    @Accessor("currentPlayerItem")
+    void setCurrentPlayerItem(int currentPlayerItem);
+
     @Invoker("syncCurrentPlayItem")
     void hookSyncCurrentPlayItem();
 }

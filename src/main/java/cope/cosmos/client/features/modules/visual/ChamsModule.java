@@ -62,7 +62,7 @@ public class ChamsModule extends Module {
 
     // **************************** render ****************************
 
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 3.0, 5.0, 2)
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.0, 5.0, 2)
             .setDescription("Line width for the model")
             .setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
 

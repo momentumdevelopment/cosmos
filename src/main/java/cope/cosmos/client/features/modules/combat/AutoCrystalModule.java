@@ -12,7 +12,8 @@ import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.InventoryManager.*;
+import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.util.combat.DamageUtil;
 import cope.cosmos.util.combat.EnemyUtil;
@@ -49,11 +50,8 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.*;
 import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -93,6 +91,14 @@ public class AutoCrystalModule extends Module {
     // TODO: fix rotation priority
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current process");
+
+    public static Setting<YawStep> yawStep = new Setting<>("YawStep", YawStep.NONE)
+            .setDescription("Limits yaw rotations")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE));
+
+    public static Setting<Double> yawStepThreshold = new Setting<>("YawStepThreshold", 1.0, 180.0, 180.0, 0)
+            .setDescription("Max angle to rotate in one tick")
+            .setVisible(() -> !rotate.getValue().equals(Rotate.NONE) && !yawStep.getValue().equals(YawStep.NONE));
 
     // **************************** general settings ****************************
 
@@ -232,10 +238,13 @@ public class AutoCrystalModule extends Module {
     // **************************** rotations ****************************
 
     // vector that holds the angle we are looking at
-    private Vec3d angleVector;
+    private Pair<Vec3d, YawStep> angleVector;
 
     // rotation angels
     private Rotation rotateAngles;
+
+    // ticks to pause the process
+    private int rotateTicks;
 
     // **************************** explode ****************************
 
@@ -278,53 +287,57 @@ public class AutoCrystalModule extends Module {
         explosion = getCrystal();
         placement = getPlacement();
 
-        // place on thread for faster response time
-        if (attackDelay.getValue() > attackDelay.getMin()) {
+        // we are cleared to process our calculations
+        if (rotateTicks <= 0) {
 
-            // we found crystals to explode
-            if (explosion != null) {
+            // place on thread for faster response time
+            if (attackDelay.getValue() > attackDelay.getMin()) {
 
-                // calculate if we have passed delays (old delays)
-                // place delay based on place speeds
-                long explodeDelay = (long) (attackDelay.getValue() * 25);
+                // we found crystals to explode
+                if (explosion != null) {
 
-                // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
-                long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
+                    // calculate if we have passed delays (old delays)
+                    // place delay based on place speeds
+                    long explodeDelay = (long) (attackDelay.getValue() * 25);
 
-                // we have waited the proper time ???
-                boolean delayed = explodeTimer.passedTime(explodeDelay, Format.MILLISECONDS) && switchTimer.passedTime(switchDelay, Format.MILLISECONDS);
+                    // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
+                    long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
 
-                // check if we have passed the explode time
-                if (explodeClearance || delayed) {
+                    // we have waited the proper time ???
+                    boolean delayed = explodeTimer.passedTime(explodeDelay, Format.MILLISECONDS) && switchTimer.passedTime(switchDelay, Format.MILLISECONDS);
 
-                    // face the crystal
-                    angleVector = explosion.getDamageSource().getPositionVector();
+                    // check if we have passed the explode time
+                    if (explodeClearance || delayed) {
 
-                    // attack crystal
-                    if (attackCrystal(explosion.getDamageSource())) {
+                        // face the crystal
+                        angleVector = Pair.of(explosion.getDamageSource().getPositionVector(), YawStep.FULL);
 
-                        // add it to our list of attacked crystals
-                        attackedCrystals.put(explosion.getDamageSource().getEntityId(), System.currentTimeMillis());
+                        // attack crystal
+                        if (attackCrystal(explosion.getDamageSource())) {
 
-                        // clamp
-                        if (lastAttackTime <= 0) {
+                            // add it to our list of attacked crystals
+                            attackedCrystals.put(explosion.getDamageSource().getEntityId(), System.currentTimeMillis());
+
+                            // clamp
+                            if (lastAttackTime <= 0) {
+                                lastAttackTime = System.currentTimeMillis();
+                            }
+
+                            // make space for new val
+                            if (attackTimes.length - 1 >= 0) {
+                                System.arraycopy(attackTimes, 1, attackTimes, 0, attackTimes.length - 1);
+                            }
+
+                            // add to attack times
+                            attackTimes[attackTimes.length - 1] = System.currentTimeMillis() - lastAttackTime;
+
+                            // mark attack flag
                             lastAttackTime = System.currentTimeMillis();
+
+                            // clear
+                            explodeClearance = false;
+                            explodeTimer.resetTime();
                         }
-
-                        // make space for new val
-                        if (attackTimes.length - 1 >= 0) {
-                            System.arraycopy(attackTimes, 1, attackTimes, 0, attackTimes.length - 1);
-                        }
-
-                        // add to attack times
-                        attackTimes[attackTimes.length - 1] = System.currentTimeMillis() - lastAttackTime;
-
-                        // mark attack flag
-                        lastAttackTime = System.currentTimeMillis();
-
-                        // clear
-                        explodeClearance = false;
-                        explodeTimer.resetTime();
                     }
                 }
             }
@@ -334,86 +347,94 @@ public class AutoCrystalModule extends Module {
     @Override
     public void onUpdate() {
 
-        // place on thread for more consistency
-        if (attackDelay.getValue() <= attackDelay.getMin()) {
+        // we are cleared to process our calculations
+        if (rotateTicks <= 0) {
 
-            // we found crystals to explode
-            if (explosion != null) {
+            // place on thread for more consistency
+            if (attackDelay.getValue() <= attackDelay.getMin()) {
+
+                // we found crystals to explode
+                if (explosion != null) {
+
+                    // calculate if we have passed delays
+                    // place delay based on place speeds
+                    long explodeDelay = (long) ((explodeSpeed.getMax() - explodeSpeed.getValue()) * 50);
+
+                    // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
+                    long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
+
+                    // we have waited the proper time ???
+                    boolean delayed = explodeTimer.passedTime(explodeDelay, Format.MILLISECONDS) && switchTimer.passedTime(switchDelay, Format.MILLISECONDS);
+
+                    // check if we have passed the explode time
+                    if (explodeClearance || delayed) {
+
+                        // check attack flag
+                        // face the crystal
+                        angleVector = Pair.of(explosion.getDamageSource().getPositionVector(), YawStep.FULL);
+
+                        // attack crystal
+                        if (attackCrystal(explosion.getDamageSource())) {
+
+                            // add it to our list of attacked crystals
+                            attackedCrystals.put(explosion.getDamageSource().getEntityId(), System.currentTimeMillis());
+
+                            // clamp
+                            if (lastAttackTime <= 0) {
+                                lastAttackTime = System.currentTimeMillis();
+                            }
+
+                            // make space for new val
+                            if (attackTimes.length - 1 >= 0) {
+                                System.arraycopy(attackTimes, 1, attackTimes, 0, attackTimes.length - 1);
+                            }
+
+                            // add to attack times
+                            attackTimes[attackTimes.length - 1] = System.currentTimeMillis() - lastAttackTime;
+
+                            // mark attack flag
+                            lastAttackTime = System.currentTimeMillis();
+
+                            // clear
+                            explodeClearance = false;
+                            explodeTimer.resetTime();
+                        }
+                    }
+                }
+            }
+
+            // we found a placement
+            if (placement != null) {
 
                 // calculate if we have passed delays
                 // place delay based on place speeds
-                long explodeDelay = (long) ((explodeSpeed.getMax() - explodeSpeed.getValue()) * 50);
-
-                // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
-                long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
+                long placeDelay = (long) ((placeSpeed.getMax() - placeSpeed.getValue()) * 50);
 
                 // we have waited the proper time ???
-                boolean delayed = explodeTimer.passedTime(explodeDelay, Format.MILLISECONDS) && switchTimer.passedTime(switchDelay, Format.MILLISECONDS);
+                boolean delayed = placeTimer.passedTime(placeDelay, Format.MILLISECONDS);
 
-                // check if we have passed the explode time
-                if (explodeClearance || delayed) {
+                // check if we have passed the place time
+                if (placeClearance || delayed) {
 
-                    // check attack flag
-                    // face the crystal
-                    angleVector = explosion.getDamageSource().getPositionVector();
+                    // face the placement
+                    angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
 
-                    // attack crystal
-                    if (attackCrystal(explosion.getDamageSource())) {
+                    // place the crystal
+                    if (placeCrystal(placement.getDamageSource())) {
 
                         // add it to our list of attacked crystals
-                        attackedCrystals.put(explosion.getDamageSource().getEntityId(), System.currentTimeMillis());
-
-                        // clamp
-                        if (lastAttackTime <= 0) {
-                            lastAttackTime = System.currentTimeMillis();
-                        }
-
-                        // make space for new val
-                        if (attackTimes.length - 1 >= 0) {
-                            System.arraycopy(attackTimes, 1, attackTimes, 0, attackTimes.length - 1);
-                        }
-
-                        // add to attack times
-                        attackTimes[attackTimes.length - 1] = System.currentTimeMillis() - lastAttackTime;
-
-                        // mark attack flag
-                        lastAttackTime = System.currentTimeMillis();
+                        placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());  // place on the client thread
 
                         // clear
-                        explodeClearance = false;
-                        explodeTimer.resetTime();
+                        placeClearance = false;
+                        placeTimer.resetTime();
                     }
                 }
             }
         }
 
-        // we found a placement
-        if (placement != null) {
-
-            // calculate if we have passed delays
-            // place delay based on place speeds
-            long placeDelay = (long) ((placeSpeed.getMax() - placeSpeed.getValue()) * 50);
-
-            // we have waited the proper time ???
-            boolean delayed = placeTimer.passedTime(placeDelay, Format.MILLISECONDS);
-
-            // check if we have passed the place time
-            if (placeClearance || delayed) {
-
-                // face the placement
-                angleVector = new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5);
-
-                // place the crystal
-                if (placeCrystal(placement.getDamageSource())) {
-
-                    // add it to our list of attacked crystals
-                    placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());  // place on the client thread
-
-                    // clear
-                    placeClearance = false;
-                    placeTimer.resetTime();
-                }
-            }
+        else {
+            rotateTicks--;
         }
     }
 
@@ -512,6 +533,7 @@ public class AutoCrystalModule extends Module {
         placement = null;
         angleVector = null;
         rotateAngles = null;
+        rotateTicks = 0;
         // sequentialTicks = 0;
         // explodeTimer.resetTime();
         // placeTimer.resetTime();
@@ -592,9 +614,16 @@ public class AutoCrystalModule extends Module {
                     // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                     crystal.setDead();
 
+                    // force remove entity
+                    mc.world.removeEntity(crystal);
+
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
                         deadCrystals.add(crystal.getEntityId());
+                    }
+
+                    else {
+                        mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -646,9 +675,16 @@ public class AutoCrystalModule extends Module {
                     // the world sets the crystal dead one tick after this packet, but we can speed up the placements by setting it dead here
                     crystal.setDead();
 
+                    // force remove entity
+                    mc.world.removeEntity(crystal);
+
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
                         deadCrystals.add(crystal.getEntityId());
+                    }
+
+                    else {
+                        mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -670,6 +706,14 @@ public class AutoCrystalModule extends Module {
                     if (!inhibitCrystals.contains(crystal)) {
                         externalExplosion = true;
                     }
+
+                    crystal.setDead();
+
+                    // remove quicker to make the autocrystal look faster (as the world will remove these entities anyway
+                    mc.addScheduledTask(() -> {
+                        mc.world.removeEntity(crystal);
+                        mc.world.removeEntityDangerously(crystal);
+                    });
                 }
             }
         }
@@ -679,7 +723,20 @@ public class AutoCrystalModule extends Module {
 
             // clear place
             if (sequential.getValue().equals(Sequential.NORMAL)) {
-                placeClearance = true;
+
+                // we found a placement
+                if (placement != null) {
+
+                    // face the placement
+                    angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
+
+                    // place the crystal
+                    if (placeCrystal(placement.getDamageSource())) {
+
+                        // add it to our list of attacked crystals
+                        placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
+                    }
+                }
             }
         }
 
@@ -702,6 +759,11 @@ public class AutoCrystalModule extends Module {
 
                     // clear the next explosion
                     else {
+
+                        // face the crystal
+                        angleVector = Pair.of(new Vec3d(spawnPosition), YawStep.FULL);
+
+                        // attack spawned crystal
                         if (attackCrystal(((SPacketSpawnObject) event.getPacket()).getEntityID())) {
 
                             // add it to our list of attacked crystals
@@ -769,17 +831,70 @@ public class AutoCrystalModule extends Module {
                     event.setCanceled(true);
 
                     // yaw and pitch to the angle vector
-                    rotateAngles = AngleUtil.calculateAngles(angleVector);
+                    rotateAngles = AngleUtil.calculateAngles(angleVector.first());
 
-                    // update player rotations
-                    if (rotate.getValue().equals(Rotate.CLIENT)) {
-                        mc.player.rotationYaw = rotateAngles.getYaw();
-                        mc.player.rotationYawHead = rotateAngles.getYaw();
-                        mc.player.rotationPitch = rotateAngles.getPitch();
+                    // rotation that we have serverside
+                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+
+                    // wrapped yaw value
+                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
+
+                    // difference between current and upcoming rotation
+                    float angleDifference = rotateAngles.getYaw() - yaw;
+
+                    // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
+                    // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
+                    // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
+                    if (Math.abs(angleDifference) > 180) {
+
+                        // adjust yaw
+                        float adjust = angleDifference > 0 ? -360 : 360;
+                        angleDifference += adjust;
                     }
 
-                    // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
-                    getCosmos().getRotationManager().setRotation(rotateAngles);
+                    // use absolute angle diff
+                    // rotating too fast
+                    if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
+
+                        // check if we need to yaw step
+                        if (yawStep.getValue().equals(YawStep.FULL) || (yawStep.getValue().equals(YawStep.SEMI) && angleVector.second().equals(YawStep.FULL))) {
+
+                            // ideal rotation direction
+                            int rotationDirection = angleDifference > 0 ? 1 : -1;
+
+                            // add max angle
+                            yaw += yawStepThreshold.getValue() * rotationDirection;
+
+                            // update rotation
+                            rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                            // update player rotations
+                            if (rotate.getValue().equals(Rotate.CLIENT)) {
+                                mc.player.rotationYaw = rotateAngles.getYaw();
+                                mc.player.rotationYawHead = rotateAngles.getYaw();
+                                mc.player.rotationPitch = rotateAngles.getPitch();
+                            }
+
+                            // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                            getCosmos().getRotationManager().setRotation(rotateAngles);
+
+                            // we need to wait till we reach our rotation
+                            rotateTicks++;
+                        }
+                    }
+
+                    else {
+
+                        // update player rotations
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = rotateAngles.getYaw();
+                            mc.player.rotationYawHead = rotateAngles.getYaw();
+                            mc.player.rotationPitch = rotateAngles.getPitch();
+                        }
+
+                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        getCosmos().getRotationManager().setRotation(rotateAngles);
+                    }
                 }
             }
         }
@@ -834,8 +949,11 @@ public class AutoCrystalModule extends Module {
                 continue;
             }
 
+            // time elapsed since we placed this crystal (if we did place it)
+            long elapsedTime = System.currentTimeMillis() - placedCrystals.getOrDefault(new BlockPos(crystal.getPositionVector()).down(), System.currentTimeMillis());
+
             // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
-            if (crystal.ticksExisted < ticksExisted.getValue() && !inhibit.getValue()) {
+            if ((crystal.ticksExisted < ticksExisted.getValue() && (elapsedTime / 50F) < ticksExisted.getValue()) && !inhibit.getValue()) {
                 continue;
             }
 
@@ -1353,6 +1471,9 @@ public class AutoCrystalModule extends Module {
             return false;
         }
 
+        // previous held item slot
+        int previousSlot = -1;
+
         // pause switch to account for actions
         if (PlayerUtil.isEating() || PlayerUtil.isMending() || PlayerUtil.isMining()) {
             autoSwitchTimer.resetTime();
@@ -1380,6 +1501,7 @@ public class AutoCrystalModule extends Module {
 
                 // switch to a crystal
                 else {
+                    previousSlot = mc.player.inventory.currentItem;
                     getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
                 }
             }
@@ -1399,7 +1521,7 @@ public class AutoCrystalModule extends Module {
         EnumFacing facingDirection = EnumFacing.UP;
 
         // the angles to the last interaction
-        Rotation vectorAngles = AngleUtil.calculateAngles(angleVector);
+        Rotation vectorAngles = AngleUtil.calculateAngles(angleVector.first());
 
         // vector from the angles
         Vec3d placeVector = AngleUtil.getVectorForRotation(new Rotation(vectorAngles.getYaw(), vectorAngles.getPitch()));
@@ -1528,16 +1650,16 @@ public class AutoCrystalModule extends Module {
                 short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
 
                 // window click
-                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+                ItemStack itemstack = mc.player.openContainer.slotClick(mc.player.inventory.currentItem, swapSlot, ClickType.SWAP, mc.player);
+                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, mc.player.inventory.currentItem, swapSlot, ClickType.SWAP, itemstack, nextTransactionID));
 
                 // confirm packets
                 mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
             }
 
             // switch back
-            else {
-                getCosmos().getInventoryManager().switchToSlot(mc.player.inventory.currentItem, Switch.PACKET);
+            else if (previousSlot != -1) {
+                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
             }
         }
 
@@ -1648,6 +1770,24 @@ public class AutoCrystalModule extends Module {
 
         /**
          * Places on the top block face, no facing directions
+         */
+        NONE
+    }
+
+    public enum YawStep {
+
+        /**
+         * Yaw steps when breaking and placing
+         */
+        FULL,
+
+        /**
+         * Yaw steps when breaking
+         */
+        SEMI,
+
+        /**
+         * Does not yaw step
          */
         NONE
     }
