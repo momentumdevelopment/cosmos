@@ -13,6 +13,7 @@ import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -20,12 +21,12 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
-import java.awt.*;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -53,6 +54,9 @@ public class HUDModule extends Module {
 
     public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true)
             .setDescription("Displays the user's coordinates");
+
+    public static Setting<Boolean> direction = new Setting<>("Direction", true)
+            .setDescription("Displays the user's facing direction");
 
     public static Setting<Boolean> speed = new Setting<>("Speed", true)
             .setDescription("Displays the user's speed");
@@ -233,14 +237,41 @@ public class HUDModule extends Module {
             }
 
             if (coordinates.getValue()) {
-                String overWorldCoords = mc.player.dimension != -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);
-                String netherCoords = mc.player.dimension == -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : TextFormatting.RED + "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX / 8, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ / 8, 1);
 
-                FontUtil.drawStringWithShadow(overWorldCoords, 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                // string for the coords
+                StringBuilder coordinateString = new StringBuilder();
+
+                // format
+                coordinateString.append("XYZ (")
+                        .append(TextFormatting.WHITE)
+                        .append(MathUtil.roundFloat(mc.player.posX, 1)) // overworld
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posY, 1))
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posZ, 1))
+                        .append(TextFormatting.RESET)
+                        .append(") [")
+                        .append(TextFormatting.WHITE)
+                        .append(MathUtil.roundFloat(mc.player.posX / 8, 1)) // nether
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posY, 1))
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posZ / 8, 1))
+                        .append(TextFormatting.RESET)
+                        .append("]");
+
+                FontUtil.drawStringWithShadow(coordinateString.toString(), 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
                 bottomLeft += FontUtil.getFontHeight() + 1;
                 globalOffset++;
+            }
 
-                FontUtil.drawStringWithShadow(netherCoords, 2, SCREEN_HEIGHT - bottomLeft, new Color(255, 0, 0).getRGB());
+            if (direction.getValue()) {
+
+                // facing stuff
+                EnumFacing direction = mc.player.getHorizontalFacing();
+                EnumFacing.AxisDirection axisDirection = direction.getAxisDirection();
+
+                FontUtil.drawStringWithShadow( StringFormatter.capitalise(direction.getName()) + " (" + TextFormatting.WHITE + StringFormatter.formatEnum(direction.getAxis()) + (axisDirection.equals(EnumFacing.AxisDirection.POSITIVE) ? "+" : "-") + TextFormatting.RESET + ")", 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
                 bottomLeft += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }
