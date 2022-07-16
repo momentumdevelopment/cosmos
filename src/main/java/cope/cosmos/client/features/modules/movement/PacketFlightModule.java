@@ -8,7 +8,6 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.combat.EnemyUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.network.play.client.CPacketConfirmTeleport;
@@ -26,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author aesthetical, bon55, Doogie13, linustouchtips
+ * @author aesthetical
  * @since 06/24/2022
  *
  * Special thanks to Doogie13 to explaining to me how all this worked, and his lambda plugin
@@ -38,8 +37,6 @@ public class PacketFlightModule extends Module {
         super("PacketFlight", Category.MOVEMENT, "Allows you to fly with silent packet movements", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
-
-    // **************************** anticheat****************************
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.FACTOR)
             .setDescription("The mode for flying");
@@ -53,42 +50,51 @@ public class PacketFlightModule extends Module {
     public static Setting<Double> factor = new Setting<>("Factor", 0.1, 1.5, 5.0, 1)
             .setDescription("The amount of times to factor");
 
+    public static Setting<Boolean> conceal = new Setting<>("Conceal", false)
+            .setDescription("Makes you go to minimum speed before the server can detect it");
+
     public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true)
             .setDescription("If to move down slightly every tick to prevent fly kicks");
 
-    // packet maps
-    private final Map<Integer, Vec3d> teleports = new ConcurrentHashMap<>();
-    private final List<Position> packets = new ArrayList<>();
-
-    // latest teleport spoof id
-    private int teleportID = -1;
-
     // minecraft moment
-    private static final double FUNNY_NUMBER = 0.0624;
+    private static final double FUNNY_NUMBER = 0.062;
+    private static final double CONCEAL = 1.0 / StrictMath.sqrt(2); // 0.7071067811865475;
 
-    // current move speed
+    // a map containing our predicted teleports
+    private final Map<Integer, Vec3d> predictions = new ConcurrentHashMap<>();
+
+    // a list containing the whitelisted player position packets
+    private final List<Position> packetWhitelist = new ArrayList<>();
+
+    // our cached tp id
+    private int tpId = -1;
+
+    // our movement speed
     private double moveSpeed;
 
-    // flags
+    // our flag data
     private boolean flagged = false;
-    private int flagTicks = 0;
+    private int flagTicks ;
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        // reset vars
-        teleports.clear();
-        packets.clear();
-        teleportID = -1;
+        predictions.clear();
+        packetWhitelist.clear();
+
+        tpId = -1;
+
         flagged = false;
         flagTicks = 0;
-        moveSpeed = 0;
+
+        moveSpeed = 0.0;
 
         // stop any motion we had before
         mc.player.motionX = 0.0;
         mc.player.motionY = 0.0;
         mc.player.motionZ = 0.0;
+
         mc.player.noClip = false;
     }
 
@@ -96,7 +102,8 @@ public class PacketFlightModule extends Module {
     public void onTick() {
 
         // if we are dead, turn off packetfly
-        if (EnemyUtil.isDead(mc.player)) {
+        if (mc.player.isDead || mc.player.getHealth() <= 0.0f) {
+
             disable(true);
         }
     }
@@ -104,8 +111,8 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
 
-        // set our move speed
-        moveSpeed = 0.2873;
+        // set our move speed - this is the base NCP speed
+        moveSpeed = conceal.getValue() ? FUNNY_NUMBER : 0.272;
 
         // our motionY speed
         double motionY = 0.0;
@@ -154,12 +161,9 @@ public class PacketFlightModule extends Module {
                 }
             }
 
-            else {
-
-                // add a factor
-                if (mc.player.ticksExisted % 15.0 < 15.0 * (f - Math.floor(f))) {
-                    factor++;
-                }
+            // add a factor - this line is credit to Doogie13
+            if (!isPhased() && mc.player.ticksExisted % 10.0 < 10.0 * (f - Math.floor(f))) {
+                factor++;
             }
         }
 
@@ -171,74 +175,23 @@ public class PacketFlightModule extends Module {
 
         // force NCP compatibility
         if (isPhased() && phasing.getValue().equals(Phasing.NCP)) {
+            moveSpeed = FUNNY_NUMBER;
 
-            // we should go slower if we are trying to go up
-            if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown()) {
-                moveSpeed = 0.03;
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = 0.036;
+                moveSpeed *= CONCEAL;
             }
 
-            else {
-                moveSpeed = FUNNY_NUMBER;
+            else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+                motionY = -0.03;
+                moveSpeed *= CONCEAL;
             }
 
-            // force one packet round
             factor = 1;
         }
 
         // send our movement packets
-        // get our calculated motion values
-        double[] strafe = MotionUtil.getMoveSpeed(moveSpeed);
-        double motionX = strafe[0];
-        double motionZ = strafe[1];
-
-        // if we are not moving, set these values to 0.0
-        if (!MotionUtil.isMoving()) {
-            motionX = 0.0;
-            motionZ = 0.0;
-        }
-
-        // get our player base vector
-        Vec3d playerVec = mc.player.getPositionVector();
-
-        // our factored in motion values
-        double factoredMotionX = motionX * factor;
-        double factoredMotionZ = motionZ * factor;
-
-        // set our vertical motion
-        mc.player.motionY = motionY;
-
-        // go through each time we should factor through
-        for (int i = 0; i < factor; ++ i) {
-
-            // our position vector
-            Vec3d vec = playerVec.addVector(factoredMotionX, motionY, factoredMotionZ);
-
-            // set our client-sided motion
-            mc.player.motionX = factoredMotionX;
-            mc.player.motionZ = factoredMotionZ;
-
-            // send our current position to the server
-            sendPacket(vec);
-
-            // do not send bounds packets in single player
-            if (!mc.isSingleplayer()) {
-
-                // we can now get out of bounds vec
-                Vec3d boundsVec = bounds.getValue().modifier.modify(playerVec);
-
-                // send this bounds vec
-                sendPacket(boundsVec);
-            }
-
-            // increment our teleport id to predict the next teleport
-            teleportID++;
-
-            // the lagback packet we are expecting is the one we sent before our bounds
-            teleports.put(teleportID, vec);
-
-            // accept this teleport id
-            mc.player.connection.sendPacket(new CPacketConfirmTeleport(teleportID));
-        }
+        move(motionY, factor);
 
         // cancel, we'll use our own movement
         event.setCanceled(true);
@@ -248,7 +201,6 @@ public class PacketFlightModule extends Module {
         event.setY(motionY);
         event.setZ(mc.player.motionZ);
 
-
         // if we should phase, set noClip to true.
         if (!phasing.getValue().equals(Phasing.NONE)) {
             mc.player.noClip = true;
@@ -257,6 +209,10 @@ public class PacketFlightModule extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        if (!nullCheck()) {
+            return;
+        }
 
         // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
         if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
@@ -276,7 +232,7 @@ public class PacketFlightModule extends Module {
             Position packet = (Position) event.getPacket();
 
             // remove our packet and check if it didn't contain in our whitelist
-            if (!packets.remove(packet)) {
+            if (!packetWhitelist.remove(packet)) {
                 event.setCanceled(true);
             }
         }
@@ -284,6 +240,10 @@ public class PacketFlightModule extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
+        if (!nullCheck()) {
+            return;
+        }
 
         // if the client is not done loading the surrounding terrain, DO NOT CANCEL SERVER PACKETS!!!!
         if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
@@ -302,27 +262,29 @@ public class PacketFlightModule extends Module {
             if (mode.getValue().equals(Mode.FACTOR)) {
 
                 // if we have "predicted" this lagback
-                if (teleports.containsKey(id)) {
+                if (predictions.containsKey(id)) {
 
                     // the cached teleport position
-                    Vec3d vec = teleports.getOrDefault(id, null);
+                    Vec3d vec = predictions.getOrDefault(id, null);
 
                     // remove this teleport from the map
-                    teleports.remove(id);
+                    predictions.remove(id);
 
                     // if the teleport position is null, we can disgard this
-                    if (vec != null) {
+                    if (vec == null) {
+                        return;
+                    }
 
-                        // the teleport packet position has to be the EXACT same as the one we have cached
-                        if (vec.x == packet.getX() && vec.y == packet.getY() && vec.z == packet.getZ()) {
+                    // the teleport packet position has to be the EXACT same as the one we have cached
+                    if (vec.x == packet.getX() && vec.y == packet.getY() && vec.z == packet.getZ()) {
 
-                            // we found a match!
-                            event.setCanceled(true);
+                        // we found a match!
+                        event.setCanceled(true);
 
-                            // confirm that we got this teleport
-                            mc.player.connection.sendPacket(new CPacketConfirmTeleport(id));
-                            return;
-                        }
+                        // confirm that we got this teleport
+                        mc.player.connection.sendPacket(new CPacketConfirmTeleport(id));
+
+                        return;
                     }
                 }
 
@@ -338,7 +300,7 @@ public class PacketFlightModule extends Module {
             ((ISPacketPlayerPosLook) packet).setPitch(mc.player.rotationPitch);
 
             // cache our teleport id
-            teleportID = id;
+            tpId = id;
         }
     }
 
@@ -350,16 +312,72 @@ public class PacketFlightModule extends Module {
     }
 
     /**
-     * Sends a position packet based on the given vector
-     * @param vec the given vector
+     * Handles movement packets
+     * @param motionY the motionY to use
+     * @param factor how many times to send a movement packet
      */
+    private void move(double motionY, int factor) {
+
+        // get our calculated motion values
+        double[] strafe = MotionUtil.getMoveSpeed(moveSpeed);
+        double motionX = strafe[0];
+        double motionZ = strafe[1];
+
+        // if we are not moving, set these values to 0.0
+        if (!MotionUtil.isMoving()) {
+            motionX = 0.0;
+            motionZ = 0.0;
+        }
+
+        // get our player base vector
+        Vec3d playerVec = mc.player.getPositionVector();
+
+        // our factored in motion values
+        double factoredMotionX = motionX * factor;
+        double factoredMotionZ = motionZ * factor;
+
+        // go through each time we should factor through
+        for (int i = 0; i < factor; ++ i) {
+
+            // our position vector
+            Vec3d vec = playerVec.addVector(factoredMotionX, motionY, factoredMotionZ);
+
+            // set our client-sided motion
+            mc.player.motionX = factoredMotionX;
+            mc.player.motionY = motionY * i;
+            mc.player.motionZ = factoredMotionZ;
+
+            // send our current position to the server
+            sendPacket(vec);
+
+            // do not send bounds packets in single player
+            if (!mc.isSingleplayer()) {
+
+                // we can now get out of bounds vec
+                Vec3d boundsVec = bounds.getValue().modifier.modify(playerVec);
+
+                // send this bounds vec
+                sendPacket(boundsVec);
+            }
+
+            // increment our teleport id to predict the next teleport
+            tpId++;
+
+            // the lagback packet we are expecting is the one we sent before our bounds
+            predictions.put(tpId, vec);
+
+            // accept this teleport id
+            mc.player.connection.sendPacket(new CPacketConfirmTeleport(tpId));
+        }
+    }
+
     private void sendPacket(Vec3d vec) {
 
         // create our position packet
         Position packet = new Position(vec.x, vec.y, vec.z, true);
 
         // exempt this packet from being canceled (see onSendPacket)
-        packets.add(packet);
+        packetWhitelist.add(packet);
 
         // send the packet to the sendQueue
         mc.player.connection.sendPacket(packet);

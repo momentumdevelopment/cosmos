@@ -40,7 +40,7 @@ public class Cosmos {
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
     public static final String VERSION = "1.4.0-beta";
-    public static final ClientType CLIENT_TYPE = ClientType.BETA;
+    public static final ClientType CLIENT_TYPE = ClientType.DEVELOPMENT;
 
     // client event bus
     public static EventBus EVENT_BUS = MinecraftForge.EVENT_BUS;
@@ -70,7 +70,7 @@ public class Cosmos {
     private TickManager tickManager;
     private SocialManager socialManager;
     private AltManager altManager;
-    private PresetManager presetManager;
+    private ConfigManager configManager;
     private RotationManager rotationManager;
     private ThreadManager threadManager;
     private HoleManager holeManager;
@@ -142,8 +142,8 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up Alt Manager");
 
         // sets up the preset manager
-        presetManager = new PresetManager();
-        managers.add(presetManager);
+        configManager = new ConfigManager();
+        managers.add(configManager);
         progressManager.step("[Cosmos] Setting up Config Manager");
 
         // sets up the GUI
@@ -152,7 +152,7 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up GUI's");
 
         // This needs to be after the GUIs are loaded, as it needs to be able to set the GUI frames' positions and sizes
-        presetManager.loadGUI();
+        configManager.loadGUI();
 
         // sets up the reload manager
         reloadManager = new ReloadManager();
@@ -316,8 +316,8 @@ public class Cosmos {
      * Gets the client configuration manager
      * @return The client configuration manager
      */
-    public PresetManager getPresetManager() {
-        return presetManager;
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 
     /**

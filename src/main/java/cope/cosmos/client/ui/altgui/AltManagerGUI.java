@@ -164,7 +164,7 @@ public class AltManagerGUI extends GuiScreen {
     @Override
     public void onGuiClosed() {
         // Save the alts to alts.toml
-        Cosmos.INSTANCE.getPresetManager().saveAlts();
+        Cosmos.INSTANCE.getConfigManager().saveAlts();
     }
 
     /**
