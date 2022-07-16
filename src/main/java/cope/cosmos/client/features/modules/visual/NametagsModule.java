@@ -156,18 +156,17 @@ public class NametagsModule extends Module {
                     GlStateManager.disableDepth();
                     GlStateManager.enableBlend();
 
-                    if (background.getValue() || healthBar.getValue()) {
+                    if (background.getValue() || outline.getValue() || healthBar.getValue()) {
                         GlStateManager.enableBlend();
 
-                        if (background.getValue()) {
-                            // draw the background
-                            if (outline.getValue()) {
-                                RenderUtil.drawBorderRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100), ColorUtil.getPrimaryColor());
-                            }
+                        // draw the outline
+                        if (outline.getValue()) {
+                            RenderUtil.drawBorder(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, ColorUtil.getPrimaryColor());
+                        }
 
-                            else {
-                                RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
-                            }
+                        // draw the background
+                        if (background.getValue()) {
+                            RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
                         }
 
                         if (healthBar.getValue()) {

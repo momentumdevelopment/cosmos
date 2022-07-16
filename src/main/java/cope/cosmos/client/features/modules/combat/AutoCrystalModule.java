@@ -42,7 +42,9 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.ItemEndCrystal;
+import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraft.network.play.server.*;
@@ -147,6 +149,10 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Boolean> await = new Setting<>("Await", true)
             .setDescription("Runs delays on packet time")
+            .setVisible(() -> explode.getValue());
+
+    public static Setting<Switch> antiWeakness = new Setting<>("AntiWeakness", Switch.NONE)
+            .setDescription("Switches to a tool when attacking crystals to bypass the weakness effect")
             .setVisible(() -> explode.getValue());
 
     // **************************** place settings ****************************
@@ -419,11 +425,40 @@ public class AutoCrystalModule extends Module {
                     // face the placement
                     angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
 
+                    // previous item slot
+                    int previousSlot = mc.player.inventory.currentItem;
+
+                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                    int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
+
                     // place the crystal
                     if (placeCrystal(placement.getDamageSource())) {
 
                         // add it to our list of attacked crystals
                         placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());  // place on the client thread
+
+                        // switch back after placing, should only switch serverside
+                        if (autoSwitch.getValue().equals(Switch.PACKET)) {
+
+                            // alt switch
+                            if (alternativeSwitch.getValue()) {
+
+                                // transaction id
+                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                // window click
+                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+                                // confirm packets
+                                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+                            }
+
+                            // switch back
+                            else if (previousSlot != -1) {
+                                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
+                            }
+                        }
 
                         // clear
                         placeClearance = false;
@@ -730,11 +765,40 @@ public class AutoCrystalModule extends Module {
                     // face the placement
                     angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
 
+                    // previous item slot
+                    int previousSlot = mc.player.inventory.currentItem;;
+
+                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
+                    int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
+
                     // place the crystal
                     if (placeCrystal(placement.getDamageSource())) {
 
                         // add it to our list of attacked crystals
                         placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
+
+                        // switch back after placing, should only switch serverside
+                        if (autoSwitch.getValue().equals(Switch.PACKET)) {
+
+                            // alt switch
+                            if (alternativeSwitch.getValue()) {
+
+                                // transaction id
+                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+
+                                // window click
+                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+
+                                // confirm packets
+                                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+                            }
+
+                            // switch back
+                            else if (previousSlot != -1) {
+                                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
+                            }
+                        }
                     }
                 }
             }
@@ -833,40 +897,60 @@ public class AutoCrystalModule extends Module {
                     // yaw and pitch to the angle vector
                     rotateAngles = AngleUtil.calculateAngles(angleVector.first());
 
-                    // rotation that we have serverside
-                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+                    // yaw step requires slower rotations, so we ease into the target rotation, requires some silly math
+                    if (!yawStep.getValue().equals(YawStep.NONE)) {
 
-                    // wrapped yaw value
-                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
+                        // rotation that we have serverside
+                        Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
 
-                    // difference between current and upcoming rotation
-                    float angleDifference = rotateAngles.getYaw() - yaw;
+                        // wrapped yaw value
+                        float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
 
-                    // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
-                    // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
-                    // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
-                    if (Math.abs(angleDifference) > 180) {
+                        // difference between current and upcoming rotation
+                        float angleDifference = rotateAngles.getYaw() - yaw;
 
-                        // adjust yaw
-                        float adjust = angleDifference > 0 ? -360 : 360;
-                        angleDifference += adjust;
-                    }
+                        // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
+                        // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
+                        // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
+                        if (Math.abs(angleDifference) > 180) {
 
-                    // use absolute angle diff
-                    // rotating too fast
-                    if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
+                            // adjust yaw, since this is not the true angle difference until we rotate again
+                            float adjust = angleDifference > 0 ? -360 : 360;
+                            angleDifference += adjust;
+                        }
 
-                        // check if we need to yaw step
-                        if (yawStep.getValue().equals(YawStep.FULL) || (yawStep.getValue().equals(YawStep.SEMI) && angleVector.second().equals(YawStep.FULL))) {
+                        // use absolute angle diff
+                        // rotating too fast
+                        if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
 
-                            // ideal rotation direction
-                            int rotationDirection = angleDifference > 0 ? 1 : -1;
+                            // check if we need to yaw step
+                            if (yawStep.getValue().equals(YawStep.FULL) || (yawStep.getValue().equals(YawStep.SEMI) && angleVector.second().equals(YawStep.FULL))) {
 
-                            // add max angle
-                            yaw += yawStepThreshold.getValue() * rotationDirection;
+                                // ideal rotation direction, so we don't turn in the wrong direction
+                                int rotationDirection = angleDifference > 0 ? 1 : -1;
 
-                            // update rotation
-                            rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+                                // add max angle
+                                yaw += yawStepThreshold.getValue() * rotationDirection;
+
+                                // update rotation
+                                rotateAngles = new Rotation(yaw, rotateAngles.getPitch());
+
+                                // update player rotations
+                                if (rotate.getValue().equals(Rotate.CLIENT)) {
+                                    mc.player.rotationYaw = rotateAngles.getYaw();
+                                    mc.player.rotationYawHead = rotateAngles.getYaw();
+                                    mc.player.rotationPitch = rotateAngles.getPitch();
+                                }
+
+                                // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                                getCosmos().getRotationManager().setRotation(rotateAngles);
+
+                                // we need to wait till we reach our rotation
+                                rotateTicks++;
+                            }
+                        }
+
+                        else {
 
                             // update player rotations
                             if (rotate.getValue().equals(Rotate.CLIENT)) {
@@ -877,12 +961,10 @@ public class AutoCrystalModule extends Module {
 
                             // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
                             getCosmos().getRotationManager().setRotation(rotateAngles);
-
-                            // we need to wait till we reach our rotation
-                            rotateTicks++;
                         }
                     }
 
+                    // rotate to target instantly
                     else {
 
                         // update player rotations
@@ -1355,23 +1437,20 @@ public class AutoCrystalModule extends Module {
             return false;
         }
 
-        // previous slot
-        int previousSlot = -1;
+        // mark previous slot
+        int previousSlot = mc.player.inventory.currentItem;
 
-        /*
+        // antiweakness switches to a tool slot to bypass the weakness effect
         if (!antiWeakness.getValue().equals(Switch.NONE)) {
-
-            // mark previous slot
-            previousSlot = mc.player.inventory.currentItem;
 
             // verify that we cannot break the crystal due to weakness
             if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
 
                 // tool slots
-                int swordSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.INVENTORY);
-                int pickSlot = getCosmos().getInventoryManager().searchSlot(Items.DIAMOND_SWORD, InventoryRegion.INVENTORY);
+                int swordSlot = getCosmos().getInventoryManager().searchSlot(ItemSword.class, InventoryRegion.INVENTORY);
+                int pickSlot = getCosmos().getInventoryManager().searchSlot(ItemPickaxe.class, InventoryRegion.INVENTORY);
 
-                if (!InventoryUtil.isHolding(Items.DIAMOND_SWORD) || !InventoryUtil.isHolding(Items.DIAMOND_PICKAXE)) {
+                if (!InventoryUtil.isHolding(ItemSword.class) || !InventoryUtil.isHolding(ItemPickaxe.class)) {
 
                     // prefer the sword over a pickaxe
                     if (swordSlot != -1) {
@@ -1384,7 +1463,6 @@ public class AutoCrystalModule extends Module {
                 }
             }
         }
-         */
 
         // player sprint state
         boolean sprintState = false;
@@ -1442,13 +1520,10 @@ public class AutoCrystalModule extends Module {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
         }
 
-        /*
-        if (!antiWeakness.getValue().equals(Switch.NONE)) {
-
-            // switch back
-            getCosmos().getInventoryManager().switchToSlot(previousSlot, antiWeakness.getValue());
+        // switch back
+        if (antiWeakness.getValue().equals(Switch.PACKET)) {
+            getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
         }
-         */
 
         // ignore
         if (sequential.getValue().equals(Sequential.NORMAL)) {
@@ -1471,9 +1546,6 @@ public class AutoCrystalModule extends Module {
             return false;
         }
 
-        // previous held item slot
-        int previousSlot = -1;
-
         // pause switch to account for actions
         if (PlayerUtil.isEating() || PlayerUtil.isMending() || PlayerUtil.isMining()) {
             autoSwitchTimer.resetTime();
@@ -1489,7 +1561,7 @@ public class AutoCrystalModule extends Module {
             if (autoSwitchTimer.passedTime(500, Format.MILLISECONDS)) {
 
                 // alt switch
-                if (alternativeSwitch.getValue()) {
+                if (autoSwitch.getValue().equals(Switch.PACKET) && alternativeSwitch.getValue()) {
 
                     // transaction id
                     short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
@@ -1501,7 +1573,6 @@ public class AutoCrystalModule extends Module {
 
                 // switch to a crystal
                 else {
-                    previousSlot = mc.player.inventory.currentItem;
                     getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
                 }
             }
@@ -1639,29 +1710,6 @@ public class AutoCrystalModule extends Module {
 
         // swing with packets
         mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
-
-        // switch back after placing, should only switch serverside
-        if (autoSwitch.getValue().equals(Switch.PACKET)) {
-
-            // alt switch
-            if (alternativeSwitch.getValue()) {
-
-                // transaction id
-                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
-
-                // window click
-                ItemStack itemstack = mc.player.openContainer.slotClick(mc.player.inventory.currentItem, swapSlot, ClickType.SWAP, mc.player);
-                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, mc.player.inventory.currentItem, swapSlot, ClickType.SWAP, itemstack, nextTransactionID));
-
-                // confirm packets
-                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
-            }
-
-            // switch back
-            else if (previousSlot != -1) {
-                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
-            }
-        }
 
         // placement was successful
         return true;

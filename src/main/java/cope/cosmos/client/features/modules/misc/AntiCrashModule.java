@@ -54,7 +54,7 @@ public class AntiCrashModule extends Module {
     public static Setting<Boolean> fireworks = new Setting<>("Fireworks", true)
             .setDescription("Prevents firework spam from crashing you");
 
-    public static Setting<Boolean> crystals = new Setting<>("Crystals", true)
+    public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
             .setDescription("Prevents stacked crystals spam from lagging you");
 
     public static Setting<Boolean> skylight = new Setting<>("Skylight", true)

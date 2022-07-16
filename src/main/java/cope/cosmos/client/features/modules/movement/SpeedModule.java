@@ -7,6 +7,8 @@ import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.setting.Bind;
+import cope.cosmos.client.features.setting.Bind.Device;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.math.Timer;
@@ -40,6 +42,12 @@ public class SpeedModule extends Module {
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.STRAFE)
             .setDescription("Mode for Speed");
 
+    public static Setting<Mode> alternateMode = new Setting<>("AlternateMode", Mode.STRAFE_GROUND)
+            .setDescription("Alternate mode for Speed");
+
+    public static Setting<Bind> alternateBind = new Setting<>("AlternateBind", new Bind(0, Device.KEYBOARD))
+            .setDescription("Bind for alternate mode");
+
     public static Setting<BaseSpeed> speed = new Setting<>("Speed", BaseSpeed.NORMAL)
             .setDescription("Base speed when moving");
 
@@ -70,6 +78,11 @@ public class SpeedModule extends Module {
 
     public static Setting<Boolean> timer = new Setting<>("Timer", true)
             .setDescription("Uses timer to speed up strafe");
+
+
+    // **************************** mode shi ****************************
+
+    private Mode currentMode = mode.getValue();
 
     // **************************** stages ****************************
 
@@ -111,6 +124,15 @@ public class SpeedModule extends Module {
 
         // reset all vars
         resetProcess();
+    }
+
+    @Override
+    public void onThread() {
+
+        // switches modes
+        if (alternateBind.getValue().isPressed()) {
+            currentMode = alternateMode.getValue();
+        }
     }
 
     @Override
@@ -255,6 +277,26 @@ public class SpeedModule extends Module {
             // update the movements
             event.setX((forward * moveSpeed * cos) + (strafe * moveSpeed * -sin));
             event.setZ((forward * moveSpeed * -sin) - (strafe * moveSpeed * cos));
+        }
+
+        // allows strafe speeds on ground ~= 22.4 kmh (Instant speed)
+        else if (mode.getValue().equals(Mode.STRAFE_GROUND)) {
+
+            // instant max speed
+            if (mc.player.isSprinting()) {
+                moveSpeed = baseSpeed;
+            }
+
+            else {
+                moveSpeed = 0.2;
+            }
+
+            // strafe motions
+            double[] strafe = MotionUtil.getMoveSpeed(moveSpeed);
+
+            // update motion
+            event.setX(strafe[0]);
+            event.setZ(strafe[1]);
         }
 
         else {

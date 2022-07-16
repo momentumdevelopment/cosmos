@@ -200,7 +200,7 @@ public class LongJumpModule extends Module {
     public enum Mode {
 
         /**
-         * Preset jump motion
+         * Preset jump motion (Direkt Longjump)
          * TODO: implement
          */
         COWABUNGA,

@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.init.MobEffects;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.CombatRules;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
@@ -29,58 +30,53 @@ public class ExplosionUtil implements Wrapper {
      * @return the explosion damage to an end crystal to the target player
      */
     public static float getDamageFromExplosion(Entity entity, Vec3d vector, boolean blockDestruction) {
-        return calculateExplosionDamage(entity, vector, blockDestruction, 12, false, true);
+        return calculateExplosionDamage(entity, vector, 6, blockDestruction);
     }
 
     /**
      * Calculates the amount of damage an entity will take
      * @param entity The target player
      * @param vector The position
+     * @param explosionSize The size of the explosion
      * @param blockDestruction If to ignore terrain blocks when calculating block density
-     * @param doublePower The power of the explosion doubled
-     * @param causesFire If the explosion causes fire
-     * @param damagesTerrain If the explosion damages the terrain
      * @return the explosion damage to the target player
      */
-    public static float calculateExplosionDamage(Entity entity, Vec3d vector, boolean blockDestruction, double doublePower, boolean causesFire, boolean damagesTerrain) {
-        double size = entity.getDistanceSq(vector.x, vector.y, vector.z) / (doublePower * doublePower);
-        double density = getBlockDensity(blockDestruction, vector, entity.getEntityBoundingBox());
+    public static float calculateExplosionDamage(Entity entity, Vec3d vector, float explosionSize, boolean blockDestruction) {
 
-        double impact = (1.0 - size) * density;
-        float damage = (float) ((impact * impact + impact) / 2.0f * 7.0f * doublePower + 1.0);
+        // the real explosion size
+        double doubledExplosionSize = explosionSize * 2.0;
 
-        return getBlastReduction(entity, DamageUtil.getScaledDamage(damage),
-                new Explosion(entity.world, entity, vector.x, vector.y, vector.z, (float) (doublePower / 2.0), causesFire, damagesTerrain));
-    }
+        // distance from the explosion
+        double dist = entity.getDistance(vector.x, vector.y, vector.z) / doubledExplosionSize;
+        if (dist > 1) {
+            return 0;
+        }
 
-    /**
-     * Calculates the actual damage taking into account armor, combat rules, and potion effects
-     * @param entity The target entity
-     * @param damage The roughly calculated damage
-     * @param explosion The explosion object
-     * @return a reduced damage value
-     */
-    public static float getBlastReduction(Entity entity, float damage, Explosion explosion) {
-        DamageSource src = DamageSource.causeExplosionDamage(explosion);
+        // block density factor
+        double v = (1 - dist) * getBlockDensity(blockDestruction, vector, entity.getEntityBoundingBox());
 
-        if (entity instanceof EntityLivingBase) {
-            damage = CombatRules.getDamageAfterAbsorb(damage, ((EntityLivingBase) entity).getTotalArmorValue(), (float) ((EntityLivingBase) entity).getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS).getAttributeValue());
+        // damage caused by explosion onto the entity
+        float damage = CombatRules.getDamageAfterAbsorb(DamageUtil.getScaledDamage((float) ((v * v + v) / 2.0 * 7.0 * doubledExplosionSize + 1.0)), ((EntityLivingBase) entity).getTotalArmorValue(), (float) ((EntityLivingBase) entity).getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS).getAttributeValue());
 
-            int enchantModifier = 0;
-            try {
-                enchantModifier = EnchantmentHelper.getEnchantmentModifierDamage(entity.getArmorInventoryList(), src);
-            } catch (NullPointerException ignored) {
-            }
+        // explosion damage source
+        DamageSource damageSource = DamageSource.causeExplosionDamage(new Explosion(entity.world, entity, vector.x, vector.y, vector.z, (float) doubledExplosionSize, false, true));
 
-            float eof = MathHelper.clamp(enchantModifier, 0, 20);
-            damage *= 1 - eof / 25F;
+        // damage modified based on enchantment modifiers
+        int n = EnchantmentHelper.getEnchantmentModifierDamage(entity.getArmorInventoryList(), damageSource);
+        if (n > 0) {
+            damage = CombatRules.getDamageAfterMagicAbsorb(damage, n);
+        }
 
-            if (((EntityLivingBase) entity).isPotionActive(MobEffects.RESISTANCE)) {
-                damage -= damage / 4F;
+        // damage modified based on potion modifiers
+        if (((EntityLivingBase) entity).isPotionActive(MobEffects.RESISTANCE)) {
+            PotionEffect potionEffect = ((EntityLivingBase) entity).getActivePotionEffect(MobEffects.RESISTANCE);
+            if (potionEffect != null) {
+                damage = damage * (25.0F - (potionEffect.getAmplifier() + 1) * 5) / 25.0F;
             }
         }
 
-        return Math.max(0, damage);
+        // return final damage
+        return Math.max(damage, 0);
     }
 
     /**
