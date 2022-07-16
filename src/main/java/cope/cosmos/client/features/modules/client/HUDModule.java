@@ -131,7 +131,7 @@ public class HUDModule extends Module {
                         .getModules(module -> module.isDrawn())
                         .stream()
                         .filter(module -> module.getAnimation().getAnimationFactor() > 0.05)
-                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " [" + module.getInfo() : "]")) * -1))
+                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " [" + module.getInfo() + "]": "")) * -1))
                         .forEach(module -> {
 
                     // formatted string

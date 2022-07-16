@@ -35,6 +35,8 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
@@ -47,7 +49,7 @@ public class SpeedMineModule extends Module {
     public static SpeedMineModule INSTANCE;
 
     public SpeedMineModule() {
-        super("SpeedMine", Category.PLAYER, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("SpeedMine", Category.PLAYER, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()) + (mode.getValue().equals(Mode.PACKET) ? ", " + MathHelper.clamp(mineDamage, 0, 1) : ""));
         INSTANCE = this;
     }
 
@@ -92,7 +94,7 @@ public class SpeedMineModule extends Module {
     private EnumFacing mineFacing;
 
     // mine damage
-    private float mineDamage;
+    private static float mineDamage;
     private int mineBreaks;
 
     // potion info
@@ -269,9 +271,15 @@ public class SpeedMineModule extends Module {
                 // box of the mine
                 AxisAlignedBB mineBox = mc.world.getBlockState(minePosition).getSelectedBoundingBox(mc.world, minePosition);
 
+                // center of the box
+                Vec3d mineCenter = mineBox.getCenter();
+
+                // shrink
+                AxisAlignedBB shrunkMineBox = new AxisAlignedBB(mineCenter.x, mineCenter.y, mineCenter.z, mineCenter.x, mineCenter.y, mineCenter.z);
+
                 // draw box
                 RenderUtil.drawBox(new RenderBuilder()
-                        .position(mineBox)
+                        .position(shrunkMineBox.grow(((mineBox.minX - mineBox.maxX) * 0.5) * MathHelper.clamp(mineDamage, 0, 1), ((mineBox.minY - mineBox.maxY) * 0.5) * MathHelper.clamp(mineDamage, 0, 1), ((mineBox.minZ - mineBox.maxZ) * 0.5) * MathHelper.clamp(mineDamage, 0, 1)))
                         .color(mineDamage >= 1 ? ColorUtil.getPrimaryAlphaColor(120) : new Color(255, 0, 0, 120))
                         .box(renderMode.getValue())
                         .setup()
