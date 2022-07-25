@@ -16,7 +16,8 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author linustouchtips
  * @since 06/08/2021
- * Edited by EBSmash
+ * @author EBSmash
+ * @since 7/25/22
  * noatmc/delta used for reference
  */
 public class FakePlayerModule extends Module {
@@ -43,7 +44,9 @@ public class FakePlayerModule extends Module {
     private int id = -1;
 
     // create a fake player
-    EntityOtherPlayerMP fakePlayer;
+    private EntityOtherPlayerMP fakePlayer;
+
+    private Random random = new Random();
 
     @Override
     public void onEnable() {
@@ -102,11 +105,11 @@ public class FakePlayerModule extends Module {
     @Override
     public void onUpdate() {
         if (fakePlayer != null) {
-            Random random = new Random();
             fakePlayer.moveForward = mc.player.moveForward + (random.nextInt(5) / 10F);
             fakePlayer.moveStrafing = mc.player.moveStrafing + (random.nextInt(5) / 10F);
-            if (move.getValue()) travel(fakePlayer.moveStrafing, fakePlayer.moveVertical, fakePlayer.moveForward);
-
+            if (move.getValue()) {
+                travel(fakePlayer.moveStrafing, fakePlayer.moveVertical, fakePlayer.moveForward);
+            }
         }
     }
 
