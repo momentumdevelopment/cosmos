@@ -29,11 +29,11 @@ import org.lwjgl.input.Mouse;
  * @author linustouchtips
  * @since 11/20/2021
  */
-public class OffhandModule extends Module {
-    public static OffhandModule INSTANCE;
+public class AutoTotemModule extends Module {
+    public static AutoTotemModule INSTANCE;
 
-    public OffhandModule() {
-        super("Offhand", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(item.getValue()) + ", " + InventoryUtil.getItemCount(item.getValue().getItem()));
+    public AutoTotemModule() {
+        super("AutoTotem", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(item.getValue()) + ", " + InventoryUtil.getItemCount(item.getValue().getItem()));
         INSTANCE = this;
     }
 
