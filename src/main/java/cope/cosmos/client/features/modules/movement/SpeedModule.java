@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.movement;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -110,8 +111,8 @@ public class SpeedModule extends Module {
         resetProcess();
     }
 
-    @Override
-    public void onUpdate() {
+    @SubscribeEvent
+    public void onRotationUpdate(RotationUpdateEvent event) {
 
         // our latest move speed
         latestMoveSpeed = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
@@ -300,6 +301,16 @@ public class SpeedModule extends Module {
                         // the jump height
                         double jumpSpeed = 0.3999999463558197;
 
+                        // scale jump speed if Jump Boost potion effect is active
+                        if (potionFactor.getValue()) {
+
+                            // not really too useful for Speed like the other potion effects
+                            if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
+                                double amplifier = mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier();
+                                jumpSpeed += (amplifier + 1) * 0.1;
+                            }
+                        }
+
                         // jump
                         mc.player.motionY = jumpSpeed;
                         event.setY(jumpSpeed);
@@ -419,6 +430,16 @@ public class SpeedModule extends Module {
                         // jump slightly higher (i.e. slower, this uses vanilla jump height)
                         if (strictJump.getValue()) {
                             jumpSpeed = 0.41999998688697815;
+                        }
+
+                        // scale jump speed if Jump Boost potion effect is active
+                        if (potionFactor.getValue()) {
+
+                            // not really too useful for Speed like the other potion effects
+                            if (mc.player.isPotionActive(MobEffects.JUMP_BOOST)) {
+                                double amplifier = mc.player.getActivePotionEffect(MobEffects.JUMP_BOOST).getAmplifier();
+                                jumpSpeed += (amplifier + 1) * 0.1;
+                            }
                         }
 
                         // jump
