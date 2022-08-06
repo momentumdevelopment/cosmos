@@ -241,6 +241,9 @@ public class HUDModule extends Module {
                 // string for the coords
                 StringBuilder coordinateString = new StringBuilder();
 
+                // checks if the player is in the nether
+                boolean inNether = (mc.world.getBiome(mc.player.getPosition()).getBiomeName().equalsIgnoreCase("Hell"));
+
                 // format
                 coordinateString.append("XYZ (")
                         .append(TextFormatting.WHITE)
@@ -252,11 +255,11 @@ public class HUDModule extends Module {
                         .append(TextFormatting.RESET)
                         .append(") [")
                         .append(TextFormatting.WHITE)
-                        .append(MathUtil.roundFloat(mc.player.posX / 8, 1)) // nether
+                        .append(MathUtil.roundFloat(inNether ? mc.player.posX * 8 : mc.player.posX / 8, 1)) // nether
                         .append(", ")
                         .append(MathUtil.roundFloat(mc.player.posY, 1))
                         .append(", ")
-                        .append(MathUtil.roundFloat(mc.player.posZ / 8, 1))
+                        .append(MathUtil.roundFloat(inNether ? mc.player.posZ * 8 : mc.player.posZ / 8, 1))
                         .append(TextFormatting.RESET)
                         .append("]");
 

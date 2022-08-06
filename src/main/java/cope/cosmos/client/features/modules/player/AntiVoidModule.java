@@ -21,42 +21,37 @@ public class AntiVoidModule extends Module {
 
     // **************************** general ****************************
 
-    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SUSPEND)
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.SOLID)
             .setDescription("How to stop you from falling into the void");
 
-    // **************************** speeds ****************************
-
-    public static Setting<Double> glide = new Setting<>("GlideSpeed", 1.0, 5.0, 10.0, 1)
-            .setDescription("The value to divide your vertical motion by")
-            .setVisible(() -> mode.getValue().equals(Mode.GLIDE));
-
-    public static Setting<Double> rise = new Setting<>("RiseSpeed",  0.1, 0.5, 5.0, 0)
-            .setDescription("What to set your vertical motion to")
-            .setVisible(() -> mode.getValue().equals(Mode.RISE));
-
     @Override
-    public void onUpdate() {
+    public void onTick() {
 
         // can't void if spectator or if packetfly is on
         if (!mc.player.isSpectator() && !PacketFlightModule.INSTANCE.isEnabled()) {
 
-            // if we are in the void, aka below y-pos 0
-            if (mc.player.posY <= 0.5) {
+            // void
+            if (mc.player.posY < 1) {
 
                 // notify the player that we are attempting to get out of the void
-                getCosmos().getChatManager().sendClientMessage("[AntiVoid] " + ChatFormatting.DARK_RED + "Attempting to get player out of void!", -6980085);
+                getCosmos().getChatManager().sendClientMessage("[AntiVoid] " + ChatFormatting.RED + "Attempting to get player out of void!", -6980085);
 
                 switch (mode.getValue()) {
-                    case SUSPEND:
+                    case SOLID:
 
                         // stop all vertical motion
                         mc.player.motionY = 0;
+                        break;
+                    case TRAMPOLINE:
+
+                        // attempt to float up out of the void
+                        mc.player.motionY = 0.5;
                         break;
                     case GLIDE:
 
                         // fall slower
                         if (mc.player.motionY < 0) {
-                            mc.player.motionY /= glide.getValue();
+                            mc.player.motionY /= 3;
                         }
 
                         break;
@@ -66,13 +61,8 @@ public class AntiVoidModule extends Module {
                         mc.player.setVelocity(0, 0, 0);
 
                         // attempt to rubberband out of the void
-                        // mc.player.setPosition(mc.player.posX, mc.player.posY + 100, mc.player.posZ);
-                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 100, mc.player.posZ, false));
-                        break;
-                    case RISE:
-
-                        // attempt to float up out of the void
-                        mc.player.motionY = rise.getValue();
+                        // mc.player.setPosition(mc.player.posX, mc.player.posY + 10, mc.player.posZ);
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 10, mc.player.posZ, false));
                         break;
                 }
             }
@@ -82,9 +72,19 @@ public class AntiVoidModule extends Module {
     public enum Mode {
 
         /**
+         * Makes the void block completely solid
+         */
+        SOLID,
+
+        /**
          * Stops all vertical motion, freezes the player
          */
-        SUSPEND,
+        SOLID_STRICT,
+
+        /**
+         * Attempts to jump up out of the void
+         */
+        TRAMPOLINE,
 
         /**
          * Slows down vertical movement
@@ -94,11 +94,6 @@ public class AntiVoidModule extends Module {
         /**
          * Attempts to rubberband out of the void
          */
-        RUBBERBAND,
-
-        /**
-         * Attempts to float up out of the void
-         */
-        RISE
+        RUBBERBAND
     }
 }

@@ -46,7 +46,7 @@ public class BreadcrumbsModule extends Module {
     }
 
     @Override
-    public void onUpdate() {
+    public void onTick() {
         if (!nullCheck() || mc.player.ticksExisted <= 20) {
 
             // We may have just loaded into a world, so we need to clear the positions
