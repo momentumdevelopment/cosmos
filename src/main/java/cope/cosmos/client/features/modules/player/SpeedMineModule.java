@@ -5,7 +5,6 @@ import cope.cosmos.client.events.block.BlockResetEvent;
 import cope.cosmos.client.events.block.LeftClickBlockEvent;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
-import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -38,7 +37,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;

@@ -162,7 +162,7 @@ public class HUDModule extends Module {
                     }
 
                     // draw string
-                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (SCREEN_WIDTH - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), rendering.getValue().equals(Rendering.UP) ? 2 + listOffset : SCREEN_HEIGHT - 10 - listOffset + topRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (SCREEN_WIDTH - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), rendering.getValue().equals(Rendering.UP) ? 2 + listOffset : SCREEN_HEIGHT - 10 - listOffset - topRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getAnimationFactor();
@@ -194,7 +194,7 @@ public class HUDModule extends Module {
                                     .append(Potion.getPotionDurationString(potionEffect, 1F));
 
                             // draw string
-                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - 10 - bottomRight : 2 + bottomRight , potionEffect.getPotion().getLiquidColor());
+                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - 10 - bottomRight : 2 + bottomRight, potionEffect.getPotion().getLiquidColor());
 
                             // offset
                             bottomRight += FontUtil.getFontHeight() + 1;

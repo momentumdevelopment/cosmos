@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.HoleManager.Type;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -98,9 +99,9 @@ public class HoleESPModule extends Module {
             // check if they are in range
             if (mc.player.getDistance(holePosition.getX(), holePosition.getY(), holePosition.getZ()) < range.getValue()) {
 
-                // draw the hole
-                switch (hole.getType()) {
-                    case VOID:
+                // void holes
+                if (voids.getValue()) {
+                    if (hole.getType().equals(Type.VOID)) {
                         RenderUtil.drawBox(new RenderBuilder()
                                 .position(hole.getHole())
                                 .color(voidColor.getValue())
@@ -111,8 +112,11 @@ public class HoleESPModule extends Module {
                                 .blend()
                                 .texture()
                         );
+                    }
+                }
 
-                        break;
+                // draw the hole
+                switch (hole.getType()) {
                     case OBSIDIAN:
                         RenderUtil.drawBox(new RenderBuilder()
                                 .position(hole.getHole())

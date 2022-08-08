@@ -26,6 +26,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
@@ -146,8 +147,8 @@ public class SurroundModule extends Module {
         replacements = getReplacements();
     }
 
-    @SubscribeEvent
-    public void onRotationUpdateEvent(RotationUpdateEvent event) {
+    @Override
+    public void onUpdate() {
 
         // haven't placed any blocks on this tick yet
         placed = 0;
@@ -249,9 +250,6 @@ public class SurroundModule extends Module {
                 }
             }
 
-            // prevent vanilla packets from sending
-            event.setCanceled(true);
-
             // place at each of our placements
             for (BlockPos position : replacements) {
 
@@ -279,6 +277,17 @@ public class SurroundModule extends Module {
             if (completion.getValue().equals(Completion.SURROUNDED)) {
                 toggle();
             }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onRotationUpdateEvent(RotationUpdateEvent event) {
+
+        // 1 less packet sent, idk if this helps but whatever
+        if (!replacements.isEmpty()) {
+
+            // prevent vanilla packets from sending
+            event.setCanceled(true);
         }
     }
 
