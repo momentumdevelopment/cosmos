@@ -241,145 +241,147 @@ public class ESPModule extends Module {
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
-        if (event.getType().equals(ElementType.HOTBAR)) {
-            if (mode.getValue().equals(Mode.SHADER)) {
-                GlStateManager.enableAlpha();
-                GlStateManager.pushMatrix();
-                GlStateManager.pushAttrib();
 
-                // delete our old framebuffer, we'll create a new one
-                if (framebuffer != null) {
-                    framebuffer.framebufferClear();
+        if (nullCheck()) {
 
-                    // resolution info
-                    ScaledResolution scaledResolution = new ScaledResolution(mc);
+            if (event.getType().equals(ElementType.HOTBAR)) {
+                if (mode.getValue().equals(Mode.SHADER)) {
+                    GlStateManager.enableAlpha();
+                    GlStateManager.pushMatrix();
+                    GlStateManager.pushAttrib();
 
-                    if (lastScaleFactor != scaledResolution.getScaleFactor()|| lastScaleWidth != scaledResolution.getScaledWidth() || lastScaleHeight != scaledResolution.getScaledHeight()) {
-                        framebuffer.deleteFramebuffer();
+                    // delete our old framebuffer, we'll create a new one
+                    if (framebuffer != null) {
+                        framebuffer.framebufferClear();
 
+                        // resolution info
+                        ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+                        if (lastScaleFactor != scaledResolution.getScaleFactor() || lastScaleWidth != scaledResolution.getScaledWidth() || lastScaleHeight != scaledResolution.getScaledHeight()) {
+                            framebuffer.deleteFramebuffer();
+
+                            // create a new framebuffer
+                            framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+                            framebuffer.framebufferClear();
+                        }
+
+                        // update scale info
+                        lastScaleFactor = scaledResolution.getScaleFactor();
+                        lastScaleWidth = scaledResolution.getScaledWidth();
+                        lastScaleHeight = scaledResolution.getScaledHeight();
+                    } else {
                         // create a new framebuffer
                         framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
-                        framebuffer.framebufferClear();
                     }
 
-                    // update scale info
-                    lastScaleFactor = scaledResolution.getScaleFactor();
-                    lastScaleWidth = scaledResolution.getScaledWidth();
-                    lastScaleHeight = scaledResolution.getScaledHeight();
+                    // bind our new framebuffer (i.e. set it as the current active buffer)
+                    framebuffer.bindFramebuffer(false);
+
+                    // prevent entity shadows from rendering
+                    boolean previousShadows = mc.gameSettings.entityShadows;
+                    mc.gameSettings.entityShadows = false;
+
+                    // https://hackforums.net/showthread.php?tid=4811280
+                    ((IEntityRenderer) mc.entityRenderer).setupCamera(event.getPartialTicks(), 0);
+
+                    // draw all entities
+                    mc.world.loadedEntityList.forEach(entity -> {
+                        if (entity != null && entity != mc.player && hasHighlight(entity)) {
+                            mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
+                        }
+                    });
+
+                    // draw all storages
+                    mc.world.loadedTileEntityList.forEach(tileEntity -> {
+                        if (tileEntity != null && hasStorageHighlight(tileEntity)) {
+
+                            // get our render offsets.
+                            double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
+                            double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
+                            double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
+
+                            // render
+                            TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
+                        }
+                    });
+
+                    // reset shadows
+                    mc.gameSettings.entityShadows = previousShadows;
+
+                    GlStateManager.enableBlend();
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                    // rebind the mc framebuffer
+                    framebuffer.unbindFramebuffer();
+                    mc.getFramebuffer().bindFramebuffer(true);
+
+                    // remove lighting
+                    mc.entityRenderer.disableLightmap();
+                    RenderHelper.disableStandardItemLighting();
+
+                    GlStateManager.pushMatrix();
+
+                    // draw the rainbow shader
+                    if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
+                        switch (shader.getValue()) {
+                            case DOTTED:
+                                dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE:
+                                rainbowOutlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE_FILL:
+                                fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                        }
+                    }
+
+                    // draw the shader
+                    else {
+                        switch (shader.getValue()) {
+                            case DOTTED:
+                                dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE:
+                                outlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE_FILL:
+                                fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                        }
+                    }
+
+                    // prepare overlay render
+                    mc.entityRenderer.setupOverlayRendering();
+
+                    ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+                    // draw the framebuffer
+                    glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
+                    glBegin(GL_QUADS);
+                    glTexCoord2d(0, 1);
+                    glVertex2d(0, 0);
+                    glTexCoord2d(0, 0);
+                    glVertex2d(0, scaledResolution.getScaledHeight());
+                    glTexCoord2d(1, 0);
+                    glVertex2d(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
+                    glTexCoord2d(1, 1);
+                    glVertex2d(scaledResolution.getScaledWidth(), 0);
+                    glEnd();
+
+                    // stop drawing our shader
+                    glUseProgram(0);
+                    glPopMatrix();
+
+                    // reset lighting
+                    mc.entityRenderer.enableLightmap();
+
+                    GlStateManager.popMatrix();
+                    GlStateManager.popAttrib();
+
+                    // Let the hotbar render over the shader
+                    mc.entityRenderer.setupOverlayRendering();
                 }
-
-                else {
-                    // create a new framebuffer
-                    framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
-                }
-
-                // bind our new framebuffer (i.e. set it as the current active buffer)
-                framebuffer.bindFramebuffer(false);
-
-                // prevent entity shadows from rendering
-                boolean previousShadows = mc.gameSettings.entityShadows;
-                mc.gameSettings.entityShadows = false;
-
-                // https://hackforums.net/showthread.php?tid=4811280
-                ((IEntityRenderer) mc.entityRenderer).setupCamera(event.getPartialTicks(), 0);
-
-                // draw all entities
-                mc.world.loadedEntityList.forEach(entity -> {
-                    if (entity != null && entity != mc.player && hasHighlight(entity)) {
-                        mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
-                    }
-                });
-
-                // draw all storages
-                mc.world.loadedTileEntityList.forEach(tileEntity -> {
-                    if (tileEntity != null && hasStorageHighlight(tileEntity)) {
-
-                        // get our render offsets.
-                        double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
-                        double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
-                        double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
-
-                        // render
-                        TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
-                    }
-                });
-
-                // reset shadows
-                mc.gameSettings.entityShadows = previousShadows;
-
-                GlStateManager.enableBlend();
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                // rebind the mc framebuffer
-                framebuffer.unbindFramebuffer();
-                mc.getFramebuffer().bindFramebuffer(true);
-
-                // remove lighting
-                mc.entityRenderer.disableLightmap();
-                RenderHelper.disableStandardItemLighting();
-
-                GlStateManager.pushMatrix();
-
-                // draw the rainbow shader
-                if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
-                    switch (shader.getValue()) {
-                        case DOTTED:
-                            dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                        case OUTLINE:
-                            rainbowOutlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                        case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                    }
-                }
-
-                // draw the shader
-                else {
-                    switch (shader.getValue()) {
-                        case DOTTED:
-                            dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                        case OUTLINE:
-                            outlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                        case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
-                            break;
-                    }
-                }
-
-                // prepare overlay render
-                mc.entityRenderer.setupOverlayRendering();
-
-                ScaledResolution scaledResolution = new ScaledResolution(mc);
-
-                // draw the framebuffer
-                glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
-                glBegin(GL_QUADS);
-                glTexCoord2d(0, 1);
-                glVertex2d(0, 0);
-                glTexCoord2d(0, 0);
-                glVertex2d(0, scaledResolution.getScaledHeight());
-                glTexCoord2d(1, 0);
-                glVertex2d(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
-                glTexCoord2d(1, 1);
-                glVertex2d(scaledResolution.getScaledWidth(), 0);
-                glEnd();
-
-                // stop drawing our shader
-                glUseProgram(0);
-                glPopMatrix();
-
-                // reset lighting
-                mc.entityRenderer.enableLightmap();
-
-                GlStateManager.popMatrix();
-                GlStateManager.popAttrib();
-
-                // Let the hotbar render over the shader
-                mc.entityRenderer.setupOverlayRendering();
             }
         }
     }

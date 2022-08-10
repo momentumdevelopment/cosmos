@@ -4,9 +4,9 @@ import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
-import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityLlama;
@@ -51,73 +51,6 @@ public class StepModule extends Module {
     // step timer
     private final Timer stepTimer = new Timer();
 
-    // **************************** offsets****************************
-
-    // confirm step height (helps bypass on NCP Updated)
-    // enchantment tables, 0.75 block offset
-    private static final double[] ENCHANTMENT_TABLE = {
-            0.42,
-            0.753,
-            0.75
-    };
-
-    // end portal frames, 0.8125 block offset
-    private static final double[] END_PORTAL_FRAMES = {
-            0.39,
-            0.7,
-            0.8125
-    };
-
-    // chests, 0.875 block offset
-    private static final double[] CHESTS = {
-            0.39,
-            0.7,
-            0.875
-    };
-
-    // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
-    private static final double[] ONE = {
-            0.42,
-            0.753,
-            1
-    };
-
-    // 1.5 block offset
-    private static final double[] ONE_HALF = {
-            0.42,
-            0.75,
-            1.0,
-            1.16,
-            1.23,
-            1.2
-    };
-
-    // 2 block offset
-    private static final double[] TWO = {
-            0.42,
-            0.78,
-            0.63,
-            0.51,
-            0.9,
-            1.21,
-            1.45,
-            1.43
-    };
-
-    // 2.5 block offset
-    private static final double[] TWO_HALF = {
-            0.425,
-            0.821,
-            0.699,
-            0.599,
-            1.022,
-            1.372,
-            1.652,
-            1.869,
-            2.019,
-            1.907
-    };
-
     @Override
     public void onDisable() {
         super.onDisable();
@@ -129,7 +62,7 @@ public class StepModule extends Module {
             if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
                 entityRiding.stepHeight = 1;
             }
-            
+
             else {
                 entityRiding.stepHeight = 0.5F;
             }
@@ -137,10 +70,10 @@ public class StepModule extends Module {
     }
 
     @Override
-    public void onTick() {
+    public void onUpdate() {
 
         // reset our timer if needed
-        if (timer) {
+        if (timer && mc.player.onGround) {
             getCosmos().getTickManager().setClientTicks(1);
             timer = false;
         }
@@ -173,151 +106,127 @@ public class StepModule extends Module {
         // step with packets
         if (mode.getValue().equals(Mode.NORMAL)) {
 
-
             // current step height
             double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
 
             // do not step if we're on the ground or the step height is greater than our max
-            if (stepHeight <= 0.5 || stepHeight > height.getValue()) {
+            if (stepHeight <= 0 || stepHeight > height.getValue()) {
                 return;
             }
 
-            // 0.75, enchantment tables and anvils
-            if (stepHeight == 0.75) {
+            // calculate the packet offsets
+            double[] offsets = getOffset(stepHeight);
+
+            // valid step height?
+            if (offsets != null && offsets.length > 1) {
 
                 // uses timer to slow down packet speeds so we don't flag for packet spam
                 if (useTimer.getValue()) {
 
                     // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.2F);
+                    getCosmos().getTickManager().setClientTicks(1F / offsets.length);
 
                     // only slow down timer for one tick
                     timer = true;
                 }
 
                 // send our NCP offsets
-                for (double offset : ENCHANTMENT_TABLE) {
+                for (double offset : offsets) {
                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
                 }
             }
 
-            // 0.8125, end portal frames
-            else if (stepHeight == 0.8125) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.2F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : END_PORTAL_FRAMES) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // 0.875, chests
-            else if (stepHeight == 0.875) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.2F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : CHESTS) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // 1 block offset
-            else if (stepHeight == 1) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.25F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : ONE) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // 1.5 block offset
-            else if (stepHeight == 1.5) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.125F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : ONE_HALF) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // 2 block offset
-            else if (stepHeight == 2) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.1F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : TWO) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // 2.5 block offset
-            else if (stepHeight == 2.5) {
-
-                // uses timer to slow down packet speeds so we don't flag for packet spam
-                if (useTimer.getValue()) {
-
-                    // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(0.085F);
-
-                    // only slow down timer for one tick
-                    timer = true;
-                }
-
-                // send our NCP offsets
-                for (double offset : TWO_HALF) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
-                }
-            }
-
-            // restart timer
             stepTimer.resetTime();
         }
+    }
+
+    /**
+     * Gets the NCP packet offsets for a given step height
+     * @param height The step height
+     * @return The NCP packet offsets for the given step height
+     */
+    public double[] getOffset(double height) {
+
+        // confirm step height (helps bypass on NCP Updated)
+        // enchantment tables, 0.75 block offset
+        if (height == 0.75) {
+            return new double[] {
+                    0.42,
+                    0.753,
+                    0.75
+            };
+        }
+
+        // end portal frames, 0.8125 block offset
+        else if (height == 0.8125) {
+            return new double[] {
+                    0.39,
+                    0.7,
+                    0.8125
+            };
+        }
+
+        // chests, 0.875 block offset
+        else if (height == 0.875) {
+            return new double[] {
+                    0.39,
+                    0.7,
+                    0.875
+            };
+        }
+
+        // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
+        else if (height == 1) {
+            return new double[] {
+                    0.42,
+                    0.753,
+                    1
+            };
+        }
+
+        // 1.5 block offset
+        else if (height == 1.5) {
+            return new double[] {
+                    0.42,
+                    0.75,
+                    1.0,
+                    1.16,
+                    1.23,
+                    1.2
+            };
+        }
+
+        // 2 block offset
+        else if (height == 2) {
+            return new double[] {
+                    0.42,
+                    0.78,
+                    0.63,
+                    0.51,
+                    0.9,
+                    1.21,
+                    1.45,
+                    1.43
+            };
+        }
+
+        // 2.5 block offset
+        else if (height == 2.5) {
+            return new double[] {
+                    0.425,
+                    0.821,
+                    0.699,
+                    0.599,
+                    1.022,
+                    1.372,
+                    1.652,
+                    1.869,
+                    2.019,
+                    1.907
+            };
+        }
+
+        return null;
     }
 
     public enum Mode {

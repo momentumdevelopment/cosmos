@@ -194,7 +194,7 @@ public class HUDModule extends Module {
                                     .append(Potion.getPotionDurationString(potionEffect, 1F));
 
                             // draw string
-                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - 10 - bottomRight : 2 + bottomRight, potionEffect.getPotion().getLiquidColor());
+                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, potionEffect.getPotion().getLiquidColor());
 
                             // offset
                             bottomRight += FontUtil.getFontHeight() + 1;
