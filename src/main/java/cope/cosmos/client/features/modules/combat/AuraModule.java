@@ -93,10 +93,10 @@ public class AuraModule extends Module {
     public static Setting<TPS> tps = new Setting<>("TPS", TPS.NONE)
             .setDescription("Server TPS factor");
 
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 6.0, 6.0, 1)
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 6.0, 1)
             .setDescription("Range to attack entities");
 
-    public static Setting<Double> wallsRange = new Setting<>("WallsRange", 0.0, 6.0, 7.0, 1)
+    public static Setting<Double> wallsRange = new Setting<>("WallsRange", 0.0, 3.5, 6.0, 1)
             .setDescription("Range to attack entities through walls")
             .setVisible(() -> !raytrace.getValue().equals(Raytrace.NONE));
 
@@ -214,11 +214,11 @@ public class AuraModule extends Module {
                 // check if we have passed the place time
                 if (delayed) {
 
+                    // face the target
+                    angleVector = attackTarget.getPositionVector();
+
                     // attack the target
                     if (attackTarget(attackTarget)) {
-
-                        // face the target
-                        angleVector = attackTarget.getPositionVector();
 
                         // clear
                         attackTimer.resetTime();
@@ -475,6 +475,15 @@ public class AuraModule extends Module {
             return false;
         }
 
+        // wait for rotations
+        if (!rotate.getValue().equals(Rotate.NONE) && yawStep.getValue()) {
+
+            // check if we are facing the position
+            if (!isFacing(angleVector)) {
+                return false;
+            }
+        }
+
         // pause switch to account for actions
         if (PlayerUtil.isEating() || PlayerUtil.isMending() || PlayerUtil.isMining()) {
             autoSwitchTimer.resetTime();
@@ -585,6 +594,26 @@ public class AuraModule extends Module {
 
         // check if player is holding weapon
         return InventoryUtil.isHolding(weaponItem);
+    }
+
+    /**
+     * Checks if the player is facing a certain vector
+     * @return Whether the player is facing a certain vector
+     */
+    public boolean isFacing(Vec3d in) {
+
+        // yaw and pitch that we've sent to the server
+        Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+
+        // target rotation
+        Rotation facingRotation = AngleUtil.calculateAngles(in);
+
+        // rotation diffs
+        float yaw = Math.abs(serverRotation.getYaw() - facingRotation.getYaw());
+        float pitch = Math.abs(serverRotation.getPitch() - facingRotation.getPitch());
+
+        // both yaw and pitch must be nearly equal to facing rotation
+        return yaw <= 0.1 & pitch <= 0.1;
     }
 
     public enum Raytrace {

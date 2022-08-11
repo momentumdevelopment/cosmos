@@ -42,12 +42,12 @@ public class ModuleManager extends Manager {
 				new AuraModule(),
 				new AutoArmorModule(),
 				new AutoCrystalModule(),
-				// new AutoTrap(),
+				new AutoTotemModule(),
+				// new AutoTrapModule(),
 				new BurrowModule(),
 				new CriticalsModule(),
 				new FastProjectileModule(),
 				new HoleFillModule(),
-				new OffhandModule(),
 				new SurroundModule(),
 
 				// misc
@@ -74,7 +74,7 @@ public class ModuleManager extends Manager {
 				new LongJumpModule(),
 				new NoSlowModule(),
 				new PacketFlightModule(),
-				// new Scaffold(),
+				// new ScaffoldModule(),
 				new SpeedModule(),
 				new SprintModule(),
 				new StepModule(),
@@ -97,7 +97,7 @@ public class ModuleManager extends Manager {
 
 				// visual
 				new BlockHighlightModule(),
-				new BreadcrumbsModule(), // TODO: I need to fix this
+				new BreadcrumbsModule(),
 				new BreakHighlightModule(),
 				new CameraClipModule(),
 				new ChamsModule(),

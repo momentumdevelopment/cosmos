@@ -30,7 +30,7 @@ public class ExplosionUtil implements Wrapper {
      * @return the explosion damage to an end crystal to the target player
      */
     public static float getDamageFromExplosion(Entity entity, Vec3d vector, boolean blockDestruction) {
-        return calculateExplosionDamage(entity, vector, 6, blockDestruction);
+        return calculateExplosionDamage(entity, vector, 6, blockDestruction) / 2F;
     }
 
     /**

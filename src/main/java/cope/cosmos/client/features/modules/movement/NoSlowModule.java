@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.block.SlimeEvent;
 import cope.cosmos.client.events.block.SoulSandEvent;
 import cope.cosmos.client.events.entity.player.interact.EntityUseItemEvent;
@@ -17,10 +18,11 @@ import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.client.CPacketClickWindow;
+import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketEntityAction.Action;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -230,23 +232,14 @@ public class NoSlowModule extends Module {
             if (strict.getValue()) {
 
                 // with NCP-Updated, we cannot use items while in inventories, so...
-                if (mc.player.isHandActive()) {
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
+                if (mc.player.isSneaking() || ((IEntityPlayerSP) (mc.player)).getServerSneakState()) {
+                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, Action.STOP_SNEAKING)); // rofl nice patch ncp devs
                 }
 
                 // we also cannot be sprinting, because that'll also flag NCP-Updated
-                if (mc.player.isSprinting()) {
-                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, Action.STOP_SPRINTING)); // rofl nice patch ncp devs
+                if (mc.player.isSprinting() || ((IEntityPlayerSP) (mc.player)).getServerSprintState()) {
+                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, Action.STOP_SPRINTING));
                 }
-            }
-        }
-
-        // packet for opening inventory
-        if (event.getPacket() instanceof CPacketEntityAction && ((CPacketEntityAction) event.getPacket()).getAction().equals(Action.OPEN_INVENTORY)) {
-
-            // Updated NCP bypass for inventory move
-            if (strict.getValue()) {
-                event.setCanceled(true);
             }
         }
     }
