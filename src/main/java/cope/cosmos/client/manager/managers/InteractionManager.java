@@ -1,6 +1,7 @@
 package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
@@ -14,6 +15,7 @@ import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -138,7 +140,7 @@ public class InteractionManager extends Manager {
                         mc.player.connection.sendPacket(new CPacketPlayer.Rotation(blockAngles.getYaw(), blockAngles.getPitch(), mc.player.onGround));
 
                         // submit to rotation manager
-                        // getCosmos().getRotationManager().setRotation(blockAngles);
+                        getCosmos().getRotationManager().setRotation(blockAngles);
 
                         // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
                         // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
@@ -223,7 +225,7 @@ public class InteractionManager extends Manager {
             // stop sprinting before preforming actions
             boolean sprint = mc.player.isSprinting();
             if (sprint) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                // mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
                 // mc.player.setSprinting(false);
             }
 
@@ -264,14 +266,25 @@ public class InteractionManager extends Manager {
                 }
             }
 
+            // ip
+            String ip = mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP : "";
+
             // right click direction offset block
-            // EnumActionResult placeResult = mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+            if (ip.equalsIgnoreCase("2b2t.org")) {
+                mc.playerController.processRightClickBlock(mc.player, mc.world, directionOffset, direction.getOpposite(), interactVector, EnumHand.MAIN_HAND);
+            }
 
-            float facingX = (float) (interactVector.x - directionOffset.getZ());
-            float facingY = (float) (interactVector.y - directionOffset.getY());
-            float facingZ = (float) (interactVector.z - directionOffset.getZ());
+            else {
+                float facingX = (float) (interactVector.x - directionOffset.getZ());
+                float facingY = (float) (interactVector.y - directionOffset.getY());
+                float facingZ = (float) (interactVector.z - directionOffset.getZ());
 
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
+                // sync item
+                // ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+
+                // place
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
+            }
 
             // reset sneak
             if (sneak) {
