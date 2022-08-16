@@ -5,6 +5,10 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import net.minecraft.network.play.client.CPacketCloseWindow;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
