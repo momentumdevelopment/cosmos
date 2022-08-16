@@ -64,25 +64,32 @@ public class BlockUtil implements Wrapper {
      * @return The {@link Resistance} resistance of the given position
      */
     public static Resistance getResistance(BlockPos position) {
+
         // the block at the given position
         Block block = mc.world.getBlockState(position).getBlock();
 
-        // find resistance
-        if (resistantBlocks.contains(block)) {
-            return Resistance.RESISTANT;
+        // idk why this would be null but it throws errors
+        if (block != null) {
+
+            // find resistance
+            if (resistantBlocks.contains(block)) {
+                return Resistance.RESISTANT;
+            }
+
+            else if (unbreakableBlocks.contains(block)) {
+                return Resistance.UNBREAKABLE;
+            }
+
+            else if (block.getDefaultState().getMaterial().isReplaceable()) {
+                return Resistance.REPLACEABLE;
+            }
+
+            else {
+                return Resistance.BREAKABLE;
+            }
         }
 
-        else if (unbreakableBlocks.contains(block)) {
-            return Resistance.UNBREAKABLE;
-        }
-
-        else if (block.getDefaultState().getMaterial().isReplaceable()) {
-            return Resistance.REPLACEABLE;
-        }
-
-        else {
-            return Resistance.BREAKABLE;
-        }
+        return Resistance.NONE;
     }
 
     /**
@@ -160,6 +167,11 @@ public class BlockUtil implements Wrapper {
         /**
          * Blocks that are unbreakable with tools in survival mode
          */
-        UNBREAKABLE
+        UNBREAKABLE,
+
+        /**
+         * Null equivalent
+         */
+        NONE
     }
 }

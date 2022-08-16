@@ -31,50 +31,44 @@ public class NewChunksModule extends Module {
     // **************************** render settings ****************************
 
     public static Setting<Box> render = new Setting<>("Render", Box.OUTLINE)
-            .setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE);
+            .setDescription("Style for the visual").setExclusion(Box.GLOW, Box.REVERSE, Box.NONE);
 
     public static Setting<Double> height = new Setting<>("Height", 0.0, 0.0, 3.0, 0)
             .setDescription("The height to render the new chunk at");
 
-    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.5, 3.0, 1)
+    public static Setting<Double> width = new Setting<>("Width", 0.0, 1.0, 3.0, 1)
             .setDescription("Line width of the render")
             .setVisible(() -> render.getValue().equals(Box.BOTH) || render.getValue().equals(Box.OUTLINE) || render.getValue().equals(Box.CLAW));
 
-    // public static Setting<Boolean> updated = new Setting<>("Updated", false).setDescription("Allows new chunks to work on 1.12+ servers");
+    // public static Setting<Boolean> updated = new Setting<>("Updated", false)
+    //      .setDescription("Allows new chunks to work on 1.12+ servers");
 
     // new chunks
     private final Set<Vec2f> chunks = new ConcurrentSet<>();
 
     @Override
-    public void onDisable() {
-        super.onDisable();
-
-        // reset our chunks
-        chunks.clear();
-    }
-
-    @Override
     public void onRender3D() {
+
         // render the new chunks
         chunks.forEach((chunk) -> {
 
             // make sure the chunk is within render distance
-            if (getDistance(chunk) <= mc.gameSettings.renderDistanceChunks) {
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16, height.getValue(), chunk.y + 16))
-                        .box(render.getValue())
-                        .width(width.getValue())
-                        .color(ColorUtil.getPrimaryColor())
-                        .blend()
-                        .depth(true)
-                        .texture()
-                );
-            }
+            RenderUtil.drawBox(new RenderBuilder()
+                    .position(new AxisAlignedBB(chunk.x, 0, chunk.y, chunk.x + 16, height.getValue(), chunk.y + 16))
+                    .color(ColorUtil.getPrimaryAlphaColor(50))
+                    .box(render.getValue())
+                    .setup()
+                    .line(width.getValue().floatValue())
+                    .depth(true)
+                    .blend()
+                    .texture()
+            );
         });
     }
 
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+
         // packet for chunk data
         if (event.getPacket() instanceof SPacketChunkData) {
 
@@ -117,18 +111,4 @@ public class NewChunksModule extends Module {
 //                }
 //            }
         }
-
-    /**
-     * Gets the player's distance to a chunk
-     * @param chunk The chunk to get the distance to
-     * @return The player's distance to the chunk
-     */
-    public double getDistance(Vec2f chunk) {
-        // x and z distance to the chunk
-        double xDistance = Math.abs(mc.player.posX - chunk.x);
-        double zDistance = Math.abs(mc.player.posZ - chunk.y);
-
-        // pythag divided by 16 (size of one chunk)
-        return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(zDistance, 2)) / 16;
-    }
 }
