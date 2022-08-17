@@ -26,7 +26,7 @@ public abstract class MixinEntity implements Wrapper {
 
     // Credit: auto - we were working on this yesterday and he gave me this injection
     @Inject(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/profiler/Profiler;endSection()V", shift = Shift.BEFORE, ordinal = 0))
-    public void stepEvent(MoverType type, double x, double y, double z, CallbackInfo info) {
+    public void onMove(MoverType type, double x, double y, double z, CallbackInfo info) {
         if (((Entity) (Object) this).equals(mc.player)) {
             StepEvent event = new StepEvent(getEntityBoundingBox(), stepHeight);
             Cosmos.EVENT_BUS.post(event);
@@ -38,7 +38,7 @@ public abstract class MixinEntity implements Wrapper {
     }
 
     @Inject(method = "getCollisionBorderSize", at = @At("HEAD"), cancellable = true)
-    public void getCollisionBorderSize(CallbackInfoReturnable<Float> info) {
+    public void onGetCollisionBorderSize(CallbackInfoReturnable<Float> info) {
         EntityHitboxSizeEvent entityHitboxSizeEvent = new EntityHitboxSizeEvent();
         Cosmos.EVENT_BUS.post(entityHitboxSizeEvent);
 
