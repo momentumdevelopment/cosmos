@@ -74,6 +74,8 @@ public class NewChunksModule extends Module {
 
             // add it to our set if it's not been newly generated
             if (!((SPacketChunkData) event.getPacket()).isFullChunk()) {
+
+                // scale chunk coords
                 chunks.add(new Vec2f(((SPacketChunkData) event.getPacket()).getChunkX() * 16, ((SPacketChunkData) event.getPacket()).getChunkZ() * 16));
             }
         }

@@ -1,8 +1,8 @@
 package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
-import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.client.ExceptionThrownEvent;
+import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.network.DecodeEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.CrystalUpdateEvent;
@@ -18,6 +18,7 @@ import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
+import net.minecraft.network.play.server.SPacketChat;
 import net.minecraft.network.play.server.SPacketParticles;
 import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.util.math.BlockPos;
@@ -48,6 +49,9 @@ public class AntiCrashModule extends Module {
     public static Setting<Boolean> bookBan = new Setting<>("BookBan", false)
             .setDescription("Prevents you from getting kicked for packet size limit");
 
+    public static Setting<Boolean> unicode = new Setting<>("UnicodeCharacters", false)
+            .setDescription("Prevents unicode characters in chat from lagging you");
+
     public static Setting<Boolean> offhand = new Setting<>("Offhand", false)
             .setDescription("Prevents you from getting crashed from item equip sounds");
 
@@ -71,6 +75,9 @@ public class AntiCrashModule extends Module {
 
     // sign info
     private final List<BlockPos> placedSigns = new ArrayList<>();
+
+    // array of unicode characters
+    private final static String[] UNICODE = "ā ȁ ́ Ё ԁ ܁ ࠁ ँ ਁ ଁ ก ༁ ခ ᄁ ሁ ጁ ᐁ ᔁ ᘁ ᜁ ᠁ ᤁ ᨁ ᬁ ᰁ ᴁ ḁ ἁ ℁ ∁ ⌁ ␁ ━ ✁ ⠁ ⤁ ⨁ ⬁ Ⰱ ⴁ ⸁ ⼁ 、 \u3101 ㈁ ㌁ 㐁 㔁 㘁 㜁 㠁 㤁 㨁 㬁 㰁 㴁 㸁 㼁 䀁 䄁 䈁 䌁 䐁 䔁 䘁 䜁 䠁 䤁 䨁 䬁 䰁 䴁 丁 企 倁 儁 刁 匁 吁 唁 嘁 圁 堁 夁 威 嬁 封 崁 币 弁 态 愁 戁 持 搁 攁 昁 朁 栁 椁 樁 欁 氁 洁 渁 漁 瀁 焁 爁 猁 琁 甁 瘁 省 码 礁 稁 笁 簁 紁 縁 缁 老 脁 舁 茁 萁 蔁 蘁 蜁 蠁 褁 訁 謁 谁 贁 踁 輁 送 鄁 鈁 錁 鐁 锁 阁 霁 頁 餁 騁 鬁 鰁 鴁 鸁 鼁 ꀁ ꄁ ꈁ ꌁ ꐁ ꔁ ꘁ ꜁ ꠁ ꤁ ꨁ ꬁ 각 괁 긁 꼁 뀁 넁 눁 댁 됁 딁 똁 뜁 렁 뤁 먁 묁 밁 봁".split(" ");
 
     @Override
     public void onUpdate() {
@@ -156,6 +163,33 @@ public class AntiCrashModule extends Module {
                 // cancels particles from rendering
                 if (((SPacketParticles) event.getPacket()).getParticleCount() > 200) {
                     event.setCanceled(true);
+                }
+            }
+        }
+
+        // packet for server chat messages
+        if (event.getPacket() instanceof SPacketChat) {
+
+            // message in the chat
+            String chatMessage = ((SPacketChat) event.getPacket()).getChatComponent().getUnformattedText();
+
+            // make sure it's a system message
+            if (unicode.getValue()) {
+
+                // check each letter in the chat message
+                for (int i = 0; i < chatMessage.length(); i++) {
+
+                    // character
+                    char character = chatMessage.charAt(i);
+
+                    // check unicode list
+                    for (String unicode : UNICODE) {
+
+                        // check if its included in the unicode list
+                        if (unicode.equalsIgnoreCase(String.valueOf(character))) {
+                            event.setCanceled(true);
+                        }
+                    }
                 }
             }
         }

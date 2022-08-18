@@ -210,30 +210,29 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
 
-        if (!nullCheck()) {
-            return;
-        }
+        if (nullCheck()) {
 
-        // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
-        if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
-            return;
-        }
-
-        // if we are sending a player packet
-        if (event.getPacket() instanceof CPacketPlayer) {
-
-            // we only want to send movement packets
-            if (!(event.getPacket() instanceof Position)) {
-                event.setCanceled(true);
+            // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
+            if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
                 return;
             }
 
-            // our position packet
-            Position packet = (Position) event.getPacket();
+            // if we are sending a player packet
+            if (event.getPacket() instanceof CPacketPlayer) {
 
-            // remove our packet and check if it didn't contain in our whitelist
-            if (!packetWhitelist.remove(packet)) {
-                event.setCanceled(true);
+                // we only want to send movement packets
+                if (!(event.getPacket() instanceof Position)) {
+                    event.setCanceled(true);
+                    return;
+                }
+
+                // our position packet
+                Position packet = (Position) event.getPacket();
+
+                // remove our packet and check if it didn't contain in our whitelist
+                if (!packetWhitelist.remove(packet)) {
+                    event.setCanceled(true);
+                }
             }
         }
     }
@@ -241,66 +240,65 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-        if (!nullCheck()) {
-            return;
-        }
+        if (nullCheck()) {
 
-        // if the client is not done loading the surrounding terrain, DO NOT CANCEL SERVER PACKETS!!!!
-        if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
-            return;
-        }
-
-        // if we received a flag packet from NCP
-        if (event.getPacket() instanceof SPacketPlayerPosLook) {
-
-            // our teleport packet
-            SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
-
-            // the flag packet's teleport id
-            int id = packet.getTeleportId();
-
-            if (mode.getValue().equals(Mode.FACTOR)) {
-
-                // if we have "predicted" this lagback
-                if (predictions.containsKey(id)) {
-
-                    // the cached teleport position
-                    Vec3d vec = predictions.getOrDefault(id, null);
-
-                    // remove this teleport from the map
-                    predictions.remove(id);
-
-                    // if the teleport position is null, we can disgard this
-                    if (vec == null) {
-                        return;
-                    }
-
-                    // the teleport packet position has to be the EXACT same as the one we have cached
-                    if (vec.x == packet.getX() && vec.y == packet.getY() && vec.z == packet.getZ()) {
-
-                        // we found a match!
-                        event.setCanceled(true);
-
-                        // confirm that we got this teleport
-                        mc.player.connection.sendPacket(new CPacketConfirmTeleport(id));
-
-                        return;
-                    }
-                }
-
-                // if we're still here after that return statement, unfortunately we did not predict on time. we should now slow down
-                flagged = true;
-
-                // slow down for 20 ticks
-                flagTicks = 20;
+            // if the client is not done loading the surrounding terrain, DO NOT CANCEL SERVER PACKETS!!!!
+            if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
+                return;
             }
 
-            // edit the packet client-sided to prevent the flag packet from rotating us to the server-side rotation
-            ((ISPacketPlayerPosLook) packet).setYaw(mc.player.rotationYaw);
-            ((ISPacketPlayerPosLook) packet).setPitch(mc.player.rotationPitch);
+            // if we received a flag packet from NCP
+            if (event.getPacket() instanceof SPacketPlayerPosLook) {
 
-            // cache our teleport id
-            tpId = id;
+                // our teleport packet
+                SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
+
+                // the flag packet's teleport id
+                int id = packet.getTeleportId();
+
+                if (mode.getValue().equals(Mode.FACTOR)) {
+
+                    // if we have "predicted" this lagback
+                    if (predictions.containsKey(id)) {
+
+                        // the cached teleport position
+                        Vec3d vec = predictions.getOrDefault(id, null);
+
+                        // remove this teleport from the map
+                        predictions.remove(id);
+
+                        // if the teleport position is null, we can disgard this
+                        if (vec == null) {
+                            return;
+                        }
+
+                        // the teleport packet position has to be the EXACT same as the one we have cached
+                        if (vec.x == packet.getX() && vec.y == packet.getY() && vec.z == packet.getZ()) {
+
+                            // we found a match!
+                            event.setCanceled(true);
+
+                            // confirm that we got this teleport
+                            mc.player.connection.sendPacket(new CPacketConfirmTeleport(id));
+
+                            return;
+                        }
+                    }
+
+                    // if we're still here after that return statement, unfortunately we did not predict on time. we should now slow down
+                    flagged = true;
+
+                    // slow down for 20 ticks
+                    flagTicks = 20;
+                }
+
+                // edit the packet client-sided to prevent the flag packet from rotating us to the server-side rotation
+                ((ISPacketPlayerPosLook) packet).setYaw(mc.player.rotationYaw);
+                ((ISPacketPlayerPosLook) packet).setPitch(mc.player.rotationPitch);
+
+                // cache our teleport id
+                tpId = id;
+            }
         }
     }
 

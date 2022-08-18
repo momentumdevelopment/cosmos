@@ -1,10 +1,14 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.entity.LivingUpdateEvent;
+import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.player.PlayerUtil;
+import net.minecraft.init.MobEffects;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -30,6 +34,9 @@ public class SprintModule extends Module {
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
             .setDescription("Stops sprinting when sneaking and using items");
 
+    // speed to move at
+    double moveSpeed;
+
     @Override
     public void onUpdate() {
 
@@ -50,6 +57,7 @@ public class SprintModule extends Module {
         if (MotionUtil.isMoving()) {
             switch (mode.getValue()) {
                 case DIRECTIONAL:
+                case INSTANT:
                     mc.player.setSprinting(true);
                     break;
                 case NORMAL:
@@ -59,9 +67,105 @@ public class SprintModule extends Module {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @SubscribeEvent
+    public void onMotion(MotionEvent event) {
+
+        // instant sprint
+        if (mode.getValue().equals(Mode.INSTANT)) {
+
+            // make sure the player is not in a liquid
+            if (PlayerUtil.isInLiquid()) {
+                return;
+            }
+
+            // make sure the player is not in a web
+            if (((IEntity) mc.player).getInWeb()) {
+                return;
+            }
+
+            // make sure the player can have speed applied
+            if (mc.player.isOnLadder() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.fallDistance > 2) {
+                return;
+            }
+
+            // incompatibilities
+            if (FlightModule.INSTANCE.isEnabled() || PacketFlightModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled() || SpeedModule.INSTANCE.isEnabled()) {
+                return;
+            }
+
+            // cancel vanilla movement, we'll send our own movements
+            event.setCanceled(true);
+
+            // base move speed
+            double baseSpeed = 0.2873;
+
+            // scale move speed if Speed or Slowness potion effect is active
+            if (mc.player.isPotionActive(MobEffects.SPEED)) {
+                double amplifier = mc.player.getActivePotionEffect(MobEffects.SPEED).getAmplifier();
+                baseSpeed *= 1 + (0.2 * (amplifier + 1));
+            }
+
+            if (mc.player.isPotionActive(MobEffects.SLOWNESS)) {
+                double amplifier = mc.player.getActivePotionEffect(MobEffects.SLOWNESS).getAmplifier();
+                baseSpeed /= 1 + (0.2 * (amplifier + 1));
+            }
+
+            // instant max speed
+            if (mc.player.isSprinting()) {
+                moveSpeed = baseSpeed;
+            }
+
+            else {
+                moveSpeed = 0.2;
+            }
+
+            // the current movement input values of the user
+            float forward = mc.player.movementInput.moveForward;
+            float strafe = mc.player.movementInput.moveStrafe;
+            float yaw = mc.player.prevRotationYaw + (mc.player.rotationYaw - mc.player.prevRotationYaw) * mc.getRenderPartialTicks();
+
+            // if we're not inputting any movements, then we shouldn't be adding any motion
+            if (!MotionUtil.isMoving()) {
+                event.setX(0);
+                event.setZ(0);
+            }
+
+            else if (forward != 0) {
+                if (strafe >= 1) {
+                    yaw += (forward > 0 ? -45 : 45);
+                    strafe = 0;
+                }
+
+                else if (strafe <= -1) {
+                    yaw += (forward > 0 ? 45 : -45);
+                    strafe = 0;
+                }
+
+                if (forward > 0) {
+                    forward = 1;
+                }
+
+                else if (forward < 0) {
+                    forward = -1;
+                }
+            }
+
+            // our facing values, according to movement not rotations
+            double cos = Math.cos(Math.toRadians(yaw));
+            double sin = -Math.sin(Math.toRadians(yaw));
+
+            // update the movements
+            event.setX((forward * moveSpeed * sin) + (strafe * moveSpeed * cos));
+            event.setZ((forward * moveSpeed * cos) - (strafe * moveSpeed * sin));
+        }
+    }
+
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
-        if (MotionUtil.isMoving() && mode.getValue().equals(Mode.DIRECTIONAL)) {
+
+        // rage sprint
+        if (MotionUtil.isMoving() && (mode.getValue().equals(Mode.DIRECTIONAL) || mode.getValue().equals(Mode.INSTANT))) {
 
             // verify if the player's food level allows sprinting
             if (mc.player.getFoodStats().getFoodLevel() <= 6 && safe.getValue()) {
@@ -79,6 +183,11 @@ public class SprintModule extends Module {
     }
 
     public enum Mode {
+
+        /**
+         * Applies StrafeGround {@link SpeedModule.Mode}
+         */
+        INSTANT,
 
         /**
          * Allows you to sprint in all directions

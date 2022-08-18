@@ -524,6 +524,7 @@ public class NametagsModule extends Module {
      * @return A map of all the player info of all entities in the world
      */
     public Map<EntityPlayer, String> searchPlayerInfo() {
+
         // map of all the player's info
         Map<EntityPlayer, String> searchedInfoMap = new ConcurrentHashMap<>();
 
@@ -571,6 +572,7 @@ public class NametagsModule extends Module {
                     // add the player's ping
                     if (ping.getValue() && mc.getConnection() != null) {
 
+                        // IDK WHY THIS WOULD BE NULL BUT IT IS
                         if (mc.getConnection().getPlayerInfo(player.getUniqueID()) != null) {
 
                             // player -> server response time
@@ -585,6 +587,7 @@ public class NametagsModule extends Module {
                             }
 
                             else {
+
                                 // decent ping
                                 if (responseTime >= 70 && responseTime < 120) {
                                     color = TextFormatting.YELLOW;
@@ -625,8 +628,12 @@ public class NametagsModule extends Module {
                         }
 
                         // danger health
-                        else if (health <= 8) {
+                        else if (health <= 8 && health > 4) {
                             color = TextFormatting.RED;
+                        }
+
+                        else if (health <= 4) {
+                            color = TextFormatting.DARK_RED;
                         }
 
                         playerInfo.append(color).append(health).append(" ");
@@ -639,21 +646,26 @@ public class NametagsModule extends Module {
                         int pops = getCosmos().getPopManager().getTotemPops(player);
 
                         if (pops > 0) {
+
                             // no pops
                             TextFormatting color = TextFormatting.GREEN;
 
+                            if (pops > 2) {
+                                color = TextFormatting.DARK_GREEN;
+                            }
+
                             // 4+ pops
-                            if (pops <= 4) {
+                            if (pops > 4) {
                                 color = TextFormatting.YELLOW;
                             }
 
                             // 6+ pops
-                            if (pops <= 7) {
+                            if (pops > 6) {
                                 color = TextFormatting.GOLD;
                             }
 
                             // 8+ pops ...
-                            if (pops > 7) {
+                            if (pops > 8) {
                                 color = TextFormatting.RED;
                             }
 
