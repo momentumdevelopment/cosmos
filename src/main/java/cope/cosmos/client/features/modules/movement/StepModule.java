@@ -39,6 +39,10 @@ public class StepModule extends Module {
             .setDescription("Uses timer to slow down packets")
             .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
 
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Confirms step height")
+            .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
+
     public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false)
             .setDescription("Allows you to step up blocks while riding entities");
 
@@ -150,38 +154,78 @@ public class StepModule extends Module {
         // confirm step height (helps bypass on NCP Updated)
         // enchantment tables, 0.75 block offset
         if (height == 0.75) {
-            return new double[] {
-                    0.42,
-                    0.753,
-                    0.75
-            };
+
+            if (strict.getValue()) {
+                return new double[] {
+                        0.42,
+                        0.753,
+                        0.75
+                };
+            }
+
+            else {
+                return new double[] {
+                        0.42,
+                        0.753
+                };
+            }
         }
 
         // end portal frames, 0.8125 block offset
         else if (height == 0.8125) {
-            return new double[] {
-                    0.39,
-                    0.7,
-                    0.8125
-            };
+
+            if (strict.getValue()) {
+                return new double[] {
+                        0.39,
+                        0.7,
+                        0.8125
+                };
+            }
+
+            else {
+                return new double[] {
+                        0.39,
+                        0.7
+                };
+            }
         }
 
         // chests, 0.875 block offset
         else if (height == 0.875) {
-            return new double[] {
-                    0.39,
-                    0.7,
-                    0.875
-            };
+
+            if (strict.getValue()) {
+                return new double[]{
+                        0.39,
+                        0.7,
+                        0.875
+                };
+            }
+
+            else {
+                return new double[]{
+                        0.39,
+                        0.7
+                };
+            }
         }
 
         // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
         else if (height == 1) {
-            return new double[] {
-                    0.42,
-                    0.753,
-                    1
-            };
+
+            if (strict.getValue()) {
+                return new double[]{
+                        0.42,
+                        0.753,
+                        1
+                };
+            }
+
+            else {
+                return new double[]{
+                        0.42,
+                        0.753
+                };
+            }
         }
 
         // 1.5 block offset
