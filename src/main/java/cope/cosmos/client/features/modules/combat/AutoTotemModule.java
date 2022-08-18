@@ -1,29 +1,27 @@
 package cope.cosmos.client.features.modules.combat;
 
-import cope.cosmos.asm.mixins.accessor.INetworkManager;
+import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.movement.FlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.combat.DamageUtil;
-import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.combat.ExplosionUtil;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.MotionUtil;
-import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.init.MobEffects;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPacketCloseWindow;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import org.lwjgl.input.Mouse;
+import net.minecraft.item.ItemSword;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author linustouchtips
@@ -33,356 +31,505 @@ public class AutoTotemModule extends Module {
     public static AutoTotemModule INSTANCE;
 
     public AutoTotemModule() {
-        super("AutoTotem", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(item.getValue()) + ", " + InventoryUtil.getItemCount(item.getValue().getItem()));
+        super("AutoTotem", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(mode.getValue()) + ", " + InventoryUtil.getItemCount(mode.getValue().getItem()));
         INSTANCE = this;
     }
 
-    // **************************** anticheat ****************************
-
-    public static Setting<Timing> timing = new Setting<>("Timing", Timing.LINEAR)
-            .setDescription("How to timing when switching");
-
-    public static Setting<Boolean> inventoryStrict = new Setting<>("InventoryStrict", false)
-            .setDescription("Opens inventory serverside before switching");
-
-    public static Setting<Boolean> motionStrict = new Setting<>("MotionStrict", false)
-            .setDescription("Stops motion before switching");
-
     // **************************** general ****************************
 
-    public static Setting<OffhandItem> item = new Setting<>("Item", OffhandItem.CRYSTAL)
+    public static Setting<Mode> mode = new Setting<>("Mode", Mode.TOTEM)
             .setDescription("Item to use when not at critical health");
 
-    public static Setting<OffhandItem> fallBack = new Setting<>("FallBack", OffhandItem.GAPPLE)
-            .setDescription("Item to use if you don't have the chosen item");
+    public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 20.0D, 1)
+            .setDescription("Critical health to switch to a totem");
 
-    public static Setting<Gapple> gapple = new Setting<>("Gapple", Gapple.SWORD)
-            .setDescription("When to dynamically switch to a golden apple");
+    public static Setting<Double> speed = new Setting<>("Speed", 0.0D, 20.0D, 20.0D, 1)
+            .setDescription("Speed when switching items");
 
-    public static Setting<Safety> safety = new Setting<>("Safety", Safety.NONE)
-            .setDescription("When to consider the situation unsafe");
+    public static Setting<Boolean> fast = new Setting<>("Fast", false)
+            .setDescription("Preforms all actions in one cycle");
 
-    public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 36.0D, 1)
-            .setDescription("Health considered as critical health");
+    public static Setting<Boolean> lethal = new Setting<>("Lethal", true)
+            .setDescription("Takes damage sources into account when switching");
 
-    public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 0.0D, 20.0D, 1)
-            .setDescription("Delay when switching items");
-
-    public static Setting<Boolean> recursive = new Setting<>("Recursive", false)
+    public static Setting<Boolean> hotbar = new Setting<>("Hotbar", false)
             .setDescription("Allow hotbar items to be moved to the offhand");
 
+    public static Setting<Boolean> crapple = new Setting<>("Crapple", false)
+            .setDescription("Uses a crapple in the offhand");
 
-    // offhand stage
-    private Stage stage = Stage.IDLE;
+    public static Setting<Boolean> offhandOverride = new Setting<>("OffhandOverride", true)
+            .setDescription("Switches offhand items in non-lethal scenarios");
+
 
     // offhand delay
     private final Timer offhandTimer = new Timer();
 
     @Override
-    public void onDisable() {
-        super.onDisable();
-        stage = Stage.IDLE;
-    }
+    public void onThread() {
 
-    @Override
-    public void onTick() {
+        // item we are switching to
+        Item item = mode.getValue().getItem();
 
-        // we are not switching right now;
-        stage = Stage.IDLE;
+        // check if offhand should be overridden
+        if (offhandOverride.getValue()) {
 
-        // switching in GUI's causes crash
-        if (mc.currentScreen == null) {
+            // holding a sword and interacting
+            if (InventoryUtil.isHolding(ItemSword.class) && mc.gameSettings.keyBindUseItem.isKeyDown()) {
 
-            // the item to switch to
-            Item switchItem = item.getValue().getItem();
+                // block we are interacting with
+                Block interactBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
 
-            // wait for previous swap
-            if (!stage.equals(Stage.MOVE_TO_OFFHAND)) {
-
-                // offhand item counts
-                int itemCount = InventoryUtil.getItemCount(item.getValue().getItem());
-                int fallbackCount = InventoryUtil.getItemCount(fallBack.getValue().getItem());
-
-                // if don't have out main item, try our fallback item
-                if (itemCount <= 0 && fallbackCount > 0) {
-                    switchItem = fallBack.getValue().getItem();
+                // check if it gets activated or if it is a button/lever
+                if (!getCosmos().getInteractionManager().getSneakBlocks().contains(interactBlock) && !interactBlock.equals(Blocks.STONE_BUTTON) && !interactBlock.equals(Blocks.WOODEN_BUTTON) && !interactBlock.equals(Blocks.LEVER)) {
+                    item = Items.GOLDEN_APPLE;
                 }
             }
+        }
 
-            // dynamically switch to a gapple if needed
-            switch (gapple.getValue()) {
-                case SWORD:
-                    if (InventoryUtil.isHolding(Items.DIAMOND_SWORD)) {
-                        switchItem = Items.GOLDEN_APPLE;
+        // make sure we can actually take damage
+        if (DamageUtil.canTakeDamage()) {
+
+            // player health
+            double playerHealth = PlayerUtil.getHealth();
+
+            // check lethal scenarios
+            if (lethal.getValue()) {
+
+                // SCENARIO #1: fall damage
+                float fallDamage = ((mc.player.fallDistance - 3.0F) / 2.0F) + 3.5F;
+
+                // fall damage will kill us
+                if (playerHealth - fallDamage < 0.5 && !mc.player.isOverWater()) {
+                    item = Items.TOTEM_OF_UNDYING;
+                }
+
+                // SCENARIO #2: flight damage
+                if (PlayerUtil.isFlying()) {
+                    item = Items.TOTEM_OF_UNDYING;
+                }
+
+                // SCENARIO #3: crystal damage
+                for (Entity entity : mc.world.loadedEntityList) {
+
+                    // make sure the entity exists
+                    if (entity == null || entity.isDead) {
+                        continue;
                     }
 
-                    break;
-                case INTERACT:
-                    if (InventoryUtil.isHolding(Items.DIAMOND_SWORD) && Mouse.isButtonDown(1)) {
+                    // make sure crystal is in range
+                    double crystalRange = mc.player.getDistance(entity);
+                    if (crystalRange > 6) {
+                        continue;
+                    }
 
-                        // block we are interacting with
-                        Block timingBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
+                    if (entity instanceof EntityEnderCrystal) {
 
-                        // check if it gets activated
-                        if (getCosmos().getInteractionManager().getSneakBlocks().contains(timingBlock)) {
+                        // damage from crystal
+                        double crystalDamage = ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
+
+                        // crystal will kill us
+                        if (playerHealth - crystalDamage < 0.5) {
+                            item = Items.TOTEM_OF_UNDYING;
                             break;
                         }
-
-                        // check if its a button/lever
-                        if (timingBlock.equals(Blocks.STONE_BUTTON) || timingBlock.equals(Blocks.WOODEN_BUTTON) || timingBlock.equals(Blocks.LEVER)) {
-                            break;
-                        }
-
-                        switchItem = Items.GOLDEN_APPLE;
                     }
-
-                    break;
-            }
-
-            /* make sure we are not in a situation where we need to pause the offhand */
-
-            // make sure we can take damage
-            if (DamageUtil.canTakeDamage()) {
-
-                // player health
-                double playerHealth = PlayerUtil.getHealth();
-
-                // check possible unsafe situations
-                switch (safety.getValue()) {
-                    case FULL:
-
-                        // make sure none of our armor pieces are missing
-                        for (ItemStack stack : mc.player.getArmorInventoryList()) {
-
-                            // armor stack is empty
-                            if (stack == null || stack.getItem().equals(Items.AIR)) {
-                                switchItem = Items.TOTEM_OF_UNDYING;
-                                break;
-                            }
-                        }
-
-                        // check nearby crystals
-                        for (Entity entity : mc.world.loadedEntityList) {
-
-                            // make sure the entity exists
-                            if (entity == null || entity.isDead) {
-                                continue;
-                            }
-
-                            // make sure crystal is in range
-                            if (mc.player.getDistance(entity) > 6) {
-                                continue;
-                            }
-
-                            if (entity instanceof EntityEnderCrystal) {
-
-                                // damage from crystal
-                                double damage = ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
-
-                                // crystal will kill us
-                                if (playerHealth - damage < 0.5) {
-                                    switchItem = Items.TOTEM_OF_UNDYING;
-                                    break;
-                                }
-                            }
-                        }
-
-                        break;
-                    case NONE:
-                    default:
-                        break;
-                }
-
-                // fall damage might kill us (TODO: add fall damage calcs)
-                if  (mc.player.fallDistance > 5 && !mc.player.isOverWater()) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
-                }
-
-                // flight friction/collision could possibly kill us
-                if (FlightModule.INSTANCE.isActive() || mc.player.isElytraFlying() || mc.player.capabilities.isFlying) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
-                }
-
-                if (timing.getValue().equals(Timing.DYNAMIC)) {
-
-                    // some anticheats only have offhand patched if the player is holding a gapple, so this is a partial offhand bypass for those servers
-                    if (InventoryUtil.isHolding(Items.GOLDEN_APPLE)) {
-                        switchItem = Items.TOTEM_OF_UNDYING;
-                    }
-                }
-
-                // make sure we are not below our critical health
-                if (playerHealth < health.getValue()) {
-                    switchItem = Items.TOTEM_OF_UNDYING;
                 }
             }
 
-            // make sure we've passed our delay and we're not already holding the item
-            if (offhandTimer.passedTime(delay.getValue().longValue() * 100, Format.MILLISECONDS) && !mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.IDLE)) {
+            // make sure we are not below our critical health
+            if (playerHealth <= health.getValue()) {
+                item = Items.TOTEM_OF_UNDYING;
+            }
 
-                // we are now picking up the item
-                stage = Stage.PICKUP_ITEM;
+            // item slot
+            // find our item in our inventory
+            int itemSlot = -1;
 
-                // find our item in our inventory
-                int itemSlot = -1;
-                for (int i = recursive.getValue() ? 0 : 9; i <= 44; i++) {
-                    if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(switchItem)) {
+            // gapple slots
+            int gappleSlot = -1;
+            int crappleSlot = -1;
+
+            // search inventory
+            for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
+                if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
+
+                    // golden apple
+                    if (item.equals(Items.GOLDEN_APPLE)) {
+
+                        // item stack
+                        ItemStack stack = mc.player.inventoryContainer.getSlot(i).getStack();
+
+                        // god apple
+                        if (stack.hasEffect()) {
+                            gappleSlot = i;
+                        }
+
+                        // crapple
+                        else {
+                            crappleSlot = i;
+                        }
+                    }
+
+                    else {
                         itemSlot = i;
                         break;
                     }
                 }
+            }
 
-                // stop player motion before moving items
-                if (motionStrict.getValue() && MotionUtil.hasMoved()) {
-                    mc.player.motionX = 0;
-                    mc.player.motionZ = 0;
-                    mc.player.setVelocity(0, mc.player.motionY, 0);
-                    return;
-                }
+            // since there are two types of gapples we need to sort them
+            if (item.equals(Items.GOLDEN_APPLE)) {
 
-                // pick up the item
-                if (itemSlot != -1) {
+                // use crapples
+                if (crapple.getValue()) {
 
-                    // open inventory via packets
-                    if (inventoryStrict.getValue() && mc.getConnection() != null) {
-                        ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.OPEN_INVENTORY), null);
+                    // player has absorption hearts
+                    if (mc.player.isPotionActive(MobEffects.ABSORPTION)) {
+
+                        // use a crapple
+                        // in 1.12.2 this will restore all of our absorption hearts
+                        if (crappleSlot != -1) {
+                            itemSlot = crappleSlot;
+                        }
+
+                        // if we don't have crapples then use gapples
+                        else if (gappleSlot != -1) {
+                            itemSlot = gappleSlot;
+                        }
                     }
 
-                    mc.playerController.windowClick(0, itemSlot, 0, ClickType.PICKUP, mc.player);
+                    // if we don't have absorption hearts then the crapple won't restore us back to full absorption hearts
+                    else if (gappleSlot != -1) {
+                        itemSlot = gappleSlot;
+                    }
+                }
 
-                    if (!timing.getValue().equals(Timing.SEQUENTIAL)) {
+                // don't use crapples
+                else {
 
-                        // we are now moving the item to the offhand
-                        stage = Stage.MOVE_TO_OFFHAND;
+                    // prefer gapples
+                    if (gappleSlot != -1) {
+                        itemSlot = gappleSlot;
+                    }
 
-                        // move the item to the offhand
-                        mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
-
-                        // if we didn't get any item to swap
-                        if (mc.player.inventory.getItemStack().isEmpty()) {
-                            return;
-                        }
-
-                        // we are now swapping the old item
-                        stage = Stage.SWAP_OLD;
-
-                        // find a slot to return to
-                        int returnSlot = -1;
-                        for (int i = recursive.getValue() ? 0 : 9; i <= 44; i++) {
-                            if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
-                                returnSlot = i;
-                                break;
-                            }
-                        }
-
-                        // move the item in the offhand to the return slot
-                        if (returnSlot != -1) {
-                            mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
-                            mc.playerController.updateController();
-
-                            // close window
-                            if (inventoryStrict.getValue() && mc.getConnection() != null) {
-                                ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId), null);
-                            }
-                        }
-
-                        offhandTimer.resetTime();
+                    // fall back to crapples
+                    else if (crappleSlot != -1) {
+                        itemSlot = crappleSlot;
                     }
                 }
             }
 
-            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 200, Format.MILLISECONDS) && mc.player.inventory.getItemStack().getItem().equals(switchItem) && stage.equals(Stage.PICKUP_ITEM)) {
+            // already in offhand
+            if (!isOffhand(mc.player.inventoryContainer.getSlot(itemSlot).getStack())) {
 
-                    // we are now moving the item to the offhand
-                    stage = Stage.MOVE_TO_OFFHAND;
+                // found our item
+                if (itemSlot != -1) {
 
-                    // stop player motion before moving items
-                    if (motionStrict.getValue() && MotionUtil.hasMoved()) {
-                        mc.player.motionX = 0;
-                        mc.player.motionZ = 0;
-                        mc.player.setVelocity(0, mc.player.motionY, 0);
-                        return;
-                    }
+                    // switch to items in one cycle
+                    if (fast.getValue()) {
 
-                    // move the item to the offhand
-                    mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+                        // calculate if we have passed delays
+                        // offhand delay based on offhand speeds
+                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
 
-                    // if we didn't get any item to swap
-                    if (mc.player.inventory.getItemStack().isEmpty()) {
-                        return;
-                    }
-                }
+                        // we have waited the proper time ???
+                        boolean delayed = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
 
-                if (offhandTimer.passedTime(delay.getValue().longValue() * 300, Format.MILLISECONDS) && mc.player.getHeldItemOffhand().getItem().equals(switchItem) && stage.equals(Stage.MOVE_TO_OFFHAND)) {
+                        // passed delay
+                        if (delayed) {
 
-                    // we are now swapping the old item
-                    stage = Stage.SWAP_OLD;
+                            // pickup
+                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
 
-                    // find a slot to return to
-                    int returnSlot = -1;
-                    for (int i = recursive.getValue() ? 0 : 9; i <= 44; i++) {
-                        if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
-                            returnSlot = i;
-                            break;
+                            // move the item to the offhand
+                            mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+
+                            // if we didn't get any item to swap
+                            if (mc.player.inventory.getItemStack().isEmpty()) {
+
+                                // reset
+                                offhandTimer.resetTime();
+                                return;
+                            }
+
+                            // find a slot to return to
+                            int returnSlot = -1;
+                            for (int i = 0; i < 36; i++) {
+                                if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                    returnSlot = i;
+                                    break;
+                                }
+                            }
+
+                            // move the item in the offhand to the return slot
+                            if (returnSlot != -1) {
+                                mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                mc.playerController.updateController();
+                            }
+
+                            // reset
+                            offhandTimer.resetTime();
                         }
                     }
 
-                    if (returnSlot != -1) {
+                    // switch to item in multiple cycles
+                    else {
 
-                        // stop player motion before moving items
-                        if (motionStrict.getValue() && MotionUtil.hasMoved()) {
-                            mc.player.motionX = 0;
-                            mc.player.motionZ = 0;
-                            mc.player.setVelocity(0, mc.player.motionY, 0);
-                            return;
-                        }
+                        // calculate if we have passed delays
+                        // offhand delay based on offhand speeds
+                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
 
-                        // move the item in the offhand to the return slot
-                        mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
-                        mc.playerController.updateController();
+                        // we have waited the proper time ???
+                        boolean delayedFirst = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
 
-                        // close window
-                        if (inventoryStrict.getValue() && mc.getConnection() != null) {
-                            ((INetworkManager) mc.getConnection().getNetworkManager()).hookDispatchPacket(new CPacketCloseWindow(mc.player.inventoryContainer.windowId), null);
+                        // passed delay
+                        if (delayedFirst) {
+
+                            // stop active hand prevents failing
+                            mc.player.stopActiveHand();
+
+                            // pickup
+                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
+
+                            // we have waited the proper time ???
+                            boolean delayedSecond = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 2, Format.MILLISECONDS);
+
+                            // passed delay
+                            if (delayedSecond) {
+
+                                // stop active hand prevents failing
+                                mc.player.stopActiveHand();
+
+                                // move the item to the offhand
+                                mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+
+                                // if we didn't get any item to swap
+                                if (mc.player.inventory.getItemStack().isEmpty()) {
+
+                                    // reset
+                                    offhandTimer.resetTime();
+                                    return;
+                                }
+
+                                // we have waited the proper time ???
+                                boolean delayedThird = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 3, Format.MILLISECONDS);
+
+                                // passed delay
+                                if (delayedThird) {
+
+                                    // find a slot to return to
+                                    int returnSlot = -1;
+                                    for (int i = 0; i < 36; i++) {
+                                        if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                            returnSlot = i;
+                                            break;
+                                        }
+                                    }
+
+                                    // move the item in the offhand to the return slot
+                                    if (returnSlot != -1) {
+
+                                        // stop active hand prevents failing
+                                        mc.player.stopActiveHand();
+
+                                        // click
+                                        mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                        mc.playerController.updateController();
+                                    }
+
+                                    // reset
+                                    offhandTimer.resetTime();
+                                }
+                            }
                         }
                     }
-
-                    offhandTimer.resetTime();
                 }
             }
         }
     }
 
-    @Override
-    public boolean isActive() {
-        return isEnabled() && !stage.equals(Stage.IDLE);
+    @SubscribeEvent
+    public void onTotemPop(TotemPopEvent event) {
+
+        // player has popped
+        if (event.getPopEntity().equals(mc.player)) {
+
+            // switch item
+            Item item = Items.TOTEM_OF_UNDYING;
+
+            // already in offhand
+            if (!mc.player.getHeldItemOffhand().getItem().equals(item)) {
+
+                // item slot
+                // find our item in our inventory
+                int itemSlot = -1;
+                for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
+                    if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
+                        itemSlot = i;
+                        break;
+                    }
+                }
+
+                // found our item
+                if (itemSlot != -1) {
+
+                    // switch to items in one cycle
+                    if (fast.getValue()) {
+
+                        // calculate if we have passed delays
+                        // offhand delay based on offhand speeds
+                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
+
+                        // we have waited the proper time ???
+                        boolean delayed = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
+
+                        // passed delay
+                        if (delayed) {
+
+                            // pickup
+                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
+
+                            // move the item to the offhand
+                            mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+
+                            // if we didn't get any item to swap
+                            if (mc.player.inventory.getItemStack().isEmpty()) {
+
+                                // reset
+                                offhandTimer.resetTime();
+                                return;
+                            }
+
+                            // find a slot to return to
+                            int returnSlot = -1;
+                            for (int i = 0; i < 36; i++) {
+                                if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                    returnSlot = i;
+                                    break;
+                                }
+                            }
+
+                            // move the item in the offhand to the return slot
+                            if (returnSlot != -1) {
+                                mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                mc.playerController.updateController();
+                            }
+
+                            // reset
+                            offhandTimer.resetTime();
+                        }
+                    }
+
+                    // switch to item in multiple cycles
+                    else {
+
+                        // calculate if we have passed delays
+                        // offhand delay based on offhand speeds
+                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
+
+                        // we have waited the proper time ???
+                        boolean delayedFirst = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
+
+                        // passed delay
+                        if (delayedFirst) {
+
+                            // stop active hand prevents failing
+                            mc.player.stopActiveHand();
+
+                            // pickup
+                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
+
+                            // we have waited the proper time ???
+                            boolean delayedSecond = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 2, Format.MILLISECONDS);
+
+                            // passed delay
+                            if (delayedSecond) {
+
+                                // stop active hand prevents failing
+                                mc.player.stopActiveHand();
+
+                                // move the item to the offhand
+                                mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+
+                                // if we didn't get any item to swap
+                                if (mc.player.inventory.getItemStack().isEmpty()) {
+
+                                    // reset
+                                    offhandTimer.resetTime();
+                                    return;
+                                }
+
+                                // we have waited the proper time ???
+                                boolean delayedThird = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 3, Format.MILLISECONDS);
+
+                                // passed delay
+                                if (delayedThird) {
+
+                                    // find a slot to return to
+                                    int returnSlot = -1;
+                                    for (int i = 0; i < 36; i++) {
+                                        if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                            returnSlot = i;
+                                            break;
+                                        }
+                                    }
+
+                                    // move the item in the offhand to the return slot
+                                    if (returnSlot != -1) {
+
+                                        // stop active hand prevents failing
+                                        mc.player.stopActiveHand();
+
+                                        // click
+                                        mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                        mc.playerController.updateController();
+                                    }
+
+                                    // reset
+                                    offhandTimer.resetTime();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    public enum Stage {
+    /**
+     * Checks if a given item is already in the offhand
+     * @param in The given item
+     * @return Whether a given item is already in the offhand
+     */
+    public boolean isOffhand(ItemStack in) {
 
-        /**
-         * Stage where no switching occurs
-         */
-        IDLE,
+        // item in the offhand
+        ItemStack offhandItem = mc.player.getHeldItemOffhand();
 
-        /**
-         * Stage where we pick up our item
-         */
-        PICKUP_ITEM,
+        // two types of gapples so we need to check each one
+        if (in.getItem().equals(Items.GOLDEN_APPLE)) {
 
-        /**
-         * Stage where we place our item in our offhand
-         */
-        MOVE_TO_OFFHAND,
+            // holding golden apple
+            if (offhandItem.getItem().equals(in.getItem())) {
 
-        /**
-         * Stage where we move the old item in our offhand to the return slot
-         */
-        SWAP_OLD
+                // given item is a gapple ?
+                boolean gapple = in.hasEffect();
+
+                // check if equal
+                return gapple == offhandItem.hasEffect();
+            }
+        }
+
+        // check if they are equal
+        else {
+            return offhandItem.getItem().equals(in.getItem());
+        }
+
+        return false;
     }
 
-    public enum OffhandItem {
+    public enum Mode {
 
         /**
          * Switch to an End Crystal
@@ -401,7 +548,7 @@ public class AutoTotemModule extends Module {
 
         private final Item item;
 
-        OffhandItem(Item item) {
+        Mode(Item item) {
             this.item = item;
         }
 
@@ -412,54 +559,5 @@ public class AutoTotemModule extends Module {
         public Item getItem() {
             return item;
         }
-    }
-
-    public enum Timing {
-
-        /**
-         * Interacts at all times
-         */
-        LINEAR,
-
-        /**
-         * Interacts if each process has passed the delay
-         */
-        SEQUENTIAL,
-
-        /**
-         * Interacts when holding certain items
-         */
-        DYNAMIC
-    }
-
-    public enum Gapple {
-
-        /**
-         * Switches the offhand to a gapple when right clicking
-         */
-        INTERACT,
-
-        /**
-         * Switches the offhand to a gapple when holding a sword
-         */
-        SWORD,
-
-        /**
-         * Does not dynamically switch gapples to the offhand
-         */
-        NONE,
-    }
-    
-    public enum Safety {
-
-        /**
-         * Swaps when you're armor is missing or too low or when crystal damages will kill you
-         */
-        FULL,
-
-        /**
-         * No safety calculations
-         */
-        NONE,
     }
 }
