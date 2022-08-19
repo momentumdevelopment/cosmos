@@ -47,6 +47,10 @@ public class ConfigManager extends Manager {
         // load the current preset
         loadPreset(preset);
 
+        loadSocial();
+        loadAlts();
+        loadWallhack();
+
         // add our shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
@@ -80,9 +84,9 @@ public class ConfigManager extends Manager {
             long time = System.currentTimeMillis();
 
             loadModules();
-            loadSocial();
-            loadAlts();
-            loadWallhack();
+//            loadSocial();
+//            loadAlts();
+//            loadWallhack();
 
             System.out.println("[Cosmos] Loaded preset " + name + " in " + (System.currentTimeMillis() - time) + "ms");
         }
@@ -111,13 +115,13 @@ public class ConfigManager extends Manager {
         long time = System.currentTimeMillis();
 
         // save info - never a bad idea to do this
-        saveInfo();
+//        saveInfo();
 
         saveModules();
-        saveSocial();
-        saveAlts();
-        saveWallhack();
-        saveGUI();
+//        saveSocial();
+//        saveAlts();
+//        saveWallhack();
+//        saveGUI();
 
         System.out.println("[Cosmos] Saved preset " + name + " in " + (System.currentTimeMillis() - time) + "ms");
     }
@@ -328,6 +332,9 @@ public class ConfigManager extends Manager {
             saveModules();
         }
 
+        // clear out old social items before loading the current one
+        getCosmos().getSocialManager().getSocials().clear();
+
         // the TOML input from the file
         Toml inputTOML = new Toml().read(content);
 
@@ -365,6 +372,9 @@ public class ConfigManager extends Manager {
         if (content == null || content.isEmpty()) {
             saveModules();
         }
+
+        // clear out old alt entries
+        getCosmos().getAltManager().getAltEntries().clear();
 
         // Input TOML
         Toml input = new Toml().read(content);
@@ -411,6 +421,9 @@ public class ConfigManager extends Manager {
         if (content == null || content.isEmpty()) {
             saveModules();
         }
+
+        // clear out old wallhack blocks
+        WallhackModule.WHITELIST.clear();
 
         // Input TOML
         Toml toml = new Toml().read(content);
