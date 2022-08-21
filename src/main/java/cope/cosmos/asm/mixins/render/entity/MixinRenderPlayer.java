@@ -32,6 +32,7 @@ public class MixinRenderPlayer implements Wrapper {
             Cosmos.EVENT_BUS.post(renderRotationsEvent);
 
             if (renderRotationsEvent.isCanceled()) {
+
                 entity.rotationYaw = renderRotationsEvent.getYaw();
                 entity.rotationYawHead = renderRotationsEvent.getYaw();
                 entity.prevRotationYawHead = renderRotationsEvent.getYaw();

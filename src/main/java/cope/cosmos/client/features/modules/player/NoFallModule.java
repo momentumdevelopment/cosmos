@@ -66,7 +66,7 @@ public class NoFallModule extends Module {
                     getCosmos().getInventoryManager().switchToItem(Items.WATER_BUCKET, autoSwitch.getValue());
 
                     // attempt to rotate and place water to cancel fall damage
-                    getCosmos().getRotationManager().addRotation(new Rotation(mc.player.rotationYaw, 90F), 100);
+                    getCosmos().getRotationManager().setRotation(new Rotation(mc.player.rotationYaw, 90F));
                     mc.playerController.processRightClick(mc.player, mc.world, EnumHand.MAIN_HAND);
 
                     // switchback to previous slot

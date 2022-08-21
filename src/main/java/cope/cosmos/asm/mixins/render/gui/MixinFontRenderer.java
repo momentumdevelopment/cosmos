@@ -2,7 +2,9 @@ package cope.cosmos.asm.mixins.render.gui;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.gui.RenderFontEvent;
+import cope.cosmos.util.chat.ChatUtil;
 import cope.cosmos.util.render.FontUtil;
+import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.gui.FontRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,17 +21,22 @@ public class MixinFontRenderer {
 
         /*
         // reformat based on prefix
-        if (text.contains("<Cosmos>")) {
+        if (text.contains(ChatUtil.getPrefix())) {
             String[] words = text.split(" ");
 
-            // every word that's not the prefix
-            StringBuilder splitText = new StringBuilder();
-            for (int i = 1; i < words.length; i++) {
-                splitText.append(words[i]);
+            // exclude prefix
+            StringBuilder remaining = new StringBuilder();
+
+            // compile
+            for (String word : words) {
+                if (!word.equalsIgnoreCase("<Cosmos>")) {
+                    remaining.append(word).append(" ");
+                }
             }
 
+
             // draw the rest of the text
-            info.setReturnValue(FontUtil.getFontString("<Cosmos> " + ChatFormatting.WHITE + splitText.toString(), x, y, ColorUtil.getPrimaryColor().getRGB()));
+            info.setReturnValue(FontUtil.getFontString(ChatUtil.getPrefix(), x, y, ColorUtil.getPrimaryColor().getRGB()) + FontUtil.getFontString(remaining.toString(), x, y, color));
         }
          */
 

@@ -1,6 +1,7 @@
 package cope.cosmos.client.events.motion.movement;
 
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
@@ -8,6 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.Event;
  * @author Doogie13
  * @since 12/27/2021
  */
+@Cancelable
 public class StepEvent extends Event {
 
     // info

@@ -57,7 +57,11 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
         super.drawScreen(mouseX, mouseY, partialTicks);
 
         // draws the default dark background
-        drawDefaultBackground();
+        try {
+            drawDefaultBackground();
+        } catch (NullPointerException ignored) {
+
+        }
 
         categoryFrameComponents.forEach(categoryFrameComponent -> {
             categoryFrameComponent.drawComponent();
@@ -137,11 +141,16 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
                 }
 
                 break;
+
             default:
+                if (ClickType.getByIdentifier(mouseButton) != null) {
+                    for (CategoryFrameComponent categoryFrameComponent : reverseCategoryFrameComponents) {
+                        categoryFrameComponent.onClick(ClickType.getByIdentifier(mouseButton));
+                    }
+                }
+
                 break;
         }
-
-        // push frame to the front of the stack
     }
 
     @Override
@@ -183,7 +192,7 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
         ClickGUIModule.INSTANCE.disable(true);
 
         // save our configs when exiting the GUI
-        Cosmos.INSTANCE.getPresetManager().save();
+        Cosmos.INSTANCE.getConfigManager().saveGUI();
 
         if (mc.entityRenderer.isShaderActive()) {
             mc.entityRenderer.getShaderGroup().deleteShaderGroup();

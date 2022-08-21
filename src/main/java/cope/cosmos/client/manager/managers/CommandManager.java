@@ -25,7 +25,7 @@ public class CommandManager extends Manager {
 		// add all commands
 		commands = Arrays.asList(
 				new FriendCommand(),
-				new PresetCommand(),
+				new ConfigCommand(),
 				new HelpCommand(),
 				new DrawnCommand(),
 				new BindCommand(),

@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(CPacketKeepAlive.class)
 public interface ICPacketKeepAlive {
+
     @Accessor("key")
     void setKey(long key);
 }

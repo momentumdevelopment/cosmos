@@ -6,11 +6,10 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.string.StringFormatter;
-import cope.cosmos.util.player.MotionUtil;
-import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.settings.KeyBinding;
@@ -19,8 +18,6 @@ import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author aesthetical, linustouchtips, WolfSurge
@@ -40,9 +37,8 @@ public class JesusModule extends Module {
             .setDescription("Mode to use when walking on water");
 
     // float offset
-    private double floatOffset = 1000;
-    private int floatTicks;
-    private int strictTicks;
+    private double floatOffset;
+    private int floatTicks = 1000;
 
     // water timers
     private final Timer offsetTimer = new Timer();
@@ -53,7 +49,6 @@ public class JesusModule extends Module {
 
         // reset process
         floatOffset = 0;
-        strictTicks = 0;
 
         // prevents non-water floating
         floatTicks = 1000;
@@ -64,7 +59,7 @@ public class JesusModule extends Module {
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public void onUpdate() {
-        
+
         // apply liquid deceleration to player
         if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
             if (!PlayerUtil.isInLiquid() && isStandingOnLiquid()) {
@@ -72,6 +67,11 @@ public class JesusModule extends Module {
                 // mc.player.motionX += decelerationVector.x * 0.014;
                 // mc.player.motionY += decelerationVector.y * 0.014;
                 // mc.player.motionZ += decelerationVector.z * 0.014;
+            }
+
+            // reset offset
+            if (PlayerUtil.isInLiquid() || mc.player.fallDistance > 3 || mc.player.isSneaking()) {
+                floatOffset = 0;
             }
 
             // float up
@@ -101,46 +101,51 @@ public class JesusModule extends Module {
 
     @SubscribeEvent
     public void onBoundingBoxCollision(CollisionBoundingBoxEvent event) {
-        if (event.getEntity() != null && event.getEntity().equals(mc.player)) {
 
-            // check if the collision is with a liquid block
-            if (event.getBlock() instanceof BlockLiquid) {
+        if (nullCheck()) {
 
-                // don't attempt to jesus on flowing blocks
-                if (!event.getBlock().equals(Blocks.FLOWING_LAVA) && !event.getBlock().equals(Blocks.FLOWING_WATER)) {
+            // check if we are the ones colliding
+            if (event.getEntity() != null && event.getEntity().equals(mc.player)) {
 
-                    if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
+                // check if the collision is with a liquid block
+                if (event.getBlock() instanceof BlockLiquid) {
 
-                        // make sure the player is standing on liquid not inside liquid
-                        if (PlayerUtil.isInLiquid() || !isStandingOnLiquid()) {
-                            return;
-                        }
+                    // don't attempt to jesus on flowing blocks
+                    if (!event.getBlock().equals(Blocks.FLOWING_LAVA) && !event.getBlock().equals(Blocks.FLOWING_WATER)) {
 
-                        // make sure the player is not burning, dip down
-                        if (mc.player.isBurning()) {
-                            return;
-                        }
+                        if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
 
-                        // we want to fall into the water
-                        if (mc.player.fallDistance > 3 || mc.player.isSneaking()) {
-                            return;
-                        }
+                            // make sure the player is standing on liquid not inside liquid
+                            if (PlayerUtil.isInLiquid() || !isStandingOnLiquid()) {
+                                return;
+                            }
 
-                        // full box
-                        AxisAlignedBB fullCollisionBox = new AxisAlignedBB(0, 0, 0, 1, 0.921, 1).offset(event.getPosition());
+                            // make sure the player is not burning, dip down
+                            if (mc.player.isBurning()) {
+                                return;
+                            }
 
-                        // add the full box to collision list
-                        if (event.getCollisionBox().intersects(fullCollisionBox)) {
-                            event.getCollisionList().add(fullCollisionBox);
-                            event.setCanceled(true);
-                        }
+                            // we want to fall into the water
+                            if (mc.player.fallDistance > 3 || mc.player.isSneaking() || mc.player.isRowingBoat()) {
+                                return;
+                            }
 
-                        // decelerate the player motion (simulate moving through liquid)
-                        if (mode.getValue().equals(Mode.SOLID_STRICT)) {
-                            Vec3d decelerationVector = event.getBlock().modifyAcceleration(mc.world, event.getPosition(), mc.player, Vec3d.ZERO);
-                            mc.player.motionX += decelerationVector.x * 0.014;
-                            mc.player.motionY += decelerationVector.y * 0.014;
-                            mc.player.motionZ += decelerationVector.z * 0.014;
+                            // full box
+                            AxisAlignedBB fullCollisionBox = new AxisAlignedBB(0, 0, 0, 1, 0.921, 1).offset(event.getPosition());
+
+                            // add the full box to collision list
+                            if (event.getCollisionBox().intersects(fullCollisionBox)) {
+                                event.getCollisionList().add(fullCollisionBox);
+                                event.setCanceled(true);
+                            }
+
+                            // decelerate the player motion (simulate moving through liquid)
+                            if (mode.getValue().equals(Mode.SOLID_STRICT)) {
+                                Vec3d decelerationVector = event.getBlock().modifyAcceleration(mc.world, event.getPosition(), mc.player, Vec3d.ZERO);
+                                mc.player.motionX += decelerationVector.x * 0.014;
+                                mc.player.motionY += decelerationVector.y * 0.014;
+                                mc.player.motionZ += decelerationVector.z * 0.014;
+                            }
                         }
                     }
                 }
@@ -150,9 +155,13 @@ public class JesusModule extends Module {
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // packet for player positions
         if (event.getPacket() instanceof CPacketPlayer) {
+
             // moving packet
             if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+
                 // check if user is standing in liquid
                 if (!PlayerUtil.isInLiquid() && isStandingOnLiquid()) {
 
@@ -173,49 +182,18 @@ public class JesusModule extends Module {
 
                     // randomize float
                     else if (mode.getValue().equals(Mode.SOLID_STRICT)) {
-                        // update our tick constraint
-                        strictTicks++;
 
-                        // entering/exiting water
-                        if (strictTicks < 8) {
-                            if (offsetTimer.passedTime(3, Format.TICKS)) {
-                                floatOffset = 0.015 + ThreadLocalRandom.current().nextDouble(0, 0.00002);
-                                offsetTimer.resetTime();
-                            }
+                        // update y offset
+                        ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) - floatOffset);
 
-                            else {
-                                floatOffset = ThreadLocalRandom.current().nextDouble(0, 0.00002);
-                            }
+                        // increase dip
+                        floatOffset += 0.12;
 
-                            // add to y
-                            floatOffset *= -1;
-                        }
-
-                        else {
-                            // use offsets
-                            if (MotionUtil.isMoving()) {
-                                if (offsetTimer.passedTime(1, Format.TICKS)) {
-                                    floatOffset = 0.005 - ThreadLocalRandom.current().nextDouble(0, 0.00002);
-                                    offsetTimer.resetTime();
-                                }
-
-                                else {
-                                    floatOffset = 0.02 - ThreadLocalRandom.current().nextDouble(0, 0.000002);
-                                }
-                            }
-
-                            else {
-                                floatOffset = 0.005 - ThreadLocalRandom.current().nextDouble(0, 0.00002);
-                            }
+                        // clamp
+                        if (floatOffset > 0.4) {
+                            floatOffset = 0.2;
                         }
                     }
-
-                    // update y offset
-                    ((ICPacketPlayer) event.getPacket()).setY(((CPacketPlayer) event.getPacket()).getY(mc.player.posY) - floatOffset);
-                }
-
-                else {
-                    strictTicks = 0;
                 }
             }
         }

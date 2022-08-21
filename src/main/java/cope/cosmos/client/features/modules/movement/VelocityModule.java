@@ -89,10 +89,41 @@ public class VelocityModule extends Module {
 	@SubscribeEvent
 	public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-		// packet for velocity caused by factors that are not explosions
-		if (event.getPacket() instanceof SPacketEntityVelocity) {
+		if (nullCheck()) {
 
-			if (((SPacketEntityVelocity) event.getPacket()).getEntityID() == mc.player.getEntityId()) {
+			// packet for velocity caused by factors that are not explosions
+			if (event.getPacket() instanceof SPacketEntityVelocity) {
+
+				// only apply to own player
+				if (((SPacketEntityVelocity) event.getPacket()).getEntityID() == mc.player.getEntityId()) {
+
+					// if our settings are 0, then we can cancel this packet
+					if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
+						event.setCanceled(true);
+					}
+
+					else {
+
+						// if we want to modify the velocity, then we update the packet's values
+						SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
+						if (packet.getEntityID() == mc.player.getEntityId()) {
+
+							// motion from the packet
+							int motionX = ((ISPacketEntityVelocity) packet).getMotionX() / 100;
+							int motionY = ((ISPacketEntityVelocity) packet).getMotionY() / 100;
+							int motionZ = ((ISPacketEntityVelocity) packet).getMotionZ() / 100;
+
+							// modify motion
+							((ISPacketEntityVelocity) packet).setMotionX(motionX * horizontal.getValue().intValue());
+							((ISPacketEntityVelocity) packet).setMotionY(motionY * vertical.getValue().intValue());
+							((ISPacketEntityVelocity) packet).setMotionZ(motionZ * horizontal.getValue().intValue());
+						}
+					}
+				}
+			}
+
+			// packet for velocity caused by explosions
+			if (event.getPacket() instanceof SPacketExplosion) {
 
 				// if our settings are 0, then we can cancel this packet
 				if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
@@ -100,63 +131,36 @@ public class VelocityModule extends Module {
 				}
 
 				else {
-
 					// if we want to modify the velocity, then we update the packet's values
-					SPacketEntityVelocity packet = (SPacketEntityVelocity) event.getPacket();
-					if (packet.getEntityID() == mc.player.getEntityId()) {
+					SPacketExplosion packet = (SPacketExplosion) event.getPacket();
 
-						// motion from the packet
-						int motionX = ((ISPacketEntityVelocity) packet).getMotionX() / 100;
-						int motionY = ((ISPacketEntityVelocity) packet).getMotionY() / 100;
-						int motionZ = ((ISPacketEntityVelocity) packet).getMotionZ() / 100;
+					// motion from the packet
+					float motionX = ((ISPacketExplosion) packet).getMotionX() / 100;
+					float motionY = ((ISPacketExplosion) packet).getMotionY() / 100;
+					float motionZ = ((ISPacketExplosion) packet).getMotionZ() / 100;
 
-						// modify motion
-						((ISPacketEntityVelocity) packet).setMotionX(motionX * horizontal.getValue().intValue());
-						((ISPacketEntityVelocity) packet).setMotionY(motionY * vertical.getValue().intValue());
-						((ISPacketEntityVelocity) packet).setMotionZ(motionZ * horizontal.getValue().intValue());
-					}
+					// modify motion
+					((ISPacketExplosion) packet).setMotionX(motionX * horizontal.getValue().floatValue());
+					((ISPacketExplosion) packet).setMotionY(motionY * vertical.getValue().floatValue());
+					((ISPacketExplosion) packet).setMotionZ(motionZ * horizontal.getValue().floatValue());
 				}
 			}
-		}
 
-		// packet for velocity caused by explosions
-		if (event.getPacket() instanceof SPacketExplosion) {
+			// packet for being pulled by fishhooks
+			if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 31) {
+				if (fishHook.getValue()) {
 
-			// if our settings are 0, then we can cancel this packet
-			if (horizontal.getValue() == 0 && vertical.getValue() == 0) {
-				event.setCanceled(true);
-			}
+					// get the entity that is pulling us
+					Entity entity = ((SPacketEntityStatus) event.getPacket()).getEntity(mc.world);
 
-			else {
-				// if we want to modify the velocity, then we update the packet's values
-				SPacketExplosion packet = (SPacketExplosion) event.getPacket();
+					// check if it's a fishhook
+					if (entity instanceof EntityFishHook) {
 
-				// motion from the packet
-				float motionX = ((ISPacketExplosion) packet).getMotionX() / 100;
-				float motionY = ((ISPacketExplosion) packet).getMotionY() / 100;
-				float motionZ = ((ISPacketExplosion) packet).getMotionZ() / 100;
-
-				// modify motion
-				((ISPacketExplosion) packet).setMotionX(motionX * horizontal.getValue().floatValue());
-				((ISPacketExplosion) packet).setMotionY(motionY * vertical.getValue().floatValue());
-				((ISPacketExplosion) packet).setMotionZ(motionZ * horizontal.getValue().floatValue());
-			}
-		}
-
-		// packet for being pulled by fishhooks
-		if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 31) {
-			if (fishHook.getValue()) {
-
-				// get the entity that is pulling us
-				Entity entity = ((SPacketEntityStatus) event.getPacket()).getEntity(mc.world);
-
-				// check if it's a fishhook
-				if (entity instanceof EntityFishHook) {
-
-					// cancel the pull
-					EntityFishHook entityFishHook = (EntityFishHook) entity;
-					if (entityFishHook.caughtEntity.equals(mc.player)) {
-						event.setCanceled(true);
+						// cancel the pull
+						EntityFishHook entityFishHook = (EntityFishHook) entity;
+						if (entityFishHook.caughtEntity.equals(mc.player)) {
+							event.setCanceled(true);
+						}
 					}
 				}
 			}

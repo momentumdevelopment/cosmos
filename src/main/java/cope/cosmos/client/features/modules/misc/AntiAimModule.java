@@ -35,7 +35,8 @@ public class AntiAimModule extends Module {
             .setDescription("Changes how your pitch is rotated");
 
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET)
-            .setDescription("How to rotate");
+            .setDescription("How to rotate")
+            .setExclusion(Rotate.NONE);
 
     // rotation values
     private float aimYaw, aimPitch;
@@ -107,13 +108,20 @@ public class AntiAimModule extends Module {
     public void onRotationUpdate(RotationUpdateEvent event) {
 
         // server-side update our rotations
-        if (rotate.getValue().equals(Rotate.PACKET)) {
+        if (!rotate.getValue().equals(Rotate.NONE)) {
 
             // cancel vanilla rotations, we'll send our own
             event.setCanceled(true);
 
+            // update rots
+            if (rotate.getValue().equals(Rotate.CLIENT)) {
+                mc.player.rotationYaw = aimYaw;
+                mc.player.rotationYawHead = aimYaw;
+                mc.player.rotationPitch = aimPitch;
+            }
+
             // send rotations
-            getCosmos().getRotationManager().addRotation(new Rotation(aimYaw, aimPitch), -100);
+            getCosmos().getRotationManager().setRotation(new Rotation(aimYaw, aimPitch));
         }
     }
 

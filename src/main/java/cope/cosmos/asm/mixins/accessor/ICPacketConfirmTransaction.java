@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(CPacketConfirmTransaction.class)
 public interface ICPacketConfirmTransaction {
+  
     @Accessor("uid")
     void setUid(short uid);
 }

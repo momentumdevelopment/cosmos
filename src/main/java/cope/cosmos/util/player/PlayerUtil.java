@@ -1,6 +1,8 @@
 package cope.cosmos.util.player;
 
+import cope.cosmos.client.features.modules.movement.FlightModule;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemTool;
@@ -36,7 +38,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is mending
      */
     public static boolean isMending() {
-        return mc.player.isHandActive() && mc.player.getActiveItemStack().getItem().equals(Items.EXPERIENCE_BOTTLE) && mc.gameSettings.keyBindUseItem.isKeyDown();
+        return InventoryUtil.isHolding(Items.EXPERIENCE_BOTTLE) && mc.gameSettings.keyBindUseItem.isKeyDown();
     }
 
     /**
@@ -44,7 +46,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is mining
      */
     public static boolean isMining() {
-        return InventoryUtil.isHolding(ItemTool.class) && mc.playerController.getIsHittingBlock();
+        return InventoryUtil.isHolding(ItemTool.class) && mc.playerController.getIsHittingBlock() && BlockUtil.isBreakable(mc.objectMouseOver.getBlockPos()) && !mc.world.isAirBlock(mc.objectMouseOver.getBlockPos());
     }
 
     /**
@@ -61,5 +63,13 @@ public class PlayerUtil implements Wrapper {
      */
     public static boolean isCollided() {
         return mc.player.collidedHorizontally || mc.player.collidedVertically;
+    }
+
+    /**
+     * Checks if the player is flying
+     * @return Whether the player is flying
+     */
+    public static boolean isFlying() {
+        return FlightModule.INSTANCE.isActive() || mc.player.isElytraFlying() || mc.player.capabilities.isFlying;
     }
 }

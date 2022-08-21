@@ -30,7 +30,7 @@ public class BreadcrumbsModule extends Module {
             .setDescription("The lifespan of the positions in seconds")
             .setVisible(() -> !infinite.getValue());
 
-    public static Setting<Float> width = new Setting<>("Width", 0.1F, 3F, 5F, 1)
+    public static Setting<Float> width = new Setting<>("Width", 0.1F, 2F, 5F, 1)
             .setDescription("The width of the lines");
 
     // List of positions
@@ -39,14 +39,16 @@ public class BreadcrumbsModule extends Module {
 
     @Override
     public void onDisable() {
+        super.onDisable();
 
         // Clear positions
         positions.clear();
     }
 
     @Override
-    public void onUpdate() {
+    public void onTick() {
         if (!nullCheck() || mc.player.ticksExisted <= 20) {
+
             // We may have just loaded into a world, so we need to clear the positions
             positions.clear();
             return;
@@ -77,6 +79,7 @@ public class BreadcrumbsModule extends Module {
 
         // Render positions
         positions.forEach(position -> {
+
             // Set line colour
             glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, 1);
 
@@ -95,7 +98,7 @@ public class BreadcrumbsModule extends Module {
         glPopMatrix();
     }
 
-    class Position {
+    public static class Position {
 
         // The position's vector
         private final Vec3d vec;
@@ -123,6 +126,5 @@ public class BreadcrumbsModule extends Module {
         public long getTime() {
             return time;
         }
-
     }
 }

@@ -4,8 +4,11 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.other.CameraClipEvent;
 import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
+import cope.cosmos.client.events.render.player.RenderItemActivationEvent;
 import cope.cosmos.client.events.render.world.RenderWorldEvent;
 import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,6 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
+
+    @Shadow
+    private ItemStack itemActivationItem;
 
     @Inject(method = "renderWorld", at = @At("RETURN"))
     private void renderWorld(CallbackInfo info) {
@@ -63,6 +69,18 @@ public abstract class MixinEntityRenderer {
         Cosmos.EVENT_BUS.post(cameraClipEvent);
 
         return cameraClipEvent.getDistance();
+    }
+
+    @Inject(method = "renderItemActivation", at = @At("HEAD"), cancellable = true)
+    public void onRenderItemActivation(CallbackInfo info) {
+        RenderItemActivationEvent renderItemActivationEvent = new RenderItemActivationEvent();
+        Cosmos.EVENT_BUS.post(renderItemActivationEvent);
+
+        if (itemActivationItem != null && itemActivationItem.getItem().equals(Items.TOTEM_OF_UNDYING)) {
+            if (renderItemActivationEvent.isCanceled()) {
+                info.cancel();
+            }
+        }
     }
 
     @Shadow

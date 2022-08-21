@@ -6,6 +6,7 @@ import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.chat.ChatUtil;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -40,7 +41,7 @@ public class NotifierModule extends Module {
                 String popMessage = TextFormatting.DARK_PURPLE + event.getPopEntity().getName() + TextFormatting.RESET + " has popped " + getCosmos().getPopManager().getTotemPops(event.getPopEntity()) + " totems!";
 
                 // send notification
-                getCosmos().getChatManager().sendMessage(TextFormatting.DARK_PURPLE + "[Cosmos] " + TextFormatting.RESET + popMessage);
+                getCosmos().getChatManager().sendClientMessage(popMessage);
             }
         }
     }

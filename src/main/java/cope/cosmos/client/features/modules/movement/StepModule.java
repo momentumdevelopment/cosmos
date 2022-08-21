@@ -1,11 +1,12 @@
 package cope.cosmos.client.features.modules.movement;
 
-import com.mojang.realmsclient.util.Pair;
 import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.string.StringFormatter;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityLlama;
@@ -14,11 +15,8 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * @author Doogie13, linustouchtips
+ * @author Doogie13, linustouchtips, aesthetical
  * @since 12/27/2021
  */
 public class StepModule extends Module {
@@ -41,6 +39,10 @@ public class StepModule extends Module {
             .setDescription("Uses timer to slow down packets")
             .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
 
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Confirms step height")
+            .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
+
     public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false)
             .setDescription("Allows you to step up blocks while riding entities");
 
@@ -49,6 +51,9 @@ public class StepModule extends Module {
 
     // riding entity (player, sometimes null)
     private Entity entityRiding;
+
+    // step timer
+    private final Timer stepTimer = new Timer();
 
     @Override
     public void onDisable() {
@@ -61,7 +66,7 @@ public class StepModule extends Module {
             if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
                 entityRiding.stepHeight = 1;
             }
-            
+
             else {
                 entityRiding.stepHeight = 0.5F;
             }
@@ -86,29 +91,44 @@ public class StepModule extends Module {
             }
         }
 
-        // update our player's step height
-        mc.player.stepHeight = height.getValue().floatValue();
+        // wait 200 ms between steps to prevent packet spam
+        if (stepTimer.passedTime(200, Format.MILLISECONDS)) {
+
+            // update our player's step height
+            mc.player.stepHeight = height.getValue().floatValue();
+        }
+
+        // prevent step
+        else {
+            mc.player.stepHeight = 0.5F;
+        }
     }
 
     @SubscribeEvent
     public void onStep(StepEvent event) {
+
+        // step with packets
         if (mode.getValue().equals(Mode.NORMAL)) {
+
             // current step height
             double stepHeight = event.getAxisAlignedBB().minY - mc.player.posY;
 
             // do not step if we're on the ground or the step height is greater than our max
-            if (stepHeight == 0.0 || stepHeight > height.getValue()) {
+            if (stepHeight <= 0 || stepHeight > height.getValue()) {
                 return;
             }
 
             // calculate the packet offsets
             double[] offsets = getOffset(stepHeight);
 
+            // valid step height?
             if (offsets != null && offsets.length > 1) {
+
+                // uses timer to slow down packet speeds so we don't flag for packet spam
                 if (useTimer.getValue()) {
 
                     // add 1 to offsets length because of the movement packet vanilla sends at the top of the step
-                    getCosmos().getTickManager().setClientTicks(1 / (offsets.length + 1F));
+                    getCosmos().getTickManager().setClientTicks(1F / offsets.length);
 
                     // only slow down timer for one tick
                     timer = true;
@@ -119,6 +139,8 @@ public class StepModule extends Module {
                     mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + offset, mc.player.posZ, false));
                 }
             }
+
+            stepTimer.resetTime();
         }
     }
 
@@ -129,77 +151,126 @@ public class StepModule extends Module {
      */
     public double[] getOffset(double height) {
 
-        // list of step heights
-        List<Pair<Double, double[]>> stepHeights = Arrays.asList(
+        // confirm step height (helps bypass on NCP Updated)
+        // enchantment tables, 0.75 block offset
+        if (height == 0.75) {
 
-                // enchantment tables
-                Pair.of(0.75D, new double[] {
+            if (strict.getValue()) {
+                return new double[] {
                         0.42,
                         0.753,
-                        0.654
-                }),
+                        0.75
+                };
+            }
 
-                // end portal frames
-                Pair.of(0.8125D, new double[] {
-                        0.42,
-                        0.753,
-                        0.654
-                }),
-
-                // chests
-                Pair.of(0.875, new double[] {
-                        0.42,
-                        0.753,
-                        0.43
-                }),
-
-                // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
-                Pair.of(1D, new double[] {
+            else {
+                return new double[] {
                         0.42,
                         0.753
-                }),
+                };
+            }
+        }
 
+        // end portal frames, 0.8125 block offset
+        else if (height == 0.8125) {
 
-                Pair.of(1.5D, new double[] {
+            if (strict.getValue()) {
+                return new double[] {
+                        0.39,
+                        0.7,
+                        0.8125
+                };
+            }
+
+            else {
+                return new double[] {
+                        0.39,
+                        0.7
+                };
+            }
+        }
+
+        // chests, 0.875 block offset
+        else if (height == 0.875) {
+
+            if (strict.getValue()) {
+                return new double[] {
+                        0.39,
+                        0.7,
+                        0.875
+                };
+            }
+
+            else {
+                return new double[] {
+                        0.39,
+                        0.7
+                };
+            }
+        }
+
+        // 1 block offset -> LITERALLY IMPOSSIBLE TO PATCH BECAUSE ITS JUST THE SAME PACKETS AS A JUMP
+        else if (height == 1) {
+
+            if (strict.getValue()) {
+                return new double[] {
                         0.42,
-                        0.75,
-                        1.0,
-                        1.16,
-                        1.23,
-                        1.2
-                }),
+                        0.753,
+                        1
+                };
+            }
 
-                Pair.of(2D, new double[] {
+            else {
+                return new double[] {
                         0.42,
-                        0.78,
-                        0.63,
-                        0.51,
-                        0.9,
-                        1.21,
-                        1.45,
-                        1.43
-                }),
+                        0.753
+                };
+            }
+        }
 
-                Pair.of(2.5D, new double[] {
-                        0.425,
-                        0.821,
-                        0.699,
-                        0.599,
-                        1.022,
-                        1.372,
-                        1.652,
-                        1.869,
-                        2.019,
-                        1.907
-                })
-        );
+        // 1.5 block offset
+        else if (height == 1.5) {
+            return new double[] {
+                    0.42,
+                    0.75,
+                    1.0,
+                    1.16,
+                    1.23,
+                    1.2
+            };
+        }
 
-        // find the offsets for the step height
-        return stepHeights.stream()
-                .filter(stepHeight -> stepHeight.first() == height)
-                .findFirst()
-                .orElse(Pair.of(0D, new double[] {}))
-                .second();
+        // 2 block offset
+        else if (height == 2) {
+            return new double[] {
+                    0.42,
+                    0.78,
+                    0.63,
+                    0.51,
+                    0.9,
+                    1.21,
+                    1.45,
+                    1.43
+            };
+        }
+
+        // 2.5 block offset
+        else if (height == 2.5) {
+            return new double[] {
+                    0.425,
+                    0.821,
+                    0.699,
+                    0.599,
+                    1.022,
+                    1.372,
+                    1.652,
+                    1.869,
+                    2.019,
+                    1.907
+            };
+        }
+
+        return null;
     }
 
     public enum Mode {

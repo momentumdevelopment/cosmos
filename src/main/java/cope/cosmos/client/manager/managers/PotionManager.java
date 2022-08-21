@@ -66,9 +66,6 @@ public class PotionManager extends Manager {
             potioneffect.combine(event.getPotionEffect());
             ((IEntityLivingBase) mc.player).hookOnChangedPotionEffect(potioneffect, true);
         }
-
-        // ??????
-        event.setCanceled(false);
     }
 
     @SubscribeEvent

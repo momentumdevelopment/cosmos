@@ -2,19 +2,13 @@ package cope.cosmos.client.features.modules.visual;
 
 import cope.cosmos.client.events.entity.potion.PotionEffectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.render.entity.LayerArmorEvent;
-import cope.cosmos.client.events.render.entity.RenderBeaconBeamEvent;
-import cope.cosmos.client.events.render.entity.RenderItemEvent;
-import cope.cosmos.client.events.render.entity.RenderWitherSkullEvent;
+import cope.cosmos.client.events.render.entity.*;
 import cope.cosmos.client.events.render.gui.BossOverlayEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import cope.cosmos.client.events.render.other.RenderMapEvent;
 import cope.cosmos.client.events.render.other.RenderParticleEvent;
-import cope.cosmos.client.events.render.player.CrosshairBobEvent;
-import cope.cosmos.client.events.render.player.HurtCameraEvent;
-import cope.cosmos.client.events.render.player.ModifyFOVEvent;
-import cope.cosmos.client.events.render.player.RenderEatingEvent;
+import cope.cosmos.client.events.render.player.*;
 import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -88,6 +82,9 @@ public class NoRenderModule extends Module {
 
     public static Setting<Boolean> maps = new Setting<>("Maps", false)
             .setDescription("Prevents maps from rendering");
+
+    public static Setting<Boolean> totemAnimation = new Setting<>("TotemAnimation", false)
+            .setDescription("Removes the totem pop animation");
 
     public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true)
             .setDescription("Removes the hurt camera effect");
@@ -311,6 +308,15 @@ public class NoRenderModule extends Module {
 
         // Prevent the eating animation
         if (eating.getValue()) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderItemActivation(RenderItemActivationEvent event) {
+
+        // prevent the totem pop animation
+        if (totemAnimation.getValue()) {
             event.setCanceled(true);
         }
     }

@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.misc;
 
+import com.mojang.authlib.GameProfile;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -39,7 +40,7 @@ public class FakePlayerModule extends Module {
         super.onEnable();
 
         // create a fake player
-        EntityOtherPlayerMP fakePlayer = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+        EntityOtherPlayerMP fakePlayer = new EntityOtherPlayerMP(mc.world, new GameProfile(mc.player.getGameProfile().getId(), "FakePlayer"));
 
         // copy rotations from player
         fakePlayer.copyLocationAndAnglesFrom(mc.player);

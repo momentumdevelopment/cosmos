@@ -46,7 +46,7 @@ public class HoleFillModule extends Module {
 
     // **************************** general ****************************
 
-    public static Setting<Filler> mode = new Setting<>("Mode", Filler.TARGETED)
+    public static Setting<Filler> mode = new Setting<>("Mode", Filler.ALL)
             .setDescription("Mode for the filler");
 
     public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN)
@@ -75,10 +75,12 @@ public class HoleFillModule extends Module {
     // **************************** targeting ****************************
 
     public static Setting<Target> target = new Setting<>("Target", Target.CLOSEST)
-            .setDescription("Priority for searching target");
+            .setDescription("Priority for searching target")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0)
-            .setDescription("Range to consider a player a target");
+            .setDescription("Range to consider a player a target")
+            .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1)
             .setDescription("Target's distance from hole for it to be considered fill-able")
@@ -202,7 +204,7 @@ public class HoleFillModule extends Module {
             for (EntityPlayer player : mc.world.playerEntities) {
 
                 // make sure the entity is valid to fill
-                if (player == null || player == mc.player || EnemyUtil.isDead(player) || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
+                if (player == null || player.equals(mc.player) || player.getEntityId() < 0 || EnemyUtil.isDead(player) || getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND)) {
                     continue;
                 }
 
@@ -308,6 +310,7 @@ public class HoleFillModule extends Module {
     }
 
     public enum Completion {
+
         /**
          * Disables when there are no more holes to fill
          */

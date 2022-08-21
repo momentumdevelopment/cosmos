@@ -7,7 +7,6 @@ import cope.cosmos.asm.mixins.accessor.IShaderGroup;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
-import cope.cosmos.client.events.render.entity.RenderEntityItemEvent;
 import cope.cosmos.client.events.render.entity.RenderLivingEntityEvent;
 import cope.cosmos.client.events.render.entity.ShaderColorEvent;
 import cope.cosmos.client.events.render.entity.tile.RenderTileEntityEvent;
@@ -16,6 +15,7 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.modules.client.ColorsModule.Rainbow;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import cope.cosmos.client.shader.shaders.DotShader;
 import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
@@ -29,8 +29,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.client.shader.Shader;
@@ -48,13 +46,13 @@ import net.minecraft.tileentity.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.EXTPackedDepthStencil;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -243,145 +241,150 @@ public class ESPModule extends Module {
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
-        if (event.getType().equals(ElementType.HOTBAR)) {
-            if (mode.getValue().equals(Mode.SHADER)) {
-                GlStateManager.enableAlpha();
-                GlStateManager.pushMatrix();
-                GlStateManager.pushAttrib();
 
-                // delete our old framebuffer, we'll create a new one
-                if (framebuffer != null) {
-                    framebuffer.framebufferClear();
+        if (nullCheck()) {
 
-                    // resolution info
-                    ScaledResolution scaledResolution = new ScaledResolution(mc);
+            // render over hotbar
+            if (event.getType().equals(ElementType.HOTBAR)) {
+                if (mode.getValue().equals(Mode.SHADER)) {
+                    GlStateManager.enableAlpha();
+                    GlStateManager.pushMatrix();
+                    GlStateManager.pushAttrib();
 
-                    if (lastScaleFactor != scaledResolution.getScaleFactor()|| lastScaleWidth != scaledResolution.getScaledWidth() || lastScaleHeight != scaledResolution.getScaledHeight()) {
-                        framebuffer.deleteFramebuffer();
+                    // delete our old framebuffer, we'll create a new one
+                    if (framebuffer != null) {
+                        framebuffer.framebufferClear();
 
+                        // resolution info
+                        ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+                        if (lastScaleFactor != scaledResolution.getScaleFactor() || lastScaleWidth != scaledResolution.getScaledWidth() || lastScaleHeight != scaledResolution.getScaledHeight()) {
+                            framebuffer.deleteFramebuffer();
+
+                            // create a new framebuffer
+                            framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+                            framebuffer.framebufferClear();
+                        }
+
+                        // update scale info
+                        lastScaleFactor = scaledResolution.getScaleFactor();
+                        lastScaleWidth = scaledResolution.getScaledWidth();
+                        lastScaleHeight = scaledResolution.getScaledHeight();
+                    }
+
+                    else {
                         // create a new framebuffer
                         framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
-                        framebuffer.framebufferClear();
                     }
 
-                    // update scale info
-                    lastScaleFactor = scaledResolution.getScaleFactor();
-                    lastScaleWidth = scaledResolution.getScaledWidth();
-                    lastScaleHeight = scaledResolution.getScaledHeight();
+                    // bind our new framebuffer (i.e. set it as the current active buffer)
+                    framebuffer.bindFramebuffer(false);
+
+                    // prevent entity shadows from rendering
+                    boolean previousShadows = mc.gameSettings.entityShadows;
+                    mc.gameSettings.entityShadows = false;
+
+                    // https://hackforums.net/showthread.php?tid=4811280
+                    ((IEntityRenderer) mc.entityRenderer).setupCamera(event.getPartialTicks(), 0);
+
+                    // draw all entities
+                    mc.world.loadedEntityList.forEach(entity -> {
+                        if (entity != null && entity != mc.player && hasHighlight(entity)) {
+                            mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
+                        }
+                    });
+
+                    // draw all storages
+                    mc.world.loadedTileEntityList.forEach(tileEntity -> {
+                        if (tileEntity != null && hasStorageHighlight(tileEntity)) {
+
+                            // get our render offsets.
+                            double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
+                            double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
+                            double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
+
+                            // render
+                            TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
+                        }
+                    });
+
+                    // reset shadows
+                    mc.gameSettings.entityShadows = previousShadows;
+
+                    GlStateManager.enableBlend();
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                    // rebind the mc framebuffer
+                    framebuffer.unbindFramebuffer();
+                    mc.getFramebuffer().bindFramebuffer(true);
+
+                    // remove lighting
+                    mc.entityRenderer.disableLightmap();
+                    RenderHelper.disableStandardItemLighting();
+
+                    GlStateManager.pushMatrix();
+
+                    // draw the rainbow shader
+                    if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
+                        switch (shader.getValue()) {
+                            case DOTTED:
+                                dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE:
+                                rainbowOutlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE_FILL:
+                                fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                        }
+                    }
+
+                    // draw the shader
+                    else {
+                        switch (shader.getValue()) {
+                            case DOTTED:
+                                dotShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE:
+                                outlineShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                            case OUTLINE_FILL:
+                                fillShader.startShader(width.getValue().intValue(), ColorUtil.getPrimaryColor());
+                                break;
+                        }
+                    }
+
+                    // prepare overlay render
+                    mc.entityRenderer.setupOverlayRendering();
+
+                    ScaledResolution scaledResolution = new ScaledResolution(mc);
+
+                    // draw the framebuffer
+                    glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
+                    glBegin(GL_QUADS);
+                    glTexCoord2d(0, 1);
+                    glVertex2d(0, 0);
+                    glTexCoord2d(0, 0);
+                    glVertex2d(0, scaledResolution.getScaledHeight());
+                    glTexCoord2d(1, 0);
+                    glVertex2d(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
+                    glTexCoord2d(1, 1);
+                    glVertex2d(scaledResolution.getScaledWidth(), 0);
+                    glEnd();
+
+                    // stop drawing our shader
+                    glUseProgram(0);
+                    glPopMatrix();
+
+                    // reset lighting
+                    mc.entityRenderer.enableLightmap();
+
+                    GlStateManager.popMatrix();
+                    GlStateManager.popAttrib();
+
+                    // Let the hotbar render over the shader
+                    mc.entityRenderer.setupOverlayRendering();
                 }
-
-                else {
-                    // create a new framebuffer
-                    framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
-                }
-
-                // bind our new framebuffer (i.e. set it as the current active buffer)
-                framebuffer.bindFramebuffer(false);
-
-                // prevent entity shadows from rendering
-                boolean previousShadows = mc.gameSettings.entityShadows;
-                mc.gameSettings.entityShadows = false;
-
-                // https://hackforums.net/showthread.php?tid=4811280
-                ((IEntityRenderer) mc.entityRenderer).setupCamera(event.getPartialTicks(), 0);
-
-                // draw all entities
-                mc.world.loadedEntityList.forEach(entity -> {
-                    if (entity != null && entity != mc.player && hasHighlight(entity)) {
-                        mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
-                    }
-                });
-
-                // draw all storages
-                mc.world.loadedTileEntityList.forEach(tileEntity -> {
-                    if (tileEntity != null && hasStorageHighlight(tileEntity)) {
-
-                        // get our render offsets.
-                        double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
-                        double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
-                        double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
-
-                        // render
-                        TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
-                    }
-                });
-
-                // reset shadows
-                mc.gameSettings.entityShadows = previousShadows;
-
-                GlStateManager.enableBlend();
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                // rebind the mc framebuffer
-                framebuffer.unbindFramebuffer();
-                mc.getFramebuffer().bindFramebuffer(true);
-
-                // remove lighting
-                mc.entityRenderer.disableLightmap();
-                RenderHelper.disableStandardItemLighting();
-
-                GlStateManager.pushMatrix();
-
-                // draw the rainbow shader
-                if (!ColorsModule.rainbow.getValue().equals(Rainbow.NONE)) {
-                    switch (shader.getValue()) {
-                        case DOTTED:
-                            dotShader.startShader(width.getValue().intValue());
-                            break;
-                        case OUTLINE:
-                            rainbowOutlineShader.startShader(width.getValue().intValue());
-                            break;
-                        case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue());
-                            break;
-                    }
-                }
-
-                // draw the shader
-                else {
-                    switch (shader.getValue()) {
-                        case DOTTED:
-                            dotShader.startShader(width.getValue().intValue());
-                            break;
-                        case OUTLINE:
-                            outlineShader.startShader(width.getValue().intValue());
-                            break;
-                        case OUTLINE_FILL:
-                            fillShader.startShader(width.getValue().intValue());
-                            break;
-                    }
-                }
-
-                // prepare overlay render
-                mc.entityRenderer.setupOverlayRendering();
-
-                ScaledResolution scaledResolution = new ScaledResolution(mc);
-
-                // draw the framebuffer
-                glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
-                glBegin(GL_QUADS);
-                glTexCoord2d(0, 1);
-                glVertex2d(0, 0);
-                glTexCoord2d(0, 0);
-                glVertex2d(0, scaledResolution.getScaledHeight());
-                glTexCoord2d(1, 0);
-                glVertex2d(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
-                glTexCoord2d(1, 1);
-                glVertex2d(scaledResolution.getScaledWidth(), 0);
-                glEnd();
-
-                // stop drawing our shader
-                glUseProgram(0);
-                glPopMatrix();
-
-                // reset lighting
-                mc.entityRenderer.enableLightmap();
-
-                GlStateManager.popMatrix();
-                GlStateManager.popAttrib();
-
-                // Let the hotbar render over the shader
-                mc.entityRenderer.setupOverlayRendering();
             }
         }
     }
@@ -447,7 +450,7 @@ public class ESPModule extends Module {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
                 // color the stencil and clear the depth
-                glColor4d(ColorUtil.getPrimaryColor().getRed() / 255F, ColorUtil.getPrimaryColor().getGreen() / 255F, ColorUtil.getPrimaryColor().getBlue() / 255F, ColorUtil.getPrimaryColor().getAlpha() / 255F);
+                glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, getColor(event.getEntityLivingBase()).getAlpha() / 255F);
                 glDepthMask(false);
                 glDisable(GL_DEPTH_TEST);
                 glEnable(GL_POLYGON_OFFSET_LINE);
@@ -596,7 +599,6 @@ public class ESPModule extends Module {
                 glEnable(GL_TEXTURE_2D);
                 glEnable(GL_ALPHA_TEST);
                 glPopAttrib();
-
                 glPopMatrix();
             }
         }
@@ -847,11 +849,20 @@ public class ESPModule extends Module {
         if (mode.getValue().equals(Mode.GLOW)) {
 
             // change the shader color
-            event.setColor(ColorUtil.getPrimaryColor());
+            event.setColor(getColor(event.getEntity()));
 
             // remove vanilla team color
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * Gets the color for a given entity
+     * @param in The entity
+     * @return The color for the entity
+     */
+    public Color getColor(Entity in) {
+        return getCosmos().getSocialManager().getSocial(in.getName()).equals(Relationship.FRIEND) ? Color.CYAN : ColorUtil.getPrimaryColor();
     }
 
     /**

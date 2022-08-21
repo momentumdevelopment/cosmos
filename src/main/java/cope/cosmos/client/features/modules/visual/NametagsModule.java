@@ -156,18 +156,17 @@ public class NametagsModule extends Module {
                     GlStateManager.disableDepth();
                     GlStateManager.enableBlend();
 
-                    if (background.getValue() || healthBar.getValue()) {
+                    if (background.getValue() || outline.getValue() || healthBar.getValue()) {
                         GlStateManager.enableBlend();
 
-                        if (background.getValue()) {
-                            // draw the background
-                            if (outline.getValue()) {
-                                RenderUtil.drawBorderRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100), ColorUtil.getPrimaryColor());
-                            }
+                        // draw the outline
+                        if (outline.getValue()) {
+                            RenderUtil.drawBorder(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, ColorUtil.getPrimaryColor());
+                        }
 
-                            else {
-                                RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
-                            }
+                        // draw the background
+                        if (background.getValue()) {
+                            RenderUtil.drawRect(-halfWidth - 1, -FontUtil.getFontHeight() - (7 + (healthBar.getValue() ? 2 : 0)), width, FontUtil.getFontHeight() + 2, new Color(0, 0, 0, 100));
                         }
 
                         if (healthBar.getValue()) {
@@ -525,6 +524,7 @@ public class NametagsModule extends Module {
      * @return A map of all the player info of all entities in the world
      */
     public Map<EntityPlayer, String> searchPlayerInfo() {
+
         // map of all the player's info
         Map<EntityPlayer, String> searchedInfoMap = new ConcurrentHashMap<>();
 
@@ -549,8 +549,12 @@ public class NametagsModule extends Module {
                         playerInfo.append(TextFormatting.AQUA);
                     }
 
+                    // add the player's name
+                    playerInfo.append(player.getName()).append(" ");
+
                     // add the player's gamemode
                     if (gamemode.getValue()) {
+
                         // first letter of gamemode
                         if (player.isCreative()) {
                             playerInfo.append("[C] ");
@@ -565,12 +569,10 @@ public class NametagsModule extends Module {
                         }
                     }
 
-                    // add the player's name
-                    playerInfo.append(player.getName()).append(" ");
-
                     // add the player's ping
                     if (ping.getValue() && mc.getConnection() != null) {
 
+                        // IDK WHY THIS WOULD BE NULL BUT IT IS
                         if (mc.getConnection().getPlayerInfo(player.getUniqueID()) != null) {
 
                             // player -> server response time
@@ -585,6 +587,7 @@ public class NametagsModule extends Module {
                             }
 
                             else {
+
                                 // decent ping
                                 if (responseTime >= 70 && responseTime < 120) {
                                     color = TextFormatting.YELLOW;
@@ -601,7 +604,7 @@ public class NametagsModule extends Module {
                                 }
                             }
 
-                            playerInfo.append(color).append(responseTime).append("ms ");
+                            playerInfo.append(responseTime).append("ms ");
                         }
                     }
 
@@ -625,8 +628,12 @@ public class NametagsModule extends Module {
                         }
 
                         // danger health
-                        else if (health <= 8) {
+                        else if (health <= 8 && health > 4) {
                             color = TextFormatting.RED;
+                        }
+
+                        else if (health <= 4) {
+                            color = TextFormatting.DARK_RED;
                         }
 
                         playerInfo.append(color).append(health).append(" ");
@@ -639,21 +646,26 @@ public class NametagsModule extends Module {
                         int pops = getCosmos().getPopManager().getTotemPops(player);
 
                         if (pops > 0) {
+
                             // no pops
                             TextFormatting color = TextFormatting.GREEN;
 
+                            if (pops > 2) {
+                                color = TextFormatting.DARK_GREEN;
+                            }
+
                             // 4+ pops
-                            if (pops <= 4) {
+                            if (pops > 4) {
                                 color = TextFormatting.YELLOW;
                             }
 
                             // 6+ pops
-                            if (pops <= 7) {
+                            if (pops > 6) {
                                 color = TextFormatting.GOLD;
                             }
 
                             // 8+ pops ...
-                            if (pops > 7) {
+                            if (pops > 8) {
                                 color = TextFormatting.RED;
                             }
 

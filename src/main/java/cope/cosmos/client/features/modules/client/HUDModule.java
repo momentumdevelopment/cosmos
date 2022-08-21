@@ -13,6 +13,7 @@ import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -20,16 +21,17 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
-import java.awt.*;
 import java.util.Comparator;
 import java.util.Objects;
 
 /**
+ * TODO: make this code clean
  * @author linustouchtips
  * @since 06/04/2021
  */
@@ -50,9 +52,15 @@ public class HUDModule extends Module {
 
     public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", true)
             .setDescription("Displays all enabled modules");
+    
+    public static Setting<Rendering> rendering = new Setting<>("Rendering", Rendering.UP)
+            .setDescription("Rendering position of the elements");
 
     public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true)
             .setDescription("Displays the user's coordinates");
+
+    public static Setting<Boolean> direction = new Setting<>("Direction", true)
+            .setDescription("Displays the user's facing direction");
 
     public static Setting<Boolean> speed = new Setting<>("Speed", true)
             .setDescription("Displays the user's speed");
@@ -91,6 +99,7 @@ public class HUDModule extends Module {
 
     // bottom offsets
     private float bottomRight = 10;
+    private float topRight = 10;
     private float bottomLeft = 10;
 
     // test for my two way animation manager, will put this into hud editor if it gets made
@@ -104,13 +113,28 @@ public class HUDModule extends Module {
 
         // reset offsets
         globalOffset = 0;
+        topRight = 0;
         bottomLeft = 10;
-        bottomRight = 10;
+
+        if (rendering.getValue().equals(Rendering.UP)) {
+            bottomRight = 10;
+        }
+
+        else {
+            bottomRight = 0;
+        }
 
         // offset chat box height
         if (mc.currentScreen instanceof GuiChat) {
             bottomLeft += 14;
-            bottomRight += 14;
+
+            if (rendering.getValue().equals(Rendering.UP)) {
+                bottomRight += 14;
+            }
+
+            else {
+                topRight += 14;
+            }
         }
 
         if (watermark.getValue()) {
@@ -127,18 +151,18 @@ public class HUDModule extends Module {
                         .getModules(module -> module.isDrawn())
                         .stream()
                         .filter(module -> module.getAnimation().getAnimationFactor() > 0.05)
-                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " " + module.getInfo() : "")) * -1))
+                        .sorted(Comparator.comparing(module -> FontUtil.getStringWidth(module.getName() + (!module.getInfo().equals("") ? " [" + module.getInfo() + "]": "")) * -1))
                         .forEach(module -> {
 
                     // formatted string
                     StringBuilder moduleString = new StringBuilder(module.getName());
 
                     if (!module.getInfo().equals("")) {
-                        moduleString.append(TextFormatting.WHITE).append(" ").append(module.getInfo());
+                        moduleString.append(TextFormatting.GRAY).append(" [").append(TextFormatting.WHITE).append(module.getInfo()).append(TextFormatting.GRAY).append("]");
                     }
 
                     // draw string
-                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (SCREEN_WIDTH - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), 2 + listOffset, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                    FontUtil.drawStringWithShadow(moduleString.toString(), (float) (SCREEN_WIDTH - (((FontUtil.getStringWidth(moduleString.toString()) * module.getAnimation().getAnimationFactor()))) - 1), rendering.getValue().equals(Rendering.UP) ? 2 + listOffset : SCREEN_HEIGHT - 10 - listOffset - topRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                     // offset
                     listOffset += (mc.fontRenderer.FONT_HEIGHT + 1) * module.getAnimation().getAnimationFactor();
@@ -149,9 +173,9 @@ public class HUDModule extends Module {
             if (potionEffects.getValue()) {
 
                 // active potions
-                getCosmos().getPotionManager().getActivePotions().forEach((potionEffect, animation) -> {
+                mc.player.getActivePotionEffects().forEach(potionEffect -> {
 
-                    if (animation.getAnimationFactor() > 0.05) {
+                    // if (animation.getAnimationFactor() > 0.05) {
 
                         // potion name
                         String potionName = I18n.format(potionEffect.getEffectName());
@@ -170,13 +194,13 @@ public class HUDModule extends Module {
                                     .append(Potion.getPotionDurationString(potionEffect, 1F));
 
                             // draw string
-                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - ((FontUtil.getStringWidth(potionFormatted.toString()) + 2) * animation.getAnimationFactor())), SCREEN_HEIGHT - bottomRight, potionEffect.getPotion().getLiquidColor());
+                            FontUtil.drawStringWithShadow(potionFormatted.toString(), (float) (SCREEN_WIDTH - (FontUtil.getStringWidth(potionFormatted.toString()) + 2)), rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, potionEffect.getPotion().getLiquidColor());
 
                             // offset
-                            bottomRight += (FontUtil.getFontHeight() + 1) * animation.getAnimationFactor();
+                            bottomRight += FontUtil.getFontHeight() + 1;
                             globalOffset++;
                         }
-                    }
+                   //  }
                 });
             }
 
@@ -198,7 +222,7 @@ public class HUDModule extends Module {
                 String speedString = "Speed " + TextFormatting.WHITE + speed + " kmh";
 
                 // draw string
-                FontUtil.drawStringWithShadow(speedString, SCREEN_WIDTH - FontUtil.getStringWidth(speedString) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                FontUtil.drawStringWithShadow(speedString, SCREEN_WIDTH - FontUtil.getStringWidth(speedString) - 2, rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                 // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
@@ -207,7 +231,7 @@ public class HUDModule extends Module {
 
             if (ping.getValue()) {
                 String pingDisplay = "Ping " + TextFormatting.WHITE + (!mc.isSingleplayer() ? Objects.requireNonNull(mc.getConnection()).getPlayerInfo(mc.player.getUniqueID()).getResponseTime() : 0) + "ms";
-                FontUtil.drawStringWithShadow(pingDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(pingDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                FontUtil.drawStringWithShadow(pingDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(pingDisplay) - 2, rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                 // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
@@ -216,7 +240,7 @@ public class HUDModule extends Module {
 
             if (tps.getValue()) {
                 String tpsDisplay = "TPS " + TextFormatting.WHITE + Cosmos.INSTANCE.getTickManager().getTPS(TPS.AVERAGE);
-                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                 // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
@@ -225,7 +249,7 @@ public class HUDModule extends Module {
 
             if (fps.getValue()) {
                 String tpsDisplay = "FPS " + TextFormatting.WHITE + Minecraft.getDebugFPS();
-                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, SCREEN_HEIGHT - bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                FontUtil.drawStringWithShadow(tpsDisplay, SCREEN_WIDTH - FontUtil.getStringWidth(tpsDisplay) - 2, rendering.getValue().equals(Rendering.UP) ? SCREEN_HEIGHT - bottomRight : 2 + bottomRight, ColorUtil.getPrimaryColor(globalOffset).getRGB());
 
                 // offset
                 bottomRight += FontUtil.getFontHeight() + 1;
@@ -233,14 +257,44 @@ public class HUDModule extends Module {
             }
 
             if (coordinates.getValue()) {
-                String overWorldCoords = mc.player.dimension != -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX * 8, 1) + " " + MathUtil.roundFloat(mc.player.posY * 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ * 8, 1);
-                String netherCoords = mc.player.dimension == -1 ? "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX, 1) + " " + MathUtil.roundFloat(mc.player.posY, 1) + " " + MathUtil.roundFloat(mc.player.posZ, 1) : TextFormatting.RED + "XYZ " + TextFormatting.WHITE + MathUtil.roundFloat(mc.player.posX / 8, 1) + " " + MathUtil.roundFloat(mc.player.posY / 8, 1) + " " + MathUtil.roundFloat(mc.player.posZ / 8, 1);
 
-                FontUtil.drawStringWithShadow(overWorldCoords, 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
+                // string for the coords
+                StringBuilder coordinateString = new StringBuilder();
+
+                // checks if the player is in the nether
+                boolean inNether = (mc.world.getBiome(mc.player.getPosition()).getBiomeName().equalsIgnoreCase("Hell"));
+
+                // format
+                coordinateString.append("XYZ (")
+                        .append(TextFormatting.WHITE)
+                        .append(MathUtil.roundFloat(mc.player.posX, 1)) // overworld
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posY, 1))
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posZ, 1))
+                        .append(TextFormatting.RESET)
+                        .append(") [")
+                        .append(TextFormatting.WHITE)
+                        .append(MathUtil.roundFloat(inNether ? mc.player.posX * 8 : mc.player.posX / 8, 1)) // nether
+                        .append(", ")
+                        .append(MathUtil.roundFloat(mc.player.posY, 1))
+                        .append(", ")
+                        .append(MathUtil.roundFloat(inNether ? mc.player.posZ * 8 : mc.player.posZ / 8, 1))
+                        .append(TextFormatting.RESET)
+                        .append("]");
+
+                FontUtil.drawStringWithShadow(coordinateString.toString(), 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
                 bottomLeft += FontUtil.getFontHeight() + 1;
                 globalOffset++;
+            }
 
-                FontUtil.drawStringWithShadow(netherCoords, 2, SCREEN_HEIGHT - bottomLeft, new Color(255, 0, 0).getRGB());
+            if (direction.getValue()) {
+
+                // facing stuff
+                EnumFacing direction = mc.player.getHorizontalFacing();
+                EnumFacing.AxisDirection axisDirection = direction.getAxisDirection();
+
+                FontUtil.drawStringWithShadow( StringFormatter.capitalise(direction.getName()) + " (" + TextFormatting.WHITE + StringFormatter.formatEnum(direction.getAxis()) + (axisDirection.equals(EnumFacing.AxisDirection.POSITIVE) ? "+" : "-") + TextFormatting.RESET + ")", 2, SCREEN_HEIGHT - bottomLeft, ColorUtil.getPrimaryColor(globalOffset).getRGB());
                 bottomLeft += FontUtil.getFontHeight() + 1;
                 globalOffset++;
             }
@@ -311,5 +365,18 @@ public class HUDModule extends Module {
             // cancel vanilla advancement notification from rendering
             event.setCanceled(true);
         }
+    }
+
+    public enum Rendering {
+
+        /**
+         * Renders the arraylist at the top and the info at the bottom
+         */
+        UP,
+
+        /**
+         * Renders the arraylist at the bottom and the info at the top
+         */
+        DOWN
     }
 }

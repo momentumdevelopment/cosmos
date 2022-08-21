@@ -39,7 +39,7 @@ public class Cosmos {
     // mod info
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
-    public static final String VERSION = "1.4.0-dev";
+    public static final String VERSION = "1.4.0-beta";
     public static final ClientType CLIENT_TYPE = ClientType.DEVELOPMENT;
 
     // client event bus
@@ -70,7 +70,7 @@ public class Cosmos {
     private TickManager tickManager;
     private SocialManager socialManager;
     private AltManager altManager;
-    private PresetManager presetManager;
+    private ConfigManager configManager;
     private RotationManager rotationManager;
     private ThreadManager threadManager;
     private HoleManager holeManager;
@@ -81,6 +81,7 @@ public class Cosmos {
     private PopManager popManager;
     private InteractionManager interactionManager;
     private InventoryManager inventoryManager;
+    private ItemManager itemManager;
     private ChangelogManager changelogManager;
     private SoundManager soundManager;
     private ChatManager chatManager;
@@ -103,7 +104,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 21);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 22);
 
         // load the modules
         moduleManager = new ModuleManager();
@@ -142,8 +143,8 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up Alt Manager");
 
         // sets up the preset manager
-        presetManager = new PresetManager();
-        managers.add(presetManager);
+        configManager = new ConfigManager();
+        managers.add(configManager);
         progressManager.step("[Cosmos] Setting up Config Manager");
 
         // sets up the GUI
@@ -152,7 +153,7 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up GUI's");
 
         // This needs to be after the GUIs are loaded, as it needs to be able to set the GUI frames' positions and sizes
-        presetManager.loadGUI();
+        configManager.loadGUI();
 
         // sets up the reload manager
         reloadManager = new ReloadManager();
@@ -193,6 +194,11 @@ public class Cosmos {
         inventoryManager = new InventoryManager();
         managers.add(inventoryManager);
         progressManager.step("[Cosmos] Setting up Inventory Manager");
+
+        // sets up the inventory manager
+        // itemManager = new ItemManager();
+        // managers.add(itemManager);
+        progressManager.step("[Cosmos] Setting up Item Manager");
 
         // sets up the changelog manager
         changelogManager = new ChangelogManager();
@@ -316,8 +322,8 @@ public class Cosmos {
      * Gets the client configuration manager
      * @return The client configuration manager
      */
-    public PresetManager getPresetManager() {
-        return presetManager;
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 
     /**
@@ -382,6 +388,14 @@ public class Cosmos {
      */
     public InventoryManager getInventoryManager() {
         return inventoryManager;
+    }
+
+    /**
+     * Gets the client item manager
+     * @return The client item manager
+     */
+    public ItemManager getItemManager() {
+        return itemManager;
     }
 
     /**

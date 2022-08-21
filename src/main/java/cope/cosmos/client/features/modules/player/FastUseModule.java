@@ -54,10 +54,12 @@ public class FastUseModule extends Module {
             .setDescription("Uses packets when using items");
 
     public static Setting<Boolean> packetFood = new Setting<>("PacketFood", false)
-            .setDescription("Uses packets when eating food");
+            .setDescription("Uses packets when eating food")
+            .setVisible(() -> packetUse.getValue());
 
     public static Setting<Boolean> packetPotion = new Setting<>("PacketPotions", true)
-            .setDescription("Uses packets when drinking potions");
+            .setDescription("Uses packets when drinking potions")
+            .setVisible(() -> packetUse.getValue());
 
     // **************************** items ****************************
 

@@ -5,8 +5,7 @@ import net.minecraft.world.World;
 
 /**
  * Calculates general damages
- *
- * @author aesthetical
+ * @author aesthetical, linustouchtips
  * @since 3/19/22
  */
 public class DamageUtil implements Wrapper {
@@ -22,8 +21,25 @@ public class DamageUtil implements Wrapper {
             return damage;
         }
 
-        // damage scale
-        int diff = world.getDifficulty().getDifficultyId();
-        return damage * ((float) diff * 0.5f);
+        // scale damage based on difficulty
+        switch (mc.world.getDifficulty()) {
+            case PEACEFUL:
+                return 0;
+            case EASY:
+                return Math.min(damage / 2.0F + 1.0F, damage);
+            case NORMAL:
+            default:
+                return damage;
+            case HARD:
+                return damage * 3.0F / 2.0F;
+        }
+    }
+
+    /**
+     * Checks whether the player can actually take damage
+     * @return Whether the player can actually take damage
+     */
+    public static boolean canTakeDamage() {
+        return !mc.player.capabilities.isCreativeMode;
     }
 }

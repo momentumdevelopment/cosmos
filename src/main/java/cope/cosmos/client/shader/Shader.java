@@ -6,6 +6,7 @@ import cope.cosmos.util.Wrapper;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
 
+import java.awt.*;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -87,7 +88,7 @@ public abstract class Shader implements Wrapper {
     /**
      * Starts the shader program
      */
-    public void startShader(int radius) {
+    public void startShader(int radius, Color color) {
 
         // use the program
         glUseProgram(program);
@@ -99,7 +100,7 @@ public abstract class Shader implements Wrapper {
         }
 
         // update the configuration to our custom values
-        updateConfiguration(radius);
+        updateConfiguration(radius, color);
     }
 
     /**
@@ -110,7 +111,7 @@ public abstract class Shader implements Wrapper {
     /**
      * Updates the configurations (uniforms) to custom values
      */
-    public abstract void updateConfiguration(int radius);
+    public abstract void updateConfiguration(int radius, Color color);
 
     /**
      * Attempts to create a shader program from the specified fragment and type

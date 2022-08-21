@@ -1,52 +1,40 @@
 package cope.cosmos.client.features.modules.combat;
 
-import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
-import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
+import cope.cosmos.client.events.network.PacketEvent.PacketReceiveEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.combat.ExplosionUtil;
 import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
-import cope.cosmos.util.render.RenderBuilder;
-import cope.cosmos.util.render.RenderBuilder.Box;
-import cope.cosmos.util.render.RenderUtil;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
-import cope.cosmos.util.world.BlockUtil.Resistance;
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityEnderCrystal;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.item.*;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraft.network.play.server.SPacketBlockBreakAnim;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
-import net.minecraft.network.play.server.SPacketSoundEffect;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.*;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, aesthetical
  * @since 12/08/2021
  */
 public class SurroundModule extends Module {
@@ -57,65 +45,56 @@ public class SurroundModule extends Module {
         INSTANCE = this;
     }
 
-    // **************************** anticheat ****************************
+    // **************************** anticheat****************************
 
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("When to place blocks");
 
+    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+            .setDescription("How to rotate when placing blocks");
+
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
-            .setDescription("Only places on visible sides");
+            .setDescription("If to use strict direction to place blocks");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
-            .setDescription("Mode for placement rotations");
+    // **************************** general ****************************
 
-    public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0)
+    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setDescription("How to switch when placing blocks");
+
+    public static Setting<Double> blocks = new Setting<>("Blocks", 1.0, 4.0, 10.0, 0)
             .setDescription("Allowed block placements per tick");
 
-    // **************************** general settings ****************************
+    public static Setting<Boolean> extend = new Setting<>("Extend", true)
+            .setDescription("If not centered on a block, it'll extend to a 2x1 and etc");
 
-    public static Setting<SurroundVectors> mode = new Setting<>("Mode", SurroundVectors.BASE)
-            .setDescription("Block positions for surround");
+    public static Setting<Boolean> floor = new Setting<>("Floor", true)
+            .setDescription("If to place at the floor");
 
-    public static Setting<BlockItem> block = new Setting<>("Block", BlockItem.OBSIDIAN)
-            .setDescription("Block item to use for surround");
+    public static Setting<Boolean> support = new Setting<>("Support", true)
+            .setDescription("If to place supporting blocks to be able to place blocks")
+            .setVisible(() -> floor.getValue());
 
-    public static Setting<Completion> completion = new Setting<>("Completion", Completion.AIR)
-            .setDescription("When to toggle surround");
+    public static Setting<Completion> completion = new Setting<>("Completion", Completion.SHIFT)
+            .setDescription("When to disable the module");
 
     public static Setting<Center> center = new Setting<>("Center", Center.NONE)
             .setDescription("Mode to center the player position");
 
-    public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
-            .setDescription("Mode to switch to blocks");
+    // cached placements to place at, updated on a new thread
+    private List<BlockPos> placements = new ArrayList<>();
+    private List<BlockPos> replacements = new ArrayList<>();
 
-    // **************************** extend ****************************
+    // clear
+    private final Timer clearTimer = new Timer();
 
-    public static Setting<Boolean> extend = new Setting<>("Extend", false)
-            .setDescription("Extends surround when there is an entity blocking the surround");
-
-    // public static Setting<Boolean> volatiles = new Setting<>("Volatile", false)
-    //      .setDescription("Extends surround when the surround is being broken");
-
-    public static Setting<Boolean> scatter = new Setting<>("Scatter", true)
-            .setDescription("Clears entities before attempting to place");
-
-    // **************************** render ****************************
-
-    public static Setting<Boolean> render = new Setting<>("Render", true)
-            .setDescription("Render a visual of the surround");
-
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL)
-            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE);
-
-    // switch info
-    private int previousSlot = -1;
-
-    // blocks info
-    private int blocksPlaced;
-    private List<Vec3i> calculateOffsets = new ArrayList<>();
+    // blocks placed per tick counter
+    private int placed;
 
     // start info
     private double startY;
+
+    // entities that are safe to place on
+    private static final List<Class<? extends Entity>> SAFE_ENTITIES = Arrays.asList(EntityEnderCrystal.class, EntityItem.class, EntityXPOrb.class, EntityBoat.class, EntityMinecart.class);
 
     @Override
     public void onEnable() {
@@ -127,7 +106,7 @@ public class SurroundModule extends Module {
         // if we need to be centered
         if (!center.getValue().equals(Center.NONE)) {
 
-            // center positions
+            // center placements
             double centerX = Math.floor(mc.player.posX) + 0.5;
             double centerZ = Math.floor(mc.player.posZ) + 0.5;
 
@@ -151,515 +130,527 @@ public class SurroundModule extends Module {
     }
 
     @Override
-    public void onUpdate() {
+    public void onDisable() {
+        super.onDisable();
 
-        // we haven't placed on blocks on this tick
-        blocksPlaced = 0;
-
-        // pause if we have completed the process
-        if (!completion.getValue().equals(Completion.PERSISTENT)) {
-
-            // pause if we are not in the same starting position
-            if (completion.getValue().equals(Completion.AIR) && Math.abs(mc.player.posY - startY) > 0.25) {
-                disable(true);
-                return;
-            }
-
-            // pause if we are already in a hole
-            if (completion.getValue().equals(Completion.SURROUNDED) && !getCosmos().getHoleManager().isHole(mc.player.getPosition())) {
-                disable(true);
-                return;
-            }
-        }
-
-        // offsets after calculations
-        calculateOffsets = new ArrayList<>();
-
-        // avoids UnsupportedOperationException
-        List<Vec3i> modeOffsets = Arrays.asList(mode.getValue().getVectors());
-        calculateOffsets.addAll(modeOffsets);
-
-        for (Vec3i surroundOffset : mode.getValue().getVectors()) {
-
-            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
-
-            // the position to place the block
-            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
-
-            // make sure there is no entity on the block
-            int unsafeEntities = 0;
-            for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(surroundPosition))) {
-
-                // can be placed on
-                if (entity instanceof EntityItem || entity instanceof EntityXPOrb) {
-                    continue;
-                }
-
-                // clear area before placing
-                if (scatter.getValue()) {
-
-                    // attack crystals that are in the way
-                    if (entity instanceof EntityEnderCrystal) {
-
-                        // player health
-                        double health = PlayerUtil.getHealth();
-
-                        // damage done by the crystal
-                        double crystalDamage = mc.player.capabilities.isCreativeMode ? 0 : ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), false);
-
-                        // explode crystal if it won't kill us
-                        if (health - crystalDamage >= 0.1) {
-
-                            // player sprint state
-                            boolean sprintState = mc.player.isSprinting();
-
-                            // stop sprinting when attacking an entity
-                            if (sprintState) {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                            }
-
-                            // attack
-                            mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-                            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-
-                            // reset sprint state
-                            if (sprintState) {
-                                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    // attack vehicles 3 times
-                    else if (EntityUtil.isVehicleMob(entity)) {
-
-                        if (mc.getConnection() != null) {
-                            for (int i = 0; i < 3; i++) {
-                                mc.getConnection().getNetworkManager().sendPacket(new CPacketUseEntity(entity));
-                                mc.getConnection().getNetworkManager().sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-                            }
-                        }
-
-                        continue;
-                    }
-                }
-
-                unsafeEntities++;
-            }
-
-            if (unsafeEntities > 0) {
-
-                // extend surround to account for entity hitboxes
-                if (extend.getValue() && center.getValue().equals(Center.NONE)) {
-
-                    // extending blocks
-                    List<Vec3d> extender = Arrays.asList(
-                            new Vec3d(1, 0, 0),
-                            new Vec3d(-1, 0, 0),
-                            new Vec3d(0, 0, 1),
-                            new Vec3d(0, 0, -1)
-                    );
-
-                    // extend based on offset
-                    extender.forEach(extendOffset -> {
-                        Vec3d extend = extendOffset.addVector(surroundOffset.getX(), surroundOffset.getY(), surroundOffset.getZ());
-
-                        // add to offsets
-                        calculateOffsets.add(new Vec3i(extend.x, extend.y, extend.z));
-                    });
-
-                    // remove centers
-                    calculateOffsets.remove(surroundOffset);
-                    calculateOffsets.removeIf(vec3i -> vec3i.getX() == 0 && vec3i.getZ() == 0);
-                }
-            }
-        }
-
-        // save the previous slot
-        previousSlot = mc.player.inventory.currentItem;
-
-        // switch to obsidian
-        getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
-
-        if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-
-            // place on each of the calculated offsets
-            for (Vec3i surroundOffset : calculateOffsets) {
-
-                // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
-
-                // the position to place the block
-                BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
-
-                // check that the block can be replaced by obsidian
-                if (BlockUtil.getResistance(surroundPosition).equals(Resistance.REPLACEABLE)) {
-
-                    // make sure we haven't placed too many blocks this tick
-                    if (blocksPlaced <= blocks.getValue()) {
-                        blocksPlaced++;
-
-                        // place a block
-                        getCosmos().getInteractionManager().placeBlock(surroundPosition, rotate.getValue(), strict.getValue());
-                    }
-                }
-            }
-        }
-
-        // switch back to our previous item
-        if (previousSlot != -1) {
-            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
-
-            // reset previous slot info
-            previousSlot = -1;
-        }
+        // reset placements
+        placements.clear();
+        replacements.clear();
     }
 
     @Override
-    public void onRender3D() {
-        if (render.getValue()) {
+    public void onThread() {
 
-            // render all of the surround blocks
-            for (Vec3i surroundOffset : calculateOffsets) {
+        // original block position
+        BlockPos origin = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
 
-                // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+        // get place positions
+        placements = getPlacements(origin);
+        replacements = getReplacements();
+    }
 
-                // the position to place the block
-                BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+    @Override
+    public void onUpdate() {
 
-                // find if the block is safe or not
-                boolean safeBlock = BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) || BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE);
+        // haven't placed any blocks on this tick yet
+        placed = 0;
 
-                // find if the block is being broken
-                AtomicBoolean breakBlock = new AtomicBoolean(false);
-                ((IRenderGlobal) mc.renderGlobal).getDamagedBlocks().forEach((integer, destroyBlockProgress) -> {
-                    if (destroyBlockProgress.getPosition().equals(surroundPosition)) {
-                        breakBlock.set(true);
-                    }
-                });
+        // we are no long in the same spot
+        // to linus: if someone mines the block under us we want to keep surrounded, and the Math.abs will return the
+        // absolute value, so i'll do this. has the same effect, but allows us to fall down.
+        if (mc.player.posY > startY && completion.getValue().equals(Completion.SHIFT)) {
+            toggle();
+            return;
+        }
 
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(surroundPosition)
-                        .color(safeBlock ? (breakBlock.get() ? new Color(255, 255, 0, 40) : new Color(0, 255, 0, 40)) : new Color(255, 0, 0, 40))
-                        .box(renderMode.getValue())
-                        .setup()
-                        .line(1.5F)
-                        .cull(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                        .shade(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                        .alpha(renderMode.getValue().equals(Box.GLOW) || renderMode.getValue().equals(Box.REVERSE))
-                        .depth(true)
-                        .blend()
-                        .texture()
-                );
+        // check if need to place any blocks
+        if (!replacements.isEmpty()) {
+
+            // check for blocking entities
+            for (BlockPos position : replacements) {
+
+                // clear entities
+                attackEntities(position);
             }
+
+            // log previous slot, we'll switch back to this item
+            int previousSlot = mc.player.inventory.currentItem;
+
+            // switch to block before placing
+            if (!autoSwitch.getValue().equals(Switch.NONE)) {
+
+                // slot to switch to
+                int obsidianSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), InventoryRegion.HOTBAR);
+                int echestSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.ENDER_CHEST), InventoryRegion.HOTBAR);
+
+                // prefer obsidian over echests
+                if (obsidianSlot != -1) {
+                    getCosmos().getInventoryManager().switchToSlot(obsidianSlot, autoSwitch.getValue());
+                }
+
+                // fallback if we don't have obsidian
+                else if (echestSlot != -1) {
+                    getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
+                }
+            }
+
+            // place at each of our placements
+            for (BlockPos position : replacements) {
+
+                // check the blocks per tick
+                if (placed >= blocks.getValue().intValue()) {
+                    break;
+                }
+
+                // place block
+                if (placeBlock(position)) {
+
+                    // getCosmos().getChatManager().sendClientMessage("placed");
+                    placed++;
+                }
+            }
+
+            // switch back to previous slot
+            if (previousSlot != -1) {
+                getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
+            }
+        }
+
+        else {
+
+            // done surrounding
+            if (completion.getValue().equals(Completion.SURROUNDED)) {
+                toggle();
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onRotationUpdateEvent(RotationUpdateEvent event) {
+
+        // 1 less packet sent, idk if this helps but whatever
+        if (!replacements.isEmpty()) {
+
+            // prevent vanilla packets from sending
+            event.setCanceled(true);
         }
     }
 
     @Override
     public boolean isActive() {
-        boolean isSurrounding = true;
-        for (Vec3i surroundOffset : calculateOffsets) {
-
-            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
-
-            // the position to place the block
-            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
-
-            // find if the block is safe or not
-            if (!BlockUtil.getResistance(surroundPosition).equals(Resistance.RESISTANT) && !BlockUtil.getResistance(surroundPosition).equals(Resistance.UNBREAKABLE)) {
-                isSurrounding = false;
-                break;
-            }
-        }
-
-        return isSurrounding;
+        return !replacements.isEmpty() || getCosmos().getInteractionManager().isPlacing();
     }
 
     @SubscribeEvent
-    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
+    public void onPacketReceive(PacketReceiveEvent event) {
 
-        // packet for block changes
-        if (event.getPacket() instanceof SPacketBlockChange) {
+        // place on packets
+        if (timing.getValue().equals(Timing.SEQUENTIAL)) {
 
-            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
-                // check if the block is now replaceable
+            // packet for block changes
+            if (event.getPacket() instanceof SPacketBlockChange) {
+
+                // the position of the block change
+                BlockPos changePosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
+
+                // check if its been changed to air
                 if (((SPacketBlockChange) event.getPacket()).getBlockState().getMaterial().isReplaceable()) {
 
-                    // the position of the block change
-                    BlockPos changePosition = ((SPacketBlockChange) event.getPacket()).getBlockPosition();
+                    // if our placement has been changed then we need to replace it
+                    if (placements.contains(changePosition)) {
 
-                    // check each of the offsets
-                    for (Vec3i surroundOffset : calculateOffsets) {
+                        // log previous slot, we'll switch back to this item
+                        int previousSlot = mc.player.inventory.currentItem;
 
-                        // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                        BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+                        // switch to block before placing
+                        if (!autoSwitch.getValue().equals(Switch.NONE)) {
 
-                        // the position to place the block
-                        BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+                            // slot to switch to
+                            int obsidianSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), InventoryRegion.HOTBAR);
+                            int echestSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.ENDER_CHEST), InventoryRegion.HOTBAR);
 
-                        if (changePosition.equals(surroundPosition)) {
-                            // save the previous slot
-                            previousSlot = mc.player.inventory.currentItem;
-
-                            // switch to obsidian
-                            getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
-
-                            if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-                                // update blocks placed
-                                blocksPlaced++;
-
-                                // place a block
-                                getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                            // prefer obsidian over echests
+                            if (obsidianSlot != -1) {
+                                getCosmos().getInventoryManager().switchToSlot(obsidianSlot, autoSwitch.getValue());
                             }
 
-                            // switch back to our previous item
-                            if (previousSlot != -1) {
-                                getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
-
-                                // reset previous slot info
-                                previousSlot = -1;
+                            // fallback if we don't have obsidian
+                            else if (echestSlot != -1) {
+                                getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
                             }
+                        }
 
-                            break;
+                        // place block
+                        if (placeBlock(changePosition)) {
+                            // getCosmos().getChatManager().sendClientMessage("placed");
+                            placed++;
+                        }
+
+                        // switch back to previous slot
+                        if (previousSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
                         }
                     }
                 }
             }
-        }
 
-        // packet for multiple block changes
-        if (event.getPacket() instanceof SPacketMultiBlockChange) {
-            if (timing.getValue().equals(Timing.SEQUENTIAL)) {
+            // packet for multiple block changes
+            if (event.getPacket() instanceof SPacketMultiBlockChange) {
 
                 // check each of the updated blocks
                 for (SPacketMultiBlockChange.BlockUpdateData blockUpdateData : ((SPacketMultiBlockChange) event.getPacket()).getChangedBlocks()) {
 
-                    // check if the block is now replaceable
+                    // the position of the changed block
+                    BlockPos changePosition = blockUpdateData.getPos();
+
+                    // check if its been changed to air
                     if (blockUpdateData.getBlockState().getMaterial().isReplaceable()) {
 
-                        // the position of the changed block
-                        BlockPos changePosition = blockUpdateData.getPos();
+                        // if our placement has been changed then we need to replace it
+                        if (placements.contains(changePosition)) {
 
-                        // check each of the offsets
-                        for (Vec3i surroundOffset : calculateOffsets) {
+                            // log previous slot, we'll switch back to this item
+                            int previousSlot = mc.player.inventory.currentItem;
 
-                            // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                            BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+                            // switch to block before placing
+                            if (!autoSwitch.getValue().equals(Switch.NONE)) {
 
-                            // the position to place the block
-                            BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
+                                // slot to switch to
+                                int obsidianSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), InventoryRegion.HOTBAR);
+                                int echestSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.ENDER_CHEST), InventoryRegion.HOTBAR);
 
-                            if (changePosition.equals(surroundPosition)) {
-                                
-                                // save the previous slot
-                                previousSlot = mc.player.inventory.currentItem;
-
-                                // switch to obsidian
-                                getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
-
-                                if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-                                    
-                                    // update blocks placed
-                                    blocksPlaced++;
-
-                                    // place a block
-                                    getCosmos().getInteractionManager().placeBlock(changePosition, rotate.getValue(), strict.getValue());
+                                // prefer obsidian over echests
+                                if (obsidianSlot != -1) {
+                                    getCosmos().getInventoryManager().switchToSlot(obsidianSlot, autoSwitch.getValue());
                                 }
 
-                                // switch back to our previous item
-                                if (previousSlot != -1) {
-                                    getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
-
-                                    // reset previous slot info
-                                    previousSlot = -1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // packet for crystal explosions
-        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
-
-            if (scatter.getValue()) {
-
-                // the position of the changed block
-                BlockPos soundPosition = new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ());
-
-                // check each of the offsets
-                for (Vec3i surroundOffset : calculateOffsets) {
-
-                    // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                    BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
-
-                    // the position to place the block
-                    BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
-
-                    if (soundPosition.equals(surroundPosition)) {
-
-                        // save the previous slot
-                        previousSlot = mc.player.inventory.currentItem;
-
-                        // switch to obsidian
-                        getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
-
-                        if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-
-                            // update blocks placed
-                            blocksPlaced++;
-
-                            // place a block
-                            getCosmos().getInteractionManager().placeBlock(soundPosition, rotate.getValue(), strict.getValue());
-                        }
-
-                        // switch back to our previous item
-                        if (previousSlot != -1) {
-                            getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
-
-                            // reset previous slot info
-                            previousSlot = -1;
-                        }
-                    }
-                }
-            }
-        }
-
-            // packet for block breaking animation
-        if (event.getPacket() instanceof SPacketBlockBreakAnim) {
-
-            /*
-
-            getCosmos().getChatManager().sendClientMessage(((SPacketBlockBreakAnim) event.getPacket()).getProgress());
-
-            if (volatiles.getValue()) {
-                if () {
-
-                    // the position of the block change
-                    BlockPos changePosition = ((SPacketBlockBreakAnim) event.getPacket()).getPosition();
-
-                    // check each of the offsets
-                    for (Vec3i surroundOffset : calculateOffsets) {
-
-                        // round the player's y position to allow placements if the player is standing on a block that's height is less than 1
-                        BlockPos playerPositionRounded = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
-
-                        // the position to place the block
-                        BlockPos surroundPosition = playerPositionRounded.add(surroundOffset);
-
-                        if (changePosition.equals(surroundPosition)) {
-                            // save the previous slot
-                            previousSlot = mc.player.inventory.currentItem;
-
-                            // switch to obsidian
-                            getCosmos().getInventoryManager().switchToBlock(block.getValue().getBlock(), autoSwitch.getValue());
-
-                            // extending blocks
-                            List<Vec3i> extender = Arrays.asList(
-                                    new Vec3i(1, 0, 0),
-                                    new Vec3i(-1, 0, 0),
-                                    new Vec3i(0, 0, 1),
-                                    new Vec3i(0, 0, -1)
-                            );
-
-                            // surround each extender
-                            for (Vec3i extend : extender) {
-
-                                // extended position
-                                BlockPos extendPosition = changePosition.add(extend);
-
-                                if (InventoryUtil.isHolding(block.getValue().getBlock())) {
-                                    // update blocks placed
-                                    blocksPlaced++;
-
-                                    // place a block
-                                    getCosmos().getInteractionManager().placeBlock(extendPosition, rotate.getValue(), strict.getValue());
+                                // fallback if we don't have obsidian
+                                else if (echestSlot != -1) {
+                                    getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
                                 }
                             }
 
-                            // switch back to our previous item
+                            // place block
+                            if (placeBlock(changePosition)) {
+                                // getCosmos().getChatManager().sendClientMessage("placed");
+                                placed++;
+                            }
+
+                            // switch back to previous slot
                             if (previousSlot != -1) {
                                 getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
-
-                                // reset previous slot info
-                                previousSlot = -1;
                             }
-
-                            break;
                         }
                     }
                 }
             }
-
-             */
         }
     }
 
-    public enum SurroundVectors {
+    /**
+     * Attacks all entities that intersect (block) placements
+     * @param in The placement
+     */
+    public void attackEntities(BlockPos in) {
 
-        /**
-         * Surrounds the lower offsets of the hole, Works better on ledges -> Rarely works on Updated NCP
-         */
-        BASE(
-                new Vec3i(0, -1, 0),
-                new Vec3i(1, -1, 0),
-                new Vec3i(0, -1, 1),
-                new Vec3i(-1, -1, 0),
-                new Vec3i(0, -1, -1),
-                new Vec3i(1, 0, 0),
-                new Vec3i(0, 0, 1),
-                new Vec3i(-1, 0, 0),
-                new Vec3i(0, 0, -1)
-        ),
+        // player ping
+        int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
 
-        /**
-         * Covers all sides of the player
-         */
-        STANDARD(
-                new Vec3i(0, -1, 0),
-                new Vec3i(1, 0, 0),
-                new Vec3i(-1, 0, 0),
-                new Vec3i(0, 0, 1),
-                new Vec3i(0, 0, -1)
-        ),
+        // check unsafe entities and clear if necessary
+        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(in))) {
 
-        /**
-         * Doubles up on each offset of the surround for extra protection
-         */
-        PROTECT(
-                new Vec3i(0, -1, 0),
-                new Vec3i(1, 0, 0),
-                new Vec3i(-1, 0, 0),
-                new Vec3i(0, 0, 1),
-                new Vec3i(0, 0, -1),
-                new Vec3i(2, 0, 0),
-                new Vec3i(-2, 0, 0),
-                new Vec3i(0, 0, 2),
-                new Vec3i(0, 0, -2),
-                new Vec3i(3, 0, 0),
-                new Vec3i(-3, 0, 0),
-                new Vec3i(0, 0, 3),
-                new Vec3i(0, 0, -3)
-        );
+            // can be placed on
+            if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                continue;
+            }
 
-        private final Vec3i[] vectors;
+            // make sure we aren't attacking too fast TODO: normalize delays based on packets in the future maybe???
+            if (clearTimer.passedTime(ping <= 50 ? 75 : 100, Format.MILLISECONDS)) {
 
-        SurroundVectors(Vec3i... vectors) {
-            this.vectors = vectors;
+                // rotation to entity
+                Rotation rotation = AngleUtil.calculateAngles(entity.getPositionVector());
+
+                // rotate to block
+                if (!rotate.getValue().equals(Rotate.NONE) && rotation.isValid()) {
+                    // rotate via packet, server should confirm instantly?
+                    switch (rotate.getValue()) {
+                        case CLIENT:
+                            mc.player.rotationYaw = rotation.getYaw();
+                            mc.player.rotationYawHead = rotation.getYaw();
+                            mc.player.rotationPitch = rotation.getPitch();
+                            break;
+                        case PACKET:
+
+                            // force a rotation - should this be done?
+                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
+
+                            // submit to rotation manager
+                            // getCosmos().getRotationManager().setRotation(blockAngles);
+
+                            // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
+                            // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
+                            break;
+                    }
+                }
+
+                // attack crystals that are in the way
+                if (entity instanceof EntityEnderCrystal) {
+
+                    // player sprint state
+                    boolean sprintState = mc.player.isSprinting();
+
+                    // stop sprint
+                    if (strict.getValue()) {
+
+                        // stop sprinting when attacking an entity
+                        if (sprintState) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                        }
+                    }
+
+                    // attack
+                    mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+                    mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+
+                    // stop sprint
+                    if (strict.getValue()) {
+
+                        // reset sprint state
+                        if (sprintState) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                        }
+                    }
+
+                    clearTimer.resetTime();
+                    break;
+                }
+
+                // attack vehicles 3 times
+                else if (EntityUtil.isVehicleMob(entity)) {
+
+                    // attack
+                    for (int i = 0; i < 3; i++) {
+                        mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+                        mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+                    }
+
+                    clearTimer.resetTime();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Places a block at this position
+     * @param in the position
+     */
+    private boolean placeBlock(BlockPos in) {
+
+        // check if block is replaceable
+        if (BlockUtil.isReplaceable(in)) {
+
+            // place block
+            getCosmos().getInteractionManager().placeBlock(in, rotate.getValue(), strict.getValue(), SAFE_ENTITIES);
+
+            // block placement was successful
+            return true;
         }
 
-        /**
-         * Gets the vector offsets for the surround mode
-         * @return The vector offsets for the surround mode
-         */
-        public Vec3i[] getVectors() {
-            return vectors;
+        return false;
+    }
+
+    /**
+     * Gets the valid placements for a given origin
+     * @param in The origin
+     * @return A list of all the valid placements for a given origin
+     */
+    private List<BlockPos> getPlacements(BlockPos in) {
+
+        // set of queued block placements
+        List<BlockPos> queue = new ArrayList<>();
+
+        // directions that were inhibited
+        Set<EnumFacing> inhibitedDirections = new HashSet<>();
+
+        // find a facing to place against
+        for (EnumFacing facing : EnumFacing.VALUES) {
+
+            // check its validity
+            if (isInvalidDirection(facing)) {
+                continue;
+            }
+
+            // get the neighboring block
+            BlockPos offset = in.offset(facing);
+
+            // entity is obstructing our placement
+            if (isEntityIntersecting(offset)) {
+
+                // extend surround to encompass the entity
+                if (extend.getValue() && center.getValue().equals(Center.NONE)) {
+
+                    // check all directions for extensions
+                    for (EnumFacing direction : EnumFacing.VALUES) {
+
+                        // check its validity
+                        if (isInvalidDirection(direction)) {
+                            continue;
+                        }
+
+                        // position based on the extend direction
+                        BlockPos extendedOffset = offset.offset(direction);
+
+                        // can't place at the origin
+                        if (extendedOffset.equals(in)) {
+                            continue;
+                        }
+
+                        // offset entity intersection and build the queue around the entity
+                        if (BlockUtil.isReplaceable(extendedOffset)) {
+
+                            // entity is not obstructing our placement
+                            if (!isEntityIntersecting(extendedOffset)) {
+                                queue.add(extendedOffset);
+                            }
+
+                            else {
+                                inhibitedDirections.add(direction);  // direction wasn't able to placed on
+                            }
+                        }
+                    }
+
+                    // needs an additional offset
+                    if (inhibitedDirections.size() > 1) {
+
+                        // additional offset
+                        BlockPos addPosition = in;
+
+                        // offset by inhibited directions
+                        for (EnumFacing direction : inhibitedDirections) {
+
+                            // opposite of the inhibited directions
+                            // EnumFacing oppositeDirection = direction.getOpposite();
+
+                            // offset the position
+                            addPosition = addPosition.offset(direction);
+                        }
+
+                        // check all directions for extensions
+                        for (EnumFacing direction : EnumFacing.VALUES) {
+
+                            // check its validity
+                            if (isInvalidDirection(direction)) {
+                                continue;
+                            }
+
+                            // position based on the extend direction
+                            BlockPos additionPosition = addPosition.offset(direction);
+
+                            // offset entity intersection and build the queue around the entity
+                            if (!isEntityIntersecting(additionPosition)) {
+
+                                // entity is not obstructing our placement
+                                queue.add(additionPosition);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // if an entity is not blocking the placement, we can just queue it
+            else {
+                queue.add(offset);
+            }
         }
+
+        // sometimes blocks in the queue can't realistically be placed on so they need support blocks to place against
+        if (support.getValue()) {
+
+            // check each block about to be queued
+            for (BlockPos position : new ArrayList<>(queue)) {
+
+                // checks if the position needs support
+                boolean support = true;
+
+                // check all side
+                for (EnumFacing direction : EnumFacing.VALUES) {
+
+                    // offset position based on the direction
+                    BlockPos offsetPosition = position.offset(direction);
+
+                    // check if it can be placed on
+                    if (!mc.world.isAirBlock(offsetPosition)) {
+
+                        // block needs support if we want to place on it
+                        support = false;
+                        break;
+                    }
+                }
+
+                // usually down should work because we have the origin to place on
+                if (support) {
+                    queue.add(position.down());
+                }
+            }
+
+            // reverse queue since we need support blocks first
+            Collections.reverse(queue);
+        }
+
+        return queue;
+    }
+
+    /**
+     * Gets the set of all replacements to be made
+     * @return The set of all replacements to be made
+     */
+    private List<BlockPos> getReplacements() {
+
+        // set of replacements
+        List<BlockPos> replacements = new ArrayList<>();
+
+        // check our placements if they have been removed, we need to replace them
+        for (BlockPos position : placements) {
+            if (BlockUtil.isReplaceable(position)) {
+                replacements.add(position);
+            }
+        }
+
+        return replacements;
+    }
+
+    /**
+     * Checks if an entity hitbox is intersecting this position
+     * @param in the block position
+     * @return if there is an entity hitbox preventing a placement
+     */
+    private boolean isEntityIntersecting(BlockPos in) {
+
+        // check all entities
+        for (Entity entity : new ArrayList<>(mc.world.loadedEntityList)) {
+
+            // entities that cannot intersect our placements
+            if (entity == null || entity instanceof EntityXPOrb || entity instanceof EntityItem || entity instanceof EntityEnderCrystal) {
+                continue;
+            }
+
+            // entity intersects with our position
+            if (entity.getEntityBoundingBox().intersects(new AxisAlignedBB(in))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the facing is an extension that cannot be placed on
+     * @param in The given facing
+     * @return Whether the facing is an extension that cannot be placed on
+     */
+    private boolean isInvalidDirection(EnumFacing in) {
+        return in.equals(EnumFacing.UP) || (!floor.getValue() && in.equals(EnumFacing.DOWN));
     }
 
     public enum Timing {
@@ -667,7 +658,7 @@ public class SurroundModule extends Module {
         /**
          * Places on each update tick
          */
-        TICK,
+        VANILLA,
 
         /**
          * Places when receiving packets
@@ -698,7 +689,7 @@ public class SurroundModule extends Module {
         /**
          * Toggles the module when you have moved out of the block
          */
-        AIR,
+        SHIFT,
 
         /**
          * Toggles the module if the player is in a hole
@@ -709,32 +700,5 @@ public class SurroundModule extends Module {
          * Does not dynamically toggle the module
          */
         PERSISTENT
-    }
-
-    private enum BlockItem {
-
-        /**
-         * Obsidian
-         */
-        OBSIDIAN(Blocks.OBSIDIAN),
-
-        /**
-         * Chests, Blocks with 0.8 height
-         */
-        ENDER_CHEST(Blocks.ENDER_CHEST);
-
-        private final Block block;
-
-        BlockItem(Block block) {
-            this.block = block;
-        }
-
-        /**
-         * Get the blocks associated with the mode
-         * @return The blocks associated with the mode
-         */
-        public Block getBlock() {
-            return block;
-        }
     }
 }

@@ -480,17 +480,12 @@ public class RenderUtil implements Wrapper {
 		glDisable(GL_BLEND);
 		glPopMatrix();
 	}
-
-	public static void drawBorderRect(float x, float y, float width, float height, Color color, Color borderColor) {
-		drawRect(x, y, width, height, color);
-		drawBorder(x, y, width, height, borderColor);
-	}
 	
 	public static void drawBorder(float x, float y, float width, float height, Color color) {
-		RenderUtil.drawRect(x - 1, y - 1, 1, height + 2, color);
-		RenderUtil.drawRect(x + width, y - 1, 1, height + 2, color);
-		RenderUtil.drawRect(x, y - 1, width, 1, color);
-		RenderUtil.drawRect(x, y + height, width, 1, color);
+		RenderUtil.drawRect(x - 0.5F, y - 0.5F, 0.5F, height + 1, color);
+		RenderUtil.drawRect(x + width, y - 0.5F, 0.5F, height + 1, color);
+		RenderUtil.drawRect(x, y - 0.5F, width, 0.5F, color);
+		RenderUtil.drawRect(x, y + height, width, 0.5F, color);
 	}
 
 	public static void drawRoundedRect(double x, double y, double width, double height, double radius, Color color) {

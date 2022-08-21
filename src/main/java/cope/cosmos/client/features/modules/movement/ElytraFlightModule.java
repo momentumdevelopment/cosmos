@@ -18,7 +18,11 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@SuppressWarnings("unused")
+/**
+ * @author linustouchtips
+ * @since IDK
+ * FIX SOON
+ */
 public class ElytraFlightModule extends Module {
     public static ElytraFlightModule INSTANCE;
 

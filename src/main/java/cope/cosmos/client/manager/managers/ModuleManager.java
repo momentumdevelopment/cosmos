@@ -42,12 +42,12 @@ public class ModuleManager extends Manager {
 				new AuraModule(),
 				new AutoArmorModule(),
 				new AutoCrystalModule(),
-				// new AutoTrap(),
+				new AutoTotemModule(),
+				// new AutoTrapModule(),
 				new BurrowModule(),
 				new CriticalsModule(),
 				new FastProjectileModule(),
 				new HoleFillModule(),
-				new OffhandModule(),
 				new SurroundModule(),
 
 				// misc
@@ -74,7 +74,7 @@ public class ModuleManager extends Manager {
 				new LongJumpModule(),
 				new NoSlowModule(),
 				new PacketFlightModule(),
-				// new Scaffold(),
+				// new ScaffoldModule(),
 				new SpeedModule(),
 				new SprintModule(),
 				new StepModule(),
@@ -83,6 +83,7 @@ public class ModuleManager extends Manager {
 				// player
 				new AntiHungerModule(),
 				new AntiVoidModule(),
+				new AutoRespawnModule(),
 				new BlinkModule(),
 				new EntityControlModule(),
 				new FastUseModule(),
@@ -96,8 +97,8 @@ public class ModuleManager extends Manager {
 
 				// visual
 				new BlockHighlightModule(),
-				new BreadcrumbsModule(), // TODO: I need to fix this
-				new BreakESPModule(),
+				new BreadcrumbsModule(),
+				new BreakHighlightModule(),
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),
@@ -108,10 +109,20 @@ public class ModuleManager extends Manager {
 				new NoRenderModule(),
 				new NoWeatherModule(),
 				new SkyColorModule(),
+				// new TooltipsModule(),
 				new TracersModule(),
 				new ViewModelModule(),
 				new WallhackModule()
 		);
+	}
+
+	@Override
+	public void onThread() {
+		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			if (module.getBind().getValue().isPressed()) {
+				module.toggle();
+			}
+		});
 	}
 
 	/**

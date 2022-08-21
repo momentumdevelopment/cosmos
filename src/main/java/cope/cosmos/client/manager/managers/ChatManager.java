@@ -52,8 +52,24 @@ public class ChatManager extends Manager {
      * Sends a message in chat with the client prefix (only visible to the user)
      * @param in The message
      */
+    public void sendClientMessage(String in, int identifier) {
+        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in), identifier);
+    }
+
+    /**
+     * Sends a message in chat with the client prefix (only visible to the user)
+     * @param in The message
+     */
+    public void sendClientMessage(Number in, int identifier) {
+        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in), identifier);
+    }
+
+    /**
+     * Sends a message in chat with the client prefix (only visible to the user)
+     * @param in The message
+     */
     public void sendClientMessage(String in) {
-        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in), ThreadLocalRandom.current().nextInt(32767));
+        sendClientMessage(in, ThreadLocalRandom.current().nextInt(32767));
     }
 
     /**
@@ -61,7 +77,7 @@ public class ChatManager extends Manager {
      * @param in The message
      */
     public void sendClientMessage(Number in) {
-        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new TextComponentString(ChatUtil.getPrefix() + in), ThreadLocalRandom.current().nextInt(32767));
+        sendClientMessage(in, ThreadLocalRandom.current().nextInt(32767));
     }
 
     /**
