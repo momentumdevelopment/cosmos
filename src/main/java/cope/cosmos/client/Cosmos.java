@@ -81,6 +81,7 @@ public class Cosmos {
     private PopManager popManager;
     private InteractionManager interactionManager;
     private InventoryManager inventoryManager;
+    private ItemManager itemManager;
     private ChangelogManager changelogManager;
     private SoundManager soundManager;
     private ChatManager chatManager;
@@ -103,7 +104,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 21);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 22);
 
         // load the modules
         moduleManager = new ModuleManager();
@@ -193,6 +194,11 @@ public class Cosmos {
         inventoryManager = new InventoryManager();
         managers.add(inventoryManager);
         progressManager.step("[Cosmos] Setting up Inventory Manager");
+
+        // sets up the inventory manager
+        // itemManager = new ItemManager();
+        // managers.add(itemManager);
+        progressManager.step("[Cosmos] Setting up Item Manager");
 
         // sets up the changelog manager
         changelogManager = new ChangelogManager();
@@ -382,6 +388,14 @@ public class Cosmos {
      */
     public InventoryManager getInventoryManager() {
         return inventoryManager;
+    }
+
+    /**
+     * Gets the client item manager
+     * @return The client item manager
+     */
+    public ItemManager getItemManager() {
+        return itemManager;
     }
 
     /**

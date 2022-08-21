@@ -194,7 +194,7 @@ public class StepModule extends Module {
         else if (height == 0.875) {
 
             if (strict.getValue()) {
-                return new double[]{
+                return new double[] {
                         0.39,
                         0.7,
                         0.875
@@ -202,7 +202,7 @@ public class StepModule extends Module {
             }
 
             else {
-                return new double[]{
+                return new double[] {
                         0.39,
                         0.7
                 };
@@ -213,7 +213,7 @@ public class StepModule extends Module {
         else if (height == 1) {
 
             if (strict.getValue()) {
-                return new double[]{
+                return new double[] {
                         0.42,
                         0.753,
                         1
@@ -221,7 +221,7 @@ public class StepModule extends Module {
             }
 
             else {
-                return new double[]{
+                return new double[] {
                         0.42,
                         0.753
                 };

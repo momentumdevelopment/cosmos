@@ -429,12 +429,14 @@ public class ConfigManager extends Manager {
         Toml toml = new Toml().read(content);
 
         if (toml != null) {
-            toml.<String>getList("blocks").forEach((blockId) -> {
-                Block block = Block.getBlockFromName(blockId);
-                if (block != null) {
-                    WallhackModule.WHITELIST.add(block);
-                }
-            });
+            if (toml.<String>getList("blocks") != null) {
+                toml.<String>getList("blocks").forEach((blockId) -> {
+                    Block block = Block.getBlockFromName(blockId);
+                    if (block != null) {
+                        WallhackModule.WHITELIST.add(block);
+                    }
+                });
+            }
         }
 
         // if our saved config didn't add any blocks, we'll add the default ones

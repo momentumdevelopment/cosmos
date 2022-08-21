@@ -244,6 +244,7 @@ public class ESPModule extends Module {
 
         if (nullCheck()) {
 
+            // render over hotbar
             if (event.getType().equals(ElementType.HOTBAR)) {
                 if (mode.getValue().equals(Mode.SHADER)) {
                     GlStateManager.enableAlpha();
@@ -269,7 +270,9 @@ public class ESPModule extends Module {
                         lastScaleFactor = scaledResolution.getScaleFactor();
                         lastScaleWidth = scaledResolution.getScaledWidth();
                         lastScaleHeight = scaledResolution.getScaledHeight();
-                    } else {
+                    }
+
+                    else {
                         // create a new framebuffer
                         framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
                     }
@@ -596,7 +599,6 @@ public class ESPModule extends Module {
                 glEnable(GL_TEXTURE_2D);
                 glEnable(GL_ALPHA_TEST);
                 glPopAttrib();
-
                 glPopMatrix();
             }
         }
