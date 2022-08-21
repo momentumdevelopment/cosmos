@@ -1,5 +1,6 @@
 package cope.cosmos.util.player;
 
+import cope.cosmos.client.features.modules.movement.FlightModule;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.init.Items;
@@ -62,5 +63,13 @@ public class PlayerUtil implements Wrapper {
      */
     public static boolean isCollided() {
         return mc.player.collidedHorizontally || mc.player.collidedVertically;
+    }
+
+    /**
+     * Checks if the player is flying
+     * @return Whether the player is flying
+     */
+    public static boolean isFlying() {
+        return FlightModule.INSTANCE.isActive() || mc.player.isElytraFlying() || mc.player.capabilities.isFlying;
     }
 }

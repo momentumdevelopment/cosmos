@@ -8,9 +8,11 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.*;
@@ -167,66 +169,8 @@ public class SurroundModule extends Module {
             // check for blocking entities
             for (BlockPos position : replacements) {
 
-                // player ping
-                int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
-
-                // check unsafe entities and clear if necessary
-                for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
-
-                    // can be placed on
-                    if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
-                        continue;
-                    }
-
-                    // make sure we aren't attacking too fast TODO: normalize delays based on packets in the future maybe???
-                    if (clearTimer.passedTime(ping <= 50 ? 75 : 100, Format.MILLISECONDS)) {
-
-                        // attack crystals that are in the way
-                        if (entity instanceof EntityEnderCrystal) {
-
-                            // player sprint state
-                            boolean sprintState = mc.player.isSprinting();
-
-                            // stop sprint
-                            if (strict.getValue()) {
-
-                                // stop sprinting when attacking an entity
-                                if (sprintState) {
-                                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                                }
-                            }
-
-                            // attack
-                            mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-                            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-
-                            // stop sprint
-                            if (strict.getValue()) {
-
-                                // reset sprint state
-                                if (sprintState) {
-                                    mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                                }
-                            }
-
-                            clearTimer.resetTime();
-                            break;
-                        }
-
-                        // attack vehicles 3 times
-                        else if (EntityUtil.isVehicleMob(entity)) {
-
-                            // attack
-                            for (int i = 0; i < 3; i++) {
-                                mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-                                mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-                            }
-
-                            clearTimer.resetTime();
-                            break;
-                        }
-                    }
-                }
+                // clear entities
+                attackEntities(position);
             }
 
             // log previous slot, we'll switch back to this item
@@ -260,6 +204,7 @@ public class SurroundModule extends Module {
 
                 // place block
                 if (placeBlock(position)) {
+
                     // getCosmos().getChatManager().sendClientMessage("placed");
                     placed++;
                 }
@@ -403,21 +348,116 @@ public class SurroundModule extends Module {
     }
 
     /**
+     * Attacks all entities that intersect (block) placements
+     * @param in The placement
+     */
+    public void attackEntities(BlockPos in) {
+
+        // player ping
+        int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
+
+        // check unsafe entities and clear if necessary
+        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(in))) {
+
+            // can be placed on
+            if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                continue;
+            }
+
+            // make sure we aren't attacking too fast TODO: normalize delays based on packets in the future maybe???
+            if (clearTimer.passedTime(ping <= 50 ? 75 : 100, Format.MILLISECONDS)) {
+
+                // rotation to entity
+                Rotation rotation = AngleUtil.calculateAngles(entity.getPositionVector());
+
+                // rotate to block
+                if (!rotate.getValue().equals(Rotate.NONE) && rotation.isValid()) {
+                    // rotate via packet, server should confirm instantly?
+                    switch (rotate.getValue()) {
+                        case CLIENT:
+                            mc.player.rotationYaw = rotation.getYaw();
+                            mc.player.rotationYawHead = rotation.getYaw();
+                            mc.player.rotationPitch = rotation.getPitch();
+                            break;
+                        case PACKET:
+
+                            // force a rotation - should this be done?
+                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
+
+                            // submit to rotation manager
+                            // getCosmos().getRotationManager().setRotation(blockAngles);
+
+                            // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
+                            // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
+                            break;
+                    }
+                }
+
+                // attack crystals that are in the way
+                if (entity instanceof EntityEnderCrystal) {
+
+                    // player sprint state
+                    boolean sprintState = mc.player.isSprinting();
+
+                    // stop sprint
+                    if (strict.getValue()) {
+
+                        // stop sprinting when attacking an entity
+                        if (sprintState) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                        }
+                    }
+
+                    // attack
+                    mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+                    mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+
+                    // stop sprint
+                    if (strict.getValue()) {
+
+                        // reset sprint state
+                        if (sprintState) {
+                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+                        }
+                    }
+
+                    clearTimer.resetTime();
+                    break;
+                }
+
+                // attack vehicles 3 times
+                else if (EntityUtil.isVehicleMob(entity)) {
+
+                    // attack
+                    for (int i = 0; i < 3; i++) {
+                        mc.player.connection.sendPacket(new CPacketUseEntity(entity));
+                        mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
+                    }
+
+                    clearTimer.resetTime();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
      * Places a block at this position
      * @param in the position
      */
     private boolean placeBlock(BlockPos in) {
 
-        // if we cannot replace the block, cancel
-        if (!BlockUtil.isReplaceable(in)) {
-            return false;
+        // check if block is replaceable
+        if (BlockUtil.isReplaceable(in)) {
+
+            // place block
+            getCosmos().getInteractionManager().placeBlock(in, rotate.getValue(), strict.getValue(), SAFE_ENTITIES);
+
+            // block placement was successful
+            return true;
         }
 
-        // place block
-        getCosmos().getInteractionManager().placeBlock(in, rotate.getValue(), strict.getValue(), SAFE_ENTITIES);
-
-        // block placement was successful
-        return true;
+        return false;
     }
 
     /**

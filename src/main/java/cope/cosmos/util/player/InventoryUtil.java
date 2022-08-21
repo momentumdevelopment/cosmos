@@ -1,5 +1,7 @@
 package cope.cosmos.util.player;
 
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.manager.managers.InventoryManager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -58,6 +60,15 @@ public class InventoryUtil implements Wrapper {
      */
     public static boolean isHolding(Class<? extends Item> clazz) {
         return clazz.isInstance(mc.player.getHeldItemMainhand().getItem()) || clazz.isInstance(mc.player.getHeldItemOffhand().getItem());
+    }
+
+    /**
+     * Checks if a given item is in the player's hotbar
+     * @param in The item to search
+     * @return Whether the given item is in the player's hotbar
+     */
+    public static boolean isInHotbar(Item in) {
+        return Cosmos.INSTANCE.getInventoryManager().searchSlot(in, InventoryManager.InventoryRegion.HOTBAR) != -1;
     }
 
     /**
