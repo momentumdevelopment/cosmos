@@ -55,7 +55,7 @@ public class BlockUtil implements Wrapper {
      * @return if this block pos can be placed at
      */
     public static boolean isReplaceable(BlockPos pos) {
-        return mc.world.getBlockState(pos).getMaterial().isReplaceable() && isBreakable(pos);
+        return mc.world.getBlockState(pos).getMaterial().isReplaceable();
     }
 
     /**

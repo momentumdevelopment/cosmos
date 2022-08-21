@@ -1,9 +1,7 @@
 package cope.cosmos.client.features.modules.combat;
 
 import com.mojang.realmsclient.util.Pair;
-import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
-import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
-import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
+import cope.cosmos.asm.mixins.accessor.*;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
@@ -33,18 +31,18 @@ import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.world.BlockUtil;
 import cope.cosmos.util.world.RaytraceUtil;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.ClickType;
-import net.minecraft.item.ItemEndCrystal;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.*;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraft.network.play.server.*;
@@ -72,7 +70,7 @@ public class AutoCrystalModule extends Module {
     public static AutoCrystalModule INSTANCE;
 
     public AutoCrystalModule() {
-        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> String.valueOf(getAverageWaitTime()));
+        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> debug.getValue() ? getDebug() : "");
         INSTANCE = this;
     }
 
@@ -90,7 +88,6 @@ public class AutoCrystalModule extends Module {
     public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
             .setDescription("Interaction with blocks and crystals");
 
-    // TODO: fix rotation priority
     public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
             .setDescription("Rotate to the current process");
 
@@ -129,6 +126,10 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> explodeWallRange = new Setting<>("ExplodeWallRange", 1.0, 3.5, 6.0, 1)
             .setDescription("Range to explode crystals through walls")
+            .setVisible(() -> explode.getValue() && !raytrace.getValue());
+
+    public static Setting<Boolean> rangeEye = new Setting<>("RangeEye", false)
+            .setDescription("Calculates ranges to the entity's eye")
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> ticksExisted = new Setting<>("TicksExisted", 0.0, 0.0, 5.0, 0)
@@ -143,17 +144,21 @@ public class AutoCrystalModule extends Module {
     //        .setDescription("Switches to a tool before breaking when player has weakness effect")
     //        .setVisible(() -> explode.getValue());
 
-    public static Setting<Boolean> inhibit = new Setting<>("Inhibit", true)
+    public static Setting<Inhibit> inhibit = new Setting<>("Inhibit", Inhibit.SEMI)
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
+
+    public static Setting<Double> inhibitFactor = new Setting<>("inhibitFactor", 0.0, 1.0, 5.0, 1)
+            .setDescription("Time to wait after inhibiting")
+            .setVisible(() -> explode.getValue() && inhibit.getValue().equals(Inhibit.FULL));
 
     public static Setting<Boolean> await = new Setting<>("Await", true)
             .setDescription("Runs delays on packet time")
             .setVisible(() -> explode.getValue());
 
-    public static Setting<Switch> antiWeakness = new Setting<>("AntiWeakness", Switch.NONE)
-            .setDescription("Switches to a tool when attacking crystals to bypass the weakness effect")
-            .setVisible(() -> explode.getValue());
+    public static Setting<Double> yieldProtection = new Setting<>("YieldProtection", 0.0, 2.0, 5.0, 1)
+            .setDescription("Inhibit factor")
+            .setVisible(() -> explode.getValue() && await.getValue() && !inhibit.getValue().equals(Inhibit.NONE));
 
     // **************************** place settings ****************************
 
@@ -179,15 +184,19 @@ public class AutoCrystalModule extends Module {
 
     public static Setting<Double> placeWallRange = new Setting<>("PlaceWallRange", 1.0, 3.5, 6.0, 1)
             .setDescription("Range to place crystals through walls")
-            .setVisible(() -> place.getValue());
+            .setVisible(() -> place.getValue() && !raytrace.getValue());
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
             .setDescription("Switching to crystals before placement")
             .setVisible(() -> place.getValue());
 
+    public static Setting<Switch> antiWeakness = new Setting<>("AntiWeakness", Switch.NONE)
+            .setDescription("Switches to a tool when attacking crystals to bypass the weakness effect")
+            .setVisible(() -> explode.getValue());
+
     public static Setting<Boolean> alternativeSwitch = new Setting<>("AlternativeSwitch", false)
             .setDescription("Alternative method for switching to crystals")
-            .setVisible(() -> place.getValue() && autoSwitch.getValue().equals(Switch.PACKET));
+            .setVisible(() -> place.getValue() && autoSwitch.getValue().equals(Switch.PACKET) || explode.getValue() && antiWeakness.getValue().equals(Switch.PACKET));
 
     // **************************** damage settings ****************************
 
@@ -236,6 +245,9 @@ public class AutoCrystalModule extends Module {
     public static Setting<Boolean> render = new Setting<>("Render", true)
             .setDescription("Renders the current process");
 
+    public static Setting<Boolean> debug = new Setting<>("Debug", false)
+            .setDescription("Development info");
+
     public static Setting<Text> renderText = new Setting<>("RenderText", Text.NONE)
             .setDescription("Renders the damage of the current process")
             .setVisible(() -> render.getValue());
@@ -259,15 +271,14 @@ public class AutoCrystalModule extends Module {
     private final Timer switchTimer = new Timer();
     private boolean explodeClearance;
 
-    // attack flag
-    private long lastAttackTime;
-    private static final long[] attackTimes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
     // explosion
     private DamageHolder<EntityEnderCrystal> explosion;
 
     // map of all attacked crystals
     private final Map<Integer, Long> attackedCrystals = new ConcurrentHashMap<>();
+    private final TreeMap<Long, Integer> spawnedCrystals = new TreeMap<>();
+
+    // crystals that need to be ignored
     private final List<EntityEnderCrystal> inhibitCrystals = new ArrayList<>();
     private final List<Integer> deadCrystals = new ArrayList<>();
 
@@ -286,6 +297,25 @@ public class AutoCrystalModule extends Module {
     // map of all placed crystals
     private final Map<BlockPos, Long> placedCrystals = new ConcurrentHashMap<>();
 
+    // **************************** debug ****************************
+
+    // desync timer
+    private final Timer desyncTimer = new Timer();
+
+    // attack flag
+    private static long lastAttackTime;
+    private static long lastConfirmTime;
+    private static final long[] attackTimes = new long[10];
+
+    // cps
+    private long lastCrystalCount;
+    private final Timer crystalTimer = new Timer();
+    private static final long[] crystalCounts = new long[10];
+
+    // packets
+    private final List<BlockPos> placementPackets = new ArrayList<>();
+    private final List<Integer> explosionPackets = new ArrayList<>();
+
     @Override
     public void onThread() {
 
@@ -293,11 +323,85 @@ public class AutoCrystalModule extends Module {
         explosion = getCrystal();
         placement = getPlacement();
 
+        // check number of crystals in the last second
+        if (crystalTimer.passedTime(1, Format.SECONDS)) {
+
+            // make space for new val
+            if (crystalCounts.length - 1 >= 0) {
+                System.arraycopy(crystalCounts, 1, crystalCounts, 0, crystalCounts.length - 1);
+            }
+
+            // add to crystal counts
+            crystalCounts[crystalCounts.length - 1] = lastCrystalCount;
+
+            // reset
+            lastCrystalCount = 0;
+            crystalTimer.resetTime();
+        }
+
         // we are cleared to process our calculations
         if (rotateTicks <= 0) {
 
+            // needs the extra wait time
+            if (inhibitFactor.getValue() > inhibitFactor.getMin() && inhibit.getValue().equals(Inhibit.FULL)) {
+
+                // spawned crystal
+                Map.Entry<Long, Integer> latestSpawn = spawnedCrystals.firstEntry();
+
+                // attack latest spawn if waited
+                if (latestSpawn != null) {
+
+                    // calculate if we have passed delays (old delays)
+                    // place delay based on place speeds
+                    double explodeDelay = inhibitFactor.getValue() * 50;
+
+                    // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
+                    long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
+
+                    // we have waited the proper time ???
+                    boolean delayed = System.currentTimeMillis() - latestSpawn.getKey() >= explodeDelay && switchTimer.passedTime(switchDelay, Format.MILLISECONDS);
+
+                    // check if we have passed the explode time
+                    if (explodeClearance || delayed) {
+
+                        // face the crystal
+                        // angleVector = Pair.of(mc.world.getEntityByID(latestSpawn.getValue()).getPositionVector(), YawStep.FULL);
+
+                        // attack crystal
+                        if (attackCrystal(latestSpawn.getValue())) {
+
+                            // add it to our list of attacked crystals
+                            attackedCrystals.put(latestSpawn.getValue(), System.currentTimeMillis());
+
+                            // clamp
+                            if (lastAttackTime <= 0) {
+                                lastAttackTime = System.currentTimeMillis();
+                            }
+
+                            // make space for new val
+                            if (attackTimes.length - 1 >= 0) {
+                                System.arraycopy(attackTimes, 1, attackTimes, 0, attackTimes.length - 1);
+                            }
+
+                            // add to attack times
+                            attackTimes[attackTimes.length - 1] = System.currentTimeMillis() - lastAttackTime;
+
+                            // mark attack flag
+                            lastAttackTime = System.currentTimeMillis();
+
+                            // clear
+                            explodeClearance = false;
+                            explodeTimer.resetTime();
+
+                            // reset spawned crystals
+                            spawnedCrystals.clear();
+                        }
+                    }
+                }
+            }
+
             // place on thread for faster response time
-            if (attackDelay.getValue() > attackDelay.getMin()) {
+            else if (attackDelay.getValue() > attackDelay.getMin()) {
 
                 // we found crystals to explode
                 if (explosion != null) {
@@ -353,11 +457,33 @@ public class AutoCrystalModule extends Module {
     @Override
     public void onUpdate() {
 
+        // 2b2t
+        if (interact.getValue().equals(Interact.STRICT) && inhibit.getValue().equals(Inhibit.FULL)) {
+
+            // if we are desynced, attempt to resync
+            if (isDesynced()) {
+
+                // don't spam resync packets
+                if (desyncTimer.passedTime(5, Format.SECONDS)) {
+
+                    // resync?? TODO: find better resync method
+                    // mc.playerController.windowClick(0, mc.player.inventory.currentItem + 36, 0, ClickType.PICKUP, mc.player);
+                    // mc.playerController.windowClick(0, mc.player.inventory.currentItem + 36, 0, ClickType.PICKUP, mc.player);
+
+                    // restart timer
+                    desyncTimer.resetTime();
+
+                    // notify
+                    getCosmos().getChatManager().sendClientMessage("[AutoCrystal] Re-synced!");
+                }
+            }
+        }
+
         // we are cleared to process our calculations
         if (rotateTicks <= 0) {
 
             // place on thread for more consistency
-            if (attackDelay.getValue() <= attackDelay.getMin()) {
+            if (attackDelay.getValue() <= attackDelay.getMin() || inhibitFactor.getValue() > inhibitFactor.getMin() && inhibit.getValue().equals(Inhibit.FULL)) {
 
                 // we found crystals to explode
                 if (explosion != null) {
@@ -365,6 +491,11 @@ public class AutoCrystalModule extends Module {
                     // calculate if we have passed delays
                     // place delay based on place speeds
                     long explodeDelay = (long) ((explodeSpeed.getMax() - explodeSpeed.getValue()) * 50);
+
+                    // prevent attacks faster than our ping would allow
+                    if (await.getValue()) {
+                        explodeDelay = (long) (getAverageWaitTime() + (50 * yieldProtection.getValue()));
+                    }
 
                     // switch delay based on switch delays (NCP; some servers don't allow attacking right after you've switched your held item)
                     long switchDelay = explodeSwitchDelay.getValue().longValue() * 25L;
@@ -417,7 +548,7 @@ public class AutoCrystalModule extends Module {
                 long placeDelay = (long) ((placeSpeed.getMax() - placeSpeed.getValue()) * 50);
 
                 // we have waited the proper time ???
-                boolean delayed = placeTimer.passedTime(placeDelay, Format.MILLISECONDS);
+                boolean delayed = placeSpeed.getValue() >= placeSpeed.getMax() || placeTimer.passedTime(placeDelay, Format.MILLISECONDS);
 
                 // check if we have passed the place time
                 if (placeClearance || delayed) {
@@ -425,40 +556,11 @@ public class AutoCrystalModule extends Module {
                     // face the placement
                     angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
 
-                    // previous item slot
-                    int previousSlot = mc.player.inventory.currentItem;
-
-                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
-                    int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
-
                     // place the crystal
                     if (placeCrystal(placement.getDamageSource())) {
 
                         // add it to our list of attacked crystals
                         placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());  // place on the client thread
-
-                        // switch back after placing, should only switch serverside
-                        if (autoSwitch.getValue().equals(Switch.PACKET)) {
-
-                            // alt switch
-                            if (alternativeSwitch.getValue()) {
-
-                                // transaction id
-                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
-
-                                // window click
-                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
-
-                                // confirm packets
-                                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
-                            }
-
-                            // switch back
-                            else if (previousSlot != -1) {
-                                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
-                            }
-                        }
 
                         // clear
                         placeClearance = false;
@@ -572,10 +674,11 @@ public class AutoCrystalModule extends Module {
         // sequentialTicks = 0;
         // explodeTimer.resetTime();
         // placeTimer.resetTime();
-        attackedCrystals.clear();
+        // attackedCrystals.clear();
         inhibitCrystals.clear();
         deadCrystals.clear();
-        placedCrystals.clear();
+        // placedCrystals.clear();
+        spawnedCrystals.clear();
     }
 
     @Override
@@ -607,16 +710,16 @@ public class AutoCrystalModule extends Module {
         if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
 
             // crystal entities within the packet position
-            List<EntityEnderCrystal> soundCrystals = mc.world.getEntitiesWithinAABB(EntityEnderCrystal.class, new AxisAlignedBB(new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ())));
+            // List<EntityEnderCrystal> soundCrystals = mc.world.getEntitiesWithinAABB(EntityEnderCrystal.class, new AxisAlignedBB(new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ())));
 
             // check all entities
-            for (EntityEnderCrystal crystal : soundCrystals) {
+            // for (EntityEnderCrystal crystal : soundCrystals) {
 
                 // check if we have already counted this explosion
-                if (!inhibitCrystals.contains(crystal)) {
-                    externalExplosion = true;
-                }
-            }
+                // if (!inhibitCrystals.contains(crystal)) {
+                //    externalExplosion = true;
+                //
+            // }
 
             // with this on the main thread there's no reason
             // why we need all the concurrency stuff...?
@@ -650,7 +753,7 @@ public class AutoCrystalModule extends Module {
                     crystal.setDead();
 
                     // force remove entity
-                    // mc.world.removeEntity(crystal);
+                    mc.world.removeEntity(crystal);
 
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
@@ -658,7 +761,7 @@ public class AutoCrystalModule extends Module {
                     }
 
                     else {
-                        // mc.world.removeEntityDangerously(crystal);
+                        mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -711,7 +814,7 @@ public class AutoCrystalModule extends Module {
                     crystal.setDead();
 
                     // force remove entity
-                    // mc.world.removeEntity(crystal);
+                    mc.world.removeEntity(crystal);
 
                     // ignore
                     if (sequential.getValue().equals(Sequential.STRICT)) {
@@ -719,7 +822,7 @@ public class AutoCrystalModule extends Module {
                     }
 
                     else {
-                        // mc.world.removeEntityDangerously(crystal);
+                        mc.world.removeEntityDangerously(crystal);
                     }
                 }
             });
@@ -746,8 +849,8 @@ public class AutoCrystalModule extends Module {
 
                     // remove quicker to make the autocrystal look faster (as the world will remove these entities anyway
                     mc.addScheduledTask(() -> {
-                        // mc.world.removeEntity(crystal);
-                        // mc.world.removeEntityDangerously(crystal);
+                        mc.world.removeEntity(crystal);
+                        mc.world.removeEntityDangerously(crystal);
                     });
                 }
             }
@@ -765,40 +868,11 @@ public class AutoCrystalModule extends Module {
                     // face the placement
                     angleVector = Pair.of(new Vec3d(placement.getDamageSource()).addVector(0.5, 0.5, 0.5), YawStep.NONE);
 
-                    // previous item slot
-                    int previousSlot = mc.player.inventory.currentItem;;
-
-                    // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
-                    int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
-
                     // place the crystal
                     if (placeCrystal(placement.getDamageSource())) {
 
                         // add it to our list of attacked crystals
                         placedCrystals.put(placement.getDamageSource(), System.currentTimeMillis());
-
-                        // switch back after placing, should only switch serverside
-                        if (autoSwitch.getValue().equals(Switch.PACKET)) {
-
-                            // alt switch
-                            if (alternativeSwitch.getValue()) {
-
-                                // transaction id
-                                short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
-
-                                // window click
-                                ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-                                mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
-
-                                // confirm packets
-                                mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
-                            }
-
-                            // switch back
-                            else if (previousSlot != -1) {
-                                getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
-                            }
-                        }
                     }
                 }
             }
@@ -813,19 +887,28 @@ public class AutoCrystalModule extends Module {
             // clear timer
             if (await.getValue()) {
 
+                // face the crystal
+                angleVector = Pair.of(new Vec3d(spawnPosition), YawStep.FULL);
+
                 // check if we have placed this crystal
-                if (placedCrystals.containsKey(spawnPosition.down())) {
+                if (placementPackets.contains(spawnPosition.down())) {
+
+                    // prevents attacks faster than our ping will al;ow
+                    if (inhibitFactor.getValue() > inhibitFactor.getMin() && inhibit.getValue().equals(Inhibit.FULL)) {
+
+                        // add to map of spawned crystals
+                        spawnedCrystals.put(System.currentTimeMillis(), ((SPacketSpawnObject) event.getPacket()).getEntityID());
+                    }
 
                     // mark it as our current explosion
-                    if (attackDelay.getValue() > 0) {
-                        explodeClearance = true; // since it's been confirmed that the crystal spawned, we can move on to our next process
+                    else if (attackDelay.getValue() > attackDelay.getMin()) {
+
+                        // since it's been confirmed that the crystal spawned, we can move on to our next process
+                        explodeClearance = true;
                     }
 
                     // clear the next explosion
                     else {
-
-                        // face the crystal
-                        angleVector = Pair.of(new Vec3d(spawnPosition), YawStep.FULL);
 
                         // attack spawned crystal
                         if (attackCrystal(((SPacketSpawnObject) event.getPacket()).getEntityID())) {
@@ -848,11 +931,17 @@ public class AutoCrystalModule extends Module {
 
                             // mark attack flag
                             lastAttackTime = System.currentTimeMillis();
-                        }
 
-                        // already accounted for
-                        placedCrystals.remove(spawnPosition.down());
+                            explodeClearance = false;
+                            explodeTimer.resetTime();
+                        }
                     }
+
+                    // reset
+                    placementPackets.clear();
+
+                    // accounted for
+                    placedCrystals.remove(spawnPosition.down());
                 }
             }
         }
@@ -873,8 +962,23 @@ public class AutoCrystalModule extends Module {
         // crystal being removed from world
         if (event.getEntity() instanceof EntityEnderCrystal) {
 
-            // remove crystal from our attacked crystals list
-            attackedCrystals.remove(event.getEntity().getEntityId());
+            // check if it is a crystal we have attacked
+            if (attackedCrystals.containsKey(event.getEntity().getEntityId())) {
+
+                // remove crystal from our attacked crystals list
+                lastConfirmTime =  System.currentTimeMillis() - attackedCrystals.remove(event.getEntity().getEntityId());
+
+                // recently broke a crystal
+                lastCrystalCount++;
+            }
+
+            // check if it is a crystal we have sent a packet for
+            if (explosionPackets.contains(event.getEntity().getEntityId())) {
+
+                // clear
+                explosionPackets.clear();
+            }
+
             inhibitCrystals.remove((EntityEnderCrystal) event.getEntity());
         }
     }
@@ -1035,17 +1139,17 @@ public class AutoCrystalModule extends Module {
             long elapsedTime = System.currentTimeMillis() - placedCrystals.getOrDefault(new BlockPos(crystal.getPositionVector()).down(), System.currentTimeMillis());
 
             // make sure the crystal has existed in the world for a certain number of ticks before it's a viable target
-            if ((crystal.ticksExisted < ticksExisted.getValue() && (elapsedTime / 50F) < ticksExisted.getValue()) && !inhibit.getValue()) {
+            if ((crystal.ticksExisted < ticksExisted.getValue() && (elapsedTime / 50F) < ticksExisted.getValue()) && !inhibit.getValue().equals(Inhibit.NONE)) {
                 continue;
             }
 
             // make sure the crystal isn't already being exploded, prevent unnecessary attacks
-            if (inhibitCrystals.contains(crystal) && inhibit.getValue()) {
+            if (inhibitCrystals.contains(crystal) && !inhibit.getValue().equals(Inhibit.NONE)) {
                 continue;
             }
 
             // distance to crystal
-            double crystalRange = mc.player.getDistance(crystal);
+            double crystalRange = mc.player.getDistance(crystal.posX, rangeEye.getValue() ? crystal.posY + crystal.getEyeHeight() : crystal.posY, crystal.posZ);
 
             // check if the entity is in range
             if (crystalRange > explodeRange.getValue()) {
@@ -1438,7 +1542,11 @@ public class AutoCrystalModule extends Module {
         }
 
         // mark previous slot
-        int previousSlot = mc.player.inventory.currentItem;
+        int previousSlot = -1;
+
+        // tool slots
+        int swordSlot = getCosmos().getInventoryManager().searchSlot(ItemSword.class, InventoryRegion.INVENTORY);
+        int pickSlot = getCosmos().getInventoryManager().searchSlot(ItemPickaxe.class, InventoryRegion.INVENTORY);
 
         // antiweakness switches to a tool slot to bypass the weakness effect
         if (!antiWeakness.getValue().equals(Switch.NONE)) {
@@ -1446,19 +1554,39 @@ public class AutoCrystalModule extends Module {
             // verify that we cannot break the crystal due to weakness
             if (weaknessEffect != null && (strengthEffect == null || strengthEffect.getAmplifier() < weaknessEffect.getAmplifier())) {
 
-                // tool slots
-                int swordSlot = getCosmos().getInventoryManager().searchSlot(ItemSword.class, InventoryRegion.INVENTORY);
-                int pickSlot = getCosmos().getInventoryManager().searchSlot(ItemPickaxe.class, InventoryRegion.INVENTORY);
-
+                // check if we are holding a tool
                 if (!InventoryUtil.isHolding(ItemSword.class) || !InventoryUtil.isHolding(ItemPickaxe.class)) {
 
-                    // prefer the sword over a pickaxe
-                    if (swordSlot != -1) {
-                        getCosmos().getInventoryManager().switchToSlot(swordSlot, antiWeakness.getValue());
+                    // previous held item
+                    previousSlot = mc.player.inventory.currentItem;
+
+                    // alt switch
+                    if (antiWeakness.getValue().equals(Switch.PACKET) && alternativeSwitch.getValue()) {
+
+                        // prefer the sword over a pickaxe
+                        if (swordSlot != -1) {
+
+                            // swap
+                            mc.playerController.windowClick(0, swordSlot + 36, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                        }
+
+                        else if (pickSlot != -1) {
+
+                            // swap
+                            mc.playerController.windowClick(0, pickSlot + 36, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                        }
                     }
 
-                    else if (pickSlot != -1) {
-                        getCosmos().getInventoryManager().switchToSlot(pickSlot, antiWeakness.getValue());
+                    else {
+
+                        // prefer the sword over a pickaxe
+                        if (swordSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(swordSlot, antiWeakness.getValue());
+                        }
+
+                        else if (pickSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(pickSlot, antiWeakness.getValue());
+                        }
                     }
                 }
             }
@@ -1475,7 +1603,7 @@ public class AutoCrystalModule extends Module {
 
             // stop sprinting when attacking an entity
             if (sprintState) {
-                mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                // mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
             }
         }
 
@@ -1486,6 +1614,9 @@ public class AutoCrystalModule extends Module {
 
         // send attack packet
         mc.player.connection.sendPacket(attackPacket);
+
+        // count packets
+        explosionPackets.add(in);
 
         // swing the player's arm
         if (swing.getValue()) {
@@ -1517,12 +1648,40 @@ public class AutoCrystalModule extends Module {
 
         // reset sprint state
         if (sprintState) {
-            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            // mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
         }
 
-        // switch back
-        if (antiWeakness.getValue().equals(Switch.PACKET)) {
-            getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
+        // check if we have previous slot
+        if (previousSlot != -1) {
+
+            // switch back
+            if (antiWeakness.getValue().equals(Switch.PACKET)) {
+
+                // alt swap
+                if (alternativeSwitch.getValue()) {
+
+                    // prefer the sword over a pickaxe
+                    if (swordSlot != -1) {
+
+                        // swap
+                        mc.playerController.windowClick(0, swordSlot + 36, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                    }
+
+                    else if (pickSlot != -1) {
+
+                        // swap
+                        mc.playerController.windowClick(0, pickSlot + 36, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+                    }
+
+                    // sync
+                    // mc.playerController.windowClick(0, mc.player.inventory.currentItem, 0, ClickType.PICKUP, mc.player);
+                    // mc.playerController.windowClick(0, mc.player.inventory.currentItem, 0, ClickType.PICKUP, mc.player);
+                }
+
+                else {
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.PACKET);
+                }
+            }
         }
 
         // ignore
@@ -1551,34 +1710,69 @@ public class AutoCrystalModule extends Module {
             autoSwitchTimer.resetTime();
         }
 
+        // previous held item
+        int previousSlot = -1;
+
         // slot of item (based on slot ids from : https://c4k3.github.io/wiki.vg/images/1/13/Inventory-slots.png)
         int swapSlot = getCosmos().getInventoryManager().searchSlot(Items.END_CRYSTAL, InventoryRegion.HOTBAR) + 36;
 
-        // if we are not holding a crystal
-        if (!isHoldingCrystal()) {
+        // previous slot info
+        Slot previousHeldSlot = mc.player.inventoryContainer.inventorySlots.get(mc.player.inventory.currentItem + 36);
+        Slot previousSwapSlot = mc.player.inventoryContainer.inventorySlots.get(swapSlot);
 
-            // wait for switch pause
-            if (autoSwitchTimer.passedTime(500, Format.MILLISECONDS)) {
+        // previous item stack info
+        ItemStack heldStack = mc.player.getHeldItemMainhand();
+        ItemStack swapStack = previousSwapSlot.getStack();
+
+        // switches to a crystal before attempting to place
+        if (!autoSwitch.getValue().equals(Switch.NONE)) {
+
+            // if we are not holding a crystal
+            if (!InventoryUtil.isHolding(Items.END_CRYSTAL)) {
+
+                // previous held item
+                previousSlot = mc.player.inventory.currentItem;
 
                 // alt switch
                 if (autoSwitch.getValue().equals(Switch.PACKET) && alternativeSwitch.getValue()) {
 
-                    // transaction id
-                    short nextTransactionID = mc.player.openContainer.getNextTransactionID(mc.player.inventory);
+                    // silent
+                    if (InventoryUtil.isInHotbar(Items.END_CRYSTAL)) {
 
-                    // window click
-                    ItemStack itemstack = mc.player.openContainer.slotClick(swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
-                    mc.player.connection.sendPacket(new CPacketClickWindow(mc.player.inventoryContainer.windowId, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, itemstack, nextTransactionID));
+                        // alt swap
+                        mc.playerController.windowClick(0, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+
+                        // force set
+                        previousHeldSlot.putStack(swapStack);
+                        previousSwapSlot.putStack(heldStack);
+                    }
                 }
 
                 // switch to a crystal
                 else {
-                    getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, autoSwitch.getValue());
+
+                    // normal switch requires pausing
+                    if (autoSwitch.getValue().equals(Switch.NORMAL)) {
+
+                        // wait for switch pause
+                        if (autoSwitchTimer.passedTime(500, Format.MILLISECONDS)) {
+
+                            // switch
+                            getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, Switch.NORMAL);
+                        }
+                    }
+
+                    else {
+                        getCosmos().getInventoryManager().switchToItem(Items.END_CRYSTAL, Switch.NORMAL);
+                    }
                 }
             }
         }
 
-        // make sure we are holding a crystal
+        // sync item
+        ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+
+        // make sure we are holding a crystal before trying to place
         if (!isHoldingCrystal()) {
             return false;
         }
@@ -1683,6 +1877,9 @@ public class AutoCrystalModule extends Module {
         // place the crystal
         mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(in, facingDirection, offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, (float) facingX, (float) facingY, (float) facingZ));
 
+        // count packets
+        placementPackets.add(in);
+
         // swing the player's arm
         if (swing.getValue()) {
 
@@ -1711,8 +1908,123 @@ public class AutoCrystalModule extends Module {
         // swing with packets
         mc.player.connection.sendPacket(new CPacketAnimation(offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND));
 
+        // update item stack info
+        heldStack = previousSwapSlot.getStack();
+        swapStack = mc.player.getHeldItemMainhand();
+
+        // switch back after placing, should only switch serverside
+        if (autoSwitch.getValue().equals(Switch.PACKET)) {
+
+            // alt switch
+            if (alternativeSwitch.getValue()) {
+
+                // predicted stack
+                // previousSwapStack.shrink(1);
+
+                // alt swap
+                mc.playerController.windowClick(0, swapSlot, mc.player.inventory.currentItem, ClickType.SWAP, mc.player);
+
+                // force set
+                previousHeldSlot.putStack(heldStack);
+                previousSwapSlot.putStack(swapStack);
+
+                // sync
+                // mc.playerController.windowClick(0, mc.player.inventory.currentItem, 0, ClickType.PICKUP, mc.player);
+                // mc.playerController.windowClick(0, mc.player.inventory.currentItem, 0, ClickType.PICKUP, mc.player);
+
+                // confirm packets
+                // mc.player.connection.sendPacket(new CPacketConfirmTransaction(mc.player.inventoryContainer.windowId, nextTransactionID, true));
+            }
+
+            // switch back
+            else {
+
+                // check if our previous held item exists
+                if (previousSlot != -1) {
+                    getCosmos().getInventoryManager().switchToSlot(previousSlot, Switch.NORMAL);
+                }
+            }
+        }
+
         // placement was successful
         return true;
+    }
+
+    /**
+     * Checks if the player is facing a certain vector
+     * @return Whether the player is facing a certain vector
+     */
+    public boolean isFacing(Vec3d in) {
+
+        // yaw and pitch that we've sent to the server
+        Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+
+        // target rotation
+        Rotation facingRotation = AngleUtil.calculateAngles(in);
+
+        // rotation diffs
+        float yaw = Math.abs(serverRotation.getYaw() - facingRotation.getYaw());
+        float pitch = Math.abs(serverRotation.getPitch() - facingRotation.getPitch());
+
+        // both yaw and pitch must be nearly equal to facing rotation
+        return yaw <= 0.1 & pitch <= 0.1;
+    }
+
+    /**
+     * Checks if the AutoCrystal is desynced from the server
+     * @return Whether the AutoCrystal is desynced from the server
+     */
+    public boolean isDesynced() {
+
+        // cannot be desynced in singleplayer
+        if (mc.isSingleplayer()) {
+            return false;
+        }
+
+        // sent too many packets with no response (40 seems like a good number may change in the future)
+        return explosionPackets.size() > 40 || placementPackets.size() > 40;
+    }
+
+    /**
+     * Gets the dev info
+     * @return The dev info
+     */
+    public static String getDebug() {
+
+        // dev info
+        // add average wait time
+        String debugInfo = getAverageWaitTime() +
+                "ms, " +
+                getConfirmTime() +
+                ", " +
+                getAverageCrystalsPerSecond();// add crystals per second
+
+        return debug.getValue() ? debugInfo : "";
+    }
+
+    /**
+     * Gets the number of crystals in the last second
+     * @return The number of crystals in the last second
+     */
+    private static int getAverageCrystalsPerSecond() {
+
+        // average value
+        return (int) getAverage(crystalCounts);
+    }
+
+    /**
+     * Gets the time it took for the server to confirm the crystal
+     * @return The time it took for the server to confirm the crystal
+     */
+    private static float getConfirmTime() {
+
+        // clamp
+        if (lastConfirmTime > 500) {
+            lastConfirmTime = 0;
+        }
+
+        // average value
+        return MathUtil.roundFloat(lastConfirmTime / 50F, 1);
     }
 
     /**
@@ -1720,14 +2032,34 @@ public class AutoCrystalModule extends Module {
      * @return the average attack wait time
      */
     private static long getAverageWaitTime() {
-        int avg = 0;
 
-        for (long time : attackTimes) {
-            avg += time;
+        // average value
+        float average = getAverage(attackTimes);
+
+        if (average > 500) {
+            average = 0;
         }
 
         // 10 slots
-        return avg / 10;
+        return (long) average;
+    }
+
+    /**
+     * Gets the average value of an array
+     * @param in The array
+     * @return The average value of the array
+     */
+    private static float getAverage(long[] in) {
+
+        // average value
+        float avg = 0;
+
+        for (long time : in) {
+            avg += time;
+        }
+
+        // average time
+        return avg / 10F;
     }
 
     /**
@@ -1735,7 +2067,7 @@ public class AutoCrystalModule extends Module {
      * @return Whether or not the player is holding a crystal
      */
     public boolean isHoldingCrystal() {
-        return InventoryUtil.isHolding(Items.END_CRYSTAL) || autoSwitch.getValue().equals(Switch.PACKET) && getCosmos().getInventoryManager().isInHotbar(Items.END_CRYSTAL);
+        return InventoryUtil.isHolding(Items.END_CRYSTAL) || autoSwitch.getValue().equals(Switch.PACKET) && InventoryUtil.isInHotbar(Items.END_CRYSTAL);
     }
 
     /**
@@ -1745,8 +2077,11 @@ public class AutoCrystalModule extends Module {
      */
     public boolean canPlaceCrystal(BlockPos position) {
 
+        // block that we are placing on
+        Block placeBlock = mc.world.getBlockState(position).getBlock();
+
         // crystals can only be placed on Obsidian and Bedrock
-        if (!mc.world.getBlockState(position).getBlock().equals(Blocks.BEDROCK) && !mc.world.getBlockState(position).getBlock().equals(Blocks.OBSIDIAN)) {
+        if (!placeBlock.equals(Blocks.BEDROCK) && !placeBlock.equals(Blocks.OBSIDIAN)) {
             return false;
         }
 
@@ -1754,14 +2089,22 @@ public class AutoCrystalModule extends Module {
         BlockPos nativePosition = position.up();
         BlockPos updatedPosition = nativePosition.up();
 
+        // block that is above the one we are placing on
+        Block nativeBlock = mc.world.getBlockState(nativePosition).getBlock();
+
         // check if the native position is air or fire
-        if (!mc.world.isAirBlock(nativePosition) && !mc.world.getBlockState(nativePosition).getBlock().isReplaceable(mc.world, nativePosition)) {
+        if (!nativeBlock.equals(Blocks.AIR) && !nativeBlock.equals(Blocks.FIRE)) {
             return false;
         }
 
-        // check if the updated position is air or fire
+        // two block height needed for 1.12.2
         if (placements.getValue().equals(Placements.NATIVE)) {
-            if (!mc.world.isAirBlock(updatedPosition) && !mc.world.getBlockState(updatedPosition).getBlock().isReplaceable(mc.world, updatedPosition)) {
+
+            // block that is above the air block
+            Block updatedBlock = mc.world.getBlockState(updatedPosition).getBlock();
+
+            // check if the updated position is air or fire
+            if (!updatedBlock.equals(Blocks.AIR) && !updatedBlock.equals(Blocks.FIRE)) {
                 return false;
             }
         }
@@ -1779,9 +2122,113 @@ public class AutoCrystalModule extends Module {
                 continue;
             }
 
-            // if the entity is crystal, check it's on the same position
-            if (entity instanceof EntityEnderCrystal && entity.getEntityBoundingBox().intersects(new AxisAlignedBB(nativePosition.getX(), position.getY(), nativePosition.getZ(), nativePosition.getX() + 1, nativePosition.getY() + offset.getValue(), nativePosition.getZ() + 1)) || attackedCrystals.containsKey(entity.getEntityId()) && entity.ticksExisted < 20) {
+            // we can place on these entities
+            if (entity instanceof EntityXPOrb) {
                 continue;
+            }
+
+            // if the entity is crystal, check it's on the same position
+            if (entity instanceof EntityEnderCrystal) {
+
+                // we've attacked and haven't "failed" to break yet
+                if (attackedCrystals.containsKey(entity.getEntityId()) && entity.ticksExisted < 20) {
+                    continue;
+                }
+
+                // local damage done by the crystal
+                double localDamage = ExplosionUtil.getDamageFromExplosion(mc.player, entity.getPositionVector(), blockDestruction.getValue());
+
+                // best damage
+                double idealDamage = 0;
+
+                // search all targets
+                for (Entity target : new ArrayList<>(mc.world.loadedEntityList)) {
+
+                    // make sure the entity actually exists
+                    if (target == null || target.equals(mc.player) || target.getEntityId() < 0 || EnemyUtil.isDead(target) || getCosmos().getSocialManager().getSocial(target.getName()).equals(Relationship.FRIEND)) {
+                        continue;
+                    }
+
+                    // ignore crystals, they can't be targets
+                    if (target instanceof EntityEnderCrystal) {
+                        continue;
+                    }
+
+                    // don't attack our riding entity
+                    if (target.isBeingRidden() && target.getPassengers().contains(mc.player)) {
+                        continue;
+                    }
+
+                    // verify that the entity is a target
+                    if (target instanceof EntityPlayer && !targetPlayers.getValue() || EntityUtil.isPassiveMob(target) && !targetPassives.getValue() || EntityUtil.isNeutralMob(target) && !targetNeutrals.getValue() || EntityUtil.isHostileMob(target) && !targetHostiles.getValue()) {
+                        continue;
+                    }
+
+                    // distance to target
+                    double entityRange = mc.player.getDistance(target);
+
+                    // check if the target is in range
+                    if (entityRange > targetRange.getValue()) {
+                        continue;
+                    }
+
+                    // target damage done by the placement
+                    double targetDamage = ExplosionUtil.getDamageFromExplosion(target, entity.getPositionVector(), blockDestruction.getValue());
+
+                    // check the safety of the placement
+                    double safetyIndex = 1;
+
+                    // check if we can take damage
+                    if (DamageUtil.canTakeDamage()) {
+
+                        // local health
+                        double health = PlayerUtil.getHealth();
+
+                        // incredibly unsafe
+                        if (localDamage + 0.5 > health) {
+                            safetyIndex = -9999;
+                        }
+
+                        // unsafe -> if local damage is greater than target damage
+                        else if (safety.getValue().equals(Safety.STABLE)) {
+
+                            // target damage and local damage scaled
+                            double efficiency = targetDamage - localDamage;
+
+                            // too small, we'll be fine :>
+                            if (efficiency < 0 && Math.abs(efficiency) < 0.25) {
+                                efficiency = 0;
+                            }
+
+                            safetyIndex = efficiency;
+                        }
+
+                        // unsafe -> if local damage is greater than balanced target damage
+                        else if (safety.getValue().equals(Safety.BALANCE)) {
+
+                            // balanced target damage
+                            double balance = targetDamage * safetyBalance.getValue();
+
+                            // balanced damage, should be proportionate to local damage
+                            safetyIndex = balance - localDamage;
+                        }
+                    }
+
+                    // placement is unsafe
+                    if (safetyIndex < 0) {
+                        continue;
+                    }
+
+                    // update ideal damage
+                    if (targetDamage > idealDamage) {
+                        idealDamage = targetDamage;
+                    }
+                }
+
+                // we will attack the crystal soon
+                if (idealDamage > damage.getValue()) {
+                    continue;
+                }
             }
 
             unsafeEntities++;
@@ -1836,6 +2283,24 @@ public class AutoCrystalModule extends Module {
 
         /**
          * Does not yaw step
+         */
+        NONE
+    }
+
+    public enum Inhibit {
+
+        /**
+         * Adds an additional delay for stricter servers
+         */
+        FULL,
+
+        /**
+         * Does not wait and attacks straight away
+         */
+        SEMI,
+
+        /**
+         * Does not inhibit
          */
         NONE
     }
