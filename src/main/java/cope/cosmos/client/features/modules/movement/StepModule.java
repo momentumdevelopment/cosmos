@@ -92,7 +92,7 @@ public class StepModule extends Module {
         }
 
         // wait 200 ms between steps to prevent packet spam
-        if (stepTimer.passedTime(200, Format.MILLISECONDS)) {
+        if (mc.player.onGround && stepTimer.passedTime(200, Format.MILLISECONDS)) {
 
             // update our player's step height
             mc.player.stepHeight = height.getValue().floatValue();
