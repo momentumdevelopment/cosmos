@@ -171,7 +171,9 @@ public class AutoTotemModule extends Module {
                             else {
                                 crappleSlot = i;
                             }
-                        } else {
+                        }
+
+                        else {
                             itemSlot = i;
                             break;
                         }

@@ -56,7 +56,7 @@ public class ChamsModule extends Module {
     public static Setting<Boolean> crystals = new Setting<>("Crystals", true)
             .setDescription("Renders chams on crystals");
 
-    public static Setting<Double> scale = new Setting<>("Scale", 0.0, 1.0, 2.0, 2)
+    public static Setting<Double> scale = new Setting<>("CrystalScale", 0.0, 1.0, 2.0, 2)
             .setDescription("Scale for crystal model")
             .setVisible(() -> crystals.getValue());
 
@@ -69,17 +69,16 @@ public class ChamsModule extends Module {
     public static Setting<Boolean> texture = new Setting<>("Texture", false)
             .setDescription("Enables entity texture");
 
+    public static Setting<Boolean> transparent = new Setting<>("Transparent", true)
+            .setDescription("Makes entity models transparent")
+            .setVisible(() -> texture.getValue());
+
+    public static Setting<Boolean> shine = new Setting<>("Shine", false)
+            .setDescription("Adds the enchantment glint effect to the model")
+            .setVisible(() -> !mode.getValue().equals(Mode.WIRE));
+
     public static Setting<Boolean> lighting = new Setting<>("Lighting", true)
             .setDescription("Disables vanilla lighting");
-
-    public static Setting<Boolean> blend = new Setting<>("Blend", false)
-            .setDescription("Enables blended texture");
-
-    public static Setting<Boolean> transparent = new Setting<>("Transparent", true)
-            .setDescription("Makes entity models transparent");
-
-    public static Setting<Boolean> depth = new Setting<>("Depth", true)
-            .setDescription("Enables entity depth");
 
     public static Setting<Boolean> walls = new Setting<>("Walls", true)
             .setDescription("Renders chams models through walls");
@@ -88,10 +87,19 @@ public class ChamsModule extends Module {
     private final ResourceLocation GLINT_TEXTURE = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
     @SubscribeEvent
-    public void onRenderLivingEntity(RenderLivingEntityEvent event) {
+    public void onRenderLivingEntityPre(RenderLivingEntityEvent.RenderLivingEntityPreEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
-            // cancel the vanilla rendering
-            event.setCanceled(!texture.getValue());
+
+            // cancel vanilla model rendering
+            if (!texture.getValue()) {
+                event.setCanceled(true);
+            }
+        }
+    }
+    
+    @SubscribeEvent
+    public void onRenderLivingEntityPost(RenderLivingEntityEvent.RenderLivingEntityPostEvent event) {
+        if (hasChams(event.getEntityLivingBase())) {
 
             // make the model transparent
             if (transparent.getValue()) {
@@ -102,23 +110,12 @@ public class ChamsModule extends Module {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
 
             // remove the texture
-            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE)) {
-                glDisable(GL_TEXTURE_2D);
-            }
-
-            // blend the textures
-            if (blend.getValue()) {
-                glEnable(GL_BLEND);
-            }
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
 
             // remove lighting
             if (lighting.getValue()) {
                 glDisable(GL_LIGHTING);
-            }
-
-            // remove visual depth
-            if (depth.getValue()) {
-                glDepthMask(false);
             }
 
             // remove depth
@@ -133,7 +130,6 @@ public class ChamsModule extends Module {
                     break;
                 case WIRE_MODEL:
                 case MODEL:
-                case SHINE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
             }
@@ -146,29 +142,14 @@ public class ChamsModule extends Module {
             // color the model (walls)
             glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
-            // render the model
-            event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
-
-            // re-enable depth
-            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glEnable(GL_DEPTH_TEST);
-            }
-
-            // change to outline polygon mode for wire and model
-            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            }
-
-            // color the model (non-walls)
-            glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
-
-            // render the model
-            event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
-
-            if (mode.getValue().equals(Mode.SHINE)) {
+            // shine model
+            if (shine.getValue() && !mode.getValue().equals(Mode.WIRE)) {
+                glEnable(GL_TEXTURE_2D);
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
 
+                // render twice
                 for (float i = 0; i < 2; i++) {
+
                     // bind the enchantment glint texture
                     mc.getRenderManager().renderEngine.bindTexture(GLINT_TEXTURE);
 
@@ -194,11 +175,34 @@ public class ChamsModule extends Module {
                 }
 
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                glDisable(GL_TEXTURE_2D);
             }
 
-            // reset depth
-            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL)) {
+            else {
+
+                // render the model
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+            }
+            
+            // re-enable depth
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL)) {
                 glEnable(GL_DEPTH_TEST);
+            }
+
+            // change to outline polygon mode for wire and model
+            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // color the model (non-walls)
+                glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
+
+                // render the model
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+
+                // reset depth
+                if (walls.getValue()) {
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
 
             // reset lighting
@@ -206,20 +210,9 @@ public class ChamsModule extends Module {
                 glEnable(GL_LIGHTING);
             }
 
-            // reset visual depth
-            if (depth.getValue()) {
-                glDepthMask(true);
-            }
-
-            // reset blend
-            if (blend.getValue()) {
-                glDisable(GL_BLEND);
-            }
-
             // reset texture
-            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE)) {
-                glEnable(GL_TEXTURE_2D);
-            }
+            glDisable(GL_BLEND);
+            glEnable(GL_TEXTURE_2D);
 
             glPopAttrib();
             glPopMatrix();
@@ -228,13 +221,17 @@ public class ChamsModule extends Module {
 
     @SubscribeEvent
     public void onRenderCrystalPre(RenderCrystalEvent.RenderCrystalPreEvent event) {
+
         // cancel vanilla model rendering
-        event.setCanceled(crystals.getValue());
+        if (!texture.getValue()) {
+            event.setCanceled(crystals.getValue());
+        }
     }
 
     @SubscribeEvent
     public void onRenderCrystalPost(RenderCrystalEvent.RenderCrystalPostEvent event) {
         if (crystals.getValue()) {
+
             // make the model transparent
             if (transparent.getValue()) {
                 GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
@@ -253,23 +250,12 @@ public class ChamsModule extends Module {
             glScaled(scale.getValue(), scale.getValue(), scale.getValue());
 
             // remove the texture
-            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE)) {
-                glDisable(GL_TEXTURE_2D);
-            }
-
-            // blend the textures
-            if (blend.getValue()) {
-                glEnable(GL_BLEND);
-            }
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
 
             // remove lighting
             if (lighting.getValue()) {
                 glDisable(GL_LIGHTING);
-            }
-
-            // remove visual depth
-            if (depth.getValue()) {
-                glDepthMask(false);
             }
 
             // remove depth
@@ -284,7 +270,6 @@ public class ChamsModule extends Module {
                     break;
                 case WIRE_MODEL:
                 case MODEL:
-                case SHINE:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     break;
             }
@@ -297,39 +282,14 @@ public class ChamsModule extends Module {
             // color the model (walls)
             glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
-            // render the model
-            if (event.getEntityEnderCrystal().shouldShowBottom()) {
-                event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-            }
-
-            else {
-                event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-            }
-
-            // re-enable depth
-            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glEnable(GL_DEPTH_TEST);
-            }
-
-            // change to outline polygon mode for wire and model
-            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            }
-
-            glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
-
-            if (event.getEntityEnderCrystal().shouldShowBottom()) {
-                event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-            }
-
-            else {
-                event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-            }
-
-            if (mode.getValue().equals(Mode.SHINE)) {
+            // shine model
+            if (shine.getValue() && !mode.getValue().equals(Mode.WIRE)) {
+                glEnable(GL_TEXTURE_2D);
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
 
-                for (int i = 0; i < 2; ++i) {
+                // render twice (one glint isn't bright enough)
+                for (int i = 0; i < 2; i++) {
+
                     // bind the enchantment glint texture
                     mc.getRenderManager().renderEngine.bindTexture(GLINT_TEXTURE);
 
@@ -359,11 +319,46 @@ public class ChamsModule extends Module {
                 }
 
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                glDisable(GL_TEXTURE_2D);
+            }
+
+            else {
+
+                // render the model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+            }
+
+            // re-enable depth
+            if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL)) {
+                glEnable(GL_DEPTH_TEST);
             }
 
             // change to outline polygon mode for wire and model
-            if (walls.getValue() && mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glEnable(GL_DEPTH_TEST);
+            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                // color wall model
+                glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
+
+                // render model
+                if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                else {
+                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                }
+
+                // change to outline polygon mode for wire and model
+                if (walls.getValue()) {
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
 
             // reset lighting
@@ -371,20 +366,9 @@ public class ChamsModule extends Module {
                 glEnable(GL_LIGHTING);
             }
 
-            // reset visual depth
-            if (depth.getValue()) {
-                glDepthMask(true);
-            }
-
-            // reset blend
-            if (blend.getValue()) {
-                glDisable(GL_BLEND);
-            }
-
             // reset texture
-            if (!texture.getValue() && !mode.getValue().equals(Mode.SHINE)) {
-                glEnable(GL_TEXTURE_2D);
-            }
+            glDisable(GL_BLEND);
+            glEnable(GL_TEXTURE_2D);
 
             // reset scale
             glScaled(1 / scale.getValue(), 1 / scale.getValue(), 1 / scale.getValue());
@@ -428,10 +412,5 @@ public class ChamsModule extends Module {
          * Fills and outlines the model
          */
         WIRE_MODEL,
-
-        /**
-         * Adds the enchantment glint to the model
-         */
-        SHINE
     }
 }

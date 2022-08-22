@@ -97,4 +97,20 @@ public class RenderLivingEntityEvent extends Event {
     public float getScaleFactor() {
         return scaleFactor;
     }
+
+    public static class RenderLivingEntityPreEvent extends RenderLivingEntityEvent {
+
+        // pre render
+        public RenderLivingEntityPreEvent(ModelBase modelBase, EntityLivingBase entityLivingBase, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
+            super(modelBase, entityLivingBase, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+        }
+    }
+
+    public static class RenderLivingEntityPostEvent extends RenderLivingEntityEvent {
+
+        // post render
+        public RenderLivingEntityPostEvent(ModelBase modelBase, EntityLivingBase entityLivingBase, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor) {
+            super(modelBase, entityLivingBase, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+        }
+    }
 }

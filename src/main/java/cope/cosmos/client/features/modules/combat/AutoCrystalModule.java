@@ -365,7 +365,7 @@ public class AutoCrystalModule extends Module {
                     if (explodeClearance || delayed) {
 
                         // face the crystal
-                        // angleVector = Pair.of(mc.world.getEntityByID(latestSpawn.getValue()).getPositionVector(), YawStep.FULL);
+                        angleVector = Pair.of(mc.world.getEntityByID(latestSpawn.getValue()).getPositionVector(), YawStep.FULL);
 
                         // attack crystal
                         if (attackCrystal(latestSpawn.getValue())) {
@@ -1745,6 +1745,9 @@ public class AutoCrystalModule extends Module {
                         // force set
                         previousHeldSlot.putStack(swapStack);
                         previousSwapSlot.putStack(heldStack);
+
+                        // ???
+                        mc.player.inventory.markDirty();
                     }
                 }
 
@@ -1927,6 +1930,9 @@ public class AutoCrystalModule extends Module {
                 // force set
                 previousHeldSlot.putStack(heldStack);
                 previousSwapSlot.putStack(swapStack);
+
+                // ???
+                mc.player.inventory.markDirty();
 
                 // sync
                 // mc.playerController.windowClick(0, mc.player.inventory.currentItem, 0, ClickType.PICKUP, mc.player);
