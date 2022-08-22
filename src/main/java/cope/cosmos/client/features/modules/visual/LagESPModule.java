@@ -4,7 +4,11 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.string.ColorUtil;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemChorusFruit;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,11 +19,18 @@ import java.util.LinkedList;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
 
+/**
+ * @author oragejuice
+ * @since 22/08/22
+ */
 
 public class LagESPModule extends Module {
 
+    public static LagESPModule INSTANCE;
+
     public LagESPModule() {
         super("LagESP", Category.VISUAL, "Shows a path from where you got rubber banded");
+        INSTANCE = this;
     }
 
     public static Setting<Float> fadeSpeed = new Setting<>("FadeSpeed", 1F, 2F, 10F, 1)
@@ -28,13 +39,14 @@ public class LagESPModule extends Module {
     public static Setting<Float> width = new Setting<>("Width", 0.1F, 2F, 5F, 1)
             .setDescription("The width of the lines");
 
-    public static Setting<Boolean> reverse = new Setting<>("Inverse", false);
+    public static Setting<Boolean> reverse = new Setting<>("Inverse", false)
+            .setDescription("Direction of fade");
 
-    public static Setting<fade> fadeSetting = new Setting<fade>("Fade", fade.LINEAR);
+    public static Setting<Fade> fadeSetting = new Setting<Fade>("Fade", Fade.LINEAR)
+            .setDescription("Which mode of fade");
 
-
-    LinkedList<RubberBand> list = new LinkedList<>();
-
+    private final LinkedList<RubberBand> list = new LinkedList<>();
+    private Timer lastChorus = new Timer();
 
 
     @SubscribeEvent
@@ -43,19 +55,28 @@ public class LagESPModule extends Module {
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
             SPacketPlayerPosLook p = (SPacketPlayerPosLook) event.getPacket();
 
-            /* register that a rubberband happened */
+            // if we have eaten a chorus recently, then the teleport is likely that of the chorus
+            if(!lastChorus.passedTime(400, Timer.Format.MILLISECONDS)) return;
 
-            list.add(new RubberBand(
+            //if the teleport (x and z values only) is telporting you more than 8 blocks
+            // then it is likely not a rubberband
+            if(mc.player.getPositionVector().distanceTo(new Vec3d(p.getX(), mc.player.posY, p.getZ())) > 8) return;
+
+                /* register that a rubberband happened */
+                list.add(new RubberBand(
                     mc.player.getPositionVector(),
                     new Vec3d(p.getX(), p.getY(), p.getZ()
                     )));
 
         }
 
-
+        if (event.getPacket() instanceof CPacketPlayerTryUseItem) {
+            if(mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
+                this.lastChorus.resetTime();
+            }
+        }
 
     }
-
 
     /* stolen from breadcrumbs.. */
     @Override
@@ -128,7 +149,7 @@ public class LagESPModule extends Module {
                     r.to.z - mc.getRenderManager().viewerPosZ
             );
 
-            if(System.currentTimeMillis() - r.time >= fadeSpeed.getValue() * 1000){
+            if (System.currentTimeMillis() - r.time >= fadeSpeed.getValue() * 1000){
                 list.remove(r);
             }
 
@@ -155,7 +176,7 @@ public class LagESPModule extends Module {
         private final Vec3d to;
         private final long time;
 
-        Vec3d intermediary;
+        private Vec3d intermediary;
 
 
         public RubberBand(Vec3d from, Vec3d to) {
@@ -176,20 +197,20 @@ public class LagESPModule extends Module {
             so normally i would use a higher order function for calcuting the interp,
             but im lazy and nobody will ever look at this. so i wont
              */
-            if( reverse.getValue()){
+            if (reverse.getValue()){
 
                 //calculate the difference
                 Vec3d d = from.subtract(to);
 
                 //set the position to be an interpolated value from `from` to `to`
-                if (fadeSetting.getValue() == fade.LINEAR) {
+                if (fadeSetting.getValue() == Fade.LINEAR) {
                     intermediary = to.addVector(
                             d.x * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.y * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.z * ((timeDelta) / (fadeSpeed.getValue() * 1000))
                     );
                 }
-                if (fadeSetting.getValue() == fade.DYNAMIC) {
+                if (fadeSetting.getValue() == Fade.DYNAMIC) {
                     double distance = from.distanceTo(to);
                     intermediary = to.addVector(
                             d.x * ((timeDelta / 1000F) * (fadeSpeed.getValue() / 10F) / distance),
@@ -202,14 +223,14 @@ public class LagESPModule extends Module {
                 Vec3d d = to.subtract(from);
 
                 //set the position to be an interpolated value from `from` to `to`
-                if (fadeSetting.getValue() == fade.LINEAR) {
+                if (fadeSetting.getValue().equals(Fade.LINEAR)) {
                     intermediary = from.addVector(
                             d.x * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.y * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.z * ((timeDelta) / (fadeSpeed.getValue() * 1000))
                     );
                 }
-                if (fadeSetting.getValue() == fade.DYNAMIC) {
+                if (fadeSetting.getValue().equals(Fade.DYNAMIC)) {
                     double distance = from.distanceTo(to);
                     intermediary = from.addVector(
                             d.x * ((timeDelta / 1000F) * (fadeSpeed.getValue() / 10F) / distance),
@@ -222,7 +243,7 @@ public class LagESPModule extends Module {
 
     }
 
-    private enum fade {
+    private enum Fade {
         LINEAR,
         DYNAMIC
     }
