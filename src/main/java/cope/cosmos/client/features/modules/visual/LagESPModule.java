@@ -56,12 +56,15 @@ public class LagESPModule extends Module {
             SPacketPlayerPosLook p = (SPacketPlayerPosLook) event.getPacket();
 
             // if we have eaten a chorus recently, then the teleport is likely that of the chorus
-            if(!lastChorus.passedTime(400, Timer.Format.MILLISECONDS)) return;
+            if (!lastChorus.passedTime(400, Timer.Format.MILLISECONDS)) {
+                return;
+            }
 
             //if the teleport (x and z values only) is telporting you more than 8 blocks
             // then it is likely not a rubberband
-            if(mc.player.getPositionVector().distanceTo(new Vec3d(p.getX(), mc.player.posY, p.getZ())) > 8) return;
-
+            if (mc.player.getPositionVector().distanceTo(new Vec3d(p.getX(), mc.player.posY, p.getZ())) > 8) {
+                return;
+            }
                 /* register that a rubberband happened */
                 list.add(new RubberBand(
                     mc.player.getPositionVector(),
@@ -71,7 +74,7 @@ public class LagESPModule extends Module {
         }
 
         if (event.getPacket() instanceof CPacketPlayerTryUseItem) {
-            if(mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
+            if (mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
                 this.lastChorus.resetTime();
             }
         }
@@ -203,14 +206,14 @@ public class LagESPModule extends Module {
                 Vec3d d = from.subtract(to);
 
                 //set the position to be an interpolated value from `from` to `to`
-                if (fadeSetting.getValue() == Fade.LINEAR) {
+                if (fadeSetting.getValue().equals(Fade.LINEAR)) {
                     intermediary = to.addVector(
                             d.x * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.y * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
                             d.z * ((timeDelta) / (fadeSpeed.getValue() * 1000))
                     );
                 }
-                if (fadeSetting.getValue() == Fade.DYNAMIC) {
+                if (fadeSetting.getValue().equals(Fade.DYNAMIC)) {
                     double distance = from.distanceTo(to);
                     intermediary = to.addVector(
                             d.x * ((timeDelta / 1000F) * (fadeSpeed.getValue() / 10F) / distance),
