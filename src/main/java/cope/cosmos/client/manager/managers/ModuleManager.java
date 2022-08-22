@@ -112,7 +112,8 @@ public class ModuleManager extends Manager {
 				// new TooltipsModule(),
 				new TracersModule(),
 				new ViewModelModule(),
-				new WallhackModule()
+				new WallhackModule(),
+				new LagESPModule()
 		);
 	}
 
