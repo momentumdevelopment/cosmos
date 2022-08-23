@@ -16,10 +16,6 @@ public class RenderFogColorEvent extends Event {
     // fog color
     private Color color;
 
-    public RenderFogColorEvent(Color color) {
-        this.color = color;
-    }
-
     /**
      * Gets the fog color
      * @return The fog color

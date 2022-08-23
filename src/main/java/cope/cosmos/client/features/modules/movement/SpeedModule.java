@@ -562,9 +562,9 @@ public class SpeedModule extends Module {
                 // instant max speed
                 moveSpeed = baseSpeed;
 
-                // walking speed  = 0.75 * sprint speed
+                // walking speed = 0.7692307692 * sprint speed
                 if (!mc.player.isSprinting()) {
-                    moveSpeed *= 0.75;
+                    moveSpeed *= 0.7692307692;
                 }
 
                 // sneak scale = 0.3 * sprint speed

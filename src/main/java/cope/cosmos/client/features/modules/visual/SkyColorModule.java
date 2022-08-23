@@ -33,8 +33,8 @@ public class SkyColorModule extends Module {
         if (sky.getValue()) {
 
             // override sky color
-            event.setCanceled(true);
             event.setColor(ColorUtil.getPrimaryColor());
+            event.setCanceled(true);
         }
     }
 
@@ -44,6 +44,7 @@ public class SkyColorModule extends Module {
 
             // override fog color
             event.setColor(ColorUtil.getPrimaryColor());
+            event.setCanceled(true);
         }
     }
 }

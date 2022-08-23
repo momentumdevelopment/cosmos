@@ -84,13 +84,13 @@ public class MixinWorld {
     }
 
     @Inject(method = "getSkyColor", at = @At("HEAD"), cancellable = true)
-    public void onGetSkyColor(Entity entityIn, float partialTicks, CallbackInfoReturnable<Vec3d> info) {
+    public void onGetSkyColorBody(Entity entityIn, float partialTicks, CallbackInfoReturnable<Vec3d> infoReturnable) {
         RenderSkyEvent renderSkyEvent = new RenderSkyEvent();
         Cosmos.EVENT_BUS.post(renderSkyEvent);
 
         if (renderSkyEvent.isCanceled()) {
-            info.cancel();
-            info.setReturnValue(new Vec3d(renderSkyEvent.getColor().getRed() / 255D, renderSkyEvent.getColor().getGreen() / 255D, renderSkyEvent.getColor().getBlue() / 255D));
+            infoReturnable.cancel();
+            infoReturnable.setReturnValue(new Vec3d(renderSkyEvent.getColor().getRed() / 255D, renderSkyEvent.getColor().getGreen() / 255D, renderSkyEvent.getColor().getBlue() / 255D));
         }
     }
 }

@@ -340,13 +340,15 @@ public class EventManager extends Manager implements Wrapper {
 
 	@SubscribeEvent
 	public void onFogColor(EntityViewRenderEvent.FogColors event) {
-		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent(Color.WHITE);
+		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent();
 		Cosmos.EVENT_BUS.post(fogColorEvent);
 
 		// update fog colors
-		event.setRed(fogColorEvent.getColor().getRed() / 255F);
-		event.setGreen(fogColorEvent.getColor().getGreen() / 255F);
-		event.setBlue(fogColorEvent.getColor().getBlue() / 255F);
+		if (fogColorEvent.isCanceled()) {
+			event.setRed(fogColorEvent.getColor().getRed() / 255F);
+			event.setGreen(fogColorEvent.getColor().getGreen() / 255F);
+			event.setBlue(fogColorEvent.getColor().getBlue() / 255F);
+		}
 	}
 
 	@SubscribeEvent
