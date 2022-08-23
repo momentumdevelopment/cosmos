@@ -5,6 +5,7 @@ import cope.cosmos.client.events.render.other.CameraClipEvent;
 import cope.cosmos.client.events.render.player.CrosshairBobEvent;
 import cope.cosmos.client.events.render.player.HurtCameraEvent;
 import cope.cosmos.client.events.render.player.RenderItemActivationEvent;
+import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.events.render.world.RenderWorldEvent;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.init.Items;
@@ -27,6 +28,16 @@ public abstract class MixinEntityRenderer {
     private void renderWorld(CallbackInfo info) {
         RenderWorldEvent renderWorldEvent = new RenderWorldEvent();
         Cosmos.EVENT_BUS.post(renderWorldEvent);
+    }
+
+    @Inject(method = "setupFog", at = @At("HEAD"), cancellable = true)
+    public void onSetupFog(int startCoords, float partialTicks, CallbackInfo info) {
+        RenderFogEvent renderFogEvent = new RenderFogEvent();
+        Cosmos.EVENT_BUS.post(renderFogEvent);
+
+        if (renderFogEvent.isCanceled()) {
+            info.cancel();
+        }
     }
 
     @Inject(method = "hurtCameraEffect", at = @At("HEAD"), cancellable = true)

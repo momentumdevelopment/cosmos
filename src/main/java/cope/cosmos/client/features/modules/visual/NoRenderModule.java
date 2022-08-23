@@ -62,10 +62,6 @@ public class NoRenderModule extends Module {
             .setDescription("Clears fog in liquid")
             .setVisible(() -> fog.getValue());
 
-    public static Setting<Double> fogDensity = new Setting<>("FogDensity", 0.0, 0.0, 20.0, 0)
-            .setDescription("Density of the fog")
-            .setVisible(() -> fog.getValue());
-
     // **************************** other ****************************
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true)
@@ -235,6 +231,27 @@ public class NoRenderModule extends Module {
     }
 
     @SubscribeEvent
+    public void onRenderFog(RenderFogEvent event) {
+
+        // prevents fog from rendering
+        if (PlayerUtil.isInLiquid()) {
+
+            // prevent fog from rendering in liquid
+            if (fogLiquid.getValue()) {
+                event.setCanceled(true);
+            }
+        }
+
+        else {
+
+            // prevent fog from rendering
+            if (fog.getValue()) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onHurtCamera(HurtCameraEvent event) {
 
         // cancels the hurt camera effect
@@ -258,30 +275,6 @@ public class NoRenderModule extends Module {
         // cancels barrier particles from rendering
         if (barrier.getValue() && event.getParticleType().equals(EnumParticleTypes.BARRIER)) {
             event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
-    public void onRenderFog(RenderFogEvent event) {
-        if (nullCheck()) {
-
-            // cancels fog from rendering
-            if (fog.getValue()) {
-
-                // cancels fog from rendering in liquids
-                if (!PlayerUtil.isInLiquid() && fogLiquid.getValue()) {
-                    return;
-                }
-
-                // sets the density of the fog
-                if (fogDensity.getValue() > 0) {
-                    event.setDensity(fogDensity.getValue().floatValue());
-                }
-
-                else {
-                    event.setCanceled(true);
-                }
-            }
         }
     }
 

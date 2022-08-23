@@ -339,18 +339,6 @@ public class EventManager extends Manager implements Wrapper {
 	}
 
 	@SubscribeEvent
-	public void onFogDensity(EntityViewRenderEvent.FogDensity event) {
-		RenderFogEvent renderFogEvent = new RenderFogEvent(event.getDensity());
-		Cosmos.EVENT_BUS.post(renderFogEvent);
-
-		event.setDensity(renderFogEvent.getDensity());
-
-		if (renderFogEvent.isCanceled()) {
-			event.setCanceled(true);
-		}
-	}
-
-	@SubscribeEvent
 	public void onFogColor(EntityViewRenderEvent.FogColors event) {
 		RenderFogColorEvent fogColorEvent = new RenderFogColorEvent(Color.WHITE);
 		Cosmos.EVENT_BUS.post(fogColorEvent);
