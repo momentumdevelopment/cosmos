@@ -3,7 +3,6 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayerTryUseItemOnBlock;
 import cope.cosmos.client.events.block.LiquidInteractEvent;
 import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.AutoCrystalModule;
@@ -11,6 +10,7 @@ import cope.cosmos.client.features.modules.combat.BurrowModule;
 import cope.cosmos.client.features.modules.combat.HoleFillModule;
 import cope.cosmos.client.features.modules.combat.SurroundModule;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.world.ShiftBlocks;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -23,7 +23,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.ArrayList;
 
 /**
- * This module attempts to put all the bloat modules (i.e. Swing, LiquidInteract, NoHeightLimit) in one module
+ * This module attempts to put all the bloat modules (i.e. NoInteract, GhostHand, LiquidInteract, NoHeightLimit) in one module
  * @author linustouchtips
  * @since 06/08/2021
  */
@@ -36,9 +36,6 @@ public class InteractModule extends Module {
     }
 
     // **************************** hand interactions ****************************
-
-    public static Setting<Hand> hand = new Setting<>("Hand", Hand.MAINHAND)
-            .setDescription("Swinging hand");
 
     public static Setting<Boolean> ghostHand = new Setting<>("GhostHand", false)
             .setDescription("Allows you to interact with blocks through walls");
@@ -61,22 +58,6 @@ public class InteractModule extends Module {
 
     public static Setting<Boolean> worldBorder = new Setting<>("WorldBorder", false)
             .setDescription("Allows you to interact with blocks at the world border");
-
-    @SubscribeEvent
-    public void onSettingUpdate(SettingUpdateEvent event) {
-        if (event.getSetting().equals(hand)) {
-
-            // update the player's swinging hand
-            switch (hand.getValue()) {
-                case OFFHAND:
-                    mc.player.swingingHand = EnumHand.OFF_HAND;
-                    break;
-                case MAINHAND:
-                    mc.player.swingingHand = EnumHand.MAIN_HAND;
-                    break;
-            }
-        }
-    }
 
     @SubscribeEvent
     public void onLiquidInteract(LiquidInteractEvent event) {
@@ -113,7 +94,7 @@ public class InteractModule extends Module {
 
             // cancel the right-click packet if we're interacting with a container
             if (ignoreContainer.getValue()) {
-                if (getCosmos().getInteractionManager().getSneakBlocks().contains(mc.world.getBlockState(limitPosition).getBlock())) {
+                if (ShiftBlocks.contains(mc.world.getBlockState(limitPosition).getBlock())) {
                     event.setCanceled(true);
                 }
             }
@@ -145,18 +126,5 @@ public class InteractModule extends Module {
         if (event.getPacket() instanceof CPacketAnimation && noSwing.getValue()) {
             event.setCanceled(true);
         }
-    }
-
-    public enum Hand {
-
-        /**
-         * Swings the mainhand
-         */
-        MAINHAND,
-
-        /**
-         * Swings the offhand
-         */
-        OFFHAND,
     }
 }

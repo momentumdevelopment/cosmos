@@ -1,27 +1,27 @@
 package cope.cosmos.client.manager.managers;
 
+import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
+import cope.cosmos.client.features.modules.player.SwingModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.player.AngleUtil;
-import net.minecraft.block.Block;
+import cope.cosmos.util.world.ShiftBlocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
-import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.CPacketEntityAction;
-import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
-import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.server.SPacketAnimation;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.world.WorldServer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,39 +32,6 @@ public class InteractionManager extends Manager {
     public InteractionManager() {
         super("InteractionManager", "Manages all player interactions");
     }
-
-    // list of blocks which need to be shift clicked to be placed on
-    public static final List<Block> sneakBlocks = Arrays.asList(
-            Blocks.ENDER_CHEST,
-            Blocks.CHEST,
-            Blocks.TRAPPED_CHEST,
-            Blocks.CRAFTING_TABLE,
-            Blocks.ANVIL, // :troll:
-            Blocks.BREWING_STAND,
-            Blocks.HOPPER,
-            Blocks.DROPPER,
-            Blocks.DISPENSER,
-            Blocks.TRAPDOOR,
-            Blocks.ENCHANTING_TABLE,
-            Blocks.WHITE_SHULKER_BOX,
-            Blocks.ORANGE_SHULKER_BOX,
-            Blocks.MAGENTA_SHULKER_BOX,
-            Blocks.LIGHT_BLUE_SHULKER_BOX,
-            Blocks.YELLOW_SHULKER_BOX,
-            Blocks.LIME_SHULKER_BOX,
-            Blocks.PINK_SHULKER_BOX,
-            Blocks.GRAY_SHULKER_BOX,
-            Blocks.SILVER_SHULKER_BOX,
-            Blocks.CYAN_SHULKER_BOX,
-            Blocks.PURPLE_SHULKER_BOX,
-            Blocks.BLUE_SHULKER_BOX,
-            Blocks.BROWN_SHULKER_BOX,
-            Blocks.GREEN_SHULKER_BOX,
-            Blocks.RED_SHULKER_BOX,
-            Blocks.BLACK_SHULKER_BOX
-            // Blocks.COMMAND_BLOCK,
-            // Blocks.CHAIN_COMMAND_BLOCK
-    );
 
     /**
      * If a block is being place in the interaction manager
@@ -113,7 +80,7 @@ public class InteractionManager extends Manager {
             }
 
             // sneak if the block is not right-clickable
-            boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            boolean sneak = ShiftBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
                 // mc.player.setSneaking(true);
@@ -166,26 +133,30 @@ public class InteractionManager extends Manager {
             float facingY = (float) (interactVector.y - directionOffset.getY());
             float facingZ = (float) (interactVector.z - directionOffset.getZ());
 
-            // sync item
-            ((IPlayerControllerMP) mc.playerController).hookSyncCurrentPlayItem();
+            // ip
+            String ip = mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP : "";
 
-            mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
+            // right click direction offset block
+            if (ip.equalsIgnoreCase("2b2t.org") && mc.getConnection() != null) {
 
-//            // ip
-//            String ip = mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP : "";
-//
-//            // right click direction offset block
-//            if (ip.equalsIgnoreCase("2b2t.org") && mc.getConnection() != null) {
-//
-//                // place
-//                mc.getConnection().sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
-//            }
-//
-//            else {
-//
-//                // place
-//                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
-//            }
+                // send our place packet
+                // todo: fuckery with playerController
+                //mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
+                mc.playerController.processRightClickBlock(
+                        mc.player,
+                        mc.world,
+                        directionOffset,
+                        direction.getOpposite(),
+                        interactVector,
+                        EnumHand.MAIN_HAND
+                );
+            }
+
+            else {
+
+                // place
+                mc.player.connection.sendPacket(new CPacketPlayerTryUseItemOnBlock(directionOffset, direction.getOpposite(), EnumHand.MAIN_HAND, facingX, facingY, facingZ));
+            }
 
             // reset sneak
             if (sneak) {
@@ -199,8 +170,30 @@ public class InteractionManager extends Manager {
                 // mc.player.setSprinting(true);
             }
 
-            // swing hand
-            mc.player.swingArm(EnumHand.MAIN_HAND);
+            // swing the player's arm
+            // held item stack
+            ItemStack stack = mc.player.getHeldItem(EnumHand.MAIN_HAND);
+
+            // check stack
+            if (!stack.isEmpty()) {
+                if (!stack.getItem().onEntitySwing(mc.player, stack)) {
+
+                    // apply swing progress
+                    if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
+                        mc.player.swingProgressInt = -1;
+                        mc.player.isSwingInProgress = true;
+                        mc.player.swingingHand = SwingModule.INSTANCE.isEnabled() ? SwingModule.INSTANCE.getHand() : EnumHand.MAIN_HAND;
+
+                        // send animation packet
+                        if (mc.player.world instanceof WorldServer) {
+                            ((WorldServer) mc.player.world).getEntityTracker().sendToTracking(mc.player, new SPacketAnimation(mc.player, 0));
+                        }
+                    }
+                }
+            }
+
+            // swing with packets
+            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
             ((IMinecraft) mc).setRightClickDelayTimer(4);
             break;
 
@@ -257,7 +250,7 @@ public class InteractionManager extends Manager {
             }
 
             // sneak if the block is not right-clickable
-            boolean sneak = sneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            boolean sneak = ShiftBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
                 // mc.player.setSneaking(true);
@@ -350,7 +343,30 @@ public class InteractionManager extends Manager {
             }
 
             // swing hand
-            mc.player.swingArm(EnumHand.MAIN_HAND);
+            // swing the player's arm
+            // held item stack
+            ItemStack stack = mc.player.getHeldItem(EnumHand.MAIN_HAND);
+
+            // check stack
+            if (!stack.isEmpty()) {
+                if (!stack.getItem().onEntitySwing(mc.player, stack)) {
+
+                    // apply swing progress
+                    if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
+                        mc.player.swingProgressInt = -1;
+                        mc.player.isSwingInProgress = true;
+                        mc.player.swingingHand = SwingModule.INSTANCE.isEnabled() ? SwingModule.INSTANCE.getHand() : EnumHand.MAIN_HAND;
+
+                        // send animation packet
+                        if (mc.player.world instanceof WorldServer) {
+                            ((WorldServer) mc.player.world).getEntityTracker().sendToTracking(mc.player, new SPacketAnimation(mc.player, 0));
+                        }
+                    }
+                }
+            }
+
+            // swing with packets
+            mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
             ((IMinecraft) mc).setRightClickDelayTimer(4);
             break;
 
@@ -394,17 +410,17 @@ public class InteractionManager extends Manager {
 
     /**
      * Checks to see if we can see a block face via vanilla raytracing
-     * @param pos the position to place at
+     * @param position the position to place at
      * @param facing the face of the block
      * @return if we can see this face at the server-sided rotations
      */
-    public boolean canSeeFace(BlockPos pos, EnumFacing facing) {
+    public boolean isFaceVisible(BlockPos position, EnumFacing facing) {
         RayTraceResult result = getTraceResult(getReachDistance(), getCosmos().getRotationManager().getServerRotation());
         if (result == null || !result.typeOfHit.equals(Type.BLOCK)) {
             return false;
         }
 
-        return pos.equals(result.getBlockPos()) && result.sideHit.equals(facing);
+        return position.equals(result.getBlockPos()) && result.sideHit.equals(facing);
     }
 
     /**
@@ -419,11 +435,11 @@ public class InteractionManager extends Manager {
             rotation = getCosmos().getRotationManager().getServerRotation();
         }
 
-        Vec3d rotVec = AngleUtil.getVectorForRotation(rotation);
+        Vec3d rotationVector = AngleUtil.getVectorForRotation(rotation);
 
         return mc.world.rayTraceBlocks(
                 eyes,
-                eyes.addVector(rotVec.x * distance, rotVec.y * distance, rotVec.z * distance),
+                eyes.addVector(rotationVector.x * distance, rotationVector.y * distance, rotationVector.z * distance),
                 false,
                 false,
                 true
@@ -528,14 +544,6 @@ public class InteractionManager extends Manager {
         }
 
         return visibleSides;
-    }
-
-    /**
-     * Gets all the blocks that need to be shift clicked
-     * @return All the blocks that need to be shift clicked
-     */
-    public List<Block> getSneakBlocks() {
-        return sneakBlocks;
     }
 
     /**

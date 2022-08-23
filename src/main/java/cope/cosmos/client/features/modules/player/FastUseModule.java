@@ -7,6 +7,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.world.ShiftBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemBlock;
@@ -18,7 +19,6 @@ import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -66,9 +66,6 @@ public class FastUseModule extends Module {
     public static Setting<Boolean> exp = new Setting<>("EXP", true)
             .setDescription("Applies fast placements to experience");
 
-    public static Setting<Boolean> bow = new Setting<>("Bow", false)
-            .setDescription("Applies fast placements to bows");
-
     public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
             .setDescription("Applies fast placements to crystals");
 
@@ -113,22 +110,6 @@ public class FastUseModule extends Module {
                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
             }
         }
-
-        // fast bow, make sure we are holding a bow and shooting it
-        if (InventoryUtil.isHolding(Items.BOW) && mc.player.isHandActive()) {
-
-            if (bow.getValue()) {
-
-                // make sure we've held it for at least a minimum of 1 tick
-                if (mc.player.getItemInUseMaxCount() >= MathHelper.clamp(3 + ((speed.getMax().intValue() - speed.getValue().intValue()) * 5), 3, 20)) {
-
-                    // spam release bow packets
-                    mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
-                    mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(mc.player.getActiveHand()));
-                    mc.player.stopActiveHand();
-                }
-            }
-        }
     }
 
     @SubscribeEvent
@@ -143,7 +124,7 @@ public class FastUseModule extends Module {
                     Block interactBlock = mc.world.getBlockState(((CPacketPlayerTryUseItemOnBlock) event.getPacket()).getPos()).getBlock();
 
                     // make sure we are not interacting with a sneak block
-                    if (!getCosmos().getInteractionManager().getSneakBlocks().contains(interactBlock)) {
+                    if (!ShiftBlocks.contains(interactBlock)) {
                         event.setCanceled(true);
                     }
                 }
