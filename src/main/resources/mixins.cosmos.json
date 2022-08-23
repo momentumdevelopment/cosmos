@@ -40,6 +40,7 @@
         "entity.crystal.MixinEntityEnderCrystal",
         "entity.MixinEntity",
         "input.MixinKeyBinding",
+        "input.MixinMovementInputFromOptions",
         "input.MixinPlayerControllerMP",
         "network.MixinNetworkManager",
         "network.MixinNettyCompressionDecoder",

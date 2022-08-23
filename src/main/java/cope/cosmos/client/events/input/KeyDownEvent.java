@@ -1,4 +1,4 @@
-package cope.cosmos.client.events.entity.player.interact;
+package cope.cosmos.client.events.input;
 
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;

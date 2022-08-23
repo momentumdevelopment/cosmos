@@ -90,6 +90,11 @@ public class ChamsModule extends Module {
     public void onRenderLivingEntityPre(RenderLivingEntityEvent.RenderLivingEntityPreEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
 
+            // make the model transparent
+            if (transparent.getValue()) {
+                GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+            }
+
             // cancel vanilla model rendering
             if (!texture.getValue()) {
                 event.setCanceled(true);
@@ -100,11 +105,6 @@ public class ChamsModule extends Module {
     @SubscribeEvent
     public void onRenderLivingEntityPost(RenderLivingEntityEvent.RenderLivingEntityPostEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
-
-            // make the model transparent
-            if (transparent.getValue()) {
-                GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
-            }
 
             glPushMatrix();
             glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -222,6 +222,11 @@ public class ChamsModule extends Module {
     @SubscribeEvent
     public void onRenderCrystalPre(RenderCrystalEvent.RenderCrystalPreEvent event) {
 
+        // make the model transparent
+        if (transparent.getValue()) {
+            GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+        }
+
         // cancel vanilla model rendering
         if (!texture.getValue()) {
             event.setCanceled(crystals.getValue());
@@ -231,11 +236,6 @@ public class ChamsModule extends Module {
     @SubscribeEvent
     public void onRenderCrystalPost(RenderCrystalEvent.RenderCrystalPostEvent event) {
         if (crystals.getValue()) {
-
-            // make the model transparent
-            if (transparent.getValue()) {
-                GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
-            }
 
             glPushMatrix();
             glPushAttrib(GL_ALL_ATTRIB_BITS);

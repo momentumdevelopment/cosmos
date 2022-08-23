@@ -6,7 +6,7 @@ import cope.cosmos.client.events.block.SlimeEvent;
 import cope.cosmos.client.events.block.SoulSandEvent;
 import cope.cosmos.client.events.entity.player.interact.EntityUseItemEvent;
 import cope.cosmos.client.events.entity.player.interact.ItemInputUpdateEvent;
-import cope.cosmos.client.events.entity.player.interact.KeyDownEvent;
+import cope.cosmos.client.events.input.KeyDownEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -288,9 +288,13 @@ public class NoSlowModule extends Module {
     @SubscribeEvent
     public void onKeyDown(KeyDownEvent event) {
 
-        // remove conflict context when pressing keys
-        if (inventoryMove.getValue()) {
-            event.setCanceled(true);
+        // prevent keys from being pressed in screens
+        if (isInScreen()) {
+
+            // remove conflict context when pressing keys
+            if (inventoryMove.getValue()) {
+                event.setCanceled(true);
+            }
         }
     }
 

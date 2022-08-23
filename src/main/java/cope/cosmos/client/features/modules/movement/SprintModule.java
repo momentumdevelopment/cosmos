@@ -2,6 +2,7 @@ package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.client.events.entity.LivingUpdateEvent;
+import cope.cosmos.client.events.input.UpdateMoveStateEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -112,12 +113,11 @@ public class SprintModule extends Module {
             }
 
             // instant max speed
-            if (mc.player.isSprinting()) {
-                moveSpeed = baseSpeed;
-            }
+            moveSpeed = baseSpeed;
 
-            else {
-                moveSpeed = 0.2;
+            // sneak scale = 0.3 * non-sprint speed
+            if (mc.player.isSneaking()) {
+                moveSpeed = baseSpeed * 0.3;
             }
 
             // the current movement input values of the user
@@ -131,17 +131,16 @@ public class SprintModule extends Module {
                 event.setZ(0);
             }
 
-            else if (forward != 0) {
-                if (strafe >= 1) {
-                    yaw += (forward > 0 ? -45 : 45);
-                    strafe = 0;
+            if (forward != 0) {
+                if (strafe > 0) {
+                    yaw += ((forward > 0) ? -45 : 45);
                 }
 
-                else if (strafe <= -1) {
-                    yaw += (forward > 0 ? 45 : -45);
-                    strafe = 0;
+                else if (strafe < 0) {
+                    yaw += ((forward > 0) ? 45 : -45);
                 }
 
+                strafe = 0;
                 if (forward > 0) {
                     forward = 1;
                 }
@@ -162,6 +161,40 @@ public class SprintModule extends Module {
     }
 
     @SubscribeEvent
+    public void onUpdateMoveState(UpdateMoveStateEvent event) {
+
+        // make sure the player is not in a liquid
+        if (PlayerUtil.isInLiquid()) {
+            return;
+        }
+
+        // make sure the player is not in a web
+        if (((IEntity) mc.player).getInWeb()) {
+            return;
+        }
+
+        // make sure the player can have speed applied
+        if (mc.player.isOnLadder() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.fallDistance > 2) {
+            return;
+        }
+
+        // incompatibilities
+        if (FlightModule.INSTANCE.isEnabled() || PacketFlightModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled() || SpeedModule.INSTANCE.isEnabled()) {
+            return;
+        }
+
+        // custom sneaking
+        if (mode.getValue().equals(Mode.INSTANT)) {
+
+            // prevent sneak state from changing
+            if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+                mc.player.movementInput.moveForward *= (1 / 0.3F);
+                mc.player.movementInput.moveStrafe *= (1 / 0.3F);
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
 
         // rage sprint
@@ -173,7 +206,7 @@ public class SprintModule extends Module {
             }
 
             // verify whether or not the player can actually sprint
-            if ((mc.player.isHandActive() || mc.player.isSneaking()) && strict.getValue()) {
+            if (mc.player.isSneaking() && strict.getValue()) {
                 return;
             }
 

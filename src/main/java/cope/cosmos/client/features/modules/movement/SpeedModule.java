@@ -148,14 +148,14 @@ public class SpeedModule extends Module {
             return;
         }
 
+        // pause if sneaking
+        if (mc.player.isSneaking()) {
+            return;
+        }
+
         // cancel vanilla movement, we'll send our own movements
         event.setCanceled(true);
         getCosmos().getTickManager().setClientTicks(1);
-
-        // sneak reset
-        if (mc.player.isSneaking()) {
-            mc.player.setSneaking(false);
-        }
 
         // base move speed
         double baseSpeed = 0.2873;
@@ -560,12 +560,16 @@ public class SpeedModule extends Module {
             case STRAFE_GROUND: {
 
                 // instant max speed
-                if (mc.player.isSprinting()) {
-                    moveSpeed = baseSpeed;
+                moveSpeed = baseSpeed;
+
+                // walking speed  = 0.75 * sprint speed
+                if (!mc.player.isSprinting()) {
+                    moveSpeed *= 0.75;
                 }
 
-                else {
-                    moveSpeed = 0.2;
+                // sneak scale = 0.3 * sprint speed
+                else if (mc.player.isSneaking()) {
+                    moveSpeed *= 0.3;
                 }
 
                 // the current movement input values of the user
@@ -579,17 +583,16 @@ public class SpeedModule extends Module {
                     event.setZ(0);
                 }
 
-                else if (forward != 0) {
-                    if (strafe >= 1) {
-                        yaw += (forward > 0 ? -45 : 45);
-                        strafe = 0;
+                if (forward != 0) {
+                    if (strafe > 0) {
+                        yaw += ((forward > 0) ? -45 : 45);
                     }
 
-                    else if (strafe <= -1) {
-                        yaw += (forward > 0 ? 45 : -45);
-                        strafe = 0;
+                    else if (strafe < 0) {
+                        yaw += ((forward > 0) ? 45 : -45);
                     }
 
+                    strafe = 0;
                     if (forward > 0) {
                         forward = 1;
                     }
