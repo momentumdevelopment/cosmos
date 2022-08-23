@@ -9,7 +9,6 @@ import cope.cosmos.client.ui.clickgui.screens.configuration.taskbar.Taskbar;
 import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.client.ui.util.MousePosition;
 import cope.cosmos.client.ui.util.ScissorStack;
-import cope.cosmos.util.Wrapper;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.math.Vec2f;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -50,6 +49,14 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
                 frameSpace += 110;
             }
         }
+    }
+
+    @Override
+    public void initGui() {
+        super.initGui();
+
+        // lawl
+        Mouse.setGrabbed(false);
     }
 
     @Override

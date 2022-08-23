@@ -1,5 +1,7 @@
 package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting;
 
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
@@ -7,6 +9,7 @@ import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
 
@@ -27,6 +30,7 @@ public class BooleanComponent extends SettingComponent<Boolean> {
 
     public BooleanComponent(ModuleComponent moduleComponent, Setting<Boolean> setting) {
         super(moduleComponent, setting);
+        Cosmos.EVENT_BUS.register(this);
     }
 
     @Override
@@ -86,6 +90,18 @@ public class BooleanComponent extends SettingComponent<Boolean> {
 
             // play a sound to make the user happy :)
             getCosmos().getSoundManager().playSound("click");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SubscribeEvent
+    public void onSettingUpdate(SettingUpdateEvent event) {
+
+        // this setting component has been update
+        if (event.getSetting().equals(getSetting())) {
+
+            // update anim hard, helps sync animations to actual setting value
+            animation.setStateHard((((Setting<Boolean>) event.getSetting()).getValue()));
         }
     }
 }

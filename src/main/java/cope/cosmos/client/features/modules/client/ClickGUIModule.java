@@ -9,6 +9,7 @@ import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import static cope.cosmos.client.features.setting.Bind.Device;
 
@@ -40,7 +41,7 @@ public class ClickGUIModule extends Module {
 
 		// open gui
 		mc.displayGuiScreen(getCosmos().getClickGUI());
-
+		mc.currentScreen = getCosmos().getClickGUI();
 		Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
 
 		// open frames
