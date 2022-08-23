@@ -9,6 +9,7 @@ import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.SwingModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
@@ -1632,7 +1633,7 @@ public class AutoCrystalModule extends Module {
                     if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
                         mc.player.swingProgressInt = -1;
                         mc.player.isSwingInProgress = true;
-                        mc.player.swingingHand = (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+                        mc.player.swingingHand = SwingModule.INSTANCE.isEnabled() ? SwingModule.INSTANCE.getHand() : (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
 
                         // send animation packet
                         if (mc.player.world instanceof WorldServer) {
@@ -1897,7 +1898,7 @@ public class AutoCrystalModule extends Module {
                     if (!mc.player.isSwingInProgress || mc.player.swingProgressInt >= ((IEntityLivingBase) mc.player).hookGetArmSwingAnimationEnd() / 2 || mc.player.swingProgressInt < 0) {
                         mc.player.swingProgressInt = -1;
                         mc.player.isSwingInProgress = true;
-                        mc.player.swingingHand = (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+                        mc.player.swingingHand = SwingModule.INSTANCE.isEnabled() ? SwingModule.INSTANCE.getHand() : (offhand ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
 
                         // send animation packet
                         if (mc.player.world instanceof WorldServer) {
