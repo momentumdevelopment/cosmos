@@ -41,6 +41,7 @@ public class ModuleManager extends Manager {
 				// combat
 				new AuraModule(),
 				new AutoArmorModule(),
+				new AutoBowReleaseModule(),
 				new AutoCrystalModule(),
 				new AutoTotemModule(),
 				// new AutoTrapModule(),
@@ -94,6 +95,7 @@ public class ModuleManager extends Manager {
 				new ReachModule(),
 				new ReplenishModule(),
 				new SpeedMineModule(),
+				new SwingModule(),
 
 				// visual
 				new BlockHighlightModule(),
