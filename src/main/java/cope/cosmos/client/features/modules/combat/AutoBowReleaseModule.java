@@ -33,7 +33,7 @@ public class AutoBowReleaseModule extends Module {
         if (InventoryUtil.isHolding(Items.BOW) && mc.player.isHandActive()) {
 
             // make sure we've held it for at least a minimum of specified ticks
-            if (mc.player.getItemInUseMaxCount() >= ticks.getValue()) {
+            if (mc.player.getItemInUseMaxCount() > ticks.getValue()) {
 
                 // release bow packets
                 mc.player.connection.sendPacket(new CPacketPlayerDigging(CPacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN));
