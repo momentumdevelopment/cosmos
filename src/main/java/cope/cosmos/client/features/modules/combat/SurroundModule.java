@@ -41,7 +41,7 @@ public class SurroundModule extends Module {
     public static SurroundModule INSTANCE;
 
     public SurroundModule() {
-        super("Surround", Category.COMBAT, "Surrounds your feet with obsidian");
+        super("Surround", new String[] {"AutoObsidian", "FeetTrap", "AutoSurround"}, Category.COMBAT, "Surrounds your feet with obsidian");
         INSTANCE = this;
     }
 
@@ -50,7 +50,8 @@ public class SurroundModule extends Module {
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("When to place blocks");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setAlias("Rotate")
             .setDescription("How to rotate when placing blocks");
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
@@ -59,9 +60,11 @@ public class SurroundModule extends Module {
     // **************************** general ****************************
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap")
             .setDescription("How to switch when placing blocks");
 
     public static Setting<Double> blocks = new Setting<>("Blocks", 1.0, 4.0, 10.0, 0)
+            .setAlias("BlocksPerTick", "BPT")
             .setDescription("Allowed block placements per tick");
 
     public static Setting<Boolean> extend = new Setting<>("Extend", true)
@@ -78,6 +81,7 @@ public class SurroundModule extends Module {
             .setDescription("When to disable the module");
 
     public static Setting<Center> center = new Setting<>("Center", Center.NONE)
+            .setAlias("AutoCenter")
             .setDescription("Mode to center the player position");
 
     // cached placements to place at, updated on a new thread

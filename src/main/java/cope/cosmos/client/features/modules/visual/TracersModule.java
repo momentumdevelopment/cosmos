@@ -42,6 +42,7 @@ public class TracersModule extends Module {
     // **************************** render ****************************
 
     public static Setting<Float> width = new Setting<>("Width", 0.1F, 1F, 1.5F, 1)
+            .setAlias("LineWidth")
             .setDescription("How thick to render the lines");
 
     public static Setting<To> to = new Setting<>("To", To.BODY)

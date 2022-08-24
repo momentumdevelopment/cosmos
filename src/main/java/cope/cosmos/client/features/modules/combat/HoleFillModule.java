@@ -32,7 +32,7 @@ public class HoleFillModule extends Module {
     public static HoleFillModule INSTANCE;
 
     public HoleFillModule() {
-        super("HoleFill", Category.COMBAT, "Fills in nearby holes");
+        super("HoleFill", new String[] {"HoleFiller"}, Category.COMBAT, "Fills in nearby holes");
         INSTANCE = this;
     }
 
@@ -42,14 +42,17 @@ public class HoleFillModule extends Module {
             .setDescription("Only places on visible sides");
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setAlias("Rotate")
             .setDescription("Mode for placement rotations");
 
     // **************************** general ****************************
 
     public static Setting<Filler> mode = new Setting<>("Mode", Filler.ALL)
+            .setAlias("Fill")
             .setDescription("Mode for the filler");
 
     public static Setting<BlockMode> block = new Setting<>("Block", BlockMode.OBSIDIAN)
+            .setAlias("Item")
             .setDescription("Block to use for filling");
 
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION)
@@ -59,10 +62,12 @@ public class HoleFillModule extends Module {
             .setDescription("Range to scan for holes");
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap")
             .setDescription("Mode for switching to block");
 
     // WTF DOES THIS EVEN DO? maybe just add delay setting
     public static Setting<Double> blocks = new Setting<>("Blocks", 0.0, 4.0, 10.0, 0)
+            .setAlias("BlocksPerTick", "BPT")
             .setDescription("Allowed block placements per tick");
 
     public static Setting<Boolean> safety = new Setting<>("Safety", false)
@@ -70,6 +75,7 @@ public class HoleFillModule extends Module {
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Boolean> doubles = new Setting<>("Doubles", true)
+            .setAlias("Double")
             .setDescription("Fills in double holes");
 
     // **************************** targeting ****************************
@@ -79,10 +85,12 @@ public class HoleFillModule extends Module {
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.0, 10.0, 15.0, 0)
+            .setAlias("EnemyRange")
             .setDescription("Range to consider a player a target")
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
     public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1)
+            .setAlias("TargetThreshold", "EnemyThreshold", "Distance")
             .setDescription("Target's distance from hole for it to be considered fill-able")
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
@@ -90,11 +98,6 @@ public class HoleFillModule extends Module {
 
     public static Setting<Boolean> render = new Setting<>("Render", true)
             .setDescription("Render a visual of the filling process");
-
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.FILL)
-            .setDescription("Style of the visual")
-            .setExclusion(Box.GLOW, Box.REVERSE)
-            .setVisible(() -> render.getValue());
 
     // fills
     private Set<Hole> fills = new ConcurrentSet<>();
@@ -171,7 +174,7 @@ public class HoleFillModule extends Module {
                     RenderUtil.drawBox(new RenderBuilder()
                             .position(fill.getHole())
                             .color(ColorUtil.getPrimaryAlphaColor(60))
-                            .box(renderMode.getValue())
+                            .box(Box.FILL)
                             .setup()
                             .line(1.5F)
                             .depth(true)

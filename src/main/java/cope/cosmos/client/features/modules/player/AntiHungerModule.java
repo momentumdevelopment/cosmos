@@ -19,7 +19,7 @@ public class AntiHungerModule extends Module {
     public static AntiHungerModule INSTANCE;
 
     public AntiHungerModule() {
-        super("AntiHunger", Category.PLAYER, "Attempts to negate hunger loss");
+        super("AntiHunger", new String[] {"NoHunger"}, Category.PLAYER, "Attempts to negate hunger loss");
         INSTANCE = this;
     }
 
@@ -29,6 +29,7 @@ public class AntiHungerModule extends Module {
             .setDescription("If to cancel sprint packets");
 
     public static Setting<Boolean> groundSpoof = new Setting<>("GroundSpoof", true)
+            .setAlias("StopAir")
             .setDescription("Spoof your on ground state");
 
     // previous sprint state

@@ -24,7 +24,7 @@ public class FastProjectileModule extends Module {
     public static FastProjectileModule INSTANCE;
 
     public FastProjectileModule() {
-        super("FastProjectile", Category.COMBAT, "Allows your projectiles to do more damage", () -> {
+        super("FastProjectile", new String[] {"BowBomb"}, Category.COMBAT, "Allows your projectiles to do more damage", () -> {
 
             // if we are charged
             if (projectileTimer.passedTime(2, Format.SECONDS)) {
@@ -53,6 +53,7 @@ public class FastProjectileModule extends Module {
     // **************************** general ****************************
 
     public static Setting<Double> power = new Setting<>("Power", 1.0D, 10.0D, 100.0D, 0)
+            .setAlias("Packets")
             .setDescription("How many times to send packets");
 
     public static Setting<Boolean> bows = new Setting<>("Bows", false)

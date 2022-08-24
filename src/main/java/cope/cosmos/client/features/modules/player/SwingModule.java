@@ -20,6 +20,7 @@ public class SwingModule extends Module {
     // **************************** general ****************************
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MAINHAND)
+            .setAlias("Hand")
             .setDescription("Swinging hand");
 
     // current swinging hand

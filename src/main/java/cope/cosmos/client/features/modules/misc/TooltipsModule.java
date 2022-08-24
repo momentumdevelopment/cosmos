@@ -27,7 +27,7 @@ public class TooltipsModule extends Module {
     public static TooltipsModule INSTANCE;
 
     public TooltipsModule() {
-        super("Tooltips", Category.MISC, "Displays detailed tooltips");
+        super("Tooltips", new String[] {"ItemPreview", "ShulkerPreview"}, Category.MISC, "Displays detailed tooltips");
         INSTANCE = this;
     }
 

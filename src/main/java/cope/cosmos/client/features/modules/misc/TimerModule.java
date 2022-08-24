@@ -19,6 +19,7 @@ public class TimerModule extends Module {
     // **************************** speeds ****************************
 
     public static Setting<Double> multiplier = new Setting<>("Multiplier", 0.1, 4.0, 50.0, 1)
+            .setAlias("Ticks")
             .setDescription("Multiplier for the client side tick speed");
 
     @Override

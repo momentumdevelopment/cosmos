@@ -36,12 +36,15 @@ public class ChatModificationsModule extends Module {
             .setDescription("Time format");
 
     public static Setting<Boolean> prefix = new Setting<>("Prefix", false)
+            .setAlias("ChatPrefix")
             .setDescription("Add a cosmos prefix before chat messages");
 
     public static Setting<Boolean> suffix = new Setting<>("Suffix", true)
+            .setAlias("ChatSuffix")
             .setDescription("Add a cosmos suffix after chat messages");
 
     public static Setting<Boolean> colored = new Setting<>("Colored", true)
+            .setAlias("GreenText", "BlueText", "ColorText", "ColoredText")
             .setDescription("Add a > before public messages");
 
     /*

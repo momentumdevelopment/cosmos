@@ -34,7 +34,7 @@ public class BurrowModule extends Module {
 	public static BurrowModule INSTANCE;
 
 	public BurrowModule() {
-		super("Burrow", Category.COMBAT, "Glitches you into a block");
+		super("Burrow", new String[] {"SelfFill", "RubberFill"}, Category.COMBAT, "Glitches you into a block");
 		INSTANCE = this;
 	}
 
@@ -44,6 +44,7 @@ public class BurrowModule extends Module {
 			.setDescription("How high to rubberband");
 
 	public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+			.setAlias("Rotate")
 			.setDescription("Mode for attack rotations");
 
 	public static Setting<Boolean> strict = new Setting<>("Strict", false)
@@ -55,6 +56,7 @@ public class BurrowModule extends Module {
 			.setDescription("Block to use when burrowing");
 
 	public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+			.setAlias("AutoSwitch", "Swap", "AutoSwap")
 			.setDescription("How to switch when placing blocks");
 
 	// clear

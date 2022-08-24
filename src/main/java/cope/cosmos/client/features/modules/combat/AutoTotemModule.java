@@ -32,13 +32,14 @@ public class AutoTotemModule extends Module {
     public static AutoTotemModule INSTANCE;
 
     public AutoTotemModule() {
-        super("AutoTotem", Category.COMBAT, "Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(mode.getValue()) + ", " + InventoryUtil.getItemCount(mode.getValue().getItem()));
+        super("AutoTotem", new String[] {"Offhand", "AutoOffhand"}, Category.COMBAT,"Switches items in the offhand to a totem when low on health", () -> StringFormatter.formatEnum(mode.getValue()) + ", " + InventoryUtil.getItemCount(mode.getValue().getItem()));
         INSTANCE = this;
     }
 
     // **************************** general ****************************
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.TOTEM)
+            .setAlias("Item")
             .setDescription("Item to use when not at critical health");
 
     public static Setting<Double> health = new Setting<>("Health", 0.0D, 16.0D, 20.0D, 1)
@@ -51,15 +52,18 @@ public class AutoTotemModule extends Module {
             .setDescription("Performs all actions in one cycle");
 
     public static Setting<Boolean> lethal = new Setting<>("Lethal", true)
+            .setAlias("SafetyCheck")
             .setDescription("Takes damage sources into account when switching");
 
     public static Setting<Boolean> hotbar = new Setting<>("Hotbar", false)
+            .setAlias("Recursive")
             .setDescription("Allow hotbar items to be moved to the offhand");
 
     public static Setting<Boolean> crapple = new Setting<>("Crapple", false)
             .setDescription("Uses a crapple in the offhand");
 
     public static Setting<Boolean> offhandOverride = new Setting<>("OffhandOverride", true)
+            .setAlias("SwordGap", "SwordGapple", "GappleOverride", "RightClickGap", "RightClickGapple")
             .setDescription("Switches offhand items in non-lethal scenarios");
 
     // offhand delay

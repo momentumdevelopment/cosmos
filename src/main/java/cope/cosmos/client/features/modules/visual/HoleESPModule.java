@@ -61,9 +61,11 @@ public class HoleESPModule extends Module {
 
     // type??
     public static Setting<Boolean> doubles = new Setting<>("Doubles", true)
+            .setAlias("Double")
             .setDescription("Considers double holes as safe holes");
     
     public static Setting<Boolean> quads = new Setting<>("Quads", true)
+            .setAlias("Quad")
             .setDescription("Considers quad holes as safe holes");
     
     public static Setting<Boolean> voids = new Setting<>("Void", false)
@@ -72,9 +74,11 @@ public class HoleESPModule extends Module {
     // **************************** color settings ****************************
 
     public static Setting<Boolean> colorSync = new Setting<>("ColorSync", true)
+            .setAlias("Sync")
             .setDescription("Syncs holes colors to client colors");
     
     public static Setting<Color> obsidianColor = new Setting<>("ObsidianColor", new Color(184, 40, 40,45))
+            .setAlias("ObbyColor")
             .setDescription("Color of the obsidian holes");
 
     public static Setting<Color> mixedColor = new Setting<>("MixedColor", new Color(203, 203, 42,45))

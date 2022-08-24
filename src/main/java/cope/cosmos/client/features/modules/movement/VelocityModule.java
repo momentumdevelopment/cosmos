@@ -25,7 +25,7 @@ public class VelocityModule extends Module {
 	public static VelocityModule INSTANCE;
 
 	public VelocityModule() {
-		super("Velocity", Category.MOVEMENT, "Take no knockback.", () -> "H" + horizontal.getValue() + "%, V" + vertical.getValue() + "%");
+		super("Velocity", new String[] {"AntiKnockback", "AntiKB"}, Category.MOVEMENT, "Take no knockback.", () -> "H" + horizontal.getValue() + "%, V" + vertical.getValue() + "%");
 		INSTANCE = this;
 	}
 
@@ -43,18 +43,22 @@ public class VelocityModule extends Module {
 			.setDescription("Prevents being pushed");
 
 	public static Setting<Boolean> entities = new Setting<>("Entities", true)
+			.setAlias("NoPushEntities")
 			.setDescription("Prevents being pushed by entities")
 			.setVisible(() -> noPush.getValue());
 
 	public static Setting<Boolean> blocks = new Setting<>("Blocks", true)
+			.setAlias("NoPushBlocks")
 			.setDescription("Prevents being pushed out of blocks")
 			.setVisible(() -> noPush.getValue());
 
 	public static Setting<Boolean> liquid = new Setting<>("Liquid", true)
+			.setAlias("NoPushLiquids")
 			.setDescription("Prevents being pushed by liquids")
 			.setVisible(() -> noPush.getValue());
 
 	public static Setting<Boolean> fishHook = new Setting<>("Fishhooks", true)
+			.setAlias("Bobbers")
 			.setDescription("Prevents being pulled by fishhooks")
 			.setVisible(() -> noPush.getValue());
 

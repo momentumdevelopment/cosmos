@@ -23,7 +23,7 @@ public class AutoDisconnectModule extends Module {
     public static AutoDisconnectModule INSTANCE;
 
     public AutoDisconnectModule() {
-        super("AutoDisconnect", Category.MISC, "Automatically disconnects from servers when in danger");
+        super("AutoDisconnect", new String[] {"AutoLog"}, Category.MISC, "Automatically disconnects from servers when in danger");
         INSTANCE = this;
     }
 
@@ -35,7 +35,7 @@ public class AutoDisconnectModule extends Module {
     public static Setting<Double> totems = new Setting<>("Totems", 0.0D, 0.0D, 10.0D, 0)
             .setDescription("Totem count considered as critical count");
 
-    // timer to wait after disconnectig
+    // timer to wait after disconnecting
     private final Timer disconnectTimer = new Timer();
 
     @Override

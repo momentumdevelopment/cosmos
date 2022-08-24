@@ -27,7 +27,7 @@ public class JesusModule extends Module {
     public static JesusModule INSTANCE;
 
     public JesusModule() {
-        super("Jesus", Category.MOVEMENT, "Allows you to walk on water", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("Jesus", new String[] {"WaterWalk"}, Category.MOVEMENT, "Allows you to walk on water", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 

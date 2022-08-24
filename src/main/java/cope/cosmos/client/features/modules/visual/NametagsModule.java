@@ -58,19 +58,23 @@ public class NametagsModule extends Module {
             .setDescription("Displays the player's gamemode");
 
     public static Setting<Boolean> totemPops = new Setting<>("TotemPops", true)
+            .setAlias("Pops")
             .setDescription("Displays the number of totems that the player popped");
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true)
             .setDescription("Displays the player's armor");
 
     public static Setting<Boolean> enchantments = new Setting<>("Enchantments", true)
+            .setAlias("Enchants", "Enchant")
             .setDescription("Displays the player's item enchantments");
 
     public static Setting<Boolean> simpleEnchantments = new Setting<>("SimpleEnchantments", false)
+            .setAlias("SimpleEnchants", "SimpleEnchant")
             .setDescription("Simplify enchantment display")
             .setVisible(() -> enchantments.getValue());
 
     public static Setting<Boolean> durability = new Setting<>("Durability", true)
+            .setAlias("Dura")
             .setDescription("Displays the player's item durability");
 
     public static Setting<Boolean> mainhand = new Setting<>("Mainhand", true)

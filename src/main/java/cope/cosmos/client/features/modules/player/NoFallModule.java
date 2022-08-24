@@ -20,7 +20,7 @@ public class NoFallModule extends Module {
     public static NoFallModule INSTANCE;
 
     public NoFallModule() {
-        super("NoFall", Category.PLAYER, "Attempts to negate fall damage");
+        super("NoFall", new String[] {"AntiFall"},  Category.PLAYER, "Attempts to negate fall damage");
         INSTANCE = this;
     }
 
@@ -33,6 +33,7 @@ public class NoFallModule extends Module {
             .setDescription("The minimum fall distance before attempting to prevent fall damage");
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap")
             .setDescription("Mode to use when switching to a water bucket")
             .setVisible(() -> mode.getValue().equals(Mode.WATER));
 

@@ -20,7 +20,7 @@ public class SprintModule extends Module {
     public static SprintModule INSTANCE;
 
     public SprintModule() {
-        super("Sprint", Category.MOVEMENT, "Sprints continuously");
+        super("Sprint", new String[] {"AutoSprint"}, Category.MOVEMENT, "Sprints continuously");
         INSTANCE = this;
     }
 

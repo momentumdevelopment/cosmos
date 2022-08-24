@@ -37,6 +37,7 @@ public class NewChunksModule extends Module {
             .setDescription("The height to render the new chunk at");
 
     public static Setting<Double> width = new Setting<>("Width", 0.0, 1.0, 3.0, 1)
+            .setAlias("LineWidth")
             .setDescription("Line width of the render")
             .setVisible(() -> render.getValue().equals(Box.BOTH) || render.getValue().equals(Box.OUTLINE) || render.getValue().equals(Box.CLAW));
 

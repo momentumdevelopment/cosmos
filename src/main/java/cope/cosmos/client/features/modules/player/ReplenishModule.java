@@ -21,13 +21,14 @@ public class ReplenishModule extends Module {
     public static ReplenishModule INSTANCE;
 
     public ReplenishModule() {
-        super("Replenish", Category.PLAYER, "Replaces items in your hotbar with items from your inventory");
+        super("Replenish", new String[] {"HotbarRefill"}, Category.PLAYER, "Replaces items in your hotbar with items from your inventory");
         INSTANCE = this;
     }
 
     // **************************** general ****************************
 
     public static Setting<Double> percent = new Setting<>("Percent", 1.0, 70.0, 99.0, 1)
+            .setAlias("Scale")
             .setDescription("The percentage of the item stack size from 100% before replacing");
 
     public static Setting<Double> delay = new Setting<>("Delay", 0.0, 100.0, 1000.0, 1)

@@ -30,7 +30,7 @@ public class BlinkModule extends Module {
     public static BlinkModule INSTANCE;
 
     public BlinkModule() {
-        super("Blink", Category.PLAYER, "Caches player packets and dumps them all at once");
+        super("Blink", new String[] {"FakeLag"}, Category.PLAYER, "Caches player packets and dumps them all at once");
         INSTANCE = this;
     }
 
@@ -42,6 +42,7 @@ public class BlinkModule extends Module {
     // **************************** packets ****************************
 
     public static Setting<Double> delay = new Setting<>("Delay", 0.1, 1.0, 10.0, 1)
+            .setAlias("Pulse")
             .setDescription("The delay in seconds until sending all packets")
             .setVisible(() -> mode.getValue().equals(Mode.PULSE));
 

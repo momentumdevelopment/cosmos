@@ -81,6 +81,7 @@ public class ESPModule extends Module {
             .setVisible(() -> mode.getValue().equals(Mode.SHADER));
 
     public static Setting<Double> width = new Setting<>("Width", 0.0, 1.25, 5.0, 1)
+            .setAlias("LineWidth")
             .setDescription( "Line width for the visual");
 
     // **************************** entity settings ****************************

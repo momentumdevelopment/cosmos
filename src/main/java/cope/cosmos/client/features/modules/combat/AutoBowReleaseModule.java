@@ -17,7 +17,7 @@ public class AutoBowReleaseModule extends Module {
     public static AutoBowReleaseModule INSTANCE;
 
     public AutoBowReleaseModule() {
-        super("AutoBowRelease", Category.COMBAT, "Automatically releases a drawn bow");
+        super("AutoBowRelease", new String[] {"FastBow", "BowRelease", "BowSpam"}, Category.COMBAT, "Automatically releases a drawn bow");
         INSTANCE = this;
     }
 

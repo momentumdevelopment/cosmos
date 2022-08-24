@@ -25,7 +25,7 @@ public class MiddleClickModule extends Module {
     public static MiddleClickModule INSTANCE;
 
     public MiddleClickModule() {
-        super("MiddleClick", Category.MISC, "Allows you to preform an action when middle-clicking");
+        super("MiddleClick", new String[] {"MCP", "MCF", "MiddleClickPearl", "MiddleClickFriend"}, Category.MISC, "Allows you to preform an action when middle-clicking");
         INSTANCE = this;
     }
 
@@ -35,6 +35,7 @@ public class MiddleClickModule extends Module {
             .setDescription("Action to perform when middle-clicking an entity");
 
     public static Setting<Boolean> pearl = new Setting<>("Pearl", true)
+            .setAlias("MCP", "MiddleClickPearl")
             .setDescription("If to pearl if raytrace type is MISS");
 
     public static Setting<Boolean> mend = new Setting<>("Mend", true)

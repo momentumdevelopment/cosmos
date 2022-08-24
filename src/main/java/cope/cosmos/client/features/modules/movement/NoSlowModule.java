@@ -37,7 +37,7 @@ public class NoSlowModule extends Module {
     public static NoSlowModule INSTANCE;
 
     public NoSlowModule() {
-        super("NoSlow", Category.MOVEMENT, "Removes various slowdown effects");
+        super("NoSlow", new String[] {"NoSlowDown"}, Category.MOVEMENT, "Removes various slowdown effects");
         INSTANCE = this;
     }
 
@@ -58,6 +58,7 @@ public class NoSlowModule extends Module {
             .setDescription("Allows you to move around while in GUIs");
 
     public static Setting<Float> arrowLook = new Setting<>("Arrow", 0.0F, 5.0F, 10.0F, 1)
+            .setAlias("ArrowLook")
             .setDescription("The speed that the arrow keys should rotate you with")
             .setVisible(() -> inventoryMove.getValue());
 

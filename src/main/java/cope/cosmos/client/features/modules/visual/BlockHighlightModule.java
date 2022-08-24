@@ -30,7 +30,8 @@ public class BlockHighlightModule extends Module {
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.OUTLINE)
             .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE, Box.NONE);
 
-    public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1F, 1.5F, 5F, 1)
+    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 1.5F, 5F, 1)
+            .setAlias("LineWidth")
             .setDescription("Width of the visual");
 
     @Override

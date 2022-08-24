@@ -53,7 +53,7 @@ public class SpeedMineModule extends Module {
     public static SpeedMineModule INSTANCE;
 
     public SpeedMineModule() {
-        super("SpeedMine", Category.PLAYER, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()) + (mode.getValue().equals(Mode.PACKET) ? ", " + MathHelper.clamp(MathUtil.roundFloat(mineDamage, 2), 0, 1) : ""));
+        super("SpeedMine", new String[] {"PacketMine", "SpeedyGonzales", "AutoMine"}, Category.PLAYER, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()) + (mode.getValue().equals(Mode.PACKET) ? ", " + MathHelper.clamp(MathUtil.roundFloat(mineDamage, 2), 0, 1) : ""));
         INSTANCE = this;
     }
 
@@ -63,27 +63,33 @@ public class SpeedMineModule extends Module {
             .setDescription("Mode for SpeedMine");
 
     public static Setting<Switch> mineSwitch = new Setting<>("Switch", Switch.PACKET)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap", "MineSwitch")
             .setDescription( "Mode when switching to a pickaxe")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
     public static Setting<Double> damage = new Setting<>("Damage", 0.0, 0.8, 1.0, 1)
+            .setAlias("MineDamage")
             .setDescription("Instant block damage")
             .setVisible(() -> mode.getValue().equals(Mode.DAMAGE));
 
     // **************************** anticheat ****************************
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setAlias("Rotate")
             .setDescription("How to rotate to the mine");
 
     public static Setting<Boolean> strict = new Setting<>("Strict", true)
+            .setAlias("AlternateSwitch", "AlternateSwap")
             .setDescription("Mines on the correct direction")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
     public static Setting<Boolean> strictReMine = new Setting<>("StrictBreak", true)
+            .setAlias("Limit")
             .setDescription("Limits re-mines")
             .setVisible(() -> mode.getValue().equals(Mode.PACKET));
 
     public static Setting<Boolean> reset = new Setting<>("Stabilize", false)
+            .setAlias("NoReset", "NoMineReset")
             .setDescription("Doesn't allow block break progress to be reset");
 
     // **************************** general ****************************

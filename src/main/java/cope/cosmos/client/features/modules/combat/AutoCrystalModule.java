@@ -71,25 +71,29 @@ public class AutoCrystalModule extends Module {
     public static AutoCrystalModule INSTANCE;
 
     public AutoCrystalModule() {
-        super("AutoCrystal", Category.COMBAT, "Places and explodes crystals", () -> debug.getValue() ? getDebug() : "");
+        super("AutoCrystal", new String[] {"CrystalAura", "CA"}, Category.COMBAT, "Places and explodes crystals", () -> debug.getValue() ? getDebug() : "");
         INSTANCE = this;
     }
 
     // **************************** anticheat settings ****************************
 
     public static Setting<Boolean> multiTask = new Setting<>("MultiTask", true)
+            .setAlias("PauseEating", "PauseEat")
             .setDescription("Explodes only if we are not preforming any actions with our hands");
 
     public static Setting<Boolean> whileMining = new Setting<>("WhileMining", true)
+            .setAlias("PauseMining", "PauseMine")
             .setDescription("Explodes only if we are not mining");
 
     public static Setting<Boolean> swing = new Setting<>("Swing", true)
             .setDescription("Swings the players hand when attacking and placing");
 
     public static Setting<Interact> interact = new Setting<>("Interact", Interact.VANILLA)
+            .setAlias("StrictDirection")
             .setDescription("Interaction with blocks and crystals");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setAlias("Rotate")
             .setDescription("Rotate to the current process");
 
     public static Setting<YawStep> yawStep = new Setting<>("YawStep", YawStep.NONE)
@@ -103,6 +107,7 @@ public class AutoCrystalModule extends Module {
     // **************************** general settings ****************************
 
     public static Setting<Boolean> raytrace = new Setting<>("Raytrace", false)
+            .setAlias("Walls")
             .setDescription("Restricts placements through walls");
 
     public static Setting<Double> offset = new Setting<>("Offset", 1.0, 2.0, 2.0, 0)
@@ -111,25 +116,31 @@ public class AutoCrystalModule extends Module {
     // **************************** explode settings ****************************
 
     public static Setting<Boolean> explode = new Setting<>("Explode", true)
+            .setAlias("Break", "Attack")
             .setDescription("Explodes crystals");
 
     public static Setting<Double> explodeSpeed = new Setting<>("ExplodeSpeed", 1.0, 20.0, 20.0, 1)
+            .setAlias("BreakSpeed", "AttackSpeed")
             .setDescription("Speed to explode crystals")
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> attackDelay = new Setting<>("AttackDelay", 0.0, 0.0, 5.0, 1)
+            .setAlias("BreakDelay", "ExplodeDelay")
             .setDescription("Speed to explode crystals using old delays")
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> explodeRange = new Setting<>("ExplodeRange", 1.0, 5.0, 6.0, 1)
+            .setAlias("BreakRange", "AttackRange")
             .setDescription("Range to explode crystals")
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> explodeWallRange = new Setting<>("ExplodeWallRange", 1.0, 3.5, 6.0, 1)
+            .setAlias("BreakWallRange", "AttackWallRange")
             .setDescription("Range to explode crystals through walls")
             .setVisible(() -> explode.getValue() && !raytrace.getValue());
 
     public static Setting<Boolean> rangeEye = new Setting<>("RangeEye", false)
+            .setAlias("ExplodeRangeEye", "BreakRangeEye", "AttackRangeEye")
             .setDescription("Calculates ranges to the entity's eye")
             .setVisible(() -> explode.getValue());
 
@@ -138,6 +149,7 @@ public class AutoCrystalModule extends Module {
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> explodeSwitchDelay = new Setting<>("SwitchDelay", 0.0, 0.0, 10.0, 1)
+            .setAlias("BreakSwitchDelay", "AttackSwitchDelay")
             .setDescription("Delay to pause after switching items")
             .setVisible(() -> explode.getValue());
 
@@ -146,10 +158,12 @@ public class AutoCrystalModule extends Module {
     //        .setVisible(() -> explode.getValue());
 
     public static Setting<Inhibit> inhibit = new Setting<>("Inhibit", Inhibit.SEMI)
+            .setAlias("Limit")
             .setDescription("Prevents excessive attacks on crystals")
             .setVisible(() -> explode.getValue());
 
     public static Setting<Double> inhibitFactor = new Setting<>("inhibitFactor", 0.0, 1.0, 5.0, 1)
+            .setAlias("LimitFactor")
             .setDescription("Time to wait after inhibiting")
             .setVisible(() -> explode.getValue() && inhibit.getValue().equals(Inhibit.FULL));
 
@@ -188,6 +202,7 @@ public class AutoCrystalModule extends Module {
             .setVisible(() -> place.getValue() && !raytrace.getValue());
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NONE)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap")
             .setDescription("Switching to crystals before placement")
             .setVisible(() -> place.getValue());
 
@@ -196,6 +211,7 @@ public class AutoCrystalModule extends Module {
             .setVisible(() -> explode.getValue());
 
     public static Setting<Boolean> alternativeSwitch = new Setting<>("AlternativeSwitch", false)
+            .setAlias("AlternativeSwap")
             .setDescription("Alternative method for switching to crystals")
             .setVisible(() -> place.getValue() && autoSwitch.getValue().equals(Switch.PACKET) || explode.getValue() && antiWeakness.getValue().equals(Switch.PACKET));
 
@@ -205,6 +221,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Minimum damage done by an action");
 
     public static Setting<Double> lethalMultiplier = new Setting<>("LethalMultiplier", 0.0, 1.0, 5.0, 1)
+            .setAlias("FacePlaceMultiplier", "FacePlace", "FacePlaceHealth")
             .setDescription("Will override damages if we can kill the target in this many crystals");
 
     public static Setting<Boolean> armorBreaker = new Setting<>("ArmorBreaker", true)
@@ -218,10 +235,12 @@ public class AutoCrystalModule extends Module {
             .setDescription("Safety check for processes");
 
     public static Setting<Double> safetyBalance = new Setting<>("SafetyBalance", 0.1, 1.1, 3.0, 1)
+            .setAlias("MaxLocalDamage")
             .setDescription("Multiplier for actions considered unsafe")
             .setVisible(() -> safety.getValue().equals(Safety.BALANCE));
 
     public static Setting<Boolean> blockDestruction = new Setting<>("BlockDestruction", false)
+            .setAlias("IgnoreTerrain", "TerrainTrace")
             .setDescription("Ignores terrain that can be exploded when calculating damages");
 
     // **************************** target settings ****************************
@@ -239,6 +258,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Target hostiles");
 
     public static Setting<Double> targetRange = new Setting<>("TargetRange", 0.1, 10.0, 15.0, 1)
+            .setAlias("EnemyRange")
             .setDescription("Range to consider an entity as a target");
 
     // **************************** render settings ****************************
@@ -250,6 +270,7 @@ public class AutoCrystalModule extends Module {
             .setDescription("Development info");
 
     public static Setting<Text> renderText = new Setting<>("RenderText", Text.NONE)
+            .setAlias("RenderInfo")
             .setDescription("Renders the damage of the current process")
             .setVisible(() -> render.getValue());
 

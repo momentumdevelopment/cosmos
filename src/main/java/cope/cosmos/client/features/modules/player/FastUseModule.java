@@ -29,7 +29,7 @@ public class FastUseModule extends Module {
     public static FastUseModule INSTANCE;
 
     public FastUseModule() {
-        super("FastUse", Category.PLAYER, "Allows you to place items and blocks faster");
+        super("FastUse", new String[] {"FastPlace", "EXPFast", "FastXP", "QuickEXP"}, Category.PLAYER, "Allows you to place items and blocks faster");
         INSTANCE = this;
     }
 
@@ -64,15 +64,18 @@ public class FastUseModule extends Module {
     // **************************** items ****************************
 
     public static Setting<Boolean> exp = new Setting<>("EXP", true)
+            .setAlias("XP")
             .setDescription("Applies fast placements to experience");
 
     public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
+            .setAlias("Crystal")
             .setDescription("Applies fast placements to crystals");
 
     public static Setting<Boolean> blocks = new Setting<>("Blocks", false)
             .setDescription("Applies fast placements to blocks");
 
     public static Setting<Boolean> spawnEggs = new Setting<>("SpawnEggs", false)
+            .setAlias("Eggs")
             .setDescription("Applies fast placements to spawn eggs");
 
     public static Setting<Boolean> fireworks = new Setting<>("Fireworks", false)

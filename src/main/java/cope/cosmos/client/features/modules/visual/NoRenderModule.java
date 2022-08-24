@@ -56,9 +56,11 @@ public class NoRenderModule extends Module {
     // **************************** fog ****************************
 
     public static Setting<Boolean> fog = new Setting<>("Fog", true)
+            .setAlias("NoFog")
             .setDescription("Prevents fog from rendering");
 
     public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true)
+            .setAlias("FogLiquid", "NoFogLiquid")
             .setDescription("Clears fog in liquid")
             .setVisible(() -> fog.getValue());
 
@@ -80,6 +82,7 @@ public class NoRenderModule extends Module {
             .setDescription("Prevents maps from rendering");
 
     public static Setting<Boolean> totemAnimation = new Setting<>("TotemAnimation", false)
+            .setAlias("PopAnimation")
             .setDescription("Removes the totem pop animation");
 
     public static Setting<Boolean> hurtCamera = new Setting<>("HurtCamera", true)

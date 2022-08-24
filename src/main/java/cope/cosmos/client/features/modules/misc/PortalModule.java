@@ -18,16 +18,18 @@ public class PortalModule extends Module {
     public static PortalModule INSTANCE;
 
     public PortalModule() {
-        super("Portal", Category.MISC, "Modifies portal behavior");
+        super("Portal", new String[] {"PortalChat", "PortalGodMode"}, Category.MISC, "Modifies portal behavior");
         INSTANCE = this;
     }
 
     // **************************** general settings ****************************
 
     public static Setting<Boolean> godMode = new Setting<>("GodMode", false)
+            .setAlias("PortalGodMode")
             .setDescription("Cancels teleport packets");
 
     public static Setting<Boolean> screens = new Setting<>("Screens", true)
+            .setAlias("PortalChat")
             .setDescription("Allow the use of screens in portals");
 
     public static Setting<Boolean> effect = new Setting<>("Effect", true)

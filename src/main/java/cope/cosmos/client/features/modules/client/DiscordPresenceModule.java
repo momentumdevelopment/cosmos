@@ -12,7 +12,7 @@ public class DiscordPresenceModule extends Module {
     public static DiscordPresenceModule INSTANCE;
 
     public DiscordPresenceModule() {
-        super("DiscordPresence", Category.CLIENT, "Displays a custom presence on Discord");
+        super("DiscordPresence", new String[] {"DiscordRPC", "RPC"}, Category.CLIENT, "Displays a custom presence on Discord");
         INSTANCE = this;
 
         setDrawn(false);

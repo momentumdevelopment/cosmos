@@ -34,7 +34,8 @@ public class BreakESPModule extends Module {
     public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.BOTH)
             .setDescription("How to render the highlight");
 
-    public static Setting<Float> lineWidth = new Setting<>("LineWidth", 0.1f, 1.0f, 3f, 1)
+    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1f, 1.0f, 3f, 1)
+            .setAlias("LineWidth")
             .setDescription("The width of the outline")
             .setVisible(() -> !renderMode.getValue().equals(Box.FILL));
 

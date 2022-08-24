@@ -14,13 +14,14 @@ public class CameraClipModule extends Module {
     public static CameraClipModule INSTANCE;
 
     public CameraClipModule() {
-        super("CameraClip", Category.VISUAL, "Clips your third person camera through blocks");
+        super("CameraClip", new String[] {"ViewClip"}, Category.VISUAL, "Clips your third person camera through blocks");
         INSTANCE = this;
     }
 
     // **************************** general settings ****************************
 
     public static Setting<Double> distance = new Setting<>("Distance", 1.0, 5.0, 20.0, 0)
+            .setAlias("Clip", "ClipDistance")
             .setDescription("How many blocks the camera should clip through");
 
     @SubscribeEvent

@@ -19,7 +19,7 @@ public class WallhackModule extends Module {
     public static WallhackModule INSTANCE;
 
     public WallhackModule() {
-        super("Wallhack", Category.VISUAL, "Allows you to see desired blocks through walls");
+        super("Wallhack", new String[] {"XRay"}, Category.VISUAL, "Allows you to see desired blocks through walls");
         INSTANCE = this;
     }
 

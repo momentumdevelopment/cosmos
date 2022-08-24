@@ -34,6 +34,7 @@ public class PingSpoofModule extends Module {
             .setDescription("The delay in seconds to hold off sending packets");
 
     public static Setting<Boolean> reduction = new Setting<>("Reduction", false)
+            .setAlias("Reduce")
             .setDescription("Lowers your ping on some servers");
 
     // **************************** anticheat ****************************

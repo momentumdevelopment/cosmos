@@ -44,6 +44,7 @@ public class ChamsModule extends Module {
             .setDescription("Renders chams on players");
 
     public static Setting<Boolean> local = new Setting<>("Local", false)
+            .setAlias("Self")
             .setDescription("Renders chams on the local player")
             .setVisible(() -> players.getValue());
 
@@ -57,16 +58,19 @@ public class ChamsModule extends Module {
             .setDescription("Renders chams on crystals");
 
     public static Setting<Double> scale = new Setting<>("CrystalScale", 0.0, 1.0, 2.0, 2)
+            .setAlias("Scale")
             .setDescription("Scale for crystal model")
             .setVisible(() -> crystals.getValue());
 
     // **************************** render ****************************
 
     public static Setting<Double> width = new Setting<>("Width", 0.0, 1.0, 5.0, 2)
+            .setAlias("LineWidth")
             .setDescription("Line width for the model")
             .setVisible(() -> mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL));
 
     public static Setting<Boolean> texture = new Setting<>("Texture", false)
+            .setAlias("Model")
             .setDescription("Enables entity texture");
 
     public static Setting<Boolean> transparent = new Setting<>("Transparent", true)
@@ -74,6 +78,7 @@ public class ChamsModule extends Module {
             .setVisible(() -> texture.getValue());
 
     public static Setting<Boolean> shine = new Setting<>("Shine", false)
+            .setAlias("Enchant", "Enchantment", "Enchanted")
             .setDescription("Adds the enchantment glint effect to the model")
             .setVisible(() -> !mode.getValue().equals(Mode.WIRE));
 

@@ -28,7 +28,7 @@ public class SpeedModule extends Module {
     public static SpeedModule INSTANCE;
 
     public SpeedModule() {
-        super("Speed", Category.MOVEMENT, "Allows you to move faster", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("Speed", new String[] {"Strafe"}, Category.MOVEMENT, "Allows you to move faster", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
@@ -46,6 +46,7 @@ public class SpeedModule extends Module {
     // **************************** anticheat ****************************
 
     public static Setting<Boolean> potionFactor = new Setting<>("PotionFactor", true)
+            .setAlias("Potions", "SpeedFactor")
             .setDescription("Applies potions effects to speed");
 
     public static Setting<Boolean> strictJump = new Setting<>("StrictJump", false)
@@ -53,12 +54,14 @@ public class SpeedModule extends Module {
             .setDescription("Use slightly higher and therefore slower jumps to bypass better");
 
     public static Setting<Boolean> strictSprint = new Setting<>("StrictSprint", false)
+            .setAlias("AutoSprint")
             .setVisible(() -> mode.getValue().equals(Mode.STRAFE_STRICT))
             .setDescription("Maintains sprint while moving");
 
     // **************************** timer ****************************
 
     public static Setting<Boolean> timer = new Setting<>("Timer", true)
+            .setAlias("UseTimer")
             .setDescription("Uses timer to speed up strafe");
 
     // **************************** stages ****************************

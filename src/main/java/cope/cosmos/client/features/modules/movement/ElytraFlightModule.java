@@ -27,7 +27,7 @@ public class ElytraFlightModule extends Module {
     public static ElytraFlightModule INSTANCE;
 
     public ElytraFlightModule() {
-        super("ElytraFlight", Category.MOVEMENT, "Allows you to fly faster on an elytra", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("ElytraFlight", new String[] {"ElytraFly", "EFly"}, Category.MOVEMENT, "Allows you to fly faster on an elytra", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 

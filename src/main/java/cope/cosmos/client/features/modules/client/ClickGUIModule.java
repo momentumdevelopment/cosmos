@@ -20,7 +20,7 @@ public class ClickGUIModule extends Module {
 	public static ClickGUIModule INSTANCE;
 	
 	public ClickGUIModule() {
-		super("ClickGUI", Category.CLIENT, "This screen.");
+		super("ClickGUI", new String[] {"GUI", "UI"}, Category.CLIENT, "This screen.");
 		INSTANCE = this;
 		getBind().setValue(new Bind(Keyboard.KEY_RSHIFT, Device.KEYBOARD));
 		setExempt(true);
@@ -32,6 +32,7 @@ public class ClickGUIModule extends Module {
 			.setDescription("Pause the game when in GUI");
 
 	public static Setting<Boolean> blur = new Setting<>("Blur", false)
+			.setAlias("KawaseBlur", "BlurShader")
 			.setDescription("Blur shader for GUI background");
 
 	@Override

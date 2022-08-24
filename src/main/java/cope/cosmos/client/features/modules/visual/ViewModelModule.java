@@ -15,7 +15,7 @@ public class ViewModelModule extends Module {
     public static ViewModelModule INSTANCE;
 
     public ViewModelModule() {
-        super("ViewModel", Category.VISUAL, "Changes how items are rendered in first person");
+        super("ViewModel", new String[] {"HandProgress", "SmallShield"}, Category.VISUAL, "Changes how items are rendered in first person");
         INSTANCE = this;
     }
 

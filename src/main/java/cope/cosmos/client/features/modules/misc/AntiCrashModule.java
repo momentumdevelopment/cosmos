@@ -44,33 +44,42 @@ public class AntiCrashModule extends Module {
     // **************************** crash/kick exploits ****************************
 
     public static Setting<Boolean> packets = new Setting<>("Packet", false)
+            .setAlias("ChunkBan")
             .setDescription("Prevents you from getting kicked for invalid packets");
 
     public static Setting<Boolean> bookBan = new Setting<>("BookBan", false)
             .setDescription("Prevents you from getting kicked for packet size limit");
 
     public static Setting<Boolean> unicode = new Setting<>("UnicodeCharacters", false)
+            .setAlias("AntiChina", "ChineseCharacters", "Unicode")
             .setDescription("Prevents unicode characters in chat from lagging you");
 
     public static Setting<Boolean> offhand = new Setting<>("Offhand", false)
+            .setAlias("OffhandCrash", "ItemSwapCrash", "OffhandSwapCrash", "ItemSwap", "OffhandSwap")
             .setDescription("Prevents you from getting crashed from item equip sounds");
 
     public static Setting<Boolean> fireworks = new Setting<>("Fireworks", true)
+            .setAlias("FireworkSpam", "FireworkCrash")
             .setDescription("Prevents firework spam from crashing you");
 
     public static Setting<Boolean> crystals = new Setting<>("Crystals", false)
+            .setAlias("StackedCrystals")
             .setDescription("Prevents stacked crystals spam from lagging you");
 
     public static Setting<Boolean> skylight = new Setting<>("Skylight", true)
+            .setAlias("SkylightCrash")
             .setDescription("Prevents skylight updates from crashing you");
 
     public static Setting<Boolean> particles = new Setting<>("Particles", false)
+            .setAlias("ParticleCrash")
             .setDescription("Prevents laggy particles from crashing you");
 
     public static Setting<Boolean> slime = new Setting<>("Slime", false)
+            .setAlias("SlimeLag")
             .setDescription("Prevents large slime entities from crashing you");
 
     public static Setting<Boolean> signs = new Setting<>("Signs", false)
+            .setAlias("Sign", "SignCrash")
             .setDescription("Prevents signs from kicking you when broken");
 
     // sign info

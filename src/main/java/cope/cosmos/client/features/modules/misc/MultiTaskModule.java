@@ -13,7 +13,7 @@ public class MultiTaskModule extends Module {
     public static MultiTaskModule INSTANCE;
 
     public MultiTaskModule() {
-        super("MultiTask", Category.MISC, "Allows you to use your offhand and mine at the same time");
+        super("MultiTask", new String[] {"DualUse"}, Category.MISC, "Allows you to use your offhand and mine at the same time");
         INSTANCE = this;
     }
 

@@ -34,7 +34,7 @@ public class PacketFlightModule extends Module {
     private static final double MOVE_FACTOR = 1.0 / StrictMath.sqrt(2.0);
 
     public PacketFlightModule() {
-        super("PacketFlight", Category.MOVEMENT, "Funny 1.9+ exploit", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("PacketFlight", new String[] {"PacketFly"}, Category.MOVEMENT, "Funny 1.9+ exploit", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
@@ -42,16 +42,20 @@ public class PacketFlightModule extends Module {
             .setDescription("How to handle flying");
 
     public static Setting<Double> factor = new Setting<>("Factor", 0.1, 1.5, 5.0, 1)
+            .setAlias("Loops", "Packets", "Speed")
             .setDescription("How many packets to send per movement")
             .setVisible(() -> mode.getValue().equals(Mode.FACTOR));
 
     public static Setting<Bounds> bounds = new Setting<>("Bounds", Bounds.DOWN)
+            .setAlias("VanillaFucker")
             .setDescription("The bounds offset"); // DOWN should be fine as default
 
     public static Setting<Phase> phase = new Setting<>("Phase", Phase.NCP)
+            .setAlias("NoClip", "Phasing")
             .setDescription("How to phase");
 
     public static Setting<Boolean> conceal = new Setting<>("Conceal", false)
+            .setAlias("Slow")
             .setDescription("If to force our move speed to the 0.0625");
 
     public static Setting<Boolean> antiKick = new Setting<>("AntiKick", true)

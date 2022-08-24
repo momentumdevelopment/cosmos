@@ -47,9 +47,11 @@ public class AutoArmorModule extends Module {
             .setDescription("Armor type priority");
 
     public static Setting<Boolean> noBinding = new Setting<>("NoBinding", true)
+            .setAlias("AntiCurse", "NoCurse")
             .setDescription("If to avoid equipping armor with the enchantment Curse of Binding");
 
     public static Setting<Boolean> inventory = new Setting<>("Inventory", false)
+            .setAlias("InventoryOnly")
             .setDescription("Allow module to equip armor if the inventory GUI is open");
 
     // have an array of the best slots

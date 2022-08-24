@@ -77,11 +77,6 @@ public class AntiVoidModule extends Module {
         SOLID,
 
         /**
-         * Stops all vertical motion, freezes the player
-         */
-        SOLID_STRICT,
-
-        /**
          * Attempts to jump up out of the void
          */
         TRAMPOLINE,

@@ -27,10 +27,12 @@ public class BreadcrumbsModule extends Module {
             .setDescription("Makes breadcrumbs last forever");
 
     public static Setting<Float> lifespan = new Setting<>("Lifespan", 1F, 2F, 10F, 1)
+            .setAlias("Delay")
             .setDescription("The lifespan of the positions in seconds")
             .setVisible(() -> !infinite.getValue());
 
     public static Setting<Float> width = new Setting<>("Width", 0.1F, 2F, 5F, 1)
+            .setAlias("LineWidth")
             .setDescription("The width of the lines");
 
     // List of positions

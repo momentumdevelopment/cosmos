@@ -53,13 +53,14 @@ public class AuraModule extends Module {
     public static AuraModule INSTANCE;
 
     public AuraModule() {
-        super("Aura", Category.COMBAT, "Attacks nearby entities", () -> StringFormatter.formatEnum(target.getValue()));
+        super("Aura", new String[] {"KillAura", "ForceField", "KA"}, Category.COMBAT, "Attacks nearby entities", () -> StringFormatter.formatEnum(target.getValue()));
         INSTANCE = this;
     }
 
     // **************************** anticheat ****************************
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.NONE)
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
+            .setAlias("Rotate")
             .setDescription("Rotate to the current attack");
 
     public static Setting<Boolean> yawStep = new Setting<>("YawStep", false)
@@ -82,6 +83,7 @@ public class AuraModule extends Module {
     // **************************** general ****************************
 
     public static Setting<Boolean> attackDelay = new Setting<>("AttackDelay", true)
+            .setAlias("HitDelay")
             .setDescription("Delays attacks according to minecraft hit delays for maximum damage per attack");
 
     public static Setting<Double> attackSpeed = new Setting<>("AttackSpeed", 1.0, 20.0, 20.0, 1)
@@ -107,12 +109,15 @@ public class AuraModule extends Module {
             .setDescription("Weapon to use for attacking");
 
     public static Setting<Boolean> weaponOnly = new Setting<>("OnlyWeapon", true)
+            .setAlias("WeaponOnly")
             .setDescription("Only attack if holding weapon");
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
+            .setAlias("AutoSwitch", "Swap", "AutoSwap")
             .setDescription("Mode for switching to weapon");
 
     public static Setting<Boolean> autoBlock = new Setting<>("AutoBlock", false)
+            .setAlias("Block", "AutoShield")
             .setDescription("Automatically blocks with a shield");
 
     // **************************** targeting ****************************

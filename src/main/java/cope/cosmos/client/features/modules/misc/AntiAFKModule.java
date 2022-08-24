@@ -36,7 +36,8 @@ public class AntiAFKModule extends Module {
     public static Setting<Boolean> jump = new Setting<>("Jump", true)
             .setDescription("Jumps to avoid AFK detection");
 
-    public static Setting<Boolean> rotate = new Setting<>("Rotate", false)
+    public static Setting<Boolean> rotate = new Setting<>("Rotation", false)
+            .setAlias("Rotate")
             .setDescription("Rotates to avoid AFK detection");
 
     // timer keeping track of afk time

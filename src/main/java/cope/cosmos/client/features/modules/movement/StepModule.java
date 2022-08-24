@@ -36,6 +36,7 @@ public class StepModule extends Module {
             .setDescription("The maximum height to step up blocks");
 
     public static Setting<Boolean> useTimer = new Setting<>("Timer", true)
+            .setAlias("UseTimer")
             .setDescription("Uses timer to slow down packets")
             .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
 

@@ -14,7 +14,7 @@ public class FontModule extends Module {
 	public static FontModule INSTANCE;
 	
 	public FontModule() {
-		super("Font", Category.CLIENT, "Allows you to customize the client font.");
+		super("Font", new String[] {"CustomFont"}, Category.CLIENT, "Allows you to customize the client font.");
 		INSTANCE = this;
 		setDrawn(false);
 		setExempt(true);

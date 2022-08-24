@@ -57,12 +57,14 @@ public class HUDModule extends Module {
             .setDescription("Rendering position of the elements");
 
     public static Setting<Boolean> coordinates = new Setting<>("Coordinates", true)
+            .setAlias("Coords")
             .setDescription("Displays the user's coordinates");
 
     public static Setting<Boolean> direction = new Setting<>("Direction", true)
             .setDescription("Displays the user's facing direction");
 
     public static Setting<Boolean> speed = new Setting<>("Speed", true)
+            .setAlias("KHM", "BPS")
             .setDescription("Displays the user's speed");
 
     public static Setting<Boolean> ping = new Setting<>("Ping", true)

@@ -19,7 +19,7 @@ public class XCarryModule extends Module {
     public static XCarryModule INSTANCE;
 
     public XCarryModule() {
-        super("XCarry", Category.MISC, "Prevents the server from knowing when you open your inventory");
+        super("XCarry", new String[] {"ExtraSlots", "SecretClose"}, Category.MISC, "Prevents the server from knowing when you open your inventory");
         INSTANCE = this;
     }
 

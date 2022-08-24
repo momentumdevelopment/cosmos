@@ -34,6 +34,7 @@ public class BreakHighlightModule extends Module {
             .setExclusion(Box.GLOW, Box.REVERSE, Box.NONE);
 
     public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 1.0F, 3F, 1)
+            .setAlias("LineWidth")
             .setDescription("The width of the outline")
             .setVisible(() -> !renderMode.getValue().equals(Box.FILL));
 

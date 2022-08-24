@@ -21,7 +21,7 @@ public class FlightModule extends Module {
     public static FlightModule INSTANCE;
 
     public FlightModule() {
-        super("Flight", Category.MOVEMENT, "Allows player to fly", () -> StringFormatter.formatEnum(mode.getValue()));
+        super("Flight", new String[] {"Fly"}, Category.MOVEMENT, "Allows player to fly", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 

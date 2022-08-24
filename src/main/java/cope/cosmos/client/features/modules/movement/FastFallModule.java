@@ -21,7 +21,7 @@ public class FastFallModule extends Module {
     public static FastFallModule INSTANCE;
 
     public FastFallModule() {
-        super("FastFall", Category.MOVEMENT, "Falls faster");
+        super("FastFall", new String[] {"ReverseStep"}, Category.MOVEMENT, "Falls faster");
         INSTANCE = this;
     }
 

@@ -34,7 +34,8 @@ public class AntiAimModule extends Module {
     public static Setting<Pitch> pitch = new Setting<>("Pitch", Pitch.NONE)
             .setDescription("Changes how your pitch is rotated");
 
-    public static Setting<Rotate> rotate = new Setting<>("Rotate", Rotate.PACKET)
+    public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.PACKET)
+            .setAlias("Rotate")
             .setDescription("How to rotate")
             .setExclusion(Rotate.NONE);
 

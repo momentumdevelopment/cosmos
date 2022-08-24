@@ -31,7 +31,7 @@ public class InteractModule extends Module {
     public static InteractModule INSTANCE;
 
     public InteractModule() {
-        super("Interact", Category.PLAYER, "Changes how you interact with blocks & entities");
+        super("Interact", new String[] {"NoInteract", "LiquidInteract", "NoHeightLimit"}, Category.PLAYER, "Changes how you interact with blocks & entities");
         INSTANCE = this;
     }
 
