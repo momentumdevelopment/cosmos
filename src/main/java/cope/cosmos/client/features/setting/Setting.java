@@ -278,4 +278,17 @@ public class Setting<T> extends Feature implements Wrapper {
 	public String getDescription() {
 		return description != null ? description : "";
 	}
+
+	/**
+	 * Sets the aliases of the setting
+	 * @param in The aliases
+	 * @return The setting
+	 */
+	public Setting<T> setAlias(String... in) {
+		// update description
+		setAliases(in);
+
+		// builder
+		return this;
+	}
 }

@@ -57,7 +57,7 @@ public class ModuleComponent extends DrawableComponent {
         if (module != null) {
 
             // add all module's settings
-            module.getSettings().forEach(setting -> {
+            module.getAllSettings().forEach(setting -> {
                 if (setting.getValue() instanceof Boolean) {
                     settingComponents.add(new BooleanComponent(this, (Setting<Boolean>) setting));
                 }

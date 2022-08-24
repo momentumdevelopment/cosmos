@@ -9,6 +9,7 @@ public class Feature {
 
     // all features should have a name, and optionally a description
     protected String name;
+    protected String[] aliases;
     protected String description;
 
     public Feature(String name, String description) {
@@ -21,11 +22,54 @@ public class Feature {
     }
 
     /**
+     * Checks if a given name matches this feature
+     * @param in The given name
+     * @return Whether the given name matches this feature
+     */
+    public boolean equals(String in) {
+
+        // main name matches
+        if (name.equalsIgnoreCase(in)) {
+            return true;
+        }
+
+        // alias matches
+        else {
+            if (aliases != null) {
+                for (String alias : aliases) {
+                    if (alias.equalsIgnoreCase(in)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // none match
+        return false;
+    }
+
+    /**
      * Gets the name of the feature
      * @return The name of the feature
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Sets the aliases
+     * @param in The aliases
+     */
+    public void setAliases(String... in) {
+        aliases = in;
+    }
+
+    /**
+     * Gets the aliases
+     * @return The aliases
+     */
+    public String[] getAliases() {
+        return aliases;
     }
 
     /**

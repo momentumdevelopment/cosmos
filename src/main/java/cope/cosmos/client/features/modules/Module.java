@@ -14,7 +14,9 @@ import org.lwjgl.input.Keyboard;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static cope.cosmos.client.features.setting.Bind.Device;
 
@@ -92,6 +94,53 @@ public class Module extends Feature implements Wrapper {
 
 	public Module(String name, Category category, String description, Supplier<String> info) {
 		this(name, category, description);
+
+		// add module arraylist info
+		this.info = info;
+	}
+
+	public Module(String name, String[] aliases, Category category, String description) {
+		super(name, description);
+		setAliases(aliases);
+
+		// persistent, enabled by default
+		if (persistent) {
+			enabled = true;
+		}
+
+		this.category = category;
+
+		// add all associated settings in the class
+		Arrays.stream(getClass().getDeclaredFields())
+				.filter(field -> Setting.class.isAssignableFrom(field.getType()))
+				.forEach(field -> {
+					field.setAccessible(true);
+					try {
+						Setting<?> setting = ((Setting<?>) field.get(this));
+
+						// set the setting's current module as this module
+						setting.setModule(this);
+
+						// add it this module's settings
+						settings.add(setting);
+					} catch (IllegalArgumentException | IllegalAccessException exception) {
+						exception.printStackTrace();
+					}
+				});
+
+		// Add bind
+		settings.add(bind);
+
+		// default module state
+		drawn = true;
+
+		// animation
+		animation = new Animation(300, enabled);
+	}
+
+	public Module(String name, String[] aliases, Category category, String description, Supplier<String> info) {
+		this(name, category, description);
+		setAliases(aliases);
 
 		// add module arraylist info
 		this.info = info;
@@ -309,8 +358,31 @@ public class Module extends Feature implements Wrapper {
 	 * Gets a list of the module's settings
 	 * @return List of the module's settings
 	 */
-	public List<Setting<?>> getSettings() {
+	public List<Setting<?>> getAllSettings() {
 		return settings;
+	}
+
+	/**
+	 * Gets a list of all the client's modules that fulfill a specified condition
+	 * @param predicate The specified condition
+	 * @return List of all the client's modules that fulfill the specified condition
+	 */
+	public List<Setting<?>> getSettings(Predicate<? super Setting<?>> predicate) {
+		return settings.stream()
+				.filter(predicate)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Gets the first module that fulfills a specified condition
+	 * @param predicate The specified condition
+	 * @return The first module that fulfills the specified condition
+	 */
+	public Setting<?> getSetting(Predicate<? super Setting<?>> predicate) {
+		return settings.stream()
+				.filter(predicate)
+				.findFirst()
+				.orElse(null);
 	}
 
 	/**

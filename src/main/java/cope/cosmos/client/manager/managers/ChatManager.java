@@ -1,11 +1,13 @@
 package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
+import cope.cosmos.asm.mixins.accessor.IGuiNewChat;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.chat.ChatBuilder;
 import cope.cosmos.util.chat.ChatUtil;
+import net.minecraft.client.gui.ChatLine;
 import net.minecraft.network.play.client.CPacketChatMessage;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
@@ -94,6 +96,6 @@ public class ChatManager extends Manager {
      * @param hoverable The message in the hoverable
      */
     public void sendHoverableMessage(String in, String hoverable) {
-        new ChatBuilder().append(ChatUtil.getPrefix() + in, new Style().setColor(TextFormatting.DARK_PURPLE).setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatBuilder().append(Cosmos.NAME, new Style().setColor(TextFormatting.DARK_PURPLE)).append("\n" + hoverable, new Style().setColor(TextFormatting.BLUE)).component()))).append(" ", new Style().setColor(TextFormatting.DARK_PURPLE)).push();
+        new ChatBuilder().append(ChatUtil.getPrefix() + in, new Style().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatBuilder().append(Cosmos.NAME, new Style().setColor(TextFormatting.DARK_PURPLE)).append("\n" + hoverable, new Style().setColor(TextFormatting.BLUE)).component()))).append(" ", new Style().setColor(TextFormatting.DARK_PURPLE)).push();
     }
 }

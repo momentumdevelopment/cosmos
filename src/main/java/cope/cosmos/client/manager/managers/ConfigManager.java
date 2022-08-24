@@ -41,6 +41,9 @@ public class ConfigManager extends Manager {
     public ConfigManager() {
         super("ConfigManager", "Handles the client's configurations (presets)");
 
+        // default preset
+        presets.add("default");
+
         // load our info file, this contains all important client information including the preset previously loaded by the user
         loadInfo();
 
@@ -102,6 +105,7 @@ public class ConfigManager extends Manager {
 
         // the file path to this preset with the specified name
         presetPath = FileSystemUtil.PRESETS.resolve(name + ".toml");
+        presets.add(name);
 
         // create this preset path if we need too
         if (!Files.exists(presetPath)) {
@@ -240,7 +244,7 @@ public class ConfigManager extends Manager {
                         }
 
                         // set the setting values
-                        module.getSettings().forEach(setting -> {
+                        module.getAllSettings().forEach(setting -> {
                             if (setting != null) {
                                 try {
                                     // the setting identifier in the TOML file
@@ -534,7 +538,7 @@ public class ConfigManager extends Manager {
                     outputTOML.append("Enabled = ").append(module.isEnabled()).append("\r\n");
                     outputTOML.append("Drawn = ").append(module.isDrawn()).append("\r\n");
 
-                    module.getSettings().forEach(setting -> {
+                    module.getAllSettings().forEach(setting -> {
                         if (setting != null) {
                             // add the parent identifier if the setting is a subsetting
                             {
@@ -727,6 +731,14 @@ public class ConfigManager extends Manager {
             System.out.println("[Cosmos] GUI was saved successfully!");
         }
 
+    }
+
+    /**
+     * Gets the list of presets
+     * @return The list of presets
+     */
+    public List<String> getPresets() {
+        return presets;
     }
 
     public String getPreset() {
