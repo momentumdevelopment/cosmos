@@ -64,6 +64,7 @@ public class ModuleManager extends Manager {
 				new NotifierModule(),
 				new PortalModule(),
 				new TimerModule(),
+				new TooltipsModule(),
 				new XCarryModule(),
 
 				// movement
@@ -111,7 +112,6 @@ public class ModuleManager extends Manager {
 				new NoRenderModule(),
 				new NoWeatherModule(),
 				new SkyColorModule(),
-				// new TooltipsModule(),
 				new TracersModule(),
 				new ViewModelModule(),
 				new WallhackModule()

@@ -1,12 +1,12 @@
-package cope.cosmos.client.features.modules.visual;
+package cope.cosmos.client.features.modules.misc;
 
 import cope.cosmos.client.events.render.gui.tooltip.RenderTooltipEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.FontUtil;
-import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.ItemStackHelper;
@@ -27,7 +27,7 @@ public class TooltipsModule extends Module {
     public static TooltipsModule INSTANCE;
 
     public TooltipsModule() {
-        super("Tooltips", Category.VISUAL, "Displays detailed tooltips");
+        super("Tooltips", Category.MISC, "Displays detailed tooltips");
         INSTANCE = this;
     }
 
@@ -67,12 +67,13 @@ public class TooltipsModule extends Module {
                         GlStateManager.disableDepth();
 
                         // draw container
-                        RenderUtil.drawRect(event.getX() + 8, event.getY() - 21, event.getX() + 10, event.getY() - 7, new Color(23, 23, 29).getRGB());
-                        RenderUtil.drawRect(event.getX() + 8, event.getY() - 7, event.getX() + 10, event.getY() - 5, ColorUtil.getPrimaryColor());
-                        RenderUtil.drawRect(event.getX() + 8, event.getY() - 5, event.getX() + 10, event.getY() + 5, new Color(23, 23, 29).getRGB());
+                        // IDK WHY I CANT USE RenderUtil.drawRect
+                        GuiScreen.drawRect(event.getX() + 8, event.getY() - 21, event.getX() + 157, event.getY() - 7, new Color(23, 23, 29).getRGB());
+                        GuiScreen.drawRect(event.getX() + 8, event.getY() - 7, event.getX() + 157, event.getY() - 5, ColorUtil.getPrimaryColor().getRGB());
+                        GuiScreen.drawRect(event.getX() + 8, event.getY() - 5, event.getX() + 157, event.getY() + 50, new Color(23, 23, 29).getRGB());
 
                         // draw shulker title
-                        FontUtil.drawStringWithShadow(event.getItemStack().getDisplayName(), event.getX() + 10, event.getY() - 18, -1);
+                        FontUtil.drawStringWithShadow(event.getItemStack().getDisplayName(), event.getX() + 11, event.getY() - 18, -1);
 
                         // start render
                         mc.getRenderItem().zLevel = 300;
@@ -87,8 +88,8 @@ public class TooltipsModule extends Module {
                         for (int i = 0; i < itemList.size(); i++) {
 
                             // draw item
-                            mc.getRenderItem().renderItemAndEffectIntoGUI(itemList.get(i), event.getX() + (i % 9) * 16 + 11, event.getY() + (i / 9) * 16 - 11 + 8);
-                            mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemList.get(i), event.getX() + (i % 9) * 16 + 11, event.getY() + (i / 9) * 16 - 11 + 8, null);
+                            mc.getRenderItem().renderItemAndEffectIntoGUI(itemList.get(i), event.getX() + (i % 9) * 16 + 9, event.getY() + (i / 9) * 16 - 3);
+                            mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemList.get(i), event.getX() + (i % 9) * 16 + 9, event.getY() + (i / 9) * 16 - 3, null);
                         }
 
                         // end render
@@ -118,19 +119,24 @@ public class TooltipsModule extends Module {
                         event.setCanceled(true);
 
                         // draw container
-                        RenderUtil.drawRect(event.getX() + 6, event.getY() - 3, event.getX() + 89.6F, event.getY() + 4, new Color(23, 23, 29).getRGB());
-                        RenderUtil.drawRect(event.getX() + 6, event.getY() + 4, event.getX() + 89.6F, event.getY() + 6, ColorUtil.getPrimaryColor());
+                        // IDK WHY I CANT USE RenderUtil.drawRect
+                        GuiScreen.drawRect(event.getX() + 6, event.getY() - 3, event.getX() + 96, event.getY() + 11, new Color(23, 23, 29).getRGB());
+                        GuiScreen.drawRect(event.getX() + 6, event.getY() + 11, event.getX() + 96, event.getY() + 13, ColorUtil.getPrimaryColor().getRGB());
+
+                        // draw map title
+                        FontUtil.drawStringWithShadow(event.getItemStack().getDisplayName(), event.getX() + 8, event.getY(), -1);
 
                         // start render
                         GlStateManager.pushMatrix();
                         GlStateManager.disableDepth();
 
                         // render map
-                        GlStateManager.translate(event.getX() + 6, event.getY() + 6, 0);
+                        GlStateManager.translate(event.getX() + 6, event.getY() + 13, 0);
                         GlStateManager.scale(0.7F, 0.7F, 0);
                         GL11.glDepthRange(0, 0.01);
                         mc.entityRenderer.getMapItemRenderer().renderMap(mapData, false);
                         GL11.glDepthRange(0, 1.0);
+                        GlStateManager.scale(1 / 0.7F, 1 / 0.7F, 0);
 
                         // end render
                         GlStateManager.enableDepth();
