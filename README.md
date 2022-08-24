@@ -1,5 +1,5 @@
 ![minecraft](https://img.shields.io/badge/Minecraft-1.12.2-blue.svg)
-![GitHub All Releases](https://img.shields.io/badge/Downloads-20k-purple)
+![GitHub All Releases](https://img.shields.io/github/downloads/linustouchtips/cosmos/total?color=purple)
 [![discord](https://img.shields.io/badge/Discord-JK2Zz2CDpM-8080c0)](https://discord.gg/JK2Zz2CDpM)
 ![minecraft](https://img.shields.io/badge/Key--bind-Right--shift-brightgreen)
 ![minecraft](https://img.shields.io/badge/Client--Prefix-*-blueviolet)
