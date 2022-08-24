@@ -39,8 +39,8 @@ public class Cosmos {
     // mod info
     public static final String MOD_ID = "cosmos";
     public static final String NAME = "Cosmos";
-    public static final String VERSION = "1.4.0";
-    public static final ClientType CLIENT_TYPE = ClientType.RELEASE;
+    public static final String VERSION = "1.5.0-beta";
+    public static final ClientType CLIENT_TYPE = ClientType.DEVELOPMENT;
 
     // client event bus
     public static EventBus EVENT_BUS = MinecraftForge.EVENT_BUS;
