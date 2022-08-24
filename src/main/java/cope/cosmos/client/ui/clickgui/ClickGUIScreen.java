@@ -52,14 +52,6 @@ public class ClickGUIScreen extends GuiScreen implements InterfaceWrapper {
     }
 
     @Override
-    public void initGui() {
-        super.initGui();
-
-        // lawl
-        Mouse.setGrabbed(false);
-    }
-
-    @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
 

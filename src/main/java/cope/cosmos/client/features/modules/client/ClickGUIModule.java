@@ -9,7 +9,6 @@ import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 
 import static cope.cosmos.client.features.setting.Bind.Device;
 
@@ -36,22 +35,25 @@ public class ClickGUIModule extends Module {
 			.setDescription("Blur shader for GUI background");
 
 	@Override
-	public void onEnable() {
-		super.onEnable();
+	public void onTick() {
 
-		// open gui
-		mc.displayGuiScreen(getCosmos().getClickGUI());
-		mc.currentScreen = getCosmos().getClickGUI();
-		Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
+		// custom toggling
+		if (isEnabled() && mc.currentScreen == null) {
 
-		// open frames
-		getCosmos().getClickGUI().getCategoryFrameComponents().forEach(categoryFrameComponent -> {
-			categoryFrameComponent.setOpen(true);
-		});
+			// open gui
+			mc.displayGuiScreen(getCosmos().getClickGUI());
+			mc.currentScreen = getCosmos().getClickGUI();
+			Cosmos.EVENT_BUS.register(getCosmos().getClickGUI());
 
-		// blur shader for background
-		if (blur.getValue()) {
-			mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
+			// open frames
+			getCosmos().getClickGUI().getCategoryFrameComponents().forEach(categoryFrameComponent -> {
+				categoryFrameComponent.setOpen(true);
+			});
+
+			// blur shader for background
+			if (blur.getValue()) {
+				mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
+			}
 		}
 	}
 
