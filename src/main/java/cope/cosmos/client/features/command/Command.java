@@ -1,50 +1,33 @@
 package cope.cosmos.client.features.command;
 
-import com.mojang.brigadier.RedirectModifier;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.util.Wrapper;
-
-import java.util.function.Predicate;
 
 /**
  * @author Milse113, linustouchtips
  * @since 06/08/2021
  */
-public class Command extends Feature implements Wrapper {
-
-	// command to be executed
-	private final LiteralArgumentBuilder<Object> command;
+public abstract class Command extends Feature implements Wrapper {
 	
-	public Command(String name, String description, LiteralArgumentBuilder<Object> command) {
+	public Command(String name, String[] aliases, String description) {
 		super(name, description);
-		this.command = command;
+		setAliases(aliases);
 	}
 
 	/**
-	 * Gets the command
-	 * @return The command
+	 * Runs after command is executed
 	 */
-	public LiteralArgumentBuilder<Object> getCommand() {
-		return command;
-	}
+	public abstract void onExecute(String[] args);
 
 	/**
-	 * Redirects the {@link LiteralArgumentBuilder} argument builder to a new destination
-	 * @param alias The alias of the builder
-	 * @param destination The new destination of the builder
-	 * @return The redirected builder
+	 * Gets a correct use case
+	 * @return The correct use case
 	 */
-	@SuppressWarnings("unchecked")
-	public static LiteralArgumentBuilder<Object> redirectBuilder(String alias, LiteralCommandNode<?> destination) {
-		LiteralArgumentBuilder<Object> literalArgumentBuilder = LiteralArgumentBuilder.literal(alias.toLowerCase()).requires((Predicate<Object>) destination.getRequirement()).forward((CommandNode<Object>) destination.getRedirect(), (RedirectModifier<Object>) destination.getRedirectModifier(), destination.isFork()).executes((com.mojang.brigadier.Command<Object>) destination.getCommand());
+	public abstract String getUseCase();
 
-		for (CommandNode<?> child : destination.getChildren()) {
-			literalArgumentBuilder.then((CommandNode<Object>) child);
-		}
-
-		return literalArgumentBuilder;
-	}
+	/**
+	 * Gets the maximum argument size
+	 * @return The maximum argument size
+	 */
+	public abstract int getArgSize();
 }

@@ -49,6 +49,33 @@ public class Feature {
     }
 
     /**
+     * Checks if a given text starts with this feature's name/aliases
+     * @param in The given text
+     * @return Whether them given text starts with this feature's name/aliases
+     */
+    public int startsWith(String in) {
+
+        // main name matches
+        if (name.toLowerCase().startsWith(in.toLowerCase())) {
+            return 1000;
+        }
+
+        // alias matches
+        else {
+            if (aliases != null) {
+                for (int i = 0; i < aliases.length; i++) {
+                    if (aliases[i].toLowerCase().startsWith(in.toLowerCase())) {
+                        return i;
+                    }
+                }
+            }
+        }
+
+        // none match
+        return -1;
+    }
+
+    /**
      * Gets the name of the feature
      * @return The name of the feature
      */

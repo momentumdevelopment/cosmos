@@ -102,8 +102,6 @@ dependencies {
         // For no reason it includes the com.sun.jna library.
         exclude module: 'jna'
     }
-    // Mojang's command system for Minecraft.
-    embed 'com.mojang:brigadier:1.0.17'
     // File reader.
     embed ('com.moandjiezana.toml:toml4j:0.7.2') {
         // Why include google gson.

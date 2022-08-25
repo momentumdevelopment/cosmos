@@ -1,5 +1,7 @@
 package cope.cosmos.client.ui.clickgui.screens.configuration.component.components.setting;
 
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.ClickType;
 import cope.cosmos.client.ui.clickgui.screens.configuration.component.components.module.ModuleComponent;
@@ -12,6 +14,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.awt.*;
 
@@ -30,7 +33,7 @@ public class ColorComponent extends SettingComponent<Color> {
     private boolean open;
 
     // selected color in the color picker
-    private final ColorHSB selectedColor;
+    private ColorHSB selectedColor;
 
     // animation
     private final Animation animation = new Animation(300, false);
@@ -38,6 +41,7 @@ public class ColorComponent extends SettingComponent<Color> {
 
     public ColorComponent(ModuleComponent moduleComponent, Setting<Color> setting) {
         super(moduleComponent, setting);
+        Cosmos.EVENT_BUS.register(this);
 
         // initial value
         selectedColor = new ColorHSB(setting.getValue());
@@ -147,6 +151,15 @@ public class ColorComponent extends SettingComponent<Color> {
 
             // play a sound to make the user happy :)
             getCosmos().getSoundManager().playSound("click");
+        }
+    }
+
+    @SubscribeEvent
+    public void onSettingUpdate(SettingUpdateEvent event) {
+        if (event.getSetting().equals(getSetting())) {
+
+            // sync value
+            selectedColor = new ColorHSB((Color) event.getSetting().getValue());
         }
     }
 

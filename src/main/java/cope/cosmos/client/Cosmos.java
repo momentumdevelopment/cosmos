@@ -1,6 +1,5 @@
 package cope.cosmos.client;
 
-import com.mojang.brigadier.CommandDispatcher;
 import cope.cosmos.client.features.Feature;
 import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.modules.client.DiscordPresenceModule;
@@ -86,7 +85,6 @@ public class Cosmos {
     private SoundManager soundManager;
     private ChatManager chatManager;
     private PotionManager potionManager;
-    private CommandDispatcher<Object> commandDispatcher;
     
     public Cosmos() {
     	INSTANCE = this;
@@ -116,8 +114,7 @@ public class Cosmos {
         managers.add(eventManager);
         progressManager.step("[Cosmos] Registering Events");
 
-        // load the commands (Mojang's Brigadier)
-        commandDispatcher = new CommandDispatcher<>();
+        // load the commands
         commandManager = new CommandManager();
         managers.add(commandManager);
         progressManager.step("[Cosmos] Loading Commands");
@@ -284,14 +281,6 @@ public class Cosmos {
      */
     public EventManager getEventManager() {
         return eventManager;
-    }
-
-    /**
-     * Gets the client command dispatcher
-     * @return The client command dispatcher
-     */
-    public CommandDispatcher<Object> getCommandDispatcher() {
-        return commandDispatcher;
     }
 
     /**

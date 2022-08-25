@@ -9,7 +9,6 @@ import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.Wrapper;
-import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +39,7 @@ public class Module extends Feature implements Wrapper {
 
 	// module key bind, pressing this key will toggle the enable state
 	private final Setting<Bind> bind = new Setting<>("Bind", new Bind(0, Device.KEYBOARD))
+			.setAlias("Key", "KeyBind")
 			.setDescription("The bind of the module");
 
 	// the module Category

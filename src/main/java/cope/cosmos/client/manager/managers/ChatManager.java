@@ -1,13 +1,11 @@
 package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
-import cope.cosmos.asm.mixins.accessor.IGuiNewChat;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.chat.ChatBuilder;
 import cope.cosmos.util.chat.ChatUtil;
-import net.minecraft.client.gui.ChatLine;
 import net.minecraft.network.play.client.CPacketChatMessage;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;

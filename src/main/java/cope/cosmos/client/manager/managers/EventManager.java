@@ -1,6 +1,5 @@
 package cope.cosmos.client.manager.managers;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.events.block.LeftClickBlockEvent;
@@ -16,7 +15,6 @@ import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.world.RenderFogColorEvent;
-import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.network.play.server.SPacketEntityStatus;
@@ -26,11 +24,7 @@ import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.input.Keyboard;
-
-import java.awt.*;
 
 /**
  * @author bon55, linustouchtips
@@ -225,26 +219,6 @@ public class EventManager extends Manager implements Wrapper {
 		});
 
 		mc.mcProfiler.endSection();
-	}
-
-	@SubscribeEvent
-	public void onChatInput(ClientChatEvent event) {
-		
-		// event the user sends a command
-		if (event.getMessage().startsWith(Cosmos.PREFIX)) {
-			event.setCanceled(true);
-
-			try {
-				
-				// dispatch
-				getCosmos().getCommandDispatcher().execute(getCosmos().getCommandDispatcher()
-								.parse(event.getOriginalMessage().substring(1), 1));
-				
-			} catch (Exception exception) {
-				// exception.printStackTrace();
-				getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "No such command was found");
-			}
-		}
 	}
 
 	// **************************** EVENTS ****************************
