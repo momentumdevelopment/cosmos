@@ -42,6 +42,8 @@ public class CommandManager extends Manager {
 		commands.add(new FriendCommand());
 		commands.add(new ReloadSoundCommand());
 		commands.add(new FolderCommand());
+		commands.add(new DrawnCommand());
+		commands.add(new PrefixCommand());
 
 		// add setting commands for each module
 		for (Module module : getCosmos().getModuleManager().getAllModules()) {

@@ -43,7 +43,7 @@ public class FolderCommand extends Command {
 
     @Override
     public String getUseCase() {
-        return null;
+        return "";
     }
 
     @Override
