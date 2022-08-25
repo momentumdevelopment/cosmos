@@ -236,20 +236,23 @@ public class NoRenderModule extends Module {
     @SubscribeEvent
     public void onRenderFog(RenderFogEvent event) {
 
-        // prevents fog from rendering
-        if (PlayerUtil.isInLiquid()) {
+        if (nullCheck()) {
 
-            // prevent fog from rendering in liquid
-            if (fogLiquid.getValue()) {
-                event.setCanceled(true);
+            // prevents fog from rendering
+            if (PlayerUtil.isInLiquid()) {
+
+                // prevent fog from rendering in liquid
+                if (fogLiquid.getValue()) {
+                    event.setCanceled(true);
+                }
             }
-        }
 
-        else {
+            else {
 
-            // prevent fog from rendering
-            if (fog.getValue()) {
-                event.setCanceled(true);
+                // prevent fog from rendering
+                if (fog.getValue()) {
+                    event.setCanceled(true);
+                }
             }
         }
     }

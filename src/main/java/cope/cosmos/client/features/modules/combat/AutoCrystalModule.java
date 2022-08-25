@@ -1865,17 +1865,17 @@ public class AutoCrystalModule extends Module {
                                 // find the vector to raytrace to
                                 Vec3d traceVector = new Vec3d(in).addVector(x, y, z);
 
-                                // check visibility, raytrace to the current point
-                                RayTraceResult strictResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), traceVector, false, true, false);
+                                // distance to face
+                                double directionDistance = mc.player.getDistance(traceVector.x, traceVector.y, traceVector.z);
 
-                                // if our raytrace is a block, check distances
-                                if (strictResult != null && strictResult.typeOfHit.equals(Type.BLOCK)) {
+                                // if the face is the closest to the player and trace distance is reasonably close, then we have found a new ideal visible side to place against
+                                if (directionDistance < closestDirection.first()) {
 
-                                    // distance to face
-                                    double directionDistance = mc.player.getDistance(traceVector.x, traceVector.y, traceVector.z);
+                                    // check visibility, raytrace to the current point
+                                    RayTraceResult strictResult = mc.world.rayTraceBlocks(mc.player.getPositionEyes(1), traceVector, false, true, false);
 
-                                    // if the face is the closest to the player and trace distance is reasonably close, then we have found a new ideal visible side to place against
-                                    if (directionDistance < closestDirection.first()) {
+                                    // if our raytrace is a block, check distances
+                                    if (strictResult != null && strictResult.typeOfHit.equals(Type.BLOCK)) {
                                         closestDirection = Pair.of(directionDistance, strictResult.sideHit);
                                     }
                                 }

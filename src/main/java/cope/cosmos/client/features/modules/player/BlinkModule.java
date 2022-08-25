@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.player;
 
+import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -284,6 +285,13 @@ public class BlinkModule extends Module {
         glDisable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);
         glPopMatrix();
+    }
+
+    @SubscribeEvent
+    public void onDisconnect(DisconnectEvent event) {
+
+        // disable on a disconnect to prevent kicks upon joining
+        disable(true);
     }
 
     @SubscribeEvent

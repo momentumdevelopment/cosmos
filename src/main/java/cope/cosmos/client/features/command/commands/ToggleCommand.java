@@ -6,13 +6,14 @@ import cope.cosmos.client.features.modules.Module;
 
 /**
  * @author linustouchtips
- * @since 08/24/2022
+ * @since 08/25/2022
  */
-public class DrawnCommand extends Command {
-    public static DrawnCommand INSTANCE;
+public class ToggleCommand extends Command {
+    public static ToggleCommand INSTANCE;
 
-    public DrawnCommand() {
-        super("Drawn", new String[] {"Drawn", "Draw", "Hide"}, "Draws or hides modules from the arraylist");
+    public ToggleCommand() {
+        super("Toggle", new String[]{"t", "Enable"}, "Toggles a module");
+        INSTANCE = this;
     }
 
     @Override
@@ -33,8 +34,15 @@ public class DrawnCommand extends Command {
                     boolean value = Boolean.parseBoolean(args[1]);
 
                     // update setting
-                    module.setDrawn(value);
-                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " is now " + ChatFormatting.GRAY + (value ? "drawn" : "hidden"), "The module has been " + (value ? "drawn" : "hidden"));
+                    if (value) {
+                        module.enable(true);
+                    }
+
+                    else {
+                        module.disable(true);
+                    }
+
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " is now " + (module.isEnabled() ? ChatFormatting.GREEN + "enabled" : ChatFormatting.RED + "disabled") + ChatFormatting.RESET + "!", "The module has been " + (module.isEnabled() ? ChatFormatting.GREEN + "enabled" : ChatFormatting.RED + "disabled") + ChatFormatting.RESET + ".");
                 }
             }
 
@@ -53,12 +61,9 @@ public class DrawnCommand extends Command {
             // if the given module is valid
             if (module != null) {
 
-                // boolean value
-                boolean value = !module.isDrawn();
-
                 // update setting
-                module.setDrawn(value);
-                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " is now " + ChatFormatting.GRAY + (value ? "drawn" : "hidden"), "The module has been " + (value ? "drawn" : "hidden"));
+                module.toggle();
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " is now " + (module.isEnabled() ? ChatFormatting.GREEN + "enabled" : ChatFormatting.RED + "disabled") + ChatFormatting.RESET + "!", "The module has been " + (module.isEnabled() ? ChatFormatting.GREEN + "enabled" : ChatFormatting.RED + "disabled") + ChatFormatting.RESET + ".");
             }
 
             else {
