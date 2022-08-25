@@ -1,87 +1,141 @@
 package cope.cosmos.client.features.command.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Bind;
+import cope.cosmos.client.features.setting.Bind.Device;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-
-import static cope.cosmos.client.features.setting.Bind.Device;
-
 /**
- * @author Wolfsurge
+ * @author linustouchtips
+ * @since 08/23/2020
  */
 public class BindCommand extends Command {
+    public static BindCommand INSTANCE;
 
     public BindCommand() {
-        super("Bind", "Binds a module to the given keybind", LiteralArgumentBuilder.literal("bind")
-            .then(RequiredArgumentBuilder.argument("module", StringArgumentType.string()).suggests((context, builder) -> suggestNames(builder))
-                    .then(RequiredArgumentBuilder.argument("key", StringArgumentType.string())
-
-                    .executes(context -> {
-                        // Module to bind
-                        Module toBind = Cosmos.INSTANCE.getModuleManager().getModule(module -> module.getName().equalsIgnoreCase(StringArgumentType.getString(context, "module")));
-
-                        // Key arg
-                        String key = StringArgumentType.getString(context, "key").toUpperCase();
-
-                        // Mouse button
-                        if (key.contains("MOUSE") || key.contains("BUTTON")) {
-                            key = key.replace("MOUSE", "BUTTON");
-
-                            int code = Mouse.getButtonIndex(key);
-
-                            toBind.getBind().setValue(new Bind(code, Device.MOUSE));
-                        }
-
-                        // Keyboard
-                        else {
-                            int code = Keyboard.getKeyIndex(key);
-
-                            toBind.getBind().setValue(new Bind(code, Device.KEYBOARD));
-                        }
-
-                        // Command success
-                        if (toBind.getBind().getValue().getButtonCode() > 1) {
-                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Set " + toBind.getName() + "'s bind to " + toBind.getBind().getValue().getButtonName());
-                        }
-
-                        // Command failure
-                        else {
-                            Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter a correct bind!");
-                        }
-
-                        return 1;
-                    }))
-
-                    .executes(context -> {
-                        Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter a correct bind!");
-                        return 1;
-                    }))
-
-            .executes(context -> {
-                Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the name of the module!");
-                return 1;
-            })
-        );
+        super("Bind", new String[] {"b", "Key", "KeyBind"}, "Binds a feature to a given key");
+        INSTANCE = this;
     }
 
-    private static CompletableFuture<Suggestions> suggestNames(SuggestionsBuilder suggestionsBuilder) {
-        Cosmos.INSTANCE.getModuleManager().getAllModules().forEach(module ->
-                suggestionsBuilder.suggest(module.getName())
-        );
+    @Override
+    public void onExecute(String[] args) {
 
-        return suggestionsBuilder.buildFuture();
+        // specified keyboard/mouse
+        if (args.length == 3) {
+
+            // module to bind
+            Module module = getCosmos().getModuleManager().getModule(module1 -> module1.equals(args[0]));
+
+            // if the given module is valid
+            if (module != null) {
+
+                // keyboard bind
+                if (args[2].equalsIgnoreCase("Keyboard")) {
+
+                    // bind key
+                    int key = Keyboard.getKeyIndex(args[1].toUpperCase());
+
+                    // recognized key
+                    if (key != Keyboard.KEY_NONE) {
+
+                        // bind module
+                        module.getBind().setValue(new Bind(key, Device.KEYBOARD));
+                        getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " bound to " + ChatFormatting.GRAY + args[1].toUpperCase(), "The module has been bound.");
+                    }
+
+                    else {
+
+                        // unrecognized key exception
+                        getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Key!", "Please enter the name of key that exists.");
+                    }
+                }
+
+                // mouse bind
+                else if (args[2].equalsIgnoreCase("Mouse") || args[2].equalsIgnoreCase("Button")) {
+
+                    // bind button
+                    int button = Mouse.getButtonIndex(args[1]);
+
+                    // recognized button
+                    if (button != -1) {
+
+                        // bind module
+                        module.getBind().setValue(new Bind(button, Device.MOUSE));
+                        getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " bound to " + ChatFormatting.GRAY + args[1].toUpperCase(), "The module has been bound.");
+                    }
+
+                    else {
+
+                        // unrecognized button exception
+                        getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Button!", "Please enter the name of button that exists.");
+                    }
+                }
+
+                else {
+
+                    // unrecognized key format exception
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Key Format!", "Please enter the name of key format that is supported.");
+                }
+            }
+
+            else {
+
+                // unrecognized module exception
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Module!", "Please enter a module that exists.");
+            }
+        }
+
+        // generic
+        else if (args.length == 2) {
+
+            // module to bind
+            Module module = getCosmos().getModuleManager().getModule(module1 -> module1.equals(args[0]));
+
+            // if the given module is valid
+            if (module != null) {
+
+                // bind key
+                int key = Keyboard.getKeyIndex(args[1].toUpperCase());
+
+                // recognized key
+                if (key != Keyboard.KEY_NONE) {
+
+                    // bind module
+                    module.getBind().setValue(new Bind(key, Device.KEYBOARD));
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + module.getName() + ChatFormatting.RESET + " bound to " + ChatFormatting.GRAY + args[1].toUpperCase(), "The module has been bound.");
+                }
+
+                else {
+
+                    // unrecognized key exception
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Key!", ChatFormatting.RED + "Please enter the name of key that exists.");
+                }
+            }
+
+            else {
+
+                // unrecognized module exception
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Module!", ChatFormatting.RED + "Please enter a module that exists.");
+            }
+        }
+
+        else {
+
+            // unrecognized arguments exception
+            getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Arguments!", ChatFormatting.RED + "Please enter the correct arguments for this command.");
+        }
     }
 
+    @Override
+    public String getUseCase() {
+        return "<module> <key/button> <optional:format>";
+    }
+
+    @Override
+    public int getArgSize() {
+        return 3;
+    }
 }

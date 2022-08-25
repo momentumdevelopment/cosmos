@@ -1,44 +1,120 @@
 package cope.cosmos.client.features.command.commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.realmsclient.gui.ChatFormatting;
-import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.features.command.Command;
 
+import java.util.List;
+
+/**
+ * @author linustouchtips
+ * @since 08/24/2022
+ */
 public class ConfigCommand extends Command {
+    public static ConfigCommand INSTANCE;
+
     public ConfigCommand() {
-        super("Config", "Creates or Updates a preset", LiteralArgumentBuilder.literal("config")
-                .then(RequiredArgumentBuilder.argument("action", StringArgumentType.string()).then(RequiredArgumentBuilder.argument("name", StringArgumentType.string())
-                        .executes(context -> {
-                            switch (StringArgumentType.getString(context, "action")) {
-                                case "save":
-                                    Cosmos.INSTANCE.getConfigManager().createPreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Saved current config");
-                                case "load":
-                                    Cosmos.INSTANCE.getConfigManager().loadPreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Loaded current config");
-                                    break;
-                                case "remove":
-                                    Cosmos.INSTANCE.getConfigManager().deletePreset(StringArgumentType.getString(context, "name"));
-                                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.GREEN + "Command dispatched successfully!", "Removed preset with name " + StringArgumentType.getString(context, "name"));
-                                    break;
-                            }
+        super("Config", new String[] {"preset", "configuration"}, "Saves and loads configurations");
+        INSTANCE = this;
+    }
 
-                            return 1;
-                        })
-                )
+    @Override
+    public void onExecute(String[] args) {
 
-                .executes(context -> {
-                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the name of the preset!");
-                    return 1;
-                }))
+        if (args.length == 2) {
 
-                .executes(context -> {
-                    Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "An error occurred!", "Please enter the correct action, was expecting save, remove, or load!");
-                    return 1;
-                })
-        );
+            // config saving
+            if (args[0].equalsIgnoreCase("Save")) {
+                getCosmos().getConfigManager().createPreset(args[1]);
+                getCosmos().getChatManager().sendHoverableMessage("Saved current config", "Saved config as " + args[1] + ".");
+            }
+
+            // config loading
+            else if (args[0].equalsIgnoreCase("Load")) {
+
+                // check if the config exists
+                boolean exists = getCosmos().getConfigManager().getPresets().contains(args[1]);
+
+                // load if exists
+                if (exists) {
+                    getCosmos().getConfigManager().loadPreset(args[1]);
+                    getCosmos().getChatManager().sendHoverableMessage("Loaded config " + ChatFormatting.GRAY + args[1], "Loaded current config");
+                }
+
+                else {
+
+                    // unrecognized action
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Config Name!", ChatFormatting.RED + "Please enter a valid config name.");
+                }
+            }
+
+            else {
+
+                // unrecognized action
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Action!", ChatFormatting.RED + "Please use a valid action.");
+            }
+        }
+
+        else if (args.length == 1) {
+
+            // config listing
+            if (args[0].equalsIgnoreCase("List")) {
+
+                // list of presets
+                List<String> presetList = getCosmos().getConfigManager().getPresets();
+
+                // config list
+                StringBuilder configList = new StringBuilder();
+
+                // all presets
+                for (int i = 0; i < presetList.size(); i++) {
+
+                    // current preset
+                    boolean current = presetList.get(i).equalsIgnoreCase(getCosmos().getConfigManager().getPreset());
+
+                    // highlight
+                    if (current) {
+                        configList.append(ChatFormatting.GREEN);
+                    }
+
+                    // add to config list
+                    configList.append(presetList.get(i));
+
+                    // reset
+                    if (current) {
+                        configList.append(ChatFormatting.RESET);
+                    }
+
+                    // more presets
+                    if (i < presetList.size() - 1) {
+                        configList.append(", ");
+                    }
+                }
+
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + "Configs:", "List of configs");
+                getCosmos().getChatManager().sendClientMessage(configList.toString());
+            }
+
+            else {
+
+                // unrecognized action
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Action!", ChatFormatting.RED + "Please use a valid action.");
+            }
+        }
+
+        else {
+
+            // unrecognized arguments exception
+            getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Arguments!", ChatFormatting.RED + "Please enter the correct arguments for this command.");
+        }
+    }
+
+    @Override
+    public String getUseCase() {
+        return "<save/load/list> <optional:name>";
+    }
+
+    @Override
+    public int getArgSize() {
+        return 2;
     }
 }
