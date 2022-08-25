@@ -46,6 +46,7 @@ public class CommandManager extends Manager {
 		commands.add(new PrefixCommand());
 		commands.add(new ToggleCommand());
 		commands.add(new GamemodeCommand());
+		commands.add(new FontCommand());
 
 		// add setting commands for each module
 		for (Module module : getCosmos().getModuleManager().getAllModules()) {
@@ -97,17 +98,21 @@ public class CommandManager extends Manager {
 						// use cases
 						String[] cases = suggestion.getUseCase().split(" ");
 
-						// args size
-						for (int i = 0; i < suggestion.getArgSize(); i++) {
-							if (i < args.length) {
-
-								// sync input
-								cases[i] = args[i];
-							}
-						}
-
 						// index of the suggestion
 						int index = suggestion.startsWith(command);
+
+						// must match
+						if (index != -1) {
+
+							// args size
+							for (int i = 0; i < suggestion.getArgSize(); i++) {
+								if (i < args.length) {
+
+									// sync input
+									cases[i] = args[i];
+								}
+							}
+						}
 
 						suggestionBuilder.append(Cosmos.PREFIX);
 

@@ -12,12 +12,17 @@ import java.awt.*;
 import java.util.Random;
 
 public class FontRenderer implements Wrapper {
+
     private final ImageAWT defaultFont;
     public final int FONT_HEIGHT;
 
     public FontRenderer(Font font) {
         defaultFont = new ImageAWT(font);
         FONT_HEIGHT = (int) getHeight();
+    }
+
+    public String getName() {
+        return defaultFont.getName();
     }
 
     public float getHeight() {

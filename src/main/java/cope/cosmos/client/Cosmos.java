@@ -9,7 +9,6 @@ import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
 import cope.cosmos.client.ui.tabgui.TabGUI;
-import cope.cosmos.util.render.FontUtil;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -94,9 +93,6 @@ public class Cosmos {
     public void preInit(FMLPreInitializationEvent event) {
         // just started to initialize
         startupTime = System.currentTimeMillis();
-
-        // load the client custom font
-        FontUtil.load();
     }
     
     @EventHandler

@@ -13,6 +13,7 @@ import cope.cosmos.client.ui.altgui.Alt;
 import cope.cosmos.client.ui.altgui.AltEntry;
 import cope.cosmos.client.ui.altgui.AltManagerGUI;
 import cope.cosmos.util.file.FileSystemUtil;
+import cope.cosmos.util.render.FontUtil;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.Vec2f;
 
@@ -176,6 +177,10 @@ public class ConfigManager extends Manager {
 
                     if (toml.contains("Info.Preset")) {
                         preset = toml.getString("Info.Preset");
+                    }
+
+                    if (toml.contains("Info.Font")) {
+                        FontUtil.loadFont(toml.getString("Info.Font") + ".ttf");
                     }
                 }
 
@@ -505,6 +510,12 @@ public class ConfigManager extends Manager {
                 " " +
                 "false" + // set to false by default, as we only setup once
                 "\n" +
+                "Font" +
+                " " +
+                "=" +
+                " \"" +
+                FontUtil.getFont() + // set to false by default, as we only setup once
+                "\"\n" +
                 "Prefix" +
                 " " +
                 "=" +

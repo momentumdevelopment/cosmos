@@ -44,6 +44,10 @@ public class ImageAWT implements Wrapper {
         this(font, 0, 255);
     }
 
+    public String getName() {
+        return font.getName();
+    }
+
     private void collectGarbage() {
         long currentTime = System.currentTimeMillis();
         cachedStrings.entrySet().stream().filter(entry -> currentTime - (entry.getValue()).getLastUsage() > 30000L).forEach(entry -> {

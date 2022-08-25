@@ -1,25 +1,85 @@
 package cope.cosmos.util.render;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.features.modules.client.FontModule;
 import cope.cosmos.font.FontRenderer;
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.file.FileSystemUtil;
 
-import java.awt.Font;
+import java.awt.*;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author linustouchtips
+ * @since 04/18/2021
+ */
 public class FontUtil implements Wrapper {
 
-	private static FontRenderer globalFont;
+	// client font
+	private static FontRenderer font;
 
-	public static void load() {
-		globalFont = new FontRenderer(getFont("hindmadurai", 40));
+	/**
+	 * Loads a given font
+	 * @param in The given font
+	 */
+	public static void loadFont(String in) {
+		font = new FontRenderer(loadFont(in, 40));
+	}
+
+	/**
+	 * Attempts to load a given font
+	 * @param in The given font
+	 * @param size The size of the font
+	 * @return The loaded font
+	 */
+	private static Font loadFont(String in, float size) {
+		try {
+
+			// font stream
+			InputStream fontStream = new FileInputStream(FileSystemUtil.FONTS.resolve(in).toFile());
+
+			// if the client font exists
+			if (fontStream != null) {
+
+				// creates and derives the font
+				Font clientFont = Font.createFont(0, fontStream);
+				clientFont = clientFont.deriveFont(Font.PLAIN, size);
+
+				// close stream
+				fontStream.close();
+				return clientFont;
+			}
+
+			// default
+			return new Font("default", Font.PLAIN, (int) size);
+
+		} catch (Exception exception) {
+
+			// print exception
+			if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+				exception.printStackTrace();
+			}
+
+			// notify
+			if (font != null && font.nullCheck()) {
+
+				// unrecognized gamemode exception
+				Cosmos.INSTANCE.getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Font!", ChatFormatting.RED + "Please enter a valid font.");
+			}
+
+			// load default
+			return new Font("hindmadurai", Font.PLAIN, (int) size);
+		}
 	}
 
 	public static void drawStringWithShadow(String text, float x, float y, int color) {
 		if (FontModule.INSTANCE.isEnabled()) {
-			globalFont.drawStringWithShadow(text, x, y, color);
+			font.drawStringWithShadow(text, x, y, color);
 		}
 
 		else {
@@ -29,7 +89,7 @@ public class FontUtil implements Wrapper {
 
 	public static void drawCenteredStringWithShadow(String text, float x, float y, int color) {
 		if (FontModule.INSTANCE.isEnabled()) {
-			globalFont.drawStringWithShadow(text, x - globalFont.getStringWidth(text) / 2f + 0.75f, y - globalFont.getHeight() / 2f + 2f, color);
+			font.drawStringWithShadow(text, x - font.getStringWidth(text) / 2f + 0.75f, y - font.getHeight() / 2f + 2f, color);
 		}
 
 		else {
@@ -39,7 +99,7 @@ public class FontUtil implements Wrapper {
 
 	public static int getStringWidth(String text) {
 		if (FontModule.INSTANCE.isEnabled()) {
-			return globalFont.getStringWidth(text);
+			return font.getStringWidth(text);
 		}
 
 		return mc.fontRenderer.getStringWidth(text);
@@ -119,29 +179,17 @@ public class FontUtil implements Wrapper {
 
 	public static int getFontString(String text, float x, float y, int color) {
 		if (FontModule.INSTANCE.isEnabled()) {
-			return globalFont.drawStringWithShadow(text, x, y, color);
+			return font.drawStringWithShadow(text, x, y, color);
 		}
 
 		return mc.fontRenderer.drawStringWithShadow(text, x, y, color);
 	}
 
-	private static Font getFont(String fontName, float size) {
-		try {
-			InputStream inputStream = FontUtil.class.getResourceAsStream("/assets/cosmos/fonts/" + fontName + ".ttf");
-
-			if (inputStream != null) {
-				Font awtClientFont = Font.createFont(0, inputStream);
-				awtClientFont = awtClientFont.deriveFont(Font.PLAIN, size);
-				inputStream.close();
-				return awtClientFont;
-			}
-
-			// default
-			return new Font("default", Font.PLAIN, (int) size);
-
-		} catch (Exception exception) {
-			exception.printStackTrace();
-			return new Font("default", Font.PLAIN, (int) size);
-		}
+	/**
+	 * Gets the current font
+	 * @return The current font
+	 */
+	public static String getFont() {
+		return font.getName();
 	}
 }

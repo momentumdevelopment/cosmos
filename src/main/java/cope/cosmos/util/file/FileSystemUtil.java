@@ -33,6 +33,7 @@ public class FileSystemUtil {
     public static final Path GUI;
 
     public static final Path PRESETS;
+    public static final Path FONTS;
 
     /**
      * Reads the contents from a file
@@ -217,10 +218,12 @@ public class FileSystemUtil {
 
         // set the rest of our static constants
         PRESETS = COSMOS.resolve("presets");
+        FONTS = COSMOS.resolve("fonts");
 
         // create proper directories/files
         createSystemFile(COSMOS, true);
         createSystemFile(PRESETS, true);
+        createSystemFile(FONTS, true);
 
         createSystemFile(INFO, false);
         createSystemFile(SOCIAL, false);
