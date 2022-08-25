@@ -227,13 +227,13 @@ public class AutoTotemModule extends Module {
                     }
                 }
 
-                // already in offhand
-                if (!isOffhand(mc.player.inventoryContainer.getSlot(itemSlot).getStack())) {
+                // found our item
+                if (itemSlot != -1) {
 
-                    // found our item
-                    if (itemSlot != -1) {
+                    // already in offhand
+                    if (!isOffhand(mc.player.inventoryContainer.getSlot(itemSlot).getStack())) {
 
-                        // switch to items in one cycle
+                            // switch to items in one cycle
                         if (fast.getValue()) {
 
                             // calculate if we have passed delays
