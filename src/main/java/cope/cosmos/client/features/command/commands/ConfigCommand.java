@@ -90,7 +90,7 @@ public class ConfigCommand extends Command {
                     }
                 }
 
-                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + "Configs:", "List of configs");
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.GRAY + "[Configs]", "List of configs");
                 getCosmos().getChatManager().sendClientMessage(configList.toString());
             }
 

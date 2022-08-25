@@ -8,6 +8,10 @@ import cope.cosmos.util.Wrapper;
  * @since 06/08/2021
  */
 public abstract class Command extends Feature implements Wrapper {
+
+	public Command(String name, String description) {
+		super(name, description);
+	}
 	
 	public Command(String name, String[] aliases, String description) {
 		super(name, description);

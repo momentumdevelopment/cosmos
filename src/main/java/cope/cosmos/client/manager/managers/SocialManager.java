@@ -24,7 +24,7 @@ public class SocialManager extends Manager {
      * @param social The relationship to the entity
      */
     public void addSocial(String socialName, Relationship social) {
-        socials.put(socialName.toLowerCase(), social);
+        socials.put(socialName, social);
     }
 
     /**
@@ -32,7 +32,7 @@ public class SocialManager extends Manager {
      * @param socialName The name of the entity
      */
     public void removeSocial(String socialName) {
-        socials.remove(socialName.toLowerCase());
+        socials.remove(socialName);
     }
 
     /**
@@ -49,7 +49,7 @@ public class SocialManager extends Manager {
      * @return The relationship to the entity
      */
     public Relationship getSocial(String socialName) {
-        return socials.getOrDefault(socialName.toLowerCase(), Relationship.NONE);
+        return socials.getOrDefault(socialName, Relationship.NONE);
     }
 
     public enum Relationship {

@@ -5,9 +5,7 @@ import cope.cosmos.asm.mixins.accessor.IGuiChat;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.gui.RenderChatTextEvent;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.client.features.command.commands.BindCommand;
-import cope.cosmos.client.features.command.commands.ConfigCommand;
-import cope.cosmos.client.features.command.commands.SettingCommand;
+import cope.cosmos.client.features.command.commands.*;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.FontModule;
 import cope.cosmos.client.manager.Manager;
@@ -36,8 +34,11 @@ public class CommandManager extends Manager {
 		super("CommandManager", "Manages client commands");
 
 		// add all commands
+		commands.add(new HelpCommand());
 		commands.add(new BindCommand());
 		commands.add(new ConfigCommand());
+		commands.add(new HClipCommand());
+		commands.add(new VClipCommand());
 
 		// add setting commands for each module
 		for (Module module : getCosmos().getModuleManager().getAllModules()) {

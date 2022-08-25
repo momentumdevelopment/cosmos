@@ -21,7 +21,7 @@ public class SettingCommand extends Command {
     private final Module module;
 
     public SettingCommand(Module module) {
-        super(module.getName(), module.getAliases(), "Configures settings of a feature");
+        super(module.getName(), module.getAliases(), "Configures the settings of " + module.getName());
         this.module = module;
     }
 
