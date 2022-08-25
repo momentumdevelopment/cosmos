@@ -33,6 +33,7 @@
         "accessor.INetHandlerPlayClient",
         "accessor.ISlot",
         "accessor.IGuiChat",
+        "accessor.ISoundHandler",
         "entity.player.MixinAbstractClientPlayer",
         "entity.player.MixinEntityPlayer",
         "entity.player.MixinEntityPlayerSP",

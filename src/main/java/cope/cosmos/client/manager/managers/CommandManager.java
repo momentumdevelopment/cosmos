@@ -39,6 +39,9 @@ public class CommandManager extends Manager {
 		commands.add(new ConfigCommand());
 		commands.add(new HClipCommand());
 		commands.add(new VClipCommand());
+		commands.add(new FriendCommand());
+		commands.add(new ReloadSoundCommand());
+		commands.add(new FolderCommand());
 
 		// add setting commands for each module
 		for (Module module : getCosmos().getModuleManager().getAllModules()) {
