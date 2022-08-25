@@ -95,14 +95,17 @@ public class ChamsModule extends Module {
     public void onRenderLivingEntityPre(RenderLivingEntityEvent.RenderLivingEntityPreEvent event) {
         if (hasChams(event.getEntityLivingBase())) {
 
+            // remove vanilla model rendering
+            event.setCanceled(true);
+
             // make the model transparent
             if (transparent.getValue()) {
                 GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
             }
 
-            // cancel vanilla model rendering
-            if (!texture.getValue()) {
-                event.setCanceled(true);
+            // render model
+            if (texture.getValue()) {
+                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
             }
         }
     }
@@ -114,38 +117,41 @@ public class ChamsModule extends Module {
             glPushMatrix();
             glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-            // remove the texture
-            glDisable(GL_TEXTURE_2D);
-            glEnable(GL_BLEND);
-
-            // remove lighting
-            if (lighting.getValue()) {
-                glDisable(GL_LIGHTING);
-            }
-
             // remove depth
             if (walls.getValue()) {
                 glDisable(GL_DEPTH_TEST);
             }
 
-            // update the rendering mode of the polygons
-            switch (mode.getValue()) {
-                case WIRE:
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    break;
-                case WIRE_MODEL:
-                case MODEL:
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
+            if (!mode.getValue().equals(Mode.NORMAL)) {
+
+                // remove the texture
+                glDisable(GL_TEXTURE_2D);
+                glEnable(GL_BLEND);
+
+                // remove lighting
+                if (lighting.getValue()) {
+                    glDisable(GL_LIGHTING);
+                }
+
+                // update the rendering mode of the polygons
+                switch (mode.getValue()) {
+                    case WIRE:
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        break;
+                    case WIRE_MODEL:
+                    case MODEL:
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                        break;
+                }
+
+                // anti-alias
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                glLineWidth(width.getValue().floatValue());
+
+                // color the model (walls)
+                glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
             }
-
-            // anti-alias
-            glEnable(GL_LINE_SMOOTH);
-            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            glLineWidth(width.getValue().floatValue());
-
-            // color the model (walls)
-            glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
             // shine model
             if (shine.getValue() && !mode.getValue().equals(Mode.WIRE)) {
@@ -188,36 +194,39 @@ public class ChamsModule extends Module {
                 // render the model
                 event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
             }
-            
+
             // re-enable depth
             if (walls.getValue() && !mode.getValue().equals(Mode.WIRE_MODEL)) {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            // change to outline polygon mode for wire and model
-            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            if (!mode.getValue().equals(Mode.NORMAL)) {
 
-                // color the model (non-walls)
-                glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
+                // change to outline polygon mode for wire and model
+                if (mode.getValue().equals(Mode.WIRE_MODEL)) {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-                // render the model
-                event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+                    // color the model (non-walls)
+                    glColor4d(getColor(event.getEntityLivingBase()).getRed() / 255F, getColor(event.getEntityLivingBase()).getGreen() / 255F, getColor(event.getEntityLivingBase()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
 
-                // reset depth
-                if (walls.getValue()) {
-                    glEnable(GL_DEPTH_TEST);
+                    // render the model
+                    event.getModelBase().render(event.getEntityLivingBase(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
+
+                    // reset depth
+                    if (walls.getValue()) {
+                        glEnable(GL_DEPTH_TEST);
+                    }
                 }
-            }
 
-            // reset lighting
-            if (lighting.getValue()) {
-                glEnable(GL_LIGHTING);
-            }
+                // reset lighting
+                if (lighting.getValue()) {
+                    glEnable(GL_LIGHTING);
+                }
 
-            // reset texture
-            glDisable(GL_BLEND);
-            glEnable(GL_TEXTURE_2D);
+                // reset texture
+                glDisable(GL_BLEND);
+                glEnable(GL_TEXTURE_2D);
+            }
 
             glPopAttrib();
             glPopMatrix();
@@ -227,65 +236,77 @@ public class ChamsModule extends Module {
     @SubscribeEvent
     public void onRenderCrystalPre(RenderCrystalEvent.RenderCrystalPreEvent event) {
 
+        // cancel vanilla model rendering
+        event.setCanceled(crystals.getValue());
+
         // make the model transparent
         if (transparent.getValue()) {
             GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
         }
 
-        // cancel vanilla model rendering
-        if (!texture.getValue()) {
-            event.setCanceled(crystals.getValue());
+        glPushMatrix();
+        glScaled(scale.getValue(), scale.getValue(), scale.getValue());
+
+        // render model
+        if (texture.getValue()) {
+            event.getModelBase().render(event.getEntity(), event.getLimbSwing(), event.getLimbSwingAmount(), event.getAgeInTicks(), event.getNetHeadYaw(), event.getHeadPitch(), event.getScaleFactor());
         }
+
+        glScaled(1 / scale.getValue(), 1 / scale.getValue(), 1 / scale.getValue());
+        glPopMatrix();
     }
 
     @SubscribeEvent
     public void onRenderCrystalPost(RenderCrystalEvent.RenderCrystalPostEvent event) {
         if (crystals.getValue()) {
 
-            glPushMatrix();
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-
             // model rotations
             float rotation = event.getEntityEnderCrystal().innerRotation + event.getPartialTicks();
             float rotationMoved = MathHelper.sin(rotation * 0.2F) / 2 + 0.5F;
             rotationMoved += StrictMath.pow(rotationMoved, 2);
 
-            // scale and translate the model
-            glTranslated(event.getX(), event.getY(), event.getZ());
-            glScaled(scale.getValue(), scale.getValue(), scale.getValue());
-
-            // remove the texture
-            glDisable(GL_TEXTURE_2D);
-            glEnable(GL_BLEND);
-
-            // remove lighting
-            if (lighting.getValue()) {
-                glDisable(GL_LIGHTING);
-            }
+            glPushMatrix();
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
 
             // remove depth
             if (walls.getValue()) {
                 glDisable(GL_DEPTH_TEST);
             }
 
-            // update the rendering mode of the polygons
-            switch (mode.getValue()) {
-                case WIRE:
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    break;
-                case WIRE_MODEL:
-                case MODEL:
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
+            // scale and translate the model
+            glTranslated(event.getX(), event.getY(), event.getZ());
+            glScaled(scale.getValue(), scale.getValue(), scale.getValue());
+
+            if (!mode.getValue().equals(Mode.NORMAL)) {
+
+                // remove the texture
+                glDisable(GL_TEXTURE_2D);
+                glEnable(GL_BLEND);
+
+                // remove lighting
+                if (lighting.getValue()) {
+                    glDisable(GL_LIGHTING);
+                }
+
+                // update the rendering mode of the polygons
+                switch (mode.getValue()) {
+                    case WIRE:
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                        break;
+                    case WIRE_MODEL:
+                    case MODEL:
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                        break;
+                }
+
+                // anti-alias
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                glLineWidth(width.getValue().floatValue());
+
+                // color the model (walls)
+                glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
             }
-
-            // anti-alias
-            glEnable(GL_LINE_SMOOTH);
-            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-            glLineWidth(width.getValue().floatValue());
-
-            // color the model (walls)
-            glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) ? 1 : 0.2);
 
             // shine model
             if (shine.getValue() && !mode.getValue().equals(Mode.WIRE)) {
@@ -344,36 +365,39 @@ public class ChamsModule extends Module {
                 glEnable(GL_DEPTH_TEST);
             }
 
-            // change to outline polygon mode for wire and model
-            if (mode.getValue().equals(Mode.WIRE_MODEL)) {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-                // color wall model
-                glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
-
-                // render model
-                if (event.getEntityEnderCrystal().shouldShowBottom()) {
-                    event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-                }
-
-                else {
-                    event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
-                }
+            if (!mode.getValue().equals(Mode.NORMAL)) {
 
                 // change to outline polygon mode for wire and model
-                if (walls.getValue()) {
-                    glEnable(GL_DEPTH_TEST);
+                if (mode.getValue().equals(Mode.WIRE_MODEL)) {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+                    // color wall model
+                    glColor4d(getColor(event.getEntityEnderCrystal()).getRed() / 255F, getColor(event.getEntityEnderCrystal()).getGreen() / 255F, getColor(event.getEntityEnderCrystal()).getBlue() / 255F, mode.getValue().equals(Mode.WIRE) || mode.getValue().equals(Mode.WIRE_MODEL) ? 1 : 0.2);
+
+                    // render model
+                    if (event.getEntityEnderCrystal().shouldShowBottom()) {
+                        event.getModelBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                    }
+
+                    else {
+                        event.getModelNoBase().render(event.getEntityEnderCrystal(), 0, rotation * 3, rotationMoved * 0.2F, 0, 0, 0.0625F);
+                    }
+
+                    // change to outline polygon mode for wire and model
+                    if (walls.getValue()) {
+                        glEnable(GL_DEPTH_TEST);
+                    }
                 }
-            }
 
-            // reset lighting
-            if (lighting.getValue()) {
-                glEnable(GL_LIGHTING);
-            }
+                // reset lighting
+                if (lighting.getValue()) {
+                    glEnable(GL_LIGHTING);
+                }
 
-            // reset texture
-            glDisable(GL_BLEND);
-            glEnable(GL_TEXTURE_2D);
+                // reset texture
+                glDisable(GL_BLEND);
+                glEnable(GL_TEXTURE_2D);
+            }
 
             // reset scale
             glScaled(1 / scale.getValue(), 1 / scale.getValue(), 1 / scale.getValue());
@@ -402,6 +426,11 @@ public class ChamsModule extends Module {
     }
 
     public enum Mode {
+
+        /**
+         * Doesn't apply model changes
+         */
+        NORMAL,
 
         /**
          * Fills in the model
