@@ -4,6 +4,7 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.gui.RenderAdvancementEvent;
 import cope.cosmos.client.events.render.gui.RenderPotionHUDEvent;
+import cope.cosmos.client.events.render.other.CapeLocationEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.movement.SpeedModule;
@@ -49,6 +50,9 @@ public class HUDModule extends Module {
 
     public static Setting<Boolean> watermark = new Setting<>("Watermark", true)
             .setDescription("Displays a client watermark");
+
+    public static Setting<Boolean> cape = new Setting<>("Cape", true)
+            .setDescription("Displays the client capes");
 
     public static Setting<Boolean> activeModules = new Setting<>("ActiveModules", true)
             .setDescription("Displays all enabled modules");
@@ -343,8 +347,25 @@ public class HUDModule extends Module {
     }
 
     @SubscribeEvent
+    public void onCapeLocationEvent(CapeLocationEvent event) {
+
+        // render capes
+        if (cape.getValue()) {
+
+            // Check the player is caped
+            if (getCosmos().getCapeManager().getCapedPlayers().containsKey(event.getPlayerName())) {
+
+                // Overwrite the cape location
+                event.setLocation(getCosmos().getCapeManager().getCapedPlayers().get(event.getPlayerName()).getPath());
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (mc.currentScreen == null) {
+
+            // tab gui event
             if (tabGUI.getValue()) {
                 getCosmos().getTabGUI().onKeyPress(event);
             }

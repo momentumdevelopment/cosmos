@@ -24,9 +24,11 @@ public class WaypointManager extends Manager {
     }
 
     @SubscribeEvent
-    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+    public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
 
-        // clear on logout
+        if (event.player.equals(mc.player))
+
+        // clear on login
         waypoints.clear();
     }
 

@@ -51,6 +51,12 @@ public class WaypointsModule extends Module {
             .setDescription("The lifespan of the waypoints in seconds")
             .setVisible(() -> !infinite.getValue());
 
+    // **************************** render ****************************
+
+    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 1.0F, 3F, 1)
+            .setAlias("LineWidth")
+            .setDescription("The width of the outline");
+
     // added waypoints
     private final Map<String, Long> waypoints = new ConcurrentHashMap<>();
 
@@ -90,12 +96,13 @@ public class WaypointsModule extends Module {
                         .color(ColorUtil.getPrimaryColor())
                         .box(Box.OUTLINE)
                         .setup()
-                        .line(4)
+                        .line(lineWidth.getValue())
                         .depth(true)
                         .blend()
                         .texture()
                 );
 
+                // draw info
                 RenderUtil.drawNametag(coordinates.addVector(0, 2.6, 0), name + " [X: " + coordinates.x + ", Y: " + coordinates.y + ", Z: " + coordinates.z + "]");
             }
         });
@@ -171,9 +178,9 @@ public class WaypointsModule extends Module {
     }
 
     @SubscribeEvent
-    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+    public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
 
-        // clear on logout
+        // clear on login
         waypoints.clear();
     }
 }

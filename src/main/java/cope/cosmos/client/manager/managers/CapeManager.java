@@ -38,6 +38,7 @@ public class CapeManager extends Manager {
             String line;
 
             while ((line = reader.readLine()) != null) {
+
                 // Get data -> PlayerName:CapeType
                 String[] data = line.split(":");
 
@@ -54,16 +55,16 @@ public class CapeManager extends Manager {
         Cosmos.EVENT_BUS.register(this);
     }
 
-    @SubscribeEvent
-    public void onCapeLocationEvent(CapeLocationEvent event) {
-        // Check the player is caped
-        if (capedPlayers.containsKey(event.getPlayerName())) {
-            // Overwrite the cape location
-            event.setLocation(capedPlayers.get(event.getPlayerName()).getPath());
-        }
+    /**
+     * Gets the map of caped player
+     * @return The map of caped player
+     */
+    public Map<String, CapeType> getCapedPlayers() {
+        return capedPlayers;
     }
 
     public enum CapeType {
+
         /**
          * Normal cape
          */

@@ -1,14 +1,26 @@
 package cope.cosmos.client.features.modules.misc;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.events.client.ModuleToggleEvent;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.chat.ChatUtil;
+import cope.cosmos.client.manager.managers.SocialManager.Relationship;
+import cope.cosmos.util.math.MathUtil;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.EntityDonkey;
+import net.minecraft.entity.passive.EntityLlama;
+import net.minecraft.entity.passive.EntityMule;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * @author linustouchtips
@@ -32,8 +44,183 @@ public class NotifierModule extends Module {
             .setAlias("TotemPopNotify", "TotemPopNotifier", "PopNotifier")
             .setDescription("Send a chat message when a nearby player is popped");
 
+    public static Setting<Boolean> donkeyNotify = new Setting<>("DonkeyNotify", false)
+            .setAlias("DonkeyAlert", "LlamaNotify", "LlamaAlert", "MuleNotify", "MuleAlert")
+            .setDescription("Send a chat message when a nearby player is popped");
+
+    public static Setting<Boolean> visualNotify = new Setting<>("VisualNotify", false)
+            .setAlias("VisualRange")
+            .setDescription("Send a chat message when a nearby player is popped");
+
+    // list of players in visual range
+    private final List<Entity> visualPlayers = new CopyOnWriteArrayList<>();
+
+    // list of chest-able entities in visual range
+    private final List<Entity> visualDonkeys = new CopyOnWriteArrayList<>();
+
+    @Override
+    public void onEnable() {
+        super.onEnable();
+
+        // create log
+        if (visualNotify.getValue()) {
+
+            // clear old log
+            visualPlayers.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if player
+                if (entity instanceof EntityPlayer) {
+
+                    // log player
+                    visualPlayers.add(entity);
+                }
+            }
+        }
+
+        // log chest-able entities
+        if (donkeyNotify.getValue()) {
+
+            // clear old log
+            visualDonkeys.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if chest-able entity
+                if (entity instanceof EntityDonkey || entity instanceof EntityLlama || entity instanceof EntityMule) {
+
+                    // log chest-able entity
+                    visualDonkeys.add(entity);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onUpdate() {
+
+        // notify chest-able entities
+        if (donkeyNotify.getValue()) {
+
+            // give chance for visual log to collect
+            if (mc.player.ticksExisted > 20) {
+
+                // collect new visual range of chest-able entities who entered
+                List<Entity> enterVisualDonkeys = mc.world.loadedEntityList.stream().filter(entity -> entity instanceof EntityDonkey || entity instanceof EntityLlama || entity instanceof EntityMule).filter(entity -> !visualDonkeys.contains(entity)).collect(Collectors.toList());
+
+                // notify enters
+                for (Entity entity : enterVisualDonkeys) {
+
+                    // notify
+                    getCosmos().getChatManager().sendClientMessage("[DonkeyNotify] Chest-able entity found at " + ChatFormatting.GRAY + "[X: " + MathUtil.roundDouble(entity.posX, 1) + ", Y: " + MathUtil.roundDouble(entity.posY, 1) + ", Z: " + MathUtil.roundDouble(entity.posZ, 1) + "]");
+                }
+            }
+
+            // clear old log
+            visualDonkeys.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if chest-able entity
+                if (entity instanceof EntityDonkey || entity instanceof EntityLlama || entity instanceof EntityMule) {
+
+                    // log chest-able entity
+                    visualDonkeys.add(entity);
+                }
+            }
+        }
+
+        // notify players in visual range
+        if (visualNotify.getValue()) {
+
+            // give chance for visual log to collect
+            if (mc.player.ticksExisted > 20) {
+
+                // collect new visual range of players who exited
+                List<Entity> exitVisualRange = visualPlayers.stream().filter(player -> !mc.world.loadedEntityList.contains(player)).collect(Collectors.toList());
+
+                // collect new visual range of players who entered
+                List<Entity> enterVisualRange = mc.world.loadedEntityList.stream().filter(player -> player instanceof EntityPlayer).filter(player -> !player.equals(mc.player)).filter(player -> !visualPlayers.contains(player)).collect(Collectors.toList());
+
+                // notify exits
+                for (Entity player : exitVisualRange) {
+
+                    // notify
+                    getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.RED + "left " + ChatFormatting.RESET + "your visual range!");
+                }
+
+                // notify enters
+                for (Entity player : enterVisualRange) {
+
+                    // notify
+                    getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.BLUE + "entered " + ChatFormatting.RESET + "your visual range!");
+                }
+            }
+
+            // clear old log
+            visualPlayers.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if player
+                if (entity instanceof EntityPlayer) {
+
+                    // log player
+                    visualPlayers.add(entity);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+
+        // create log
+        if (visualNotify.getValue()) {
+
+            // clear old log
+            visualPlayers.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if player
+                if (entity instanceof EntityPlayer) {
+
+                    // log player
+                    visualPlayers.add(entity);
+                }
+            }
+        }
+
+        // log chest-able entities
+        if (donkeyNotify.getValue()) {
+
+            // clear old log
+            visualDonkeys.clear();
+
+            // check all entities in world
+            for (Entity entity : mc.world.loadedEntityList) {
+
+                // check if chest-able entity
+                if (entity instanceof EntityDonkey || entity instanceof EntityLlama || entity instanceof EntityMule) {
+
+                    // log chest-able entity
+                    visualDonkeys.add(entity);
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
+
+        // notify pops
         if (popNotify.getValue()) {
 
             // if the player is in range
@@ -50,6 +237,8 @@ public class NotifierModule extends Module {
 
     @SubscribeEvent
     public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
+
+        // notify totem pops
         if (getCosmos().getPopManager().getTotemPops(event.getEntity()) > 0) {
 
             // notify the player if necessary
@@ -64,6 +253,8 @@ public class NotifierModule extends Module {
 
     @SubscribeEvent
     public void onModuleEnable(ModuleToggleEvent.ModuleEnableEvent event) {
+
+        // notify the module enable
         if (enableNotify.getValue()) {
 
             // make sure the module isn't hidden
@@ -77,6 +268,8 @@ public class NotifierModule extends Module {
 
     @SubscribeEvent
     public void onModuleDisable(ModuleToggleEvent.ModuleDisableEvent event) {
+
+        // notify the module disable
         if (enableNotify.getValue()) {
 
             // make sure the module isn't hidden

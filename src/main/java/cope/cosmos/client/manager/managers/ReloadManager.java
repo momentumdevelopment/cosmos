@@ -21,8 +21,10 @@ public class ReloadManager extends Manager implements Wrapper {
 
     @SubscribeEvent
     public void onEntitySpawn(EntityWorldEvent.EntitySpawnEvent event) {
+
         // on spawn
         if (event.getEntity().equals(mc.player)) {
+
             // previously enabled modules
             List<Module> enabledModules = getCosmos().getModuleManager().getModules(Module::isEnabled);
 

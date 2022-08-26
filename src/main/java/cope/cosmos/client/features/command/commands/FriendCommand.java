@@ -46,7 +46,7 @@ public class FriendCommand extends Command {
                     getCosmos().getChatManager().sendClientMessage("Added friend with name " + ChatFormatting.GRAY + friend.getName());
 
                     // send a message to notify the friended player
-                    getCosmos().getChatManager().sendChatMessage("/w " + friend + " I just added you as a friend on Cosmos!");
+                    getCosmos().getChatManager().sendChatMessage("/w " + friend.getName() + " I just added you as a friend on Cosmos!");
                 }
 
                 // remove friends

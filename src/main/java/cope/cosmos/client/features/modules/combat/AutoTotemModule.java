@@ -361,102 +361,45 @@ public class AutoTotemModule extends Module {
     @SubscribeEvent
     public void onTotemPop(TotemPopEvent event) {
 
-        // player has popped
-        if (event.getPopEntity().equals(mc.player)) {
+        if (nullCheck()) {
 
-            // switch item
-            Item item = Items.TOTEM_OF_UNDYING;
+            // player has popped
+            if (event.getPopEntity().equals(mc.player)) {
 
-            // already in offhand
-            if (!mc.player.getHeldItemOffhand().getItem().equals(item)) {
+                // switch item
+                Item item = Items.TOTEM_OF_UNDYING;
 
-                // item slot
-                // find our item in our inventory
-                int itemSlot = -1;
-                for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
-                    if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
-                        itemSlot = i;
-                        break;
-                    }
-                }
+                // already in offhand
+                if (!mc.player.getHeldItemOffhand().getItem().equals(item)) {
 
-                // found our item
-                if (itemSlot != -1) {
-
-                    // switch to items in one cycle
-                    if (fast.getValue()) {
-
-                        // calculate if we have passed delays
-                        // offhand delay based on offhand speeds
-                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
-
-                        // we have waited the proper time ???
-                        boolean delayed = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
-
-                        // passed delay
-                        if (delayed) {
-
-                            // pickup
-                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
-
-                            // move the item to the offhand
-                            mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
-
-                            // if we didn't get any item to swap
-                            if (mc.player.inventory.getItemStack().isEmpty()) {
-
-                                // reset
-                                offhandTimer.resetTime();
-                                return;
-                            }
-
-                            // find a slot to return to
-                            int returnSlot = -1;
-                            for (int i = 0; i < 36; i++) {
-                                if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
-                                    returnSlot = i;
-                                    break;
-                                }
-                            }
-
-                            // move the item in the offhand to the return slot
-                            if (returnSlot != -1) {
-                                mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
-                                mc.playerController.updateController();
-                            }
-
-                            // reset
-                            offhandTimer.resetTime();
+                    // item slot
+                    // find our item in our inventory
+                    int itemSlot = -1;
+                    for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
+                        if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
+                            itemSlot = i;
+                            break;
                         }
                     }
 
-                    // switch to item in multiple cycles
-                    else {
+                    // found our item
+                    if (itemSlot != -1) {
 
-                        // calculate if we have passed delays
-                        // offhand delay based on offhand speeds
-                        long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
+                        // switch to items in one cycle
+                        if (fast.getValue()) {
 
-                        // we have waited the proper time ???
-                        boolean delayedFirst = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
-
-                        // passed delay
-                        if (delayedFirst) {
-
-                            // stop active hand prevents failing
-                            mc.player.stopActiveHand();
-
-                            // pickup
-                            mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
+                            // calculate if we have passed delays
+                            // offhand delay based on offhand speeds
+                            long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
 
                             // we have waited the proper time ???
-                            boolean delayedSecond = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 2, Format.MILLISECONDS);
+                            boolean delayed = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
 
                             // passed delay
-                            if (delayedSecond) {
+                            if (delayed) {
 
-                                // stop active hand prevents failing
-                                mc.player.stopActiveHand();
+                                // pickup
+                                mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
 
                                 // move the item to the offhand
                                 mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
@@ -469,34 +412,94 @@ public class AutoTotemModule extends Module {
                                     return;
                                 }
 
+                                // find a slot to return to
+                                int returnSlot = -1;
+                                for (int i = 0; i < 36; i++) {
+                                    if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                        returnSlot = i;
+                                        break;
+                                    }
+                                }
+
+                                // move the item in the offhand to the return slot
+                                if (returnSlot != -1) {
+                                    mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                    mc.playerController.updateController();
+                                }
+
+                                // reset
+                                offhandTimer.resetTime();
+                            }
+                        }
+
+                        // switch to item in multiple cycles
+                        else {
+
+                            // calculate if we have passed delays
+                            // offhand delay based on offhand speeds
+                            long offhandDelay = (long) ((speed.getMax() - speed.getValue()) * 50);
+
+                            // we have waited the proper time ???
+                            boolean delayedFirst = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay, Format.MILLISECONDS);
+
+                            // passed delay
+                            if (delayedFirst) {
+
+                                // stop active hand prevents failing
+                                mc.player.stopActiveHand();
+
+                                // pickup
+                                mc.playerController.windowClick(0, itemSlot < 9 ? itemSlot + 36 : itemSlot, 0, ClickType.PICKUP, mc.player);
+
                                 // we have waited the proper time ???
-                                boolean delayedThird = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 3, Format.MILLISECONDS);
+                                boolean delayedSecond = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 2, Format.MILLISECONDS);
 
                                 // passed delay
-                                if (delayedThird) {
+                                if (delayedSecond) {
 
-                                    // find a slot to return to
-                                    int returnSlot = -1;
-                                    for (int i = 0; i < 36; i++) {
-                                        if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
-                                            returnSlot = i;
-                                            break;
+                                    // stop active hand prevents failing
+                                    mc.player.stopActiveHand();
+
+                                    // move the item to the offhand
+                                    mc.playerController.windowClick(0, 45, 0, ClickType.PICKUP, mc.player);
+
+                                    // if we didn't get any item to swap
+                                    if (mc.player.inventory.getItemStack().isEmpty()) {
+
+                                        // reset
+                                        offhandTimer.resetTime();
+                                        return;
+                                    }
+
+                                    // we have waited the proper time ???
+                                    boolean delayedThird = speed.getValue() >= speed.getMax() || offhandTimer.passedTime(offhandDelay * 3, Format.MILLISECONDS);
+
+                                    // passed delay
+                                    if (delayedThird) {
+
+                                        // find a slot to return to
+                                        int returnSlot = -1;
+                                        for (int i = 0; i < 36; i++) {
+                                            if (mc.player.inventory.getStackInSlot(i).isEmpty()) {
+                                                returnSlot = i;
+                                                break;
+                                            }
                                         }
+
+                                        // move the item in the offhand to the return slot
+                                        if (returnSlot != -1) {
+
+                                            // stop active hand prevents failing
+                                            mc.player.stopActiveHand();
+
+                                            // click
+                                            mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
+                                            mc.playerController.updateController();
+                                        }
+
+                                        // reset
+                                        offhandTimer.resetTime();
                                     }
-
-                                    // move the item in the offhand to the return slot
-                                    if (returnSlot != -1) {
-
-                                        // stop active hand prevents failing
-                                        mc.player.stopActiveHand();
-
-                                        // click
-                                        mc.playerController.windowClick(0, returnSlot, 0, ClickType.PICKUP, mc.player);
-                                        mc.playerController.updateController();
-                                    }
-
-                                    // reset
-                                    offhandTimer.resetTime();
                                 }
                             }
                         }

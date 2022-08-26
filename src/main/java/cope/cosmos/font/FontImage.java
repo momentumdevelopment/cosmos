@@ -138,6 +138,11 @@ public class FontImage implements Wrapper {
         // get the image for each character
         GL11.glBegin(7);
         for (char character : text.toCharArray()) {
+
+            // ignore if font character is out of bounds
+            if (characterLocations.length <= character) {
+                continue;
+            }
             
             // font character
             CharacterLocation fontCharacter = characterLocations[character];
@@ -162,7 +167,7 @@ public class FontImage implements Wrapper {
             }
 
             // ignore if font character doesn't exist
-            if (characterLocations.length <= character || fontCharacter == null) {
+            if (fontCharacter == null) {
                 continue;
             }
 

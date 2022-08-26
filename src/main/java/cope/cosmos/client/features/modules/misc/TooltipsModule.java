@@ -127,6 +127,7 @@ public class TooltipsModule extends Module {
                         FontUtil.drawStringWithShadow(event.getItemStack().getDisplayName(), event.getX() + 8, event.getY(), -1);
 
                         // start render
+                        mc.getRenderItem().zLevel = 300;
                         GlStateManager.pushMatrix();
                         GlStateManager.disableDepth();
 
@@ -139,6 +140,7 @@ public class TooltipsModule extends Module {
                         GlStateManager.scale(1 / 0.7F, 1 / 0.7F, 0);
 
                         // end render
+                        mc.getRenderItem().zLevel = 0;
                         GlStateManager.enableDepth();
                         GlStateManager.popMatrix();
                     }
