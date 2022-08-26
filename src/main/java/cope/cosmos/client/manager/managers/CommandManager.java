@@ -47,6 +47,7 @@ public class CommandManager extends Manager {
 		commands.add(new ToggleCommand());
 		commands.add(new GamemodeCommand());
 		commands.add(new FontCommand());
+		commands.add(new WaypointCommand());
 
 		// add setting commands for each module
 		for (Module module : getCosmos().getModuleManager().getAllModules()) {

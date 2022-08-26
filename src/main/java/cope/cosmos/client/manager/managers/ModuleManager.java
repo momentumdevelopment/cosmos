@@ -114,7 +114,8 @@ public class ModuleManager extends Manager {
 				new SkyColorModule(),
 				new TracersModule(),
 				new ViewModelModule(),
-				new WallhackModule()
+				new WallhackModule(),
+				new WaypointsModule()
 		);
 	}
 

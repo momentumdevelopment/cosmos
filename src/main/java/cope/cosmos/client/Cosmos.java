@@ -84,6 +84,7 @@ public class Cosmos {
     private SoundManager soundManager;
     private ChatManager chatManager;
     private PotionManager potionManager;
+    private WaypointManager waypointManager;
     
     public Cosmos() {
     	INSTANCE = this;
@@ -91,6 +92,7 @@ public class Cosmos {
     
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+
         // just started to initialize
         startupTime = System.currentTimeMillis();
     }
@@ -98,7 +100,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 22);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 23);
 
         // load the modules
         moduleManager = new ModuleManager();
@@ -212,6 +214,11 @@ public class Cosmos {
         potionManager = new PotionManager();
         managers.add(potionManager);
         progressManager.step("[Cosmos] Setting up Potion Manager");
+
+        // sets up the waypoint manager
+        waypointManager = new WaypointManager();
+        managers.add(waypointManager);
+        progressManager.step("[Cosmos] Setting up Waypoint Manager");
 
         ProgressManager.pop(progressManager);
     }
@@ -413,6 +420,14 @@ public class Cosmos {
      */
     public PotionManager getPotionManager() {
         return potionManager;
+    }
+
+    /**
+     * Gets the client waypoint manager
+     * @return The client waypoint manager
+     */
+    public WaypointManager getWaypointManager() {
+        return waypointManager;
     }
 
     /**
