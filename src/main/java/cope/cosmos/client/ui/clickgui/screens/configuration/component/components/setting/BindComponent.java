@@ -15,7 +15,7 @@ import static org.lwjgl.opengl.GL11.glScaled;
 import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Surge
  * @since 02/02/2022
  */
 public class BindComponent extends SettingComponent<Bind> {

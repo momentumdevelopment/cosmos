@@ -3,7 +3,7 @@ package cope.cosmos.client.ui.util.animation;
 import net.minecraft.util.math.MathHelper;
 
 /**
- * @author Tigermouthbear, linustouchtips, Wolfsurge
+ * @author Tigermouthbear, linustouchtips, Surge
  * @since 06/08/2021
  */
 public class Animation {

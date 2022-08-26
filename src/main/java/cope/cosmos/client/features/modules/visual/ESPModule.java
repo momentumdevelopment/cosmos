@@ -60,7 +60,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * @author linustouchtips, Wolfsurge, aesthetical
+ * @author linustouchtips, Surge, aesthetical
  * @since 07/21/2021
  */
 public class ESPModule extends Module {

@@ -21,7 +21,7 @@ import net.minecraftforge.client.event.RenderBlockOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Surge
  * @since 06/08/2021
  */
 public class NoRenderModule extends Module {

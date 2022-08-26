@@ -5,7 +5,7 @@ import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 31/03/2022
  */
 @Cancelable

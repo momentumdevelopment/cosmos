@@ -13,7 +13,7 @@ import org.lwjgl.input.Keyboard;
 import java.io.IOException;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 02/05/2022
  */
 public class AddAltGUI extends GuiScreen {

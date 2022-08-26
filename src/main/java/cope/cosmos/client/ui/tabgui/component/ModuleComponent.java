@@ -9,7 +9,7 @@ import cope.cosmos.util.string.ColorUtil;
 import java.awt.*;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 29/03/2022
  */
 public class ModuleComponent {

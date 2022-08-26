@@ -14,7 +14,7 @@ import net.minecraft.util.math.Vec3d;
 import java.awt.*;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 04/02/22
  */
 public class TracersModule extends Module {

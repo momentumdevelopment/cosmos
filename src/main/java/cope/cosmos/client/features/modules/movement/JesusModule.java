@@ -20,7 +20,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author aesthetical, linustouchtips, WolfSurge
+ * @author aesthetical, linustouchtips, Surge
  * @since 01/08/2022
  */
 public class JesusModule extends Module {
