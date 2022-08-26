@@ -16,7 +16,7 @@ import net.minecraft.util.math.MathHelper;
 import static cope.cosmos.util.render.RenderBuilder.Box;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 04/06/22
  */
 public class BreakHighlightModule extends Module {

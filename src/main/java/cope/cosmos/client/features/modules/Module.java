@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
- * @author bon55, linustouchtips, Wolfsurge
+ * @author bon55, linustouchtips, Surge
  * @since 05/05/2021
  */
 public class Module extends Feature implements Wrapper {

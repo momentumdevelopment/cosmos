@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import static cope.cosmos.client.features.setting.Bind.Device;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  */
 public class BindCommand extends Command {
 

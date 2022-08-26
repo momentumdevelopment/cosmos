@@ -87,6 +87,7 @@ public class Cosmos {
     private ChatManager chatManager;
     private PotionManager potionManager;
     private CommandDispatcher<Object> commandDispatcher;
+    private CapeManager capeManager;
     
     public Cosmos() {
     	INSTANCE = this;
@@ -104,7 +105,7 @@ public class Cosmos {
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // Progress Manager
-        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 22);
+        ProgressManager.ProgressBar progressManager = ProgressManager.push("Cosmos", 23);
 
         // load the modules
         moduleManager = new ModuleManager();
@@ -219,6 +220,11 @@ public class Cosmos {
         potionManager = new PotionManager();
         managers.add(potionManager);
         progressManager.step("[Cosmos] Setting up Potion Manager");
+
+        // sets up the cape manager
+        capeManager = new CapeManager();
+        managers.add(capeManager);
+        progressManager.step("[Cosmos] Setting up Cape Manager");
 
         ProgressManager.pop(progressManager);
     }

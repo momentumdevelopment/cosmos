@@ -14,7 +14,7 @@ import java.net.Proxy;
 import java.util.UUID;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 02/05/2022
  */
 public class Alt {

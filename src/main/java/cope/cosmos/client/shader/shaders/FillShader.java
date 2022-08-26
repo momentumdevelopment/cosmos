@@ -8,7 +8,7 @@ import java.awt.*;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Surge
  * @since 12/22/2021
  */
 public class FillShader extends Shader {

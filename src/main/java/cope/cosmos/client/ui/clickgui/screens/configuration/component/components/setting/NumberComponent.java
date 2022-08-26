@@ -14,7 +14,7 @@ import java.awt.*;
 import static org.lwjgl.opengl.GL11.glScaled;
 
 /**
- * @author linustouchtips, Wolfsurge
+ * @author linustouchtips, Surge
  * @since 02/02/2022
  */
 public class NumberComponent extends SettingComponent<Number> {

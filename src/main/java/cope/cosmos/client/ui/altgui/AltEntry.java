@@ -1,6 +1,5 @@
 package cope.cosmos.client.ui.altgui;
 
-import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.ui.util.InterfaceWrapper;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
@@ -14,7 +13,7 @@ import net.minecraft.util.text.TextFormatting;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 02/05/2022
  */
 public class AltEntry implements Wrapper, InterfaceWrapper {

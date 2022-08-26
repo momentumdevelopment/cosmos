@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 /**
  * Calculations from easings.net
- * @author Wolfsurge
+ * @author Surge
  * @since 05/19/22
  */
 public enum Easing {

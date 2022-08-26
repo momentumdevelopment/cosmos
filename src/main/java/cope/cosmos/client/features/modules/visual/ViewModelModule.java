@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 31/03/2022
  */
 public class ViewModelModule extends Module {

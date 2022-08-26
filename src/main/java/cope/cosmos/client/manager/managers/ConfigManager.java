@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * @author linustouchtips, Wolfsurge, aesthetical
+ * @author linustouchtips, Surge, aesthetical
  * @since 06/08/2021
  */
 public class ConfigManager extends Manager {

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 29/03/2022
  */
 public class TabGUI {

@@ -6,7 +6,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 09/06/22
  */
 public class Bind implements Wrapper {

@@ -15,7 +15,7 @@ import org.lwjgl.input.Mouse;
 import java.io.IOException;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 02/05/2022
  */
 public class AltManagerGUI extends GuiScreen {

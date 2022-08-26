@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * @author Wolfsurge, linustouchtips
+ * @author Surge, linustouchtips
  * @since 01/04/22
  */
 public class BreadcrumbsModule extends Module {

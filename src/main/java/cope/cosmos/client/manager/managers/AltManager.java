@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Wolfsurge
+ * @author Surge
  * @since 02/06/2022
  */
 public class AltManager extends Manager {
