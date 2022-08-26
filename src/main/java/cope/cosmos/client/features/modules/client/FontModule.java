@@ -22,6 +22,9 @@ public class FontModule extends Module {
 
 	// **************************** general ****************************
 
+	public static Setting<Boolean> antiAlias = new Setting<>("AntiAlias", true)
+			.setDescription("Smooths font");
+
 	public static Setting<Boolean> vanilla = new Setting<>("Vanilla", false)
 			.setDescription("Overrides the minecraft vanilla font");
 

@@ -72,7 +72,7 @@ public class Cosmos {
     private RotationManager rotationManager;
     private ThreadManager threadManager;
     private HoleManager holeManager;
-    // private FontManager fontManager;
+    private FontManager fontManager;
     private NotificationManager notificationManager;
     private ReloadManager reloadManager;
     private PatchManager patchManager;
@@ -95,6 +95,10 @@ public class Cosmos {
 
         // just started to initialize
         startupTime = System.currentTimeMillis();
+
+        // load fonts
+        fontManager = new FontManager();
+        managers.add(fontManager);
     }
     
     @EventHandler
@@ -340,6 +344,14 @@ public class Cosmos {
      */
     public HoleManager getHoleManager() {
         return holeManager;
+    }
+
+    /**
+     * Gets the client font manager
+     * @return The client font manager
+     */
+    public FontManager getFontManager() {
+        return fontManager;
     }
 
     /**

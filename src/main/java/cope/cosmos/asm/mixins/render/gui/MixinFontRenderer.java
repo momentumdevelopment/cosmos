@@ -41,7 +41,7 @@ public class MixinFontRenderer {
          */
 
         if (renderFontEvent.isCanceled()) {
-            info.setReturnValue(FontUtil.getFontString(text, x, y, color));
+            info.setReturnValue(FontUtil.drawStringWithShadow(text, x, y, color));
         }
     }
 

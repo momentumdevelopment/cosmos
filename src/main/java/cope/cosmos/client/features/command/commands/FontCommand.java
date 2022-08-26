@@ -25,7 +25,7 @@ public class FontCommand extends Command {
             String font = args[0];
 
             // loads a given font
-            FontUtil.loadFont(font.endsWith(".ttf") ? font : font + ".ttf");
+            getCosmos().getFontManager().loadFont(font.endsWith(".ttf") ? font : font + ".ttf");
         }
 
         else {

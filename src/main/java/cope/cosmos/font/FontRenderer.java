@@ -1,211 +1,326 @@
 package cope.cosmos.font;
 
-import cope.cosmos.util.Wrapper;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.awt.*;
 import java.util.Random;
 
-public class FontRenderer implements Wrapper {
+/**
+ * @author LiquidBounce Development, linustouchtips
+ * @since 05/25/2021
+ */
+public class FontRenderer {
 
-    private final ImageAWT defaultFont;
-    public final int FONT_HEIGHT;
+    // font image
+    private final FontImage fontImage;
+
+    // colors
+    private static final int[] hexColors = new int[16];
 
     public FontRenderer(Font font) {
-        defaultFont = new ImageAWT(font);
-        FONT_HEIGHT = (int) getHeight();
+        fontImage = new FontImage(font);
     }
 
-    public String getName() {
-        return defaultFont.getName();
-    }
-
-    public float getHeight() {
-        return defaultFont.getHeight() / 2f;
-    }
-
-    public int getSize() {
-        return defaultFont.getFont().getSize();
-    }
-
+    /**
+     * Draws a given text with a shadow
+     * @param text The given text
+     * @param x The x position
+     * @param y The y position
+     * @param color The color of the text
+     * @param antiAlias Whether to apply anti-aliasing
+     * @return The integer value of the render
+     */
     @ParametersAreNonnullByDefault
-    public int drawStringWithShadow(String text, float x, float y, int color) {
-        return drawString(text, x, y, color, true);
+    public int drawStringWithShadow(String text, float x, float y, int color, boolean antiAlias) {
+        return drawString(text, x, y, color, true, antiAlias);
     }
 
-    public int drawString(String text, float x, float y, int color, boolean dropShadow) {
-        float currY = y - 3.0f;
+    /**
+     * Draws a given text
+     * @param text The given text
+     * @param x The x position
+     * @param y The y position
+     * @param color The color of the text
+     * @param shadow Whether to draw a shadow behind the text
+     * @param antiAlias Whether to apply anti-aliasing
+     * @return The integer value of the render
+     */
+    @ParametersAreNonnullByDefault
+    public int drawString(String text, float x, float y, int color, boolean shadow, boolean antiAlias) {
+
+        // scaled y ???
+        float scaledY = y - 3;
+
+        // new line handling
         if (text.contains("\n")) {
-            String[] parts = text.split("\n");
-            float newY = 0.0f;
 
-            for (String s : parts) {
-                drawText(s, x, currY + newY, color, dropShadow);
-                newY += getHeight();
+            // split text into word
+            String[] words = text.split("\n");
+
+            // next line y
+            float nextLineY = 0.0f;
+
+            // render strings on new lines
+            for (String word : words) {
+                drawText(word, x, scaledY + nextLineY, color, shadow, antiAlias);
+                nextLineY += getHeight();
             }
 
             return 0;
         }
 
-        if (dropShadow)
-            drawText(text, x + 0.4f, currY + 0.3f, new Color(0, 0, 0, 150).getRGB(), true);
+        // draw a "shadow" text behind the text to give the font more visibility
+        if (shadow) {
+            drawText(text, x + 0.4F, scaledY + 0.3F, new Color(0, 0, 0, 150).getRGB(), true, antiAlias);
+        }
 
-        return drawText(text, x, currY, color, false);
+        // draw given text
+        return drawText(text, x, scaledY, color, false, antiAlias);
     }
 
-    private int drawText(String text, float x, float y, int color, boolean ignoreColor) {
-        if (text == null)
-            return 0;
+    /**
+     * Draws a given text
+     * @param in The given text
+     * @param x The x position
+     * @param y The y position
+     * @param color The color of the text
+     * @param ignoreColor Whether to ignore color identifiers
+     * @param antiAlias Whether to apply anti-aliasing
+     * @return The integer value of the render
+     */
+    private int drawText(String in, float x, float y, int color, boolean ignoreColor, boolean antiAlias) {
 
-        if (text.isEmpty())
-            return (int) x;
+        // check if the text is valid
+        if (in != null && !in.isEmpty()) {
+            GlStateManager.pushMatrix();
 
-        GlStateManager.translate((double) x - 1.5, (double) y + 0.5, 0.0);
-        GlStateManager.enableAlpha();
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.enableTexture2D();
+            // translate to given position
+            GlStateManager.translate(x - 1.5, y + 0.5, 0);
 
-        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+            // start render
+            GlStateManager.enableAlpha();
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+            GlStateManager.enableTexture2D();
 
-        int currentColor = color;
+            // anti-aliasing
+            if (antiAlias) {
+                GL11.glEnable(GL11.GL_LINE_SMOOTH);
+            }
+            
+            // format color
+            int currentColor = color;
+            if ((currentColor & 0xFC000000) == 0) {
+                currentColor |= 0xFF000000;
+            }
 
-        if ((currentColor & 0xFC000000) == 0)
-            currentColor |= 0xFF000000;
+            // alpha value
+            int alpha = currentColor >> 24 & 0xFF;
+            
+            // color identifier
+            if (in.contains("§")) {
+                
+                // split text into words
+                String[] text = in.split("§");
 
-        int alpha = currentColor >> 24 & 0xFF;
-        if (text.contains("§")) {
-            String[] parts = text.split("§");
-            ImageAWT currentFont = defaultFont;
-            double width = 0.0;
-            boolean randomCase = false;
+                // width and random case variables
+                double width = 0;
+                boolean randomCase = false;
 
-            for (int index = 0; index < parts.length; ++index) {
-                String part = parts[index];
+                for (int i = 0; i < text.length; i++) {
+                    
+                    // current word
+                    String word = text[i];
 
-                if (part.isEmpty())
-                    continue;
-
-                if (index == 0) {
-                    currentFont.drawString(part, width, 0.0, currentColor);
-                    width += currentFont.getStringWidth(part);
-                    continue;
-                }
-
-                String words = part.substring(1);
-                char type = part.charAt(0);
-                int colorIndex = "0123456789abcdefklmnor".indexOf(type);
-                switch (colorIndex) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                    case 14:
-                    case 15:
-                        if (!ignoreColor)
-                            currentColor = ColorUtils.hexColors[colorIndex] | alpha << 24;
-
-                        randomCase = false;
-                        break;
-                    case 16: {
-                        randomCase = true;
-                        break;
+                    // ignore empty words
+                    if (word.isEmpty()) {
+                        continue;
                     }
-                    case 18:
-                        break;
-                    case 21:
-                        currentColor = color;
-                        if ((currentColor & 0xFC000000) == 0)
-                            currentColor |= 0xFF000000;
 
-                        randomCase = false;
+                    // draw string and add to width
+                    if (i == 0) {
+                        fontImage.drawString(word, width, 0, currentColor);
+                        width += fontImage.getStringWidth(word);
+                        continue;
+                    }
+
+                    // word without the color identifier
+                    String words = word.substring(1);
+                    
+                    // character
+                    char type = word.charAt(0);
+                    
+                    // identify colors from identifier
+                    int colorIndex = "0123456789abcdefklmnor".indexOf(type);
+                    switch (colorIndex) {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 13:
+                        case 14:
+                        case 15:
+
+                            // get the hex color attached to the identifier
+                            if (!ignoreColor) {
+                                currentColor = hexColors[colorIndex] | alpha << 24;
+                            }
+
+                            randomCase = false;
+                            break;
+                        case 16:
+
+                            // random case identifier
+                            randomCase = true;
+                            break;
+                        case 18:
+                            break;
+                        case 21:
+
+                            // format color
+                            currentColor = color;
+                            if ((currentColor & 0xFC000000) == 0) {
+                                currentColor |= 0xFF000000;
+                            }
+
+                            randomCase = false;
+                    }
+                    
+                    // render string
+                    if (randomCase) {
+                        fontImage.drawString(getUnicodeText(words), width, 0, currentColor);
+                    }
+                    
+                    else {
+                        fontImage.drawString(words, width, 0, currentColor);
+                    }
+
+                    // add to width
+                    width += fontImage.getStringWidth(words);
                 }
-
-                currentFont = defaultFont;
-                if (randomCase)
-                    currentFont.drawString(ColorUtils.randomMagicText(words), width, 0.0, currentColor);
-                else
-                    currentFont.drawString(words, width, 0.0, currentColor);
-
-                width += currentFont.getStringWidth(words);
+            } 
+            
+            // normal rendering
+            else {
+                fontImage.drawString(in, 0, 0, currentColor);
             }
+
+            // reset anti-aliasing
+            if (antiAlias) {
+                GL11.glDisable(GL11.GL_LINE_SMOOTH);
+            }
+
+            // end render
+            GlStateManager.disableBlend();
+            GlStateManager.translate(-(x - 1.5), -(y + 0.5), 0);
+            
+            GlStateManager.popMatrix();
+
+            return (int) (x + getStringWidth(in));
         }
 
-        else
-            defaultFont.drawString(text, 0.0, 0.0, currentColor);
-
-        GL11.glDisable(GL11.GL_LINE_SMOOTH);
-
-        GlStateManager.disableBlend();
-        GlStateManager.translate(-((double) x - 1.5), -((double) y + 0.5), 0.0);
-
-        return (int) (x + (float) getStringWidth(text));
+        return (int) x;
     }
 
-    public int getColorCode(char charCode) {
-        return ColorUtils.hexColors[FontRenderer.getColorIndex(charCode)];
+    /**
+     * Gets the font name
+     * @return The font name
+     */
+    public String getName() {
+        return fontImage.getName();
     }
 
-    public int getStringWidth(String text) {
-        if (text.contains("§")) {
-            String[] parts = text.split("§");
-            ImageAWT currentFont = defaultFont;
+    /**
+     * Gets the hex color code of a given character
+     * @param in The given character
+     * @return The hex color code of the given character
+     */
+    public int getColorCode(char in) {
+        return hexColors[FontRenderer.getColorIndex(in)];
+    }
+
+    /**
+     * Gets the width of a given string
+     * @param in The given string
+     * @return The width of a given string
+     */
+    public int getStringWidth(String in) {
+        
+        // color identifier, we have to custom handle this 
+        if (in.contains("§")) {
+            
+            // split up text
+            String[] text = in.split("§");
+            
+            // current width
             int width = 0;
+            
+            for (int i = 0; i < text.length; i++) {
+                
+                // word in the text
+                String word = text[i];
 
-            for (int index = 0; index < parts.length; ++index) {
-                String part = parts[index];
-
-                if (part.isEmpty())
-                    continue;
-
-                if (index == 0) {
-                    width += currentFont.getStringWidth(part);
+                // ignore empty words
+                if (word.isEmpty()) {
                     continue;
                 }
 
-                String words = part.substring(1);
+                // increase width
+                if (i == 0) {
+                    width += fontImage.getStringWidth(word);
+                    continue;
+                }
 
-                currentFont =  defaultFont;
-                width += currentFont.getStringWidth(words);
+                // word with identifiers removed
+                String words = word.substring(1);
+                
+                // increase width
+                width += fontImage.getStringWidth(words);
             }
 
+            // total width
             return width / 2;
         }
 
-        return defaultFont.getStringWidth(text) / 2;
+        // normal width
+        return fontImage.getStringWidth(in) / 2;
     }
 
-    public int getCharWidth(char character) {
-        return getStringWidth(String.valueOf(character));
+    /**
+     * Gets the font height
+     * @return The font height
+     */
+    public float getHeight() {
+        return fontImage.getHeight() / 2F;
     }
 
-    @ParametersAreNonnullByDefault
-    public void onResourceManagerReload(IResourceManager resourceManager) {
-
+    /**
+     * Gets the font size
+     * @return The font size
+     */
+    public int getSize() {
+        return fontImage.getFont().getSize();
     }
 
-    @ParametersAreNonnullByDefault
-    protected void bindTexture(ResourceLocation location) {
-
-    }
-
-    public static int getColorIndex(char type) {
-        switch (type) {
+    /**
+     * Gets the color index of a given character
+     * @param in The character
+     * @return the color index of a given character
+     */
+    public static int getColorIndex(char in) {
+        switch (in) {
             case '0':
             case '1':
             case '2':
@@ -216,67 +331,77 @@ public class FontRenderer implements Wrapper {
             case '7':
             case '8':
             case '9':
-                return type - 48;
+                return in - 48;
             case 'a':
             case 'b':
             case 'c':
             case 'd':
             case 'e':
             case 'f':
-                return type - 97 + 10;
+                return in - 87;
             case 'k':
             case 'l':
             case 'm':
             case 'n':
             case 'o':
-                return type - 107 + 16;
+                return in - 91;
             case 'r':
                 return 21;
         }
+
+        // invalid
         return -1;
     }
 
-    private static class ColorUtils {
-        public static int[] hexColors = new int[16];
-        private static final Random random;
-        private static final String magicAllowedCharacters = "ÀÁÂÈÊËÍÓÔÕÚßãõğİıŒœŞşŴŵžȇ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
+    /**
+     * Gets a random unicode text (used for obfuscated text and enchantment tables)
+     * @param in The text to convert to unicode
+     * @return The converted text
+     */
+    private String getUnicodeText(String in) {
 
-        private ColorUtils() {
+        // final unicode text
+        StringBuilder unicode = new StringBuilder();
 
-        }
+        // check characters in message
+        for (char character : in.toCharArray()) {
 
-        public static String randomMagicText(String text) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (char ch : text.toCharArray()) {
-
-                if (!ChatAllowedCharacters.isAllowedCharacter(ch))
-                    continue;
-
-                int index = random.nextInt(magicAllowedCharacters.length());
-                stringBuilder.append(magicAllowedCharacters.charAt(index));
+            // if the character isn't allowed to be sent in chat, ignore
+            if (!ChatAllowedCharacters.isAllowedCharacter(character)) {
+                continue;
             }
 
-            return stringBuilder.toString();
+            // allowed unicode character
+            String allowedUnicode = "ÀÁÂÈÊËÍÓÔÕÚßãõğİıŒœŞşŴŵžȇ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
+
+            // add random unicode
+            Random random = new Random();
+            int index = random.nextInt(allowedUnicode.length());
+
+            // add the unicode to the final string
+            unicode.append(allowedUnicode.charAt(index));
         }
 
-        static {
-            ColorUtils.hexColors[0] = 0;
-            ColorUtils.hexColors[1] = 170;
-            ColorUtils.hexColors[2] = 43520;
-            ColorUtils.hexColors[3] = 43690;
-            ColorUtils.hexColors[4] = 0xAA0000;
-            ColorUtils.hexColors[5] = 0xAA00AA;
-            ColorUtils.hexColors[6] = 0xFFAA00;
-            ColorUtils.hexColors[7] = 0xAAAAAA;
-            ColorUtils.hexColors[8] = 0x555555;
-            ColorUtils.hexColors[9] = 0x5555FF;
-            ColorUtils.hexColors[10] = 0x55FF55;
-            ColorUtils.hexColors[11] = 0x55FFFF;
-            ColorUtils.hexColors[12] = 0xFF5555;
-            ColorUtils.hexColors[13] = 0xFF55FF;
-            ColorUtils.hexColors[14] = 0xFFFF55;
-            ColorUtils.hexColors[15] = 0xFFFFFF;
-            random = new Random();
-        }
+        return unicode.toString();
+    }
+
+    // assign hex color values to the array
+    static {
+        hexColors[0] = 0;
+        hexColors[1] = 170;
+        hexColors[2] = 43520;
+        hexColors[3] = 43690;
+        hexColors[4] = 0xAA0000;
+        hexColors[5] = 0xAA00AA;
+        hexColors[6] = 0xFFAA00;
+        hexColors[7] = 0xAAAAAA;
+        hexColors[8] = 0x555555;
+        hexColors[9] = 0x5555FF;
+        hexColors[10] = 0x55FF55;
+        hexColors[11] = 0x55FFFF;
+        hexColors[12] = 0xFF5555;
+        hexColors[13] = 0xFF55FF;
+        hexColors[14] = 0xFFFF55;
+        hexColors[15] = 0xFFFFFF;
     }
 }

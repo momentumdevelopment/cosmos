@@ -18,6 +18,7 @@ import net.minecraft.network.play.server.SPacketPlayerListItem;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -167,5 +168,12 @@ public class WaypointsModule extends Module {
                 getCosmos().getWaypointManager().addWaypoint("Last Death", new Waypoint(new Vec3d(MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosX(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosY(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosZ(), 1)), Format.DEATH));
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+
+        // clear on logout
+        waypoints.clear();
     }
 }

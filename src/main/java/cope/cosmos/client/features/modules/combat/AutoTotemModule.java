@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;

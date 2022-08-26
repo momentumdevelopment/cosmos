@@ -74,7 +74,7 @@ public class AltManagerGUI extends GuiScreen {
 
         // Display 'No alts!' if there are no alt entries
         if (Cosmos.INSTANCE.getAltManager().getAltEntries().isEmpty()) {
-            FontUtil.drawCenteredStringWithShadow("No alts!", scaledResolution.getScaledWidth() / 2f, 50, 0xFFFFFF);
+            FontUtil.drawStringWithShadow("No alts!", (scaledResolution.getScaledWidth() / 2f) - FontUtil.getStringWidth("No alts!") / 2F + 0.75F, 50 - FontUtil.getFontHeight() / 2F + 2F, 0xFFFFFF);
         }
 
         // 'Currently logged in as' text
