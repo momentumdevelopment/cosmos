@@ -1,14 +1,17 @@
 package cope.cosmos.client.features.modules.combat;
 
 import com.mojang.realmsclient.util.Pair;
-import cope.cosmos.asm.mixins.accessor.*;
+import cope.cosmos.asm.mixins.accessor.ICPacketUseEntity;
+import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
+import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
+import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.ServiceModule;
 import cope.cosmos.client.features.modules.player.SwingModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
@@ -43,8 +46,14 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.*;
-import net.minecraft.network.play.client.*;
+import net.minecraft.item.ItemEndCrystal;
+import net.minecraft.item.ItemPickaxe;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.network.play.client.CPacketAnimation;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
+import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.client.CPacketUseEntity.Action;
 import net.minecraft.network.play.server.*;
 import net.minecraft.potion.PotionEffect;
@@ -57,17 +66,14 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author linustouchtips
  * @since 05/08/2022
  */
-public class AutoCrystalModule extends Module {
+public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
     public static AutoCrystalModule INSTANCE;
 
     public AutoCrystalModule() {
@@ -304,6 +310,9 @@ public class AutoCrystalModule extends Module {
     private final List<EntityEnderCrystal> inhibitCrystals = new ArrayList<>();
     private final List<Integer> deadCrystals = new ArrayList<>();
 
+    // queue
+    private final Set<EntityEnderCrystal> queuedCrystals = new HashSet<>();
+
     // **************************** place ****************************
 
     // place timers
@@ -334,6 +343,8 @@ public class AutoCrystalModule extends Module {
     private final Timer crystalTimer = new Timer();
     private static final long[] crystalCounts = new long[10];
 
+    // **************************** packets ****************************
+
     // packets
     private final List<BlockPos> placementPackets = new ArrayList<>();
     private final List<Integer> explosionPackets = new ArrayList<>();
@@ -342,8 +353,36 @@ public class AutoCrystalModule extends Module {
     public void onThread() {
 
         // search ideal processes
-        explosion = getCrystal();
-        placement = getPlacement();
+        DamageHolder<EntityEnderCrystal> searchExplosion = getCrystal();
+        DamageHolder<BlockPos> searchPlacement = getPlacement();
+
+        // only search when enabled
+        if (isEnabled() && searchExplosion != null) {
+
+            // update
+            explosion = searchExplosion;
+        }
+
+        // check queue
+        else if (!queuedCrystals.isEmpty()) {
+
+            // get first item in queue
+            DamageHolder<EntityEnderCrystal> next = new DamageHolder<>(queuedCrystals.stream().findFirst().orElse(null), null, 0, 0);
+
+            // set explosion & update queue
+            if (next.getDamageSource() != null) {
+                explosion = next;
+            }
+        }
+
+        else {
+            explosion = null;
+        }
+
+        // update placement
+        if (isEnabled()) {
+           placement = searchPlacement;
+        }
 
         // check number of crystals in the last second
         if (crystalTimer.passedTime(1, Format.SECONDS)) {
@@ -1711,6 +1750,8 @@ public class AutoCrystalModule extends Module {
             deadCrystals.add(in);
         }
 
+        queuedCrystals.clear();
+
         // attack was successful
         return true;
     }
@@ -2264,6 +2305,13 @@ public class AutoCrystalModule extends Module {
 
         // make sure there are not unsafe entities at the place position
         return unsafeEntities <= 0;
+    }
+
+    /**
+     * Queues a crystal to be exploded
+     */
+    public void queue(EntityEnderCrystal in) {
+        queuedCrystals.add(in);
     }
 
     public enum Placements {

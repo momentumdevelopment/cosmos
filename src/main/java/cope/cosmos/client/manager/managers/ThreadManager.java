@@ -2,6 +2,8 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
+import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.ServiceModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 
@@ -35,6 +37,7 @@ public class ThreadManager extends Manager {
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
+
                     // check if the mc world is running
                     if (nullCheck()) {
 
@@ -43,31 +46,47 @@ public class ThreadManager extends Manager {
                             clientProcesses.poll().run();
                         }
 
-                        getCosmos().getModuleManager().getAllModules().forEach(module -> {
-                            try {
-                                if (module.isEnabled()) {
-                                    module.onThread();
-                                }
-                            } catch (Exception exception) {
+                        // module onThread
+                        for (Module module : getCosmos().getModuleManager().getAllModules()) {
 
-                                // print stacktrace if in dev environment
-                                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
-                                    exception.printStackTrace();
-                                }
-                            }
-                        });
+                            // check if the module is safe to run
+                            if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
 
-                        getCosmos().getManagers().forEach(manager -> {
-                            try {
-                                manager.onThread();
-                            } catch (Exception exception) {
+                                // check if module should run
+                                if (module.isEnabled() || module instanceof ServiceModule) {
 
-                                // print stacktrace if in dev environment
-                                if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
-                                    exception.printStackTrace();
+                                    // run
+                                    try {
+                                        module.onThread();
+                                    } catch (Exception exception) {
+
+                                        // print stacktrace if in dev environment
+                                        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                            exception.printStackTrace();
+                                        }
+                                    }
                                 }
                             }
-                        });
+                        }
+
+                        // manager onThread
+                        for (Manager manager : getCosmos().getAllManagers()) {
+
+                            // check if the manager is safe to run
+                            if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
+
+                                // run
+                                try {
+                                    manager.onThread();
+                                } catch (Exception exception) {
+
+                                    // print stacktrace if in dev environment
+                                    if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                        exception.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // give up thread resources

@@ -4,12 +4,9 @@ import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
-import cope.cosmos.util.entity.EntityUtil;
-import cope.cosmos.util.holder.Rotation;
-import cope.cosmos.util.math.Timer;
-import cope.cosmos.util.player.AngleUtil;
+import cope.cosmos.client.manager.managers.InventoryManager.Switch;
+import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
@@ -17,12 +14,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.network.play.client.CPacketAnimation;
-import cope.cosmos.util.holder.Rotation.Rotate;
-import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketUseEntity;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -59,9 +51,6 @@ public class BurrowModule extends Module {
 			.setAlias("AutoSwitch", "Swap", "AutoSwap")
 			.setDescription("How to switch when placing blocks");
 
-	// clear
-	private final Timer clearTimer = new Timer();
-
 	@Override
 	public void onEnable() {
 		super.onEnable();
@@ -76,7 +65,29 @@ public class BurrowModule extends Module {
 			if (!mc.world.getBlockState(origin).getMaterial().blocksMovement() && mc.player.collidedVertically) {
 
 				// clear placement
-				attackEntities(origin);
+				AutoCrystalModule.INSTANCE.call(() -> {
+
+					// check if the AutoCrystal is busy
+					if (!AutoCrystalModule.INSTANCE.isRunningTask(false)) {
+
+						// check unsafe entities and clear if necessary
+						for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(origin))) {
+
+							// can be placed on
+							if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+								continue;
+							}
+
+							// attack crystals
+							if (entity instanceof EntityEnderCrystal) {
+
+								// queue attack
+								AutoCrystalModule.INSTANCE.queue((EntityEnderCrystal) entity);
+								break;
+							}
+						}
+					}
+				});
 
 				// send fake jump packets
 				mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.41999998688698, mc.player.posZ, true));
@@ -207,101 +218,6 @@ public class BurrowModule extends Module {
 		}
 
 		return false;
-	}
-
-
-	/**
-	 * Attacks all entities that intersect (block) placements
-	 * @param in The placement
-	 */
-	public void attackEntities(BlockPos in) {
-
-		// player ping
-		int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
-
-		// check unsafe entities and clear if necessary
-		for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(in))) {
-
-			// can be placed on
-			if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
-				continue;
-			}
-
-			// make sure we aren't attacking too fast TODO: normalize delays based on packets in the future maybe???
-			if (clearTimer.passedTime(ping <= 50 ? 75 : 100, Timer.Format.MILLISECONDS)) {
-
-				// rotation to entity
-				Rotation rotation = AngleUtil.calculateAngles(entity.getPositionVector());
-
-				// rotate to block
-				if (!rotate.getValue().equals(Rotate.NONE) && rotation.isValid()) {
-					// rotate via packet, server should confirm instantly?
-					switch (rotate.getValue()) {
-						case CLIENT:
-							mc.player.rotationYaw = rotation.getYaw();
-							mc.player.rotationYawHead = rotation.getYaw();
-							mc.player.rotationPitch = rotation.getPitch();
-							break;
-						case PACKET:
-
-							// force a rotation - should this be done?
-							mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
-
-							// submit to rotation manager
-							// getCosmos().getRotationManager().setRotation(blockAngles);
-
-							// ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
-							// ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
-							break;
-					}
-				}
-
-				// attack crystals that are in the way
-				if (entity instanceof EntityEnderCrystal) {
-
-					// player sprint state
-					boolean sprintState = mc.player.isSprinting();
-
-					// stop sprint
-					if (strict.getValue()) {
-
-						// stop sprinting when attacking an entity
-						if (sprintState) {
-							mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-						}
-					}
-
-					// attack
-					mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-					mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-
-					// stop sprint
-					if (strict.getValue()) {
-
-						// reset sprint state
-						if (sprintState) {
-							mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-						}
-					}
-
-					clearTimer.resetTime();
-					break;
-				}
-
-				// attack vehicles 3 times
-				else if (EntityUtil.isVehicleMob(entity)) {
-
-					// attack
-					for (int i = 0; i < 3; i++) {
-						mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-						mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-					}
-
-					clearTimer.resetTime();
-					break;
-				}
-			}
-		}
 	}
 
 	public enum Mode {

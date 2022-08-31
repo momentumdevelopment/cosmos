@@ -1,9 +1,8 @@
 package cope.cosmos.client.features.modules.client;
 
 import cope.cosmos.client.events.render.gui.TabOverlayEvent;
-import cope.cosmos.client.features.PersistentFeature;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.PersistentModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.SocialManager.Relationship;
 import net.minecraft.util.text.TextFormatting;
@@ -13,8 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 06/08/2021
  */
-@PersistentFeature
-public class SocialModule extends Module {
+public class SocialModule extends PersistentModule {
     public static SocialModule INSTANCE;
 
     public SocialModule() {

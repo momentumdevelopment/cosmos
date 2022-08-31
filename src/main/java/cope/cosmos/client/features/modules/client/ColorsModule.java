@@ -1,8 +1,7 @@
 package cope.cosmos.client.features.modules.client;
 
-import cope.cosmos.client.features.PersistentFeature;
 import cope.cosmos.client.features.modules.Category;
-import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.PersistentModule;
 import cope.cosmos.client.features.setting.Setting;
 
 import java.awt.*;
@@ -11,8 +10,7 @@ import java.awt.*;
  * @author linustouchtips
  * @since 08/13/2021
  */
-@PersistentFeature
-public class ColorsModule extends Module {
+public class ColorsModule extends PersistentModule {
     public static ColorsModule INSTANCE;
 
     public ColorsModule() {
@@ -25,6 +23,7 @@ public class ColorsModule extends Module {
     // **************************** color ****************************
 
     public static Setting<Color> clientColor = new Setting<>("ClientColor", new Color(118, 98, 224, 255))
+            .setAlias("Color")
             .setDescription("The primary color for the client");
 
     // **************************** rainbow ****************************

@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent.PacketReceiveEvent;
 import cope.cosmos.client.features.modules.Category;
@@ -7,31 +8,23 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
-import cope.cosmos.util.entity.EntityUtil;
-import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
-import cope.cosmos.util.math.Timer;
-import cope.cosmos.util.math.Timer.Format;
-import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.*;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.network.play.client.CPacketAnimation;
-import net.minecraft.network.play.client.CPacketEntityAction;
 import net.minecraft.network.play.client.CPacketPlayer;
-import net.minecraft.network.play.client.CPacketUseEntity;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author linustouchtips, aesthetical
@@ -88,9 +81,6 @@ public class SurroundModule extends Module {
     private List<BlockPos> placements = new ArrayList<>();
     private List<BlockPos> replacements = new ArrayList<>();
 
-    // clear
-    private final Timer clearTimer = new Timer();
-
     // blocks placed per tick counter
     private int placed;
 
@@ -146,7 +136,7 @@ public class SurroundModule extends Module {
     public void onThread() {
 
         // original block position
-        BlockPos origin = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
+        BlockPos origin = new BlockPos(mc.player.posX, Math.floor(mc.player.posY), mc.player.posZ);
 
         // get place positions
         placements = getPlacements(origin);
@@ -173,8 +163,39 @@ public class SurroundModule extends Module {
             // check for blocking entities
             for (BlockPos position : replacements) {
 
+                // clearing ??
+                AtomicBoolean clear = new AtomicBoolean(false);
+
                 // clear entities
-                attackEntities(position);
+                AutoCrystalModule.INSTANCE.call(() -> {
+
+                    // check if the AutoCrystal is busy
+                    if (!AutoCrystalModule.INSTANCE.isRunningTask(false)) {
+
+                        // check unsafe entities and clear if necessary
+                        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(position))) {
+
+                            // can be placed on
+                            if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
+                                continue;
+                            }
+
+                            // attack crystals
+                            if (entity instanceof EntityEnderCrystal) {
+
+                                // queue attack
+                                AutoCrystalModule.INSTANCE.queue((EntityEnderCrystal) entity);
+                                clear.set(true);
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                // stop
+                if (clear.get()) {
+                    return;
+                }
             }
 
             // log previous slot, we'll switch back to this item
@@ -195,6 +216,11 @@ public class SurroundModule extends Module {
                 // fallback if we don't have obsidian
                 else if (echestSlot != -1) {
                     getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
+                }
+
+                else {
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                    return;
                 }
             }
 
@@ -282,6 +308,11 @@ public class SurroundModule extends Module {
                             else if (echestSlot != -1) {
                                 getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
                             }
+
+                            else {
+                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                                return;
+                            }
                         }
 
                         // place block
@@ -332,6 +363,11 @@ public class SurroundModule extends Module {
                                 else if (echestSlot != -1) {
                                     getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
                                 }
+
+                                else {
+                                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                                    return;
+                                }
                             }
 
                             // place block
@@ -346,100 +382,6 @@ public class SurroundModule extends Module {
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-
-    /**
-     * Attacks all entities that intersect (block) placements
-     * @param in The placement
-     */
-    public void attackEntities(BlockPos in) {
-
-        // player ping
-        int ping = mc.player.connection.getPlayerInfo(mc.player.getUniqueID()).getResponseTime();
-
-        // check unsafe entities and clear if necessary
-        for (Entity entity : mc.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(in))) {
-
-            // can be placed on
-            if (entity == null || entity instanceof EntityItem || entity instanceof EntityXPOrb) {
-                continue;
-            }
-
-            // make sure we aren't attacking too fast TODO: normalize delays based on packets in the future maybe???
-            if (clearTimer.passedTime(ping <= 50 ? 75 : 100, Format.MILLISECONDS)) {
-
-                // rotation to entity
-                Rotation rotation = AngleUtil.calculateAngles(entity.getPositionVector());
-
-                // rotate to block
-                if (!rotate.getValue().equals(Rotate.NONE) && rotation.isValid()) {
-                    // rotate via packet, server should confirm instantly?
-                    switch (rotate.getValue()) {
-                        case CLIENT:
-                            mc.player.rotationYaw = rotation.getYaw();
-                            mc.player.rotationYawHead = rotation.getYaw();
-                            mc.player.rotationPitch = rotation.getPitch();
-                            break;
-                        case PACKET:
-
-                            // force a rotation - should this be done?
-                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
-
-                            // submit to rotation manager
-                            // getCosmos().getRotationManager().setRotation(blockAngles);
-
-                            // ((IEntityPlayerSP) mc.player).setLastReportedYaw(blockAngles[0]);
-                            // ((IEntityPlayerSP) mc.player).setLastReportedPitch(blockAngles[1]);
-                            break;
-                    }
-                }
-
-                // attack crystals that are in the way
-                if (entity instanceof EntityEnderCrystal) {
-
-                    // player sprint state
-                    boolean sprintState = mc.player.isSprinting();
-
-                    // stop sprint
-                    if (strict.getValue()) {
-
-                        // stop sprinting when attacking an entity
-                        if (sprintState) {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
-                        }
-                    }
-
-                    // attack
-                    mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-                    mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-
-                    // stop sprint
-                    if (strict.getValue()) {
-
-                        // reset sprint state
-                        if (sprintState) {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
-                        }
-                    }
-
-                    clearTimer.resetTime();
-                    break;
-                }
-
-                // attack vehicles 3 times
-                else if (EntityUtil.isVehicleMob(entity)) {
-
-                    // attack
-                    for (int i = 0; i < 3; i++) {
-                        mc.player.connection.sendPacket(new CPacketUseEntity(entity));
-                        mc.player.connection.sendPacket(new CPacketAnimation(EnumHand.MAIN_HAND));
-                    }
-
-                    clearTimer.resetTime();
-                    break;
                 }
             }
         }

@@ -15,6 +15,8 @@ import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.world.RenderFogColorEvent;
+import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.ServiceModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.network.play.server.SPacketEntityStatus;
@@ -31,6 +33,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
  * @since 05/05/2021
  */
 public class EventManager extends Manager implements Wrapper {
+
 	public EventManager() {
 		super("EventManager", "Manages Forge events");
 
@@ -41,17 +44,22 @@ public class EventManager extends Manager implements Wrapper {
 	@SubscribeEvent
 	public void onUpdate(LivingEvent.LivingUpdateEvent event) {
 
-		// runs on the entity update method
-		mc.mcProfiler.startSection("cosmos-update");
-
+		// check if the update event is for the local player
 		if (event.getEntity().getEntityWorld().isRemote && event.getEntityLiving().equals(mc.player)) {
 
+			// runs on the entity update method
+			mc.mcProfiler.startSection("cosmos-update");
+
 			// module onUpdate
-			getCosmos().getModuleManager().getAllModules().forEach(module -> {
+			for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+				// check if the module is safe to run
 				if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
 
-					// run if module is enabled
-					if (module.isEnabled()) {
+					// check if module should run
+					if (module.isEnabled() || module instanceof ServiceModule) {
+
+						// run
 						try {
 							module.onUpdate();
 						} catch (Exception exception) {
@@ -63,13 +71,15 @@ public class EventManager extends Manager implements Wrapper {
 						}
 					}
 				}
-			});
+			}
 
 			// manager onUpdate
-			getCosmos().getManagers().forEach(manager -> {
+			for (Manager manager : getCosmos().getAllManagers()) {
+
+				// check if the manager is safe to run
 				if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
 
-					// run manager onUpdate
+					// run
 					try {
 						manager.onUpdate();
 					} catch (Exception exception) {
@@ -80,10 +90,11 @@ public class EventManager extends Manager implements Wrapper {
 						}
 					}
 				}
-			});
-		}
+			}
 
-		mc.mcProfiler.endSection();
+			// end section
+			mc.mcProfiler.endSection();
+		}
 	}
 
 	@SubscribeEvent
@@ -93,11 +104,15 @@ public class EventManager extends Manager implements Wrapper {
 		mc.mcProfiler.startSection("cosmos-root-tick");
 
 		// module onTick
-		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+		for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+			// check if the module is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
 
-				// run if module is enabled
-				if (module.isEnabled()) {
+				// check if module should run
+				if (module.isEnabled() || module instanceof ServiceModule) {
+
+					// run
 					try {
 						module.onTick();
 					} catch (Exception exception) {
@@ -109,13 +124,15 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
 		// manager onTick
-		getCosmos().getManagers().forEach(manager -> {
+		for (Manager manager : getCosmos().getAllManagers()) {
+
+			// check if the manager is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
 
-				// run manager onTick
+				// run
 				try {
 					manager.onTick();
 				} catch (Exception exception) {
@@ -126,8 +143,9 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
+		// end section
 		mc.mcProfiler.endSection();
 	}
 	
@@ -138,11 +156,15 @@ public class EventManager extends Manager implements Wrapper {
 		mc.mcProfiler.startSection("cosmos-render-2D");
 
 		// module onRender2D
-		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+		for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+			// check if the module is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
 
-				// run if module is enabled
+				// check if module should run
 				if (module.isEnabled()) {
+
+					// run
 					try {
 						module.onRender2D();
 					} catch (Exception exception) {
@@ -154,13 +176,15 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
 		// manager onRender2D
-		getCosmos().getManagers().forEach(manager -> {
+		for (Manager manager : getCosmos().getAllManagers()) {
+
+			// check if the manager is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
 
-				// run manager onRender2D
+				// run
 				try {
 					manager.onRender2D();
 				} catch (Exception exception) {
@@ -171,8 +195,9 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
+		// end section
 		mc.mcProfiler.endSection();
 	}
 	
@@ -183,11 +208,15 @@ public class EventManager extends Manager implements Wrapper {
 		mc.mcProfiler.startSection("cosmos-render-3D");
 
 		// module onRender3D
-		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+		for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+			// check if the module is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(module)) {
 
-				// run if module is enabled
+				// check if module should run
 				if (module.isEnabled()) {
+
+					// run
 					try {
 						module.onRender3D();
 					} catch (Exception exception) {
@@ -199,13 +228,15 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
 		// manager onRender3D
-		getCosmos().getManagers().forEach(manager -> {
+		for (Manager manager : getCosmos().getAllManagers()) {
+
+			// check if the manager is safe to run
 			if (nullCheck() || getCosmos().getNullSafeFeatures().contains(manager)) {
 
-				// run manager onRender3D
+				// run
 				try {
 					manager.onRender3D();
 				} catch (Exception exception) {
@@ -216,8 +247,9 @@ public class EventManager extends Manager implements Wrapper {
 					}
 				}
 			}
-		});
+		}
 
+		// end section
 		mc.mcProfiler.endSection();
 	}
 

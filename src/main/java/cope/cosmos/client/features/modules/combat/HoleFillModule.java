@@ -58,7 +58,7 @@ public class HoleFillModule extends Module {
     public static Setting<Completion> completion = new Setting<>("Completion", Completion.COMPLETION)
             .setDescription("When to consider the filling complete");
 
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 15.0, 1)
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 6.0, 1)
             .setDescription("Range to scan for holes");
 
     public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
@@ -89,7 +89,7 @@ public class HoleFillModule extends Module {
             .setDescription("Range to consider a player a target")
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));
 
-    public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 15.0, 1)
+    public static Setting<Double> targetThreshold = new Setting<>("Threshold", 0.0, 3.0, 6.0, 1)
             .setAlias("TargetThreshold", "EnemyThreshold", "Distance")
             .setDescription("Target's distance from hole for it to be considered fill-able")
             .setVisible(() -> mode.getValue().equals(Filler.TARGETED));

@@ -4,7 +4,6 @@ import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleDisableEvent;
 import cope.cosmos.client.events.client.ModuleToggleEvent.ModuleEnableEvent;
 import cope.cosmos.client.features.Feature;
-import cope.cosmos.client.features.PersistentFeature;
 import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.animation.Animation;
@@ -26,41 +25,39 @@ import static cope.cosmos.client.features.setting.Bind.Device;
 public class Module extends Feature implements Wrapper {
 
 	// enabled state
-	private boolean enabled;
-
-	// always enabled state
-	private final boolean persistent = getClass().isAnnotationPresent(PersistentFeature.class);
+	protected boolean enabled;
 
 	// drawn state -> visible in the arraylist
-	private boolean drawn;
+	protected boolean drawn;
 
 	// exempt from being reloaded
-	private boolean exempt;
+	protected boolean exempt;
 
 	// module key bind, pressing this key will toggle the enable state
-	private final Setting<Bind> bind = new Setting<>("Bind", new Bind(0, Device.KEYBOARD))
+	protected final Setting<Bind> bind = new Setting<>("Bind", new Bind(0, Device.KEYBOARD))
 			.setAlias("Key", "KeyBind")
 			.setDescription("The bind of the module");
 
 	// the module Category
-	private final Category category;
+	protected final Category category;
 
 	// the module arraylist info
-	private Supplier<String> info;
+	protected Supplier<String> info;
 
 	// the module two-way animation manager
-	private final Animation animation;
+	protected final Animation animation;
 
 	// all the module's settings
-	private final List<Setting<?>> settings = new ArrayList<>();
+	protected final List<Setting<?>> settings = new ArrayList<>();
 
+	/**
+	 * Default module in {@link cope.cosmos.client.ui.clickgui.ClickGUIScreen}
+	 * @param name The name of the module
+	 * @param category The category of the module
+	 * @param description The description of the module
+	 */
 	public Module(String name, Category category, String description) {
 		super(name, description);
-
-		// persistent, enabled by default
-		if (persistent) {
-			enabled = true;
-		}
 
 		this.category = category;
 
@@ -92,6 +89,25 @@ public class Module extends Feature implements Wrapper {
 		animation = new Animation(300, enabled);
 	}
 
+	/**
+	 * Default module in {@link cope.cosmos.client.ui.clickgui.ClickGUIScreen}
+	 * @param name The name of the module
+	 * @param aliases The aliases of the module
+	 * @param category The category of the module
+	 * @param description The description of the module
+	 */
+	public Module(String name, String[] aliases, Category category, String description) {
+		this(name, category, description);
+		this.aliases = aliases;
+	}
+
+	/**
+	 * Default module in {@link cope.cosmos.client.ui.clickgui.ClickGUIScreen} with info attached to {@link cope.cosmos.client.features.modules.client.HUDModule}
+	 * @param name The name of the module
+	 * @param category The category of the module
+	 * @param description The description of the module
+	 * @param info The HUD info
+	 */
 	public Module(String name, Category category, String description, Supplier<String> info) {
 		this(name, category, description);
 
@@ -99,51 +115,17 @@ public class Module extends Feature implements Wrapper {
 		this.info = info;
 	}
 
-	public Module(String name, String[] aliases, Category category, String description) {
-		super(name, description);
-		setAliases(aliases);
-
-		// persistent, enabled by default
-		if (persistent) {
-			enabled = true;
-		}
-
-		this.category = category;
-
-		// add all associated settings in the class
-		Arrays.stream(getClass().getDeclaredFields())
-				.filter(field -> Setting.class.isAssignableFrom(field.getType()))
-				.forEach(field -> {
-					field.setAccessible(true);
-					try {
-						Setting<?> setting = ((Setting<?>) field.get(this));
-
-						// set the setting's current module as this module
-						setting.setModule(this);
-
-						// add it this module's settings
-						settings.add(setting);
-					} catch (IllegalArgumentException | IllegalAccessException exception) {
-						exception.printStackTrace();
-					}
-				});
-
-		// Add bind
-		settings.add(bind);
-
-		// default module state
-		drawn = true;
-
-		// animation
-		animation = new Animation(300, enabled);
-	}
-
+	/**
+	 * Default module in {@link cope.cosmos.client.ui.clickgui.ClickGUIScreen} with info attached to {@link cope.cosmos.client.features.modules.client.HUDModule}
+	 * @param name The name of the module
+	 * @param aliases The aliases of the module
+	 * @param category The category of the module
+	 * @param description The description of the module
+	 * @param info The HUD info
+	 */
 	public Module(String name, String[] aliases, Category category, String description, Supplier<String> info) {
-		this(name, category, description);
-		setAliases(aliases);
-
-		// add module arraylist info
-		this.info = info;
+		this(name, category, description, info);
+		this.aliases = aliases;
 	}
 
 	/**
@@ -164,7 +146,7 @@ public class Module extends Feature implements Wrapper {
 	 * @param in Allows the enable event to run
 	 */
 	public void enable(boolean in) {
-		if (!persistent && !enabled) {
+		if (!enabled) {
 
 			// set the enabled state to true
 			enabled = true;
@@ -194,7 +176,8 @@ public class Module extends Feature implements Wrapper {
 	 *  * @param in Allows the enable event to run
 	 */
 	public void disable(boolean in) {
-		if (!persistent && enabled) {
+		if (enabled) {
+
 			// sets the enabled state to false
 			enabled = false;
 
@@ -287,6 +270,14 @@ public class Module extends Feature implements Wrapper {
 	 */
 	public boolean isEnabled() {
 		return enabled;
+	}
+
+	/**
+	 * Gets whether the module is running or not
+	 * @return Whether the module is running or not
+	 */
+	public boolean isRunning() {
+		return false;
 	}
 
 	/**

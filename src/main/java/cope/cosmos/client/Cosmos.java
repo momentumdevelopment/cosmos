@@ -5,6 +5,7 @@ import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.modules.client.DiscordPresenceModule;
 import cope.cosmos.client.features.modules.client.FontModule;
 import cope.cosmos.client.features.modules.client.SocialModule;
+import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
@@ -22,6 +23,8 @@ import org.lwjgl.opengl.Display;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author bon55, linustouchtips
@@ -249,14 +252,6 @@ public class Cosmos {
     }
 
     /**
-     * Gets all client managers
-     * @return List of client managers
-     */
-    public List<Manager> getManagers() {
-        return managers;
-    }
-
-    /**
      * Gets the Window GUI screen
      * @return The Window GUI screen
      */
@@ -462,6 +457,37 @@ public class Cosmos {
      */
     public NotificationManager getNotificationManager() {
         return notificationManager;
+    }
+
+    /**
+     * Gets a list of the client managers
+     * @return List of the client managers
+     */
+    public List<Manager> getAllManagers() {
+        return managers;
+    }
+
+    /**
+     * Gets a list of all the client managers that fulfill a specified condition
+     * @param predicate The specified condition
+     * @return List of all the client managers that fulfill the specified condition
+     */
+    public List<Manager> getManagers(Predicate<? super Manager> predicate) {
+        return managers.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets the first client managers that fulfills a specified condition
+     * @param predicate The specified condition
+     * @return The first client managers that fulfills the specified condition
+     */
+    public Manager getManager(Predicate<? super Manager> predicate) {
+        return managers.stream()
+                .filter(predicate)
+                .findFirst()
+                .orElse(null);
     }
 
     /**

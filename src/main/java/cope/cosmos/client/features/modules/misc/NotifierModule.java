@@ -149,15 +149,23 @@ public class NotifierModule extends Module {
                 // notify exits
                 for (Entity player : exitVisualRange) {
 
-                    // notify
-                    getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.RED + "left " + ChatFormatting.RESET + "your visual range!");
+                    // ignore local player
+                    if (!player.getName().equals(mc.player.getName())) {
+
+                        // notify
+                        getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.RED + "left " + ChatFormatting.RESET + "your visual range!");
+                    }
                 }
 
                 // notify enters
                 for (Entity player : enterVisualRange) {
 
-                    // notify
-                    getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.BLUE + "entered " + ChatFormatting.RESET + "your visual range!");
+                    // ignore local player
+                    if (!player.getName().equals(mc.player.getName())) {
+
+                        // notify
+                        getCosmos().getChatManager().sendClientMessage("[VisualNotify] " + (getCosmos().getSocialManager().getSocial(player.getName()).equals(Relationship.FRIEND) ? ChatFormatting.AQUA : ChatFormatting.GRAY) + player.getName() + ChatFormatting.RESET + " has " + ChatFormatting.BLUE + "entered " + ChatFormatting.RESET + "your visual range!");
+                    }
                 }
             }
 

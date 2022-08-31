@@ -45,15 +45,26 @@ public class Setting<T> extends Feature implements Wrapper {
 
 	// list of settings that this setting serves as a parent to
 	private final List<Setting<?>> subSettings = new ArrayList<>();
-	
+
+	/**
+	 * Setting with only one value linked to a {@link Module}
+	 * @param name The name of the setting
+	 * @param value The value
+	 */
 	public Setting(String name, T value) {
 		super(name);
 		this.value = value;
 	}
-	
+
+	/**
+	 * Setting with only min and max values linked to a {@link Module}
+	 * @param name The name of the setting
+	 * @param min The minimum value
+	 * @param value The value
+	 * @param max The maximum value
+	 */
 	public Setting(String name, T min, T value, T max, int scale) {
 		this(name, value);
-
 		this.min = min;
 		this.max = max;
 		this.scale = scale;

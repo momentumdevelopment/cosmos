@@ -89,6 +89,7 @@ public class ModuleManager extends Manager {
 				new BlinkModule(),
 				new EntityControlModule(),
 				new FastUseModule(),
+				// new FreecamModule(),
 				new InteractModule(),
 				new NoFallModule(),
 				new NoRotateModule(),

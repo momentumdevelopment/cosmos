@@ -172,7 +172,7 @@ public class VelocityModule extends Module {
 	}
 
 	@SubscribeEvent
-	public void onPush(PushOutOfBlocksEvent event) {
+	public void onPushOutOfBlocks(PushOutOfBlocksEvent event) {
 
 		// cancel velocity from blocks
 		if (noPush.getValue() && blocks.getValue()) {

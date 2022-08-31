@@ -118,6 +118,13 @@ public class TooltipsModule extends Module {
                         // overwrite vanilla tooltip
                         event.setCanceled(true);
 
+                        // start render
+                        GlStateManager.enableBlend();
+                        GlStateManager.disableRescaleNormal();
+                        RenderHelper.disableStandardItemLighting();
+                        GlStateManager.disableLighting();
+                        GlStateManager.disableDepth();
+
                         // draw container
                         // IDK WHY I CANT USE RenderUtil.drawRect
                         GuiScreen.drawRect(event.getX() + 6, event.getY() - 3, event.getX() + 96, event.getY() + 11, new Color(23, 23, 29).getRGB());
@@ -128,8 +135,12 @@ public class TooltipsModule extends Module {
 
                         // start render
                         mc.getRenderItem().zLevel = 300;
-                        GlStateManager.pushMatrix();
-                        GlStateManager.disableDepth();
+                        GlStateManager.enableBlend();
+                        GlStateManager.enableAlpha();
+                        GlStateManager.enableTexture2D();
+                        GlStateManager.enableLighting();
+                        GlStateManager.enableDepth();
+                        RenderHelper.enableGUIStandardItemLighting();
 
                         // render map
                         GlStateManager.translate(event.getX() + 6, event.getY() + 13, 0);
@@ -140,9 +151,12 @@ public class TooltipsModule extends Module {
                         GlStateManager.scale(1 / 0.7F, 1 / 0.7F, 0);
 
                         // end render
+                        RenderHelper.disableStandardItemLighting();
                         mc.getRenderItem().zLevel = 0;
+                        GlStateManager.enableLighting();
                         GlStateManager.enableDepth();
-                        GlStateManager.popMatrix();
+                        RenderHelper.enableStandardItemLighting();
+                        GlStateManager.enableRescaleNormal();
                     }
                 }
             }
