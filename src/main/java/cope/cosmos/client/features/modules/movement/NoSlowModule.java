@@ -257,13 +257,15 @@ public class NoSlowModule extends Module {
 
     @SubscribeEvent
     public void onUseItem(EntityUseItemEvent event) {
+        if (nullCheck()) {
 
-        // send sneaking packet when we use an item
-        if (isSlowed() && airStrict.getValue() && !isSneaking) {
-            isSneaking = true;
+            // send sneaking packet when we use an item
+            if (isSlowed() && airStrict.getValue() && !isSneaking) {
+                isSneaking = true;
 
-            if (mc.getConnection() != null) {
-                mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, Action.START_SNEAKING));
+                if (mc.getConnection() != null) {
+                    mc.getConnection().getNetworkManager().sendPacket(new CPacketEntityAction(mc.player, Action.START_SNEAKING));
+                }
             }
         }
     }

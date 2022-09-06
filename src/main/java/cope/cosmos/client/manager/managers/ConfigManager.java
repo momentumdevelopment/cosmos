@@ -4,7 +4,6 @@ import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.visual.WallhackModule;
 import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Bind.Device;
 import cope.cosmos.client.features.setting.Setting;

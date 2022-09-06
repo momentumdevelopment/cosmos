@@ -11,7 +11,7 @@ import cope.cosmos.util.math.Timer.Format;
 import cope.cosmos.util.player.InventoryUtil;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.StringFormatter;
-import cope.cosmos.util.world.ShiftBlocks;
+import cope.cosmos.util.world.SneakBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
@@ -89,7 +89,7 @@ public class AutoTotemModule extends Module {
                     Block interactBlock = mc.world.getBlockState(mc.objectMouseOver.getBlockPos()).getBlock();
 
                     // check if it gets activated or if it is a button/lever
-                    if (!ShiftBlocks.contains(interactBlock) && !interactBlock.equals(Blocks.STONE_BUTTON) && !interactBlock.equals(Blocks.WOODEN_BUTTON) && !interactBlock.equals(Blocks.LEVER)) {
+                    if (!SneakBlocks.contains(interactBlock) && !interactBlock.equals(Blocks.STONE_BUTTON) && !interactBlock.equals(Blocks.WOODEN_BUTTON) && !interactBlock.equals(Blocks.LEVER)) {
                         item = Items.GOLDEN_APPLE;
                     }
                 }

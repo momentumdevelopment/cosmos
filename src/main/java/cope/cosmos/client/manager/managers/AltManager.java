@@ -3,8 +3,8 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.ui.altgui.AltEntry;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Surge
@@ -13,7 +13,7 @@ import java.util.List;
 public class AltManager extends Manager {
 
     // List of alt entries
-    private final List<AltEntry> altEntries = new ArrayList<>();
+    private final Set<AltEntry> altEntries = new HashSet<>();
 
     public AltManager() {
         super("AltManager", "Manages client's saved alternate accounts");
@@ -23,7 +23,7 @@ public class AltManager extends Manager {
      * Gets the alt entries
      * @return The alt entries
      */
-    public List<AltEntry> getAltEntries() {
+    public Set<AltEntry> getAltEntries() {
         return altEntries;
     }
 }

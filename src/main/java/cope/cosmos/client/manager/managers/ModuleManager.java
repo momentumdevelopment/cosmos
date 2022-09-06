@@ -48,6 +48,7 @@ public class ModuleManager extends Manager {
 				new CriticalsModule(),
 				new FastProjectileModule(),
 				new HoleFillModule(),
+				// new SelfBowModule(),
 				new SelfFillModule(),
 				new SurroundModule(),
 
@@ -98,6 +99,7 @@ public class ModuleManager extends Manager {
 				new ReplenishModule(),
 				new SpeedMineModule(),
 				new SwingModule(),
+				new TickShiftModule(),
 
 				// visual
 				new BlockHighlightModule(),

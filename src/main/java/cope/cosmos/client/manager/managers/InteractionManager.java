@@ -2,13 +2,12 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
-import cope.cosmos.asm.mixins.accessor.IPlayerControllerMP;
 import cope.cosmos.client.features.modules.player.SwingModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;
 import cope.cosmos.util.player.AngleUtil;
-import cope.cosmos.util.world.ShiftBlocks;
+import cope.cosmos.util.world.SneakBlocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
@@ -80,7 +79,7 @@ public class InteractionManager extends Manager {
             }
 
             // sneak if the block is not right-clickable
-            boolean sneak = ShiftBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            boolean sneak = SneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
                 // mc.player.setSneaking(true);
@@ -250,7 +249,7 @@ public class InteractionManager extends Manager {
             }
 
             // sneak if the block is not right-clickable
-            boolean sneak = ShiftBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
+            boolean sneak = SneakBlocks.contains(mc.world.getBlockState(directionOffset).getBlock()) && !mc.player.isSneaking();
             if (sneak) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SNEAKING));
                 // mc.player.setSneaking(true);

@@ -32,6 +32,14 @@ public class WallhackModule extends Module {
             .setDescription("Valid blocks");
 
     public static Setting<List<Block>> whiteList = new Setting<>("WhiteList", Arrays.asList(
+            Blocks.GRASS,
+            Blocks.GRAVEL,
+            Blocks.STONE,
+            Blocks.DIRT
+    ))
+            .setDescription("Valid block whitelist");
+
+    public static Setting<List<Block>> blackList = new Setting<>("BlackList", Arrays.asList(
             // Normal blocks we'd maybe like to see
             Blocks.OBSIDIAN,
             Blocks.BEDROCK,
@@ -64,14 +72,6 @@ public class WallhackModule extends Module {
             Blocks.IRON_BLOCK,
             Blocks.LAPIS_BLOCK,
             Blocks.REDSTONE_BLOCK
-    ))
-            .setDescription("Valid block whitelist");
-
-    public static Setting<List<Block>> blackList = new Setting<>("BlackList", Arrays.asList(
-            Blocks.GRASS,
-            Blocks.GRAVEL,
-            Blocks.STONE,
-            Blocks.DIRT
     ))
             .setDescription("Block blacklist");
 

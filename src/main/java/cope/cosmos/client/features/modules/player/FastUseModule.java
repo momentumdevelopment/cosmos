@@ -5,7 +5,7 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.world.ShiftBlocks;
+import cope.cosmos.util.world.SneakBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -72,9 +72,6 @@ public class FastUseModule extends Module {
             // remove exp pickup cooldown
             mc.player.xpCooldown = 0;
 
-            // set our vanilla right click delay timer to 0
-            ((IMinecraft) mc).setRightClickDelayTimer(speed.getMax().intValue() - speed.getValue().intValue());
-
             // fixes ghost items from being spawned
             if (ghostFix.getValue()) {
 
@@ -82,6 +79,12 @@ public class FastUseModule extends Module {
                 if (mc.gameSettings.keyBindUseItem.isKeyDown()) {
                     mc.player.connection.sendPacket(new CPacketPlayerTryUseItem(EnumHand.MAIN_HAND));
                 }
+            }
+
+            else {
+
+                // set our vanilla right click delay timer to 0
+                ((IMinecraft) mc).setRightClickDelayTimer(speed.getMax().intValue() - speed.getValue().intValue());
             }
         }
 
@@ -119,9 +122,11 @@ public class FastUseModule extends Module {
                     Block interact = mc.world.getBlockState(position).getBlock();
 
                     // make sure we are not interacting with a sneak block
-                    if (!ShiftBlocks.contains(interact)) {
-                        event.setCanceled(true);
+                    if (SneakBlocks.contains(interact) && !mc.player.isSneaking()) {
+                        return;
                     }
+
+                    event.setCanceled(true);
                 }
             }
         }

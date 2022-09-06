@@ -10,7 +10,7 @@ import java.util.List;
  * @author linustouchtips
  * @since 08/22/2022
  */
-public class ShiftBlocks {
+public class SneakBlocks {
 
     // list of blocks which need to be shift clicked to be placed on
     private static final List<Block> shiftBlocks = Arrays.asList(

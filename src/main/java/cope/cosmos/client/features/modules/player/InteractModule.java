@@ -10,7 +10,7 @@ import cope.cosmos.client.features.modules.combat.SelfFillModule;
 import cope.cosmos.client.features.modules.combat.HoleFillModule;
 import cope.cosmos.client.features.modules.combat.SurroundModule;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.world.ShiftBlocks;
+import cope.cosmos.util.world.SneakBlocks;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.network.play.client.CPacketAnimation;
 import net.minecraft.network.play.client.CPacketPlayerTryUseItemOnBlock;
@@ -94,7 +94,7 @@ public class InteractModule extends Module {
 
             // cancel the right-click packet if we're interacting with a container
             if (ignoreContainer.getValue()) {
-                if (ShiftBlocks.contains(mc.world.getBlockState(limitPosition).getBlock())) {
+                if (SneakBlocks.contains(mc.world.getBlockState(limitPosition).getBlock())) {
                     event.setCanceled(true);
                 }
             }

@@ -140,7 +140,6 @@ public class StepModule extends Module {
                 }
             }
 
-
             // reset our player's step height
             else {
                 mc.player.stepHeight = 0.6F;

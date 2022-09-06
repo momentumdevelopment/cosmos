@@ -48,6 +48,6 @@ public class FontUtil implements Wrapper {
 	 * @return The current font's height
 	 */
 	public static float getFontHeight() {
-		return FontModule.INSTANCE.isEnabled() ? Cosmos.INSTANCE.getFontManager().getFontRenderer().getHeight() : mc.fontRenderer.FONT_HEIGHT;
+		return mc.fontRenderer.FONT_HEIGHT;
 	}
 }
