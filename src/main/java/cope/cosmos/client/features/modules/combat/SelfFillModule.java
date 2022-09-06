@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -22,11 +23,11 @@ import net.minecraft.util.math.BlockPos;
  * @author bon55, linustouchtips
  * @since 08/18/2022
  */
-public class BurrowModule extends Module {
-	public static BurrowModule INSTANCE;
+public class SelfFillModule extends Module {
+	public static SelfFillModule INSTANCE;
 
-	public BurrowModule() {
-		super("Burrow", new String[] {"SelfFill", "RubberFill"}, Category.COMBAT, "Glitches you into a block");
+	public SelfFillModule() {
+		super("SelfFill", new String[] {"Burrow", "RubberFill"}, Category.COMBAT, "Glitches you into a block");
 		INSTANCE = this;
 	}
 
@@ -52,8 +53,7 @@ public class BurrowModule extends Module {
 			.setDescription("How to switch when placing blocks");
 
 	@Override
-	public void onEnable() {
-		super.onEnable();
+	public void onUpdate() {
 
 		// original block position
 		BlockPos origin = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -118,6 +118,11 @@ public class BurrowModule extends Module {
 					else if (echestSlot != -1) {
 						getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
 					}
+
+					else {
+						getCosmos().getChatManager().sendClientMessage(ChatFormatting.RED + "No valid blocks!", -200);
+						return;
+					}
 				}
 
 				// place block
@@ -142,11 +147,11 @@ public class BurrowModule extends Module {
 				if (previousSlot != -1) {
 					getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
 				}
+
+				// auto disabling module
+				disable(true);
 			}
 		}
-
-		// auto disabling module
-		disable(true);
 	}
 
 	/**

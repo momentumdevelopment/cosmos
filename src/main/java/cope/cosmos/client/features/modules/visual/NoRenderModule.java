@@ -56,20 +56,17 @@ public class NoRenderModule extends Module {
     // **************************** fog ****************************
 
     public static Setting<Boolean> fog = new Setting<>("Fog", true)
-            .setAlias("NoFog")
+            .setAlias("NoFog", "LiquidVision")
             .setDescription("Prevents fog from rendering");
-
-    public static Setting<Boolean> fogLiquid = new Setting<>("LiquidVision", true)
-            .setAlias("FogLiquid", "NoFogLiquid")
-            .setDescription("Clears fog in liquid")
-            .setVisible(() -> fog.getValue());
 
     // **************************** other ****************************
 
     public static Setting<Boolean> armor = new Setting<>("Armor", true)
+            .setAlias("NoArmor")
             .setDescription("Prevents armor from rendering");
 
     public static Setting<Boolean> items = new Setting<>("Items", false)
+            .setAlias("NoItems")
             .setDescription("Prevents dropped items from rendering");
 
     public static Setting<Boolean> tileEntities = new Setting<>("TileEntities", false)
@@ -236,24 +233,9 @@ public class NoRenderModule extends Module {
     @SubscribeEvent
     public void onRenderFog(RenderFogEvent event) {
 
-        if (nullCheck()) {
-
-            // prevents fog from rendering
-            if (PlayerUtil.isInLiquid()) {
-
-                // prevent fog from rendering in liquid
-                if (fogLiquid.getValue()) {
-                    event.setCanceled(true);
-                }
-            }
-
-            else {
-
-                // prevent fog from rendering
-                if (fog.getValue()) {
-                    event.setCanceled(true);
-                }
-            }
+        // prevent fog from rendering
+        if (fog.getValue()) {
+            event.setCanceled(true);
         }
     }
 

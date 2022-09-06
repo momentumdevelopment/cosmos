@@ -31,6 +31,7 @@ public class FileSystemUtil {
     public static final Path ALTS;
     public static final Path WALLHACK;
     public static final Path GUI;
+    public static final Path KEYBINDS;
 
     public static final Path PRESETS;
     public static final Path FONTS;
@@ -215,6 +216,7 @@ public class FileSystemUtil {
         ALTS = COSMOS.resolve("alts.toml");
         WALLHACK = COSMOS.resolve("wallhack_blocks.toml");
         GUI = COSMOS.resolve("gui.toml");
+        KEYBINDS = COSMOS.resolve("keybinds.toml");
 
         // set the rest of our static constants
         PRESETS = COSMOS.resolve("presets");

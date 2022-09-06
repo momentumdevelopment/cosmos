@@ -1,12 +1,9 @@
 package cope.cosmos.client.manager.managers;
 
-import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.client.Cosmos;
-import cope.cosmos.client.events.entity.potion.PotionEffectEvent;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.ui.util.animation.Animation;
 import net.minecraft.potion.PotionEffect;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +24,7 @@ public class PotionManager extends Manager {
         Cosmos.EVENT_BUS.register(this);
     }
 
+    /*
     @Override
     public void onTick() {
 
@@ -81,6 +79,7 @@ public class PotionManager extends Manager {
         // ??????
         event.setCanceled(false);
     }
+     */
 
     /**
      * Gets the player's active potion effects

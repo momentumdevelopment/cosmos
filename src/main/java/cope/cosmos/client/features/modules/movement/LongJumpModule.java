@@ -4,6 +4,7 @@ import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -49,13 +50,25 @@ public class LongJumpModule extends Module {
     public void onDisable() {
         super.onDisable();
 
-        moveSpeed = 0.0;
-        distance = 0.0;
+        moveSpeed = 0;
+        distance = 0;
         stage = LongJumpStage.START;
+    }
+
+    @Override
+    public void onUpdate() {
+
+        // our latest move speed
+        distance = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
+
+        // incompatibilities
+        if (PacketFlightModule.INSTANCE.isEnabled() || FlightModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled()) {
+            return;
+        }
 
         // our base NCP speed
         double baseSpeed = 0.2873;
@@ -106,7 +119,7 @@ public class LongJumpModule extends Module {
                 stage = LongJumpStage.START;
             }
 
-            moveSpeed = distance - distance / 159.0;
+            moveSpeed = distance - distance / 159;
         }
 
         // we want to min at our baseSpeed
@@ -157,13 +170,6 @@ public class LongJumpModule extends Module {
             event.setX(0);
             event.setZ(0);
         }
-    }
-
-    @Override
-    public void onUpdate() {
-
-        // our latest move speed
-        distance = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
     @SubscribeEvent

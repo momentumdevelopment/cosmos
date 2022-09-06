@@ -6,7 +6,7 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.combat.AutoCrystalModule;
-import cope.cosmos.client.features.modules.combat.BurrowModule;
+import cope.cosmos.client.features.modules.combat.SelfFillModule;
 import cope.cosmos.client.features.modules.combat.HoleFillModule;
 import cope.cosmos.client.features.modules.combat.SurroundModule;
 import cope.cosmos.client.features.setting.Setting;
@@ -102,7 +102,7 @@ public class InteractModule extends Module {
             if (ghostHand.getValue()) {
 
                 // check if we are auto-placing, we can't attempt to open containers during an auto-place process
-                if (AutoCrystalModule.INSTANCE.isActive() || HoleFillModule.INSTANCE.isActive() || BurrowModule.INSTANCE.isEnabled() || SurroundModule.INSTANCE.isActive()) {
+                if (AutoCrystalModule.INSTANCE.isActive() || HoleFillModule.INSTANCE.isActive() || SelfFillModule.INSTANCE.isEnabled() || SurroundModule.INSTANCE.isActive()) {
                     return;
                 }
 

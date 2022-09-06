@@ -31,10 +31,7 @@ import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.CPacketClickWindow;
-import net.minecraft.network.play.client.CPacketConfirmTransaction;
-import net.minecraft.network.play.client.CPacketHeldItemChange;
-import net.minecraft.network.play.client.CPacketPlayerDigging;
+import net.minecraft.network.play.client.*;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -321,6 +318,11 @@ public class SpeedMineModule extends Module {
         }
     }
 
+    @Override
+    public boolean isActive() {
+        return isEnabled() && minePosition != null && !mc.world.isAirBlock(minePosition) && mineDamage > 0;
+    }
+
     @SubscribeEvent
     public void onLeftClickBlock(LeftClickBlockEvent event) {
 
@@ -358,27 +360,40 @@ public class SpeedMineModule extends Module {
     @SubscribeEvent
     public void onRotationUpdate(RotationUpdateEvent event) {
 
-        // server-side update our rotations
-        if (!rotate.getValue().equals(Rotate.NONE)) {
+        if (nullCheck()) {
 
-            // mine is complete
-            if (mineDamage > 0.95) {
+            // server-side update our rotations
+            if (!rotate.getValue().equals(Rotate.NONE)) {
 
-                // cancel vanilla rotations, we'll send our own
-                event.setCanceled(true);
+                // mine is complete
+                if (mineDamage > 0.95 || FreecamModule.INSTANCE.isInteracting()) {
 
-                // angles to block
-                Rotation mineRotation = AngleUtil.calculateAngles(new Vec3d(minePosition).addVector(0.5, 0.5, 0.5));
+                    // cancel vanilla rotations, we'll send our own
+                    event.setCanceled(true);
 
-                // update rots
-                if (rotate.getValue().equals(Rotate.CLIENT)) {
-                    mc.player.rotationYaw = mineRotation.getYaw();
-                    mc.player.rotationYawHead = mineRotation.getYaw();
-                    mc.player.rotationPitch = mineRotation.getPitch();
+                    // check if mine position exists
+                    if (minePosition != null) {
+
+                        // angles to block
+                        Rotation mineRotation = AngleUtil.calculateAngles(minePosition.add(0.5, 0.5, 0.5));
+
+                        // update rots
+                        if (rotate.getValue().equals(Rotate.CLIENT)) {
+                            mc.player.rotationYaw = mineRotation.getYaw();
+                            mc.player.rotationYawHead = mineRotation.getYaw();
+                            mc.player.rotationPitch = mineRotation.getPitch();
+                        }
+
+                        // send rotations
+                        if (FreecamModule.INSTANCE.isInteracting()) {
+                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mineRotation.getYaw(), mineRotation.getPitch(), mc.player.onGround));
+                        }
+
+                        else {
+                            getCosmos().getRotationManager().setRotation(mineRotation);
+                        }
+                    }
                 }
-
-                // send rotations
-                getCosmos().getRotationManager().setRotation(mineRotation);
             }
         }
     }

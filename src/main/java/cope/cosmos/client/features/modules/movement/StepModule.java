@@ -3,7 +3,9 @@ package cope.cosmos.client.features.modules.movement;
 import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.StringFormatter;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
@@ -35,13 +37,13 @@ public class StepModule extends Module {
     public static Setting<Double> height = new Setting<>("Height", 1.0, 1.0, 2.5, 1)
             .setDescription("The maximum height to step up blocks");
 
+    public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setDescription("Confirms step height")
+            .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
+
     public static Setting<Boolean> useTimer = new Setting<>("Timer", true)
             .setAlias("UseTimer")
             .setDescription("Uses timer to slow down packets")
-            .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
-
-    public static Setting<Boolean> strict = new Setting<>("Strict", false)
-            .setDescription("Confirms step height")
             .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
 
     public static Setting<Boolean> entityStep = new Setting<>("EntityStep", false)
@@ -63,6 +65,7 @@ public class StepModule extends Module {
         // reset our step heights
         mc.player.stepHeight = 0.6F;
 
+        // reset entity step heights
         if (entityRiding != null) {
             if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
                 entityRiding.stepHeight = 1;
@@ -77,31 +80,71 @@ public class StepModule extends Module {
     @Override
     public void onUpdate() {
 
+        // incompatibilities
+        if (PlayerUtil.isFlying() || FreecamModule.INSTANCE.isEnabled()) {
+            mc.player.stepHeight = 0.6F;
+            return;
+        }
+
+        // cannot step in liquid
+        if (PlayerUtil.isInLiquid()) {
+            mc.player.stepHeight = 0.6F;
+            return;
+        }
+
         // reset our timer if needed
         if (timer && mc.player.onGround) {
             getCosmos().getTickManager().setClientTicks(1);
             timer = false;
         }
 
-        if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
-            entityRiding = mc.player.getRidingEntity();
-
-            // update our riding entity's step height
-            if (entityStep.getValue()) {
-                mc.player.getRidingEntity().stepHeight = height.getValue().floatValue();
-            }
-        }
-
         // wait 200 ms between steps to prevent packet spam
         if (mc.player.onGround && stepTimer.passedTime(200, Format.MILLISECONDS)) {
 
+            // check if we are riding
+            if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+
+                // riding entity
+                entityRiding = mc.player.getRidingEntity();
+
+                // update our riding entity's step height
+                if (entityStep.getValue()) {
+                    mc.player.getRidingEntity().stepHeight = height.getValue().floatValue();
+                }
+            }
+
             // update our player's step height
-            mc.player.stepHeight = height.getValue().floatValue();
+            else {
+                mc.player.stepHeight = height.getValue().floatValue();
+            }
         }
 
         // prevent step
         else {
-            mc.player.stepHeight = 0.5F;
+
+            // check if we are riding
+            if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+
+                // riding entity
+                entityRiding = mc.player.getRidingEntity();
+
+                // reset entity step heights
+                if (entityRiding != null) {
+                    if (entityRiding instanceof EntityHorse || entityRiding instanceof EntityLlama || entityRiding instanceof EntityMule || entityRiding instanceof EntityPig && entityRiding.isBeingRidden() && ((EntityPig) entityRiding).canBeSteered()) {
+                        entityRiding.stepHeight = 1;
+                    }
+
+                    else {
+                        entityRiding.stepHeight = 0.5F;
+                    }
+                }
+            }
+
+
+            // reset our player's step height
+            else {
+                mc.player.stepHeight = 0.6F;
+            }
         }
     }
 

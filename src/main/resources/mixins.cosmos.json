@@ -71,6 +71,7 @@
         "render.MixinBufferBuilder",
         "render.MixinRender",
         "render.MixinRenderGlobal",
+        "render.MixinVisGraph",
         "world.block.MixinBlock",
         "world.block.MixinBlockLiquid",
         "world.block.MixinBlockSlime",

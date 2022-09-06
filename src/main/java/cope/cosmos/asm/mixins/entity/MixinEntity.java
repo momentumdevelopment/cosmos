@@ -2,6 +2,7 @@ package cope.cosmos.asm.mixins.entity;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.entity.hitbox.EntityHitboxSizeEvent;
+import cope.cosmos.client.events.entity.player.PlayerTurnEvent;
 import cope.cosmos.client.events.motion.movement.StepEvent;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
@@ -45,6 +46,18 @@ public abstract class MixinEntity implements Wrapper {
         if (entityHitboxSizeEvent.isCanceled()) {
             info.cancel();
             info.setReturnValue(entityHitboxSizeEvent.getHitboxSize());
+        }
+    }
+
+    @Inject(method = "turn", at = @At("HEAD"), cancellable = true)
+    public void onTurn(float yaw, float pitch, CallbackInfo info) {
+        if (((Entity) (Object) this).equals(mc.player)) {
+            PlayerTurnEvent event = new PlayerTurnEvent(yaw, pitch);
+            Cosmos.EVENT_BUS.post(event);
+
+            if (event.isCanceled()) {
+                info.cancel();
+            }
         }
     }
 }

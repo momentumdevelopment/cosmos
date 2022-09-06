@@ -2,6 +2,7 @@ package cope.cosmos.util.player;
 
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.holder.Rotation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -21,6 +22,21 @@ public class AngleUtil implements Wrapper {
         // find the yaw and pitch to the vector
         float yaw = (float) (Math.toDegrees(Math.atan2(to.subtract(mc.player.getPositionEyes(1)).z, to.subtract(mc.player.getPositionEyes(1)).x)) - 90);
         float pitch = (float) Math.toDegrees(-Math.atan2(to.subtract(mc.player.getPositionEyes(1)).y, Math.hypot(to.subtract(mc.player.getPositionEyes(1)).x, to.subtract(mc.player.getPositionEyes(1)).z)));
+
+        // wrap the degrees to values between -180 and 180
+        return new Rotation(MathHelper.wrapDegrees(yaw), MathHelper.wrapDegrees(pitch));
+    }
+
+    /**
+     * Calculates the rotations (yaw & pitch) to a vector
+     * @param to The vector to find rotations to
+     * @return The rotations to the vector
+     */
+    public static Rotation calculateAngles(BlockPos to) {
+
+        // find the yaw and pitch to the vector
+        float yaw = (float) (Math.toDegrees(Math.atan2(to.getZ() - mc.player.getPositionEyes(1).z, to.getX() - mc.player.getPositionEyes(1).x)) - 90);
+        float pitch = (float) Math.toDegrees(-Math.atan2(to.getY() - mc.player.getPositionEyes(1).y, Math.hypot(to.getX() - mc.player.getPositionEyes(1).x, to.getZ() - mc.player.getPositionEyes(1).z)));
 
         // wrap the degrees to values between -180 and 180
         return new Rotation(MathHelper.wrapDegrees(yaw), MathHelper.wrapDegrees(pitch));

@@ -45,8 +45,12 @@ public class PopManager extends Manager implements Wrapper {
     @SubscribeEvent
     public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
 
-        // clear on logout
-        totemPops.clear();
+        // check if the player logged out
+        if (event.player.equals(mc.player)) {
+
+            // clear on logout
+            totemPops.clear();
+        }
     }
 
     /**

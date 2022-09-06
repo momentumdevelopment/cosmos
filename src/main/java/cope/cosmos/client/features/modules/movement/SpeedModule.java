@@ -3,11 +3,11 @@ package cope.cosmos.client.features.modules.movement;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
-import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.player.PlayerUtil;
@@ -76,7 +76,7 @@ public class SpeedModule extends Module {
 
     // the move speed for the current mode
     private double moveSpeed;
-    private double latestMoveSpeed;
+    private double distance;
 
     // boost speed
     private double boostSpeed;
@@ -114,11 +114,11 @@ public class SpeedModule extends Module {
         resetProcess();
     }
 
-    @SubscribeEvent
-    public void onRotationUpdate(RotationUpdateEvent event) {
+    @Override
+    public void onUpdate() {
 
         // our latest move speed
-        latestMoveSpeed = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
+        distance = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -147,7 +147,7 @@ public class SpeedModule extends Module {
         }
 
         // incompatibilities
-        if (FlightModule.INSTANCE.isEnabled() || PacketFlightModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled()) {
+        if (FlightModule.INSTANCE.isEnabled() || PacketFlightModule.INSTANCE.isEnabled() || LongJumpModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled()) {
             return;
         }
 
@@ -218,10 +218,10 @@ public class SpeedModule extends Module {
                     else if (groundStage == 3) {
 
                         // take into account our last tick's move speed
-                        double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
+                        double scaledMoveSpeed = 0.66 * (distance - baseSpeed);
 
                         // scale the move speed
-                        moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+                        moveSpeed = distance - scaledMoveSpeed;
 
                         // we need to "jump" again now
                         groundStage = 2;
@@ -334,10 +334,10 @@ public class SpeedModule extends Module {
                     else if (strafeStage == 3) {
 
                         // take into account our last tick's move speed
-                        double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
+                        double scaledMoveSpeed = 0.66 * (distance - baseSpeed);
 
                         // scale the move speed
-                        moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+                        moveSpeed = distance - scaledMoveSpeed;
 
                         // we've just slowed down and need to alternate acceleration
                         accelerate = !accelerate;
@@ -351,7 +351,7 @@ public class SpeedModule extends Module {
                         }
 
                         // collision speed
-                        moveSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
+                        moveSpeed = distance - (distance / 159);
                     }
 
                     // do not allow movements slower than base speed
@@ -460,10 +460,10 @@ public class SpeedModule extends Module {
                     else if (strafeStage == 3) {
 
                         // take into account our last tick's move speed
-                        double scaledMoveSpeed = 0.66 * (latestMoveSpeed - baseSpeed);
+                        double scaledMoveSpeed = 0.66 * (distance - baseSpeed);
 
                         // scale the move speed
-                        moveSpeed = latestMoveSpeed - scaledMoveSpeed;
+                        moveSpeed = distance - scaledMoveSpeed;
                     }
 
                     else {
@@ -474,7 +474,7 @@ public class SpeedModule extends Module {
                         }
 
                         // collision speed
-                        moveSpeed = latestMoveSpeed - (latestMoveSpeed / 159);
+                        moveSpeed = distance - (distance / 159);
                     }
 
                     // do not allow movements slower than base speed
@@ -696,7 +696,7 @@ public class SpeedModule extends Module {
         strafeStage = 4;
         groundStage = 2;
         moveSpeed = 0;
-        latestMoveSpeed = 0;
+        distance = 0;
         boostSpeed = 0;
         strictTicks = 0;
         boostTicks = 0;

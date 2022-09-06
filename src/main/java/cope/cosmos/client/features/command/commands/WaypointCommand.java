@@ -3,6 +3,7 @@ package cope.cosmos.client.features.command.commands;
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.command.Command;
 import cope.cosmos.client.manager.managers.WaypointManager.*;
+import cope.cosmos.util.world.WorldUtil;
 import net.minecraft.util.math.Vec3d;
 
 /**
@@ -33,7 +34,7 @@ public class WaypointCommand extends Command {
                 if (args[0].equalsIgnoreCase("Add")) {
 
                     // add waypoint
-                    getCosmos().getWaypointManager().addWaypoint(args[4], new Waypoint(new Vec3d(x, y ,z), Format.COORDINATE));
+                    getCosmos().getWaypointManager().addWaypoint(args[4], new Waypoint(new Vec3d(x, y ,z), WorldUtil.getWorldName(), Format.COORDINATE));
                     getCosmos().getChatManager().sendClientMessage("Added waypoint " + ChatFormatting.GRAY + args[4]);
                 }
 

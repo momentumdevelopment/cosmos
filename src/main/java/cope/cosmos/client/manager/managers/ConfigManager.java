@@ -3,6 +3,7 @@ package cope.cosmos.client.manager.managers;
 import com.moandjiezana.toml.Toml;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.Cosmos.ClientType;
+import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.visual.WallhackModule;
 import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Bind.Device;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
+ * TODO: CLEANUP this is a mess
  * @author linustouchtips, Surge, aesthetical
  * @since 06/08/2021
  */
@@ -53,6 +55,7 @@ public class ConfigManager extends Manager {
         loadSocial();
         loadAlts();
         loadWallhack();
+        loadKeybinds();
 
         // add our shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -67,6 +70,7 @@ public class ConfigManager extends Manager {
             saveAlts();
             saveWallhack();
             saveGUI();
+            saveKeybinds();
 
             // tell the user farewell :)
             System.out.println("[Cosmos] Saved presets successfully! See you next time :)");
@@ -101,6 +105,10 @@ public class ConfigManager extends Manager {
         }
     }
 
+    /**
+     * Creates a preset with the given name
+     * @param name The name of the preset
+     */
     public void createPreset(String name) {
 
         // the file path to this preset with the specified name
@@ -130,9 +138,16 @@ public class ConfigManager extends Manager {
         System.out.println("[Cosmos] Saved preset " + name + " in " + (System.currentTimeMillis() - time) + "ms");
     }
 
+    /**
+     * Deletes a preset
+     * @param name The name of the preset
+     */
     public void deletePreset(String name) {
 
+        // path to the preset
         Path path = FileSystemUtil.PRESETS.resolve(name + ".toml");
+
+        // check if the preset exists
         if (Files.exists(path)) {
             try {
                 presets.remove(name);
@@ -149,6 +164,9 @@ public class ConfigManager extends Manager {
         }
     }
 
+    /**
+     * Loads the client info
+     */
     private void loadInfo() {
         String content = FileSystemUtil.read(FileSystemUtil.INFO, true);
         if (content == null || content.isEmpty()) {
@@ -301,10 +319,13 @@ public class ConfigManager extends Manager {
                                     }
 
                                     else if (setting.getValue() instanceof Bind) {
-                                        if (inputTOML.getString(identifier) != null) {
-                                            String[] parts = inputTOML.getString(identifier).split(":");
 
-                                            ((Setting<Bind>) setting).setValue(new Bind(Integer.parseInt(parts[0]), Enum.valueOf(Device.class, parts[1])));
+                                        // save non-module binds
+                                        if (!setting.getName().equalsIgnoreCase("Bind")) {
+                                            if (inputTOML.getString(identifier) != null) {
+                                                String[] parts = inputTOML.getString(identifier).split(":");
+                                                ((Setting<Bind>) setting).setValue(new Bind(Integer.parseInt(parts[0]), Enum.valueOf(Device.class, parts[1])));
+                                            }
                                         }
                                     }
 
@@ -421,7 +442,6 @@ public class ConfigManager extends Manager {
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Alts were loaded successfully!");
         }
-
     }
 
     private void loadWallhack() {
@@ -458,7 +478,6 @@ public class ConfigManager extends Manager {
         }
     }
 
-
     /**
      * Load the client gui info from gui.toml
      */
@@ -486,6 +505,44 @@ public class ConfigManager extends Manager {
                         component.setHeight(toml.getDouble(component.getValue().name() + ".Height").floatValue());
                     }
                 });
+            }
+
+            // notify user
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                System.out.println("[Cosmos] GUI was loaded successfully!");
+            }
+        }
+    }
+
+    /**
+     * Load the client keybind info from keybinds.toml
+     */
+    public void loadKeybinds() {
+        String content = FileSystemUtil.read(FileSystemUtil.KEYBINDS, true);
+        if (content == null || content.isEmpty()) {
+            saveModules();
+        }
+
+        else {
+
+            // Input TOML
+            Toml inputTOML = new Toml().read(content);
+
+            // check if the TOML file exists
+            if (inputTOML != null) {
+
+                // check all modules
+                for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+                    // bind info
+                    String bind = inputTOML.getString("Keybinds." + module.getName());
+
+                    // update keybind
+                    if (bind != null) {
+                        String[] parts = bind.split(":");
+                        module.getBind().setValue(new Bind(Integer.parseInt(parts[0]), Enum.valueOf(Device.class, parts[1])));
+                    }
+                }
             }
 
             // notify user
@@ -574,7 +631,11 @@ public class ConfigManager extends Manager {
                                 }
 
                                 else if (setting.getValue() instanceof Bind) {
-                                    outputTOML.append('"').append(((Bind) setting.getValue()).getButtonCode()).append(":").append(((Bind) setting.getValue()).getDevice().name()).append('"');
+
+                                    // save non-module binds
+                                    if (!setting.getName().equalsIgnoreCase("Bind")) {
+                                        outputTOML.append('"').append(((Bind) setting.getValue()).getButtonCode()).append(":").append(((Bind) setting.getValue()).getDevice().name()).append('"');
+                                    }
                                 }
 
                                 else {
@@ -605,7 +666,6 @@ public class ConfigManager extends Manager {
         });
 
         FileSystemUtil.write(presetPath, outputTOML.toString());
-
     }
 
     /**
@@ -640,9 +700,11 @@ public class ConfigManager extends Manager {
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Socials were saved successfully!");
         }
-
     }
 
+    /**
+     * Writes the user's alts to a TOML file
+     */
     public void saveAlts() {
 
         // Output
@@ -674,9 +736,11 @@ public class ConfigManager extends Manager {
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Alts were saved successfully!");
         }
-
     }
 
+    /**
+     * Writes the user's wallhack blocks to a TOML file
+     */
     private void saveWallhack() {
 
         // Output string
@@ -706,7 +770,6 @@ public class ConfigManager extends Manager {
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Wallhack blocks were saved successfully!");
         }
-
     }
 
     /**
@@ -740,7 +803,55 @@ public class ConfigManager extends Manager {
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] GUI was saved successfully!");
         }
+    }
 
+    /**
+     * Saves the client keybind info to keybinds.toml
+     */
+    public void saveKeybinds() {
+
+        // Output string
+        StringBuilder outputTOML = new StringBuilder();
+
+        try {
+
+            // class
+            outputTOML.append("[Keybinds]")
+                    .append("\r\n");
+
+            // get all modules
+            for (Module module : getCosmos().getModuleManager().getAllModules()) {
+
+                // the bind setting
+                Setting<?> bind = module.getBind();
+
+                // checks if the bind is valid
+                if (bind != null && bind.getValue() instanceof Bind) {
+                    outputTOML.append(module.getName())
+                            .append(" = ")
+                            .append('"')
+                            .append(((Bind) bind.getValue()).getButtonCode())
+                            .append(":")
+                            .append(((Bind) bind.getValue()).getDevice().name())
+                            .append('"')
+                            .append("\r\n");
+                }
+            }
+
+        } catch (Exception exception) {
+
+            // print exception if development environment
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                exception.printStackTrace();
+            }
+        }
+
+        FileSystemUtil.write(FileSystemUtil.KEYBINDS, outputTOML.toString());
+
+        // notify user
+        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+            System.out.println("[Cosmos] GUI was saved successfully!");
+        }
     }
 
     /**
@@ -751,6 +862,10 @@ public class ConfigManager extends Manager {
         return presets;
     }
 
+    /**
+     * Gets the current preset
+     * @return The current preset
+     */
     public String getPreset() {
         return preset;
     }

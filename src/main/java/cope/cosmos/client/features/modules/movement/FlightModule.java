@@ -6,6 +6,7 @@ import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -91,6 +92,11 @@ public class FlightModule extends Module {
 
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
+
+        // incompatible
+        if (FreecamModule.INSTANCE.isEnabled()) {
+            return;
+        }
 
         // cancel vanilla movement
         event.setCanceled(true);

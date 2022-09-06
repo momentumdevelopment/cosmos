@@ -5,7 +5,8 @@ import cope.cosmos.client.events.entity.player.UpdateWalkingPlayerEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.combat.BurrowModule;
+import cope.cosmos.client.features.modules.combat.SelfFillModule;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
@@ -72,7 +73,7 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || BurrowModule.INSTANCE.isActive() || PacketFlightModule.INSTANCE.isActive()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || SelfFillModule.INSTANCE.isActive() || PacketFlightModule.INSTANCE.isActive() || FreecamModule.INSTANCE.isEnabled() || JesusModule.INSTANCE.isActive()) {
             return;
         }
 
@@ -117,7 +118,7 @@ public class FastFallModule extends Module {
         }
 
         // don't attempt to fast fall while jumping or sneaking
-        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || BurrowModule.INSTANCE.isActive() || PacketFlightModule.INSTANCE.isActive()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || mc.gameSettings.keyBindSneak.isKeyDown() || SpeedModule.INSTANCE.isEnabled() || SelfFillModule.INSTANCE.isEnabled() || PacketFlightModule.INSTANCE.isEnabled() || FlightModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled() || JesusModule.INSTANCE.isActive()) {
             return;
         }
 

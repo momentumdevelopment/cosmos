@@ -45,10 +45,10 @@ public class ModuleManager extends Manager {
 				new AutoCrystalModule(),
 				new AutoTotemModule(),
 				// new AutoTrapModule(),
-				new BurrowModule(),
 				new CriticalsModule(),
 				new FastProjectileModule(),
 				new HoleFillModule(),
+				new SelfFillModule(),
 				new SurroundModule(),
 
 				// misc
@@ -89,7 +89,7 @@ public class ModuleManager extends Manager {
 				new BlinkModule(),
 				new EntityControlModule(),
 				new FastUseModule(),
-				// new FreecamModule(),
+				new FreecamModule(),
 				new InteractModule(),
 				new NoFallModule(),
 				new NoRotateModule(),

@@ -13,6 +13,7 @@ import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
 import cope.cosmos.util.string.ColorUtil;
+import cope.cosmos.util.world.WorldUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.SPacketPlayerListItem;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -53,7 +54,7 @@ public class WaypointsModule extends Module {
 
     // **************************** render ****************************
 
-    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 1.0F, 3F, 1)
+    public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 3.0F, 4.0F, 1)
             .setAlias("LineWidth")
             .setDescription("The width of the outline");
 
@@ -148,7 +149,7 @@ public class WaypointsModule extends Module {
                                     waypoints.put(player.getName() + "'s Logout", System.currentTimeMillis());
 
                                     // remove logout spot when the player logs back in
-                                    getCosmos().getWaypointManager().addWaypoint(player.getName() + "'s Logout", new Waypoint(new Vec3d(MathUtil.roundDouble(player.posX, 1), MathUtil.roundDouble(player.posY, 1), MathUtil.roundDouble(player.posZ, 1)), Format.LOGOUT));
+                                    getCosmos().getWaypointManager().addWaypoint(player.getName() + "'s Logout", new Waypoint(new Vec3d(MathUtil.roundDouble(player.posX, 1), MathUtil.roundDouble(player.posY, 1), MathUtil.roundDouble(player.posZ, 1)), WorldUtil.getWorldName(), Format.LOGOUT));
                                 }
                             }
                         }
@@ -172,7 +173,7 @@ public class WaypointsModule extends Module {
 
                 // add waypoints
                 getCosmos().getWaypointManager().removeWaypoint("Last Death");
-                getCosmos().getWaypointManager().addWaypoint("Last Death", new Waypoint(new Vec3d(MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosX(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosY(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosZ(), 1)), Format.DEATH));
+                getCosmos().getWaypointManager().addWaypoint("Last Death", new Waypoint(new Vec3d(MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosX(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosY(), 1), MathUtil.roundDouble(((IEntityPlayerSP) mc.player).getLastReportedPosZ(), 1)), WorldUtil.getWorldName(), Format.DEATH));
             }
         }
     }

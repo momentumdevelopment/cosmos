@@ -768,7 +768,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
         boolean externalExplosion = false;
 
         // packet that confirms crystal removal
-        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE) && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS)) {
+        if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS) && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE)) {
 
             // crystal entities within the packet position
             // List<EntityEnderCrystal> soundCrystals = mc.world.getEntitiesWithinAABB(EntityEnderCrystal.class, new AxisAlignedBB(new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ())));
@@ -2201,6 +2201,14 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
 
                 // we've attacked and haven't "failed" to break yet
                 if (attackedCrystals.containsKey(entity.getEntityId()) && entity.ticksExisted < 20) {
+                    continue;
+                }
+
+                // distance to crystal
+                double crystalRange = mc.player.getDistance(entity.posX, rangeEye.getValue() ? entity.posY + entity.getEyeHeight() : entity.posY, entity.posZ);
+
+                // check if the entity is in range
+                if (crystalRange <= explodeRange.getValue()) {
                     continue;
                 }
 

@@ -1,6 +1,7 @@
 package cope.cosmos.asm.mixins.accessor;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.Session;
 import net.minecraft.util.Timer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,6 +15,9 @@ public interface IMinecraft {
 
 	@Accessor("rightClickDelayTimer")
 	void setRightClickDelayTimer(int rightClickDelayTimer);
+
+	@Accessor("renderViewEntity")
+	void hookSetRenderViewEntity(Entity renderViewEntity);
 
 	@Accessor("timer")
 	Timer getTimer();

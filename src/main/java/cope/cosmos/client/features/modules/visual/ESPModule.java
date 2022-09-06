@@ -288,12 +288,16 @@ public class ESPModule extends Module {
                     // https://hackforums.net/showthread.php?tid=4811280
                     ((IEntityRenderer) mc.entityRenderer).setupCamera(event.getPartialTicks(), 0);
 
-                    // draw all entities
-                    mc.world.loadedEntityList.forEach(entity -> {
-                        if (entity != null && entity != mc.player && hasHighlight(entity)) {
-                            mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
-                        }
-                    });
+                    // make sure render manager is not null this caused issues when launching game
+                    if (mc.getRenderManager() != null) {
+
+                        // draw all entities
+                        mc.world.loadedEntityList.forEach(entity -> {
+                            if (entity != null && entity != mc.getRenderViewEntity() && hasHighlight(entity)) {
+                                mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
+                            }
+                        });
+                    }
 
                     // draw all storages
                     mc.world.loadedTileEntityList.forEach(tileEntity -> {

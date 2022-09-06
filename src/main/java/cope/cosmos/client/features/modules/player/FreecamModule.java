@@ -1,29 +1,38 @@
 package cope.cosmos.client.features.modules.player;
 
 import com.mojang.authlib.GameProfile;
+import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
-import cope.cosmos.client.events.input.UpdateMoveStateEvent;
+import cope.cosmos.client.events.combat.DeathEvent;
+import cope.cosmos.client.events.entity.player.PlayerTurnEvent;
+import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
-import cope.cosmos.client.events.motion.movement.PushOutOfBlocksEvent;
 import cope.cosmos.client.events.network.PacketEvent;
+import cope.cosmos.client.events.render.world.RenderCaveCullingEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.combat.AuraModule;
+import cope.cosmos.client.features.modules.combat.AutoCrystalModule;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.holder.Rotation;
+import cope.cosmos.util.player.AngleUtil;
 import cope.cosmos.util.player.MotionUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MoverType;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.play.client.*;
-import net.minecraft.util.MovementInput;
+import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.network.play.client.CPacketUseEntity;
+import net.minecraft.util.MovementInputFromOptions;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * @author linustouchtips
- * @since 08/26/2022
+ * @author aesthetical, linustouchtips
+ * @since 08/29/2022
  */
 public class FreecamModule extends Module {
     public static FreecamModule INSTANCE;
@@ -36,124 +45,240 @@ public class FreecamModule extends Module {
     // **************************** general ****************************
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.CAMERA)
-            .setDescription("Mode for camera");
+            .setAlias("M", "Type")
+            .setDescription("The type of freecam");
 
-    public static Setting<Double> speed = new Setting<>("Speed", 0.1D, 1.0D, 10.0D, 1)
-            .setDescription("Speed for movement");
+    public static Setting<Double> speed = new Setting<>("Speed", 0.1D, 0.5D, 5D, 1)
+            .setAlias("MoveSpeed")
+            .setDescription("The speed to move at");
 
     public static Setting<Boolean> rotate = new Setting<>("Rotation", false)
             .setAlias("Rotate")
-            .setDescription("Rotates to the interaction");
+            .setDescription("Rotates to the interaction")
+            .setVisible(() -> mode.getValue().equals(Mode.CAMERA));
 
     public static Setting<Boolean> cancelPackets = new Setting<>("CancelPackets", true)
             .setAlias("Exploit")
-            .setDescription("Cancels Packets to the server");
-    
-    // camera entity
-    private Camera camera;
+            .setDescription("Cancels player packets")
+            .setVisible(() -> mode.getValue().equals(Mode.NORMAL));
 
-    // previous info
-    private double posX, posY, posZ;
-    private float pitch, yaw;
-    private Entity riding;
-    
+    // camera entity
+    private EntityOtherPlayerMP camera;
+    private EntityOtherPlayerMP serverPositionModel;
+
     @Override
     public void onEnable() {
         super.onEnable();
 
-        // save previous info
-        posX = mc.player.posX;
-        posY = mc.player.posY;
-        posZ = mc.player.posZ;
-        pitch = mc.player.rotationPitch;
-        yaw = mc.player.rotationYaw;
-        // yawHead = mc.player.rotationYawHead;
+        // check if the camera exists
+        if (camera != null) {
 
-        // riding entity
-        if (mc.player.isRiding()) {
-            riding = mc.player.getRidingEntity();
-        }
-        
-        // update view entity
-        if (mode.getValue().equals(Mode.CAMERA)) {
-            
-            // make sure an old camera doesn't exist
-            if (camera == null) {
+            // TODO: this is the shittest way to test...
+            int id = camera.getEntityId();
 
-                // create new camera entity
-                camera = new Camera(mc.world, mc.player.getGameProfile());
-
-                // update view entity
-                mc.setRenderViewEntity(camera);
-            }
-        }
-
-        // update player
-        if (mode.getValue().equals(Mode.NORMAL)) {
-
-            // make sure a camera exists
-            if (camera != null) {
-
-                // delete the camera
+            // id equals specific number then we know it's the camera
+            if (id == -133769421 && !mode.getValue().equals(Mode.CAMERA)) {
+                mc.world.removeEntity(camera);
+                mc.world.removeEntityDangerously(camera);
                 camera = null;
-
-                // update view entity
-                mc.setRenderViewEntity(mc.player);
             }
 
-            // dismount riding entities
-            if (mc.player.isRiding()) {
-                mc.player.dismountRidingEntity();
+            // id equals specific number then we know it's the camera
+            if (id == -133769422 && !mode.getValue().equals(Mode.NORMAL)) {
+                mc.world.removeEntity(camera);
+                mc.world.removeEntityDangerously(camera);
+                camera = null;
             }
-
-            // visual model of the player
-            EntityOtherPlayerMP playerModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
-
-            // match characteristics of player to model -> create a copy
-            playerModel.copyLocationAndAnglesFrom(mc.player);
-            playerModel.rotationYawHead = mc.player.rotationYawHead;
-            playerModel.inventory.copyInventory(mc.player.inventory);
-            playerModel.setSneaking(mc.player.isSneaking());
-            playerModel.setPrimaryHand(mc.player.getPrimaryHand());
-
-            // add model to world
-            mc.world.addEntityToWorld(-100, playerModel);
         }
+
+        // check if the camera is not null
+        if (camera == null) {
+
+            // just opened game
+            if (mc.player.ticksExisted < 5) {
+                return;
+            }
+
+            // add camera entity
+            if (mode.getValue().equals(Mode.CAMERA)) {
+                camera = new Camera(mc.world, mc.player.getGameProfile());
+                camera.setEntityId(-133769421);
+            }
+
+            // add camera entity
+            else {
+                camera = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+                camera.setEntityId(-133769422);
+            }
+
+            // copy
+            camera.copyLocationAndAnglesFrom(mc.player);
+            camera.inventory.copyInventory(mc.player.inventory);
+
+            // spawn
+            mc.world.addEntityToWorld(camera.getEntityId(), camera);
+
+            // set view entity
+            if (mode.getValue().equals(Mode.CAMERA)) {
+
+                // visual model of last server position
+                serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+
+                // match characteristics of player to model -> create a copy
+                serverPositionModel.copyLocationAndAnglesFrom(mc.player);
+                serverPositionModel.rotationYawHead = mc.player.rotationYaw;
+                serverPositionModel.inventory.copyInventory(mc.player.inventory);
+                serverPositionModel.setSneaking(mc.player.isSneaking());
+                serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
+
+                // add model to world
+                mc.world.addEntityToWorld(-100, serverPositionModel);
+                ((IMinecraft) mc).hookSetRenderViewEntity(camera);
+            }
+
+            else {
+                ((IMinecraft) mc).hookSetRenderViewEntity(mc.player);
+            }
+        }
+
+        // prevent chunk renders
+        mc.renderChunksMany = false;
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        // prevent phasing
-        mc.player.noClip = false;
-
-        // reset flying
-        if (!mc.playerController.getCurrentGameType().isCreative()) {
-            mc.player.capabilities.allowFlying = false;
-            mc.player.capabilities.isFlying = false;
+        // copy angles from camera
+        if (mode.getValue().equals(Mode.NORMAL)) {
+            mc.player.copyLocationAndAnglesFrom(camera);
+        } 
+        
+        else {
+            // remove our model from the world
+            mc.world.removeEntityFromWorld(-100);
+            ((IMinecraft) mc).hookSetRenderViewEntity(mc.player);
         }
 
-        // update player
-        if (mode.getValue().equals(Mode.NORMAL)) {
+        // remove camera
+        mc.world.removeEntity(camera);
+        mc.world.removeEntityDangerously(camera);
+        camera = null;
+        mc.renderChunksMany = true;
+    }
 
-            // reset player
-            mc.player.setPositionAndRotation(posX, posY, posZ, yaw, pitch);
-            // mc.player.rotationYawHead = yawHead;
-            mc.player.setVelocity(0, 0, 0);
-            mc.world.removeEntityFromWorld(-100);
+    @SubscribeEvent
+    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
 
-            // reset previous info
-            posX = 0;
-            posY = 0;
-            posZ = 0;
-            yaw = 0;
-            // yawHead = 0;
-            pitch = 0;
+        // player logs out
+        if (event.player.equals(mc.player)) {
 
-            // remount
-            if (riding != null) {
-                mc.player.startRiding(riding, true);
+            // disable on logout
+            disable(true);
+        }
+    }
+
+    @Override
+    public void onUpdate() {
+
+        // sync camera
+        if (camera != null) {
+            camera.setHealth(mc.player.getHealth());
+            camera.setAbsorptionAmount(mc.player.getAbsorptionAmount());
+            camera.inventory.copyInventory(mc.player.inventory);
+        }
+
+        // sync server model
+        if (serverPositionModel != null) {
+            serverPositionModel.motionX = mc.player.motionX;
+            serverPositionModel.motionY = mc.player.motionY;
+            serverPositionModel.motionZ = mc.player.motionZ;
+            serverPositionModel.distanceWalkedModified = mc.player.distanceWalkedModified;
+            serverPositionModel.distanceWalkedOnStepModified = mc.player.distanceWalkedOnStepModified;
+            serverPositionModel.inventory.copyInventory(mc.player.inventory);
+            serverPositionModel.setSneaking(mc.player.isSneaking());
+            serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
+            serverPositionModel.setHealth(mc.player.getHealth());
+            serverPositionModel.setAbsorptionAmount(mc.player.getAbsorptionAmount());
+            serverPositionModel.swingProgress = mc.player.swingProgress;
+            serverPositionModel.swingingHand = mc.player.swingingHand;
+            serverPositionModel.isSwingInProgress = mc.player.isSwingInProgress;
+            serverPositionModel.prevSwingProgress = mc.player.prevSwingProgress;
+            serverPositionModel.swingProgressInt = mc.player.swingProgressInt;
+            serverPositionModel.ticksExisted = mc.player.ticksExisted;
+            serverPositionModel.posX = mc.player.posX;
+            serverPositionModel.posY = mc.player.posY;
+            serverPositionModel.posZ = mc.player.posZ;
+            serverPositionModel.setPosition(serverPositionModel.posX, serverPositionModel.posY, serverPositionModel.posZ);
+            serverPositionModel.lastTickPosX = mc.player.lastTickPosX;
+            serverPositionModel.lastTickPosY = mc.player.lastTickPosY;
+            serverPositionModel.lastTickPosZ = mc.player.lastTickPosZ;
+            serverPositionModel.limbSwing = mc.player.limbSwing;
+            serverPositionModel.limbSwingAmount = mc.player.limbSwingAmount;
+            serverPositionModel.prevLimbSwingAmount = mc.player.prevLimbSwingAmount;
+            serverPositionModel.move(MoverType.SELF, serverPositionModel.motionX, serverPositionModel.motionY, serverPositionModel.motionZ);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRotationUpdate(RotationUpdateEvent event) {
+
+        if (nullCheck()) {
+
+            // rotate to interaction
+            if (isInteracting()) {
+
+                // check if needs rotate
+                if (rotate.getValue()) {
+
+                    // multitask
+                    if (!AutoCrystalModule.INSTANCE.isActive() && !AuraModule.INSTANCE.isActive() && !SpeedMineModule.INSTANCE.isActive()) {
+
+                        // check if the camera exists
+                        if (camera != null) {
+
+                            // check if the interaction is valid
+                            if (mc.objectMouseOver != null) {
+
+                                // rotations to interactions
+                                Rotation rotation = null;
+
+                                // block raytrace
+                                if (mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
+
+                                    // interacting block position
+                                    BlockPos interact = mc.objectMouseOver.getBlockPos();
+
+                                    // update rotations to interactions
+                                    rotation = AngleUtil.calculateAngles(interact.add(0.5, 0.5, 0.5));
+                                }
+
+                                // entity raytrace
+                                else if (mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.ENTITY)) {
+
+                                    // interacting entity
+                                    Entity interact = mc.objectMouseOver.entityHit;
+
+                                    // update rotations to interactions
+                                    rotation = AngleUtil.calculateAngles(interact.getPositionVector());
+                                }
+
+                                // rotation exists
+                                if (rotation != null) {
+
+                                    // remove vanilla rotations
+                                    event.setCanceled(true);
+
+                                    // update rotations
+                                    mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
+                                    serverPositionModel.rotationYaw = rotation.getYaw();
+                                    serverPositionModel.rotationYawHead = rotation.getYaw();
+                                    serverPositionModel.rotationPitch = rotation.getPitch();
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -163,75 +288,77 @@ public class FreecamModule extends Module {
 
         if (nullCheck()) {
 
-            // update mode
+            // mode update
             if (event.getSetting().equals(mode)) {
 
-                // update view entity
-                if (mode.getValue().equals(Mode.NORMAL)) {
+                // check if the camera exists
+                if (camera != null) {
 
-                    // make sure a camera exists
-                    if (camera != null) {
+                    // TODO: this is the shittest way to test...
+                    int id = camera.getEntityId();
 
-                        // delete the camera
+                    // id equals specific number then we know it's the camera
+                    if (id == -133769421 && !mode.getValue().equals(Mode.CAMERA)) {
+                        mc.world.removeEntity(camera);
+                        mc.world.removeEntityDangerously(camera);
                         camera = null;
-
-                        // update view entity
-                        mc.setRenderViewEntity(mc.player);
                     }
 
-                    // visual model of the player
-                    EntityOtherPlayerMP playerModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
-
-                    // match characteristics of player to model -> create a copy
-                    playerModel.copyLocationAndAnglesFrom(mc.player);
-                    playerModel.rotationYawHead = mc.player.rotationYawHead;
-                    playerModel.inventory.copyInventory(mc.player.inventory);
-                    playerModel.setSneaking(mc.player.isSneaking());
-                    playerModel.setPrimaryHand(mc.player.getPrimaryHand());
-
-                    // add model to world
-                    mc.world.addEntityToWorld(-100, playerModel);
+                    // id equals specific number then we know it's the camera
+                    if (id == -133769422 && !mode.getValue().equals(Mode.NORMAL)) {
+                        mc.world.removeEntity(camera);
+                        mc.world.removeEntityDangerously(camera);
+                        camera = null;
+                    }
                 }
 
-                // update view entity
-                else if (mode.getValue().equals(Mode.CAMERA)) {
+                // check if the camera is not null
+                if (camera == null) {
 
-                    // prevent phasing
-                    mc.player.noClip = false;
-
-                    // reset flying
-                    if (!mc.playerController.getCurrentGameType().isCreative()) {
-                        mc.player.capabilities.allowFlying = false;
-                        mc.player.capabilities.isFlying = false;
+                    // just opened game
+                    if (mc.player.ticksExisted < 5) {
+                        return;
                     }
 
-                    // reset player
-                    mc.player.setPositionAndRotation(posX, posY, posZ, yaw, pitch);
-                    // mc.player.rotationYawHead = yawHead;
-                    mc.player.setVelocity(0, 0, 0);
-                    mc.world.removeEntityFromWorld(-100);
-
-                    // reset previous info
-                    posX = 0;
-                    posY = 0;
-                    posZ = 0;
-                    yaw = 0;
-                    // yawHead = 0;
-                    pitch = 0;
-
-                    // remount
-                    if (riding != null) {
-                        mc.player.startRiding(riding, true);
-                    }
-
-                    // make sure an old camera doesn't exist
-                    if (camera == null) {
-
-                        // create new camera entity
+                    // add camera entity
+                    if (mode.getValue().equals(Mode.CAMERA)) {
                         camera = new Camera(mc.world, mc.player.getGameProfile());
+                        camera.setEntityId(-133769421);
+                    }
 
-                        // update view entity
-                        mc.setRenderViewEntity(camera);
+                    // add camera entity
+                    else {
+                        camera = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+                        camera.setEntityId(-133769422);
+                    }
+
+                    // copy
+                    camera.copyLocationAndAnglesFrom(mc.player);
+                    camera.inventory.copyInventory(mc.player.inventory);
+
+                    // spawn
+                    mc.world.addEntityToWorld(camera.getEntityId(), camera);
+
+                    // set view entity
+                    if (mode.getValue().equals(Mode.CAMERA)) {
+
+                        // visual model of last server position
+                        serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+
+                        // match characteristics of player to model -> create a copy
+                        serverPositionModel.copyLocationAndAnglesFrom(mc.player);
+                        serverPositionModel.rotationYawHead = mc.player.rotationYaw;
+                        serverPositionModel.inventory.copyInventory(mc.player.inventory);
+                        serverPositionModel.setSneaking(mc.player.isSneaking());
+                        serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
+
+                        // add model to world
+                        mc.world.addEntityToWorld(-100, serverPositionModel);
+                        ((IMinecraft) mc).hookSetRenderViewEntity(camera);
+                    }
+
+                    else {
+                        ((IMinecraft) mc).hookSetRenderViewEntity(mc.player);
                     }
                 }
             }
@@ -239,259 +366,287 @@ public class FreecamModule extends Module {
     }
 
     @SubscribeEvent
-    public void onUpdateMoveState(UpdateMoveStateEvent event) {
+    public void onDeath(DeathEvent event) {
 
-        // inputs go to the new camera entity
-        if (mode.getValue().equals(Mode.CAMERA)) {
+        // check if the player has died and respawns the freecam entity
+        if (event.getEntity().equals(mc.player)) {
+            mc.world.removeEntity(camera);
+            mc.world.removeEntityDangerously(camera);
+            camera = null;
+            ((IMinecraft) mc).hookSetRenderViewEntity(mc.player);
 
-            // prevent inputs
-            mc.player.movementInput.moveForward = 0;
-            mc.player.movementInput.moveStrafe = 0;
-            mc.player.movementInput.jump = false;
-            mc.player.movementInput.forwardKeyDown = false;
-            mc.player.movementInput.backKeyDown = false;
-            mc.player.movementInput.leftKeyDown = false;
-            mc.player.movementInput.rightKeyDown = false;
+            // disable module
+            disable(true);
         }
     }
 
     @SubscribeEvent
-    public void onMotion(MotionEvent event) {
-
-        // move with local player
+    public void onMove(MotionEvent event) {
         if (mode.getValue().equals(Mode.NORMAL)) {
 
-            // allow phasing
-            mc.player.noClip = true;
-            mc.player.onGround = false;
-            mc.player.fallDistance = 0;
-            mc.player.capabilities.allowFlying = true;
-            mc.player.capabilities.isFlying = true;
-
-            // cancel vanilla movement
-            event.setCanceled(true);
-
-            // up/down movement
-            if (mc.gameSettings.keyBindJump.isKeyDown()) {
-                event.setY(speed.getValue());
-            }
-
-            else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
-                event.setY(-speed.getValue());
-            }
-
-            // static
-            else {
-                event.setY(0);
-            }
-
-            // the current movement input values of the user
+            // player inputs
             float forward = mc.player.movementInput.moveForward;
             float strafe = mc.player.movementInput.moveStrafe;
             float yaw = mc.player.rotationYaw;
 
-            // if we're not inputting any movements, then we shouldn't be adding any motion
+            // if we are not inputting any movements, then don't update motion
             if (!MotionUtil.isMoving()) {
                 event.setX(0);
                 event.setZ(0);
             }
 
-            else {
+            else if (forward != 0) {
+                if (strafe >= 1) {
+                    yaw += (float) (forward > 0 ? -45 : 45);
+                    strafe = 0;
+                }
 
-                // our facing values, according to movement not rotations
-                double cos = Math.cos(Math.toRadians(yaw + 90));
-                double sin = Math.sin(Math.toRadians(yaw + 90));
+                else if (strafe <= -1) {
+                    yaw += (float) (forward > 0 ? 45 : -45);
+                    strafe = 0;
+                }
 
-                // update the movements
-                event.setX((forward * speed.getValue() * cos) + (strafe * speed.getValue() * sin));
-                event.setZ((forward * speed.getValue() * sin) - (strafe * speed.getValue() * cos));
+                if (forward > 0) {
+                    forward = 1;
+                }
 
-                // if we're not inputting any movements, then we shouldn't be adding any motion
-                if (!MotionUtil.isMoving()) {
-                    event.setX(0);
-                    event.setZ(0);
+                else if (forward < 0) {
+                    forward = -1;
                 }
             }
+
+            // angles
+            double sin = Math.sin(Math.toRadians(yaw + 90));
+            double cos = Math.cos(Math.toRadians(yaw + 90));
+
+            // apply no clip and cancel vanilla movements
+            mc.player.noClip = true;
+            event.setCanceled(true);
+
+            // update motion
+            event.setX((double) forward * speed.getValue() * cos + (double) strafe * speed.getValue() * sin);
+            event.setZ((double) forward * speed.getValue() * sin - (double) strafe * speed.getValue() * cos);
+
+            if (!MotionUtil.isMoving()) {
+                event.setX(0);
+                event.setZ(0);
+            }
+
+            double motionY = 0;
+
+            // up movement
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = speed.getValue();
+            }
+
+            // down movement
+            else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+                motionY = -speed.getValue();
+            }
+
+            // update vertical movement
+            event.setY(motionY);
         }
-    }
-
-    @SubscribeEvent
-    public void onPushOutOfBlocks(PushOutOfBlocksEvent event) {
-
-        // cancel velocity from blocks
-        event.setCanceled(true);
     }
 
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
 
-        // player packets
-        if ((!(event.getPacket() instanceof CPacketChatMessage || event.getPacket() instanceof CPacketConfirmTeleport || event.getPacket() instanceof CPacketKeepAlive || event.getPacket() instanceof CPacketTabComplete || event.getPacket() instanceof CPacketClientStatus))) {
+        // packet for moving and rotating
+        if (event.getPacket() instanceof CPacketPlayer) {
 
             // cancel packets
-            if (cancelPackets.getValue()) {
+            if (mode.getValue().equals(Mode.NORMAL)) {
+
+                // prevent player packets from sending
+                if (cancelPackets.getValue()) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+
+        // packet for attacking
+        if (event.getPacket() instanceof CPacketUseEntity) {
+
+            // entity we are attacking
+            Entity entity = ((CPacketUseEntity) event.getPacket()).getEntityFromWorld(mc.world);
+
+            // do not allow us to interact with our selves
+            if (entity != null && entity.equals(mc.player)) {
                 event.setCanceled(true);
             }
         }
     }
 
     @SubscribeEvent
-    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+    public void onInputUpdate(InputUpdateEvent event) {
+        
+        // cancel movement inputs
+        if (event.getMovementInput() instanceof MovementInputFromOptions && mode.getValue().equals(Mode.CAMERA)) {
+            
+            // reset inputs
+            event.getMovementInput().moveForward = 0;
+            event.getMovementInput().moveStrafe = 0;
+            event.getMovementInput().forwardKeyDown = false;
+            event.getMovementInput().backKeyDown = false;
+            event.getMovementInput().rightKeyDown = false;
+            event.getMovementInput().leftKeyDown = false;
+            event.getMovementInput().jump = false;
+            event.getMovementInput().sneak = false;
+        }
+    }
 
-        // disable on logout
-        disable(true);
+    @SubscribeEvent
+    public void onPlayerTurn(PlayerTurnEvent event) {
+        if (mode.getValue().equals(Mode.CAMERA) && camera != null) {
+
+            // cancel vanilla player rotations
+            event.setCanceled(true);
+
+            // turn the camera to match player rotations
+            camera.turn(event.getYaw(), event.getPitch());
+            camera.cameraYaw = event.getYaw();
+            camera.cameraPitch = event.getPitch();
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderCaveCulling(RenderCaveCullingEvent event) {
+        
+        // cancel cave culling effect 
+        event.setCanceled(true);
     }
 
     /**
-     * Dummy class for the "camera"
+     * Checks if the freecam is interacting
+     * @return Whether the freecam is interacting
      */
-    public static class Camera extends EntityOtherPlayerMP {
+    public boolean isInteracting() {
+        return isEnabled() && mode.getValue().equals(Mode.CAMERA);
+    }
 
-        // the movement input of the camera
-        MovementInput movementInput = new MovementInput();
+    private static class Camera extends EntityOtherPlayerMP {
 
         public Camera(World worldIn, GameProfile gameProfileIn) {
             super(worldIn, gameProfileIn);
-
-            // copy locations and rotations when spawned
-            copyLocationAndAnglesFrom(mc.player);
-
-            // set flying
             capabilities.isFlying = true;
             capabilities.allowFlying = true;
         }
 
         @Override
         public void onLivingUpdate() {
+            super.onLivingUpdate();
 
-            // update moving forward
+            // copy inventory of player
+            inventory.copyInventory(mc.player.inventory);
+
+            // update action states
+            updateEntityActionState();
+
+            // update move states
             if (mc.gameSettings.keyBindForward.isKeyDown()) {
-                movementInput.moveForward = 1;
+                moveForward = 1;
             } 
             
             else if (mc.gameSettings.keyBindBack.isKeyDown()) {
-                movementInput.moveForward = -1;
-            }
+                moveForward = -1;
+            } 
             
             else {
-                movementInput.moveForward = 0;
+                moveForward = 0;
             }
 
-            // update moving strafe
             if (mc.gameSettings.keyBindRight.isKeyDown()) {
-                movementInput.moveStrafe = -1;
+                moveStrafing = -1;
             } 
             
             else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
-                movementInput.moveStrafe = 1;
+                moveStrafing = 1;
             } 
             
             else {
-                movementInput.moveStrafe = 0;
+                moveStrafing = 0;
             }
 
-            // up/down movement
-            if (mc.gameSettings.keyBindJump.isKeyDown()) {
-                motionY = speed.getValue();
-            }
+            // move speeds
+            motionY = 0;
 
-            else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
-                motionY = -speed.getValue();
-            }
-
-            // static
-            else {
-                motionY = 0;
-            }
-
-            // the current movement input values of the user
-            float forward = movementInput.moveForward;
-            float strafe = movementInput.moveStrafe;
+            // inputs
+            float forward = moveForward;
+            float strafe = moveStrafing;
             float yaw = rotationYaw;
 
-            // if we're not inputting any movements, then we shouldn't be adding any motion
+            // if we are not inputting any movements, then don't update motion
             if (!isMoving()) {
                 motionX = 0;
                 motionZ = 0;
             }
 
-            else {
+            if (forward != 0) {
+                if (strafe >= 1) {
+                    yaw += (float) (forward > 0 ? -45 : 45);
+                    strafe = 0;
+                }
 
-                // our facing values, according to movement not rotations
-                double cos = Math.cos(Math.toRadians(yaw + 90));
-                double sin = Math.sin(Math.toRadians(yaw + 90));
+                else if (strafe <= -1) {
+                    yaw += (float) (forward > 0 ? 45 : -45);
+                    strafe = 0;
+                }
 
-                // update the movements
-                motionX = (forward * speed.getValue() * cos) + (strafe * speed.getValue() * sin);
-                motionZ = (forward * speed.getValue() * sin) - (strafe * speed.getValue() * cos);
+                if (forward > 0) {
+                    forward = 1;
+                }
 
-                // if we're not inputting any movements, then we shouldn't be adding any motion
-                if (!isMoving()) {
-                    motionX = 0;
-                    motionZ = 0;
+                else if (forward < 0) {
+                    forward = -1;
                 }
             }
 
-            // move entity
+            // angles
+            double sin = Math.sin(Math.toRadians(yaw + 90));
+            double cos = Math.cos(Math.toRadians(yaw + 90));
+
+            // update motion
+            motionX = forward * speed.getValue() * cos + strafe * speed.getValue() * sin;
+            motionZ = forward * speed.getValue() * sin - strafe * speed.getValue() * cos;
+
+            if (!isMoving()) {
+                motionX = 0;
+                motionZ = 0;
+            }
+
+            // up speed
+            if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                motionY = speed.getValue();
+            }
+
+            // down speed
+            else if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+                motionY = -speed.getValue();
+            }
+
+            noClip = true;
             move(MoverType.SELF, motionX, motionY, motionZ);
         }
 
         /**
-         * Checks if the camera is moving
-         * @return Whether the camera is moving
+         * Checks if the player is moving
+         * @return Whether the player is moving
          */
         public boolean isMoving() {
-            return movementInput.moveForward != 0 || movementInput.moveStrafe != 0;
-        }
-
-        @Override
-        public float getEyeHeight() {
-            return 1.65F;
-        }
-
-        @Override
-        public boolean isSpectator() {
-            return true;
-        }
-
-        @Override
-        protected boolean isMovementBlocked() {
-            return false;
-        }
-
-        @Override
-        public boolean isInvisible() {
-            return true;
-        }
-
-        @Override
-        public boolean isInvisibleToPlayer(@NotNull EntityPlayer player) {
-            return true;
+            return moveForward != 0 || moveStrafing != 0;
         }
     }
 
     public enum Mode {
 
         /**
-         * Normal freecam
+         * Basic ass freecam, creates a fakeplayer and cancels movement
          */
         NORMAL,
 
         /**
-         * Camera freecam
-         */
-        CAMERA
-    }
-
-    public enum Interact {
-
-        /**
-         * Interacts at the player
-         */
-        PLAYER,
-
-        /**
-         * Interacts at the camera
+         * A more legit type of freecam
          */
         CAMERA
     }

@@ -13,11 +13,14 @@ import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.*;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketBlockChange;
 import net.minecraft.network.play.server.SPacketMultiBlockChange;
+import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -42,6 +45,9 @@ public class SurroundModule extends Module {
 
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("When to place blocks");
+
+    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 6.0, 1)
+            .setDescription("Range to place blocks");
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
             .setAlias("Rotate")
@@ -219,7 +225,7 @@ public class SurroundModule extends Module {
                 }
 
                 else {
-                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                    getCosmos().getChatManager().sendClientMessage(ChatFormatting.RED + "No valid blocks!", -200);
                     return;
                 }
             }
@@ -310,7 +316,7 @@ public class SurroundModule extends Module {
                             }
 
                             else {
-                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                                getCosmos().getChatManager().sendClientMessage(ChatFormatting.RED + "No valid blocks!", -200);
                                 return;
                             }
                         }
@@ -365,7 +371,7 @@ public class SurroundModule extends Module {
                                 }
 
                                 else {
-                                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "No valid blocks!", ChatFormatting.RED + "There are no valid blocks in the hotbar!");
+                                    getCosmos().getChatManager().sendClientMessage(ChatFormatting.RED + "No valid blocks!", -200);
                                     return;
                                 }
                             }
@@ -381,6 +387,54 @@ public class SurroundModule extends Module {
                                 getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
                             }
                         }
+                    }
+                }
+            }
+
+            // packet that confirms crystal removal
+            if (event.getPacket() instanceof SPacketSoundEffect && ((SPacketSoundEffect) event.getPacket()).getCategory().equals(SoundCategory.BLOCKS) && ((SPacketSoundEffect) event.getPacket()).getSound().equals(SoundEvents.ENTITY_GENERIC_EXPLODE)) {
+
+                // position of the explosion
+                BlockPos explosion = new BlockPos(((SPacketSoundEffect) event.getPacket()).getX(), ((SPacketSoundEffect) event.getPacket()).getY(), ((SPacketSoundEffect) event.getPacket()).getZ());
+
+                // placements contain explosion
+                if (placements.contains(explosion)) {
+
+                    // log previous slot, we'll switch back to this item
+                    int previousSlot = mc.player.inventory.currentItem;
+
+                    // switch to block before placing
+                    if (!autoSwitch.getValue().equals(Switch.NONE)) {
+
+                        // slot to switch to
+                        int obsidianSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.OBSIDIAN), InventoryRegion.HOTBAR);
+                        int echestSlot = getCosmos().getInventoryManager().searchSlot(Item.getItemFromBlock(Blocks.ENDER_CHEST), InventoryRegion.HOTBAR);
+
+                        // prefer obsidian over echests
+                        if (obsidianSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(obsidianSlot, autoSwitch.getValue());
+                        }
+
+                        // fallback if we don't have obsidian
+                        else if (echestSlot != -1) {
+                            getCosmos().getInventoryManager().switchToSlot(echestSlot, autoSwitch.getValue());
+                        }
+
+                        else {
+                            getCosmos().getChatManager().sendClientMessage(ChatFormatting.RED + "No valid blocks!", -200);
+                            return;
+                        }
+                    }
+
+                    // place block
+                    if (placeBlock(explosion)) {
+                        // getCosmos().getChatManager().sendClientMessage("placed");
+                        placed++;
+                    }
+
+                    // switch back to previous slot
+                    if (previousSlot != -1) {
+                        getCosmos().getInventoryManager().switchToSlot(previousSlot, autoSwitch.getValue());
                     }
                 }
             }

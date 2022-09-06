@@ -7,6 +7,7 @@ import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.player.FreecamModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -84,6 +85,11 @@ public class PacketFlightModule extends Module {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onMove(MotionEvent event) {
+
+        // incompatible
+        if (FreecamModule.INSTANCE.isEnabled()) {
+            return;
+        }
 
         // get our factor floored
         int loops = (int) Math.floor(factor.getValue());
