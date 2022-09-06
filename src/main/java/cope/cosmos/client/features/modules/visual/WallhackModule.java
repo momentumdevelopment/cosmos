@@ -1,14 +1,16 @@
 package cope.cosmos.client.features.modules.visual;
 
-import com.google.common.collect.Lists;
+import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,17 +25,13 @@ public class WallhackModule extends Module {
         INSTANCE = this;
     }
 
-//    // **************************** general ****************************
-//
-//    public static final Setting<Double> opacity = new Setting<>("Opacity", 0.0, 120.0, 255.0, 0)
-//            .setDescription("The opacity of non-whitelisted blocks");
-//
-//    public static final Setting<Boolean> caveCulling = new Setting<>("NoCaveCulling", false)
-//            .setDescription("Allows you to be able to see cave systems as if you were in spectator mode");
+    // **************************** general ****************************
 
-    public static final List<Block> WHITELIST = new ArrayList<>();
-    public static final List<Block> DEFAULT_BLOCKS = Lists.newArrayList(
+    public static Setting<Type> type = new Setting<>("Type", Type.BLACKLIST)
+            .setAlias("Mode")
+            .setDescription("Valid blocks");
 
+    public static Setting<List<Block>> whiteList = new Setting<>("WhiteList", Arrays.asList(
             // Normal blocks we'd maybe like to see
             Blocks.OBSIDIAN,
             Blocks.BEDROCK,
@@ -66,7 +64,23 @@ public class WallhackModule extends Module {
             Blocks.IRON_BLOCK,
             Blocks.LAPIS_BLOCK,
             Blocks.REDSTONE_BLOCK
-    );
+    ))
+            .setDescription("Valid block whitelist");
+
+    public static Setting<List<Block>> blackList = new Setting<>("BlackList", Arrays.asList(
+            Blocks.GRASS,
+            Blocks.GRAVEL,
+            Blocks.STONE,
+            Blocks.DIRT
+    ))
+            .setDescription("Block blacklist");
+
+//
+//    public static final Setting<Double> opacity = new Setting<>("Opacity", 0.0, 120.0, 255.0, 0)
+//            .setDescription("The opacity of non-whitelisted blocks");
+//
+//    public static final Setting<Boolean> caveCulling = new Setting<>("NoCaveCulling", false)
+//            .setDescription("Allows you to be able to see cave systems as if you were in spectator mode");
 
     private boolean forgeLightPipelineEnabled;
 
@@ -93,6 +107,17 @@ public class WallhackModule extends Module {
 
         // reload our renderers
         reloadRenderers();
+    }
+
+    @SubscribeEvent
+    public void onSettingUpdate(SettingUpdateEvent event) {
+        if (nullCheck()) {
+
+            // type changed
+            if (event.getSetting().equals(type)) {
+                reloadRenderers();
+            }
+        }
     }
 
 //    @SubscribeEvent
@@ -125,5 +150,45 @@ public class WallhackModule extends Module {
         mc.renderGlobal.markBlockRangeForRenderUpdate(
                 (int) (pos.x) - dist, (int) (pos.y) - dist, (int) (pos.z) - dist,
                 (int) (pos.x) + dist, (int) (pos.y) + dist, (int) (pos.z) + dist);
+    }
+
+    /**
+     * Checks if the given block is valid
+     * @param in The given block
+     * @return Whether the given block is valid
+     */
+    public boolean isValid(Block in) {
+
+        // check if item is in the whitelist
+        if (type.getValue().equals(Type.WHITELIST)) {
+            return !whiteList.getValue().contains(in);
+        }
+
+        // check if item is not in the blacklist
+        else if (type.getValue().equals(Type.BLACKLIST)) {
+            return blackList.getValue().contains(in);
+        }
+
+        // all items
+        return true;
+    }
+
+    public enum Type {
+
+        /**
+         * Only uses whitelist blocks
+         */
+        WHITELIST,
+
+
+        /**
+         * Only uses blocks not in the blacklist
+         */
+        BLACKLIST,
+
+        /**
+         * Uses all blocks
+         */
+        ALL
     }
 }

@@ -6,9 +6,13 @@ import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.string.StringFormatter;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import org.lwjgl.input.Keyboard;
 
-import java.awt.*;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
 
 /**
@@ -236,6 +240,188 @@ public class SettingCommand extends Command {
 
                     // unrecognized setting exception
                     getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Setting!", ChatFormatting.RED + "Please enter a setting that exists in " + module.getName() + ".");
+                }
+            }
+        }
+
+        else if (args.length == 3) {
+
+            // setting to configure
+            Setting<?> setting = module.getSetting(setting1 -> setting1.equals(args[0]));
+
+            // list setting
+            if (setting.getValue() instanceof List<?>) {
+
+                // value
+                List<?> value = (List<?>) setting.getValue();
+
+                // make sure the list is not empty
+                if (!value.isEmpty()) {
+
+                    // object type
+                    Object object = value.get(0);
+
+                    // add to list
+                    if (args[1].equalsIgnoreCase("Add")) {
+
+                        // new item
+                        String newItem = args[2].startsWith("minecraft:") ? args[2] : "minecraft:" + args[2];
+
+                        // item list
+                        if (object instanceof Item) {
+
+                            // item from name
+                            Item item = Item.getByNameOrId(newItem);
+
+                            // check if item is valid
+                            if (item != null) {
+
+                                // new item list
+                                List<Item> items = new ArrayList<>();
+
+                                // add all
+                                for (Object object1 : value) {
+
+                                    // check item, was getting some weird crashes
+                                    if (object1 instanceof Item) {
+                                        items.add((Item) object1);
+                                    }
+                                }
+
+                                // add to list
+                                items.add(item);
+
+                                // update list
+                                ((Setting<List<?>>) setting).setValue(items);
+                                getCosmos().getChatManager().sendHoverableMessage("[" + module.getName() + "] Added " + ChatFormatting.GRAY + newItem + ChatFormatting.RESET + " to " + ChatFormatting.GRAY + setting.getName(), "The setting has been updated.");
+                            }
+
+                            else {
+
+                                // unrecognized item exception
+                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Item!", ChatFormatting.RED + "Please enter a valid item. Must be a registry name (i.e. minecraft:apple).");
+                            }
+                        }
+
+                        else if (object instanceof Block) {
+
+                            // block from name
+                            Block block = Block.getBlockFromName(newItem);
+
+                            // check if item is valid
+                            if (block != null) {
+
+                                // new block list
+                                List<Block> blocks = new ArrayList<>();
+
+                                // add all
+                                for (Object object1 : value) {
+
+                                    // check item, was getting some weird crashes
+                                    if (object1 instanceof Block) {
+                                        blocks.add((Block) object1);
+                                    }
+                                }
+
+                                // add to list
+                                blocks.add(block);
+
+                                // update list
+                                ((Setting<List<?>>) setting).setValue(blocks);
+                                getCosmos().getChatManager().sendHoverableMessage("[" + module.getName() + "] Added " + ChatFormatting.GRAY + newItem + ChatFormatting.RESET + " to " + ChatFormatting.GRAY + setting.getName(), "The setting has been updated.");
+                            }
+
+                            else {
+
+                                // unrecognized item exception
+                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Block!", ChatFormatting.RED + "Please enter a valid block. Must be a registry name (i.e. minecraft:obsidian).");
+                            }
+                        }
+                    }
+
+                    // remove from list
+                    else if (args[1].equalsIgnoreCase("Remove") || args[1].equalsIgnoreCase("Delete") || args[1].equalsIgnoreCase("Del")) {
+
+                        // new item
+                        String newItem = args[2].startsWith("minecraft:") ? args[2] : "minecraft:" + args[2];
+
+                        // item list
+                        if (object instanceof Item) {
+
+                            // item from name
+                            Item item = Item.getByNameOrId(newItem);
+
+                            // check if item is valid
+                            if (item != null) {
+
+                                // new item list
+                                List<Item> items = new ArrayList<>();
+
+                                // add all
+                                for (Object object1 : value) {
+
+                                    // check item, was getting some weird crashes
+                                    if (object1 instanceof Item) {
+                                        items.add((Item) object1);
+                                    }
+                                }
+
+                                // add to list
+                                items.remove(item);
+
+                                // update list
+                                ((Setting<List<?>>) setting).setValue(items);
+                                getCosmos().getChatManager().sendHoverableMessage("[" + module.getName() + "] Removed " + ChatFormatting.GRAY + newItem + ChatFormatting.RESET + " from " + ChatFormatting.GRAY + setting.getName(), "The setting has been updated.");
+                            }
+
+                            else {
+
+                                // unrecognized item exception
+                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Item!", ChatFormatting.RED + "Please enter a valid item. Must be a registry name (i.e. minecraft:apple).");
+                            }
+                        }
+
+                        else if (object instanceof Block) {
+
+                            // block from name
+                            Block block = Block.getBlockFromName(newItem);
+
+                            // check if item is valid
+                            if (block != null) {
+
+                                // new block list
+                                List<Block> blocks = new ArrayList<>();
+
+                                // add all
+                                for (Object object1 : value) {
+
+                                    // check item, was getting some weird crashes
+                                    if (object1 instanceof Block) {
+                                        blocks.add((Block) object1);
+                                    }
+                                }
+
+                                // add to list
+                                blocks.remove(block);
+
+                                // update list
+                                ((Setting<List<?>>) setting).setValue(blocks);
+                                getCosmos().getChatManager().sendHoverableMessage("[" + module.getName() + "] Removed " + ChatFormatting.GRAY + newItem + ChatFormatting.RESET + " from " + ChatFormatting.GRAY + setting.getName(), "The setting has been updated.");
+                            }
+
+                            else {
+
+                                // unrecognized item exception
+                                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Block!", ChatFormatting.RED + "Please enter a valid block. Must be a registry name (i.e. minecraft:obsidian).");
+                            }
+                        }
+                    }
+
+                    else {
+
+                        // unrecognized arguments exception
+                        getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Action!", ChatFormatting.RED + "Please enter the correct action for this command.");
+                    }
                 }
             }
         }

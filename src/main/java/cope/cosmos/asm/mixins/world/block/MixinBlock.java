@@ -21,7 +21,7 @@ public class MixinBlock {
 //        }
 
         if (WallhackModule.INSTANCE.isEnabled()) {
-            info.setReturnValue(WallhackModule.WHITELIST.contains((Block) (Object) this));
+            info.setReturnValue(WallhackModule.INSTANCE.isValid((Block) (Object) this));
         }
     }
 

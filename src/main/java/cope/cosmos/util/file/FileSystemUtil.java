@@ -29,7 +29,6 @@ public class FileSystemUtil {
     public static final Path INFO;
     public static final Path SOCIAL;
     public static final Path ALTS;
-    public static final Path WALLHACK;
     public static final Path GUI;
     public static final Path KEYBINDS;
 
@@ -214,7 +213,6 @@ public class FileSystemUtil {
         INFO = COSMOS.resolve("info.toml");
         SOCIAL = COSMOS.resolve("social.toml");
         ALTS = COSMOS.resolve("alts.toml");
-        WALLHACK = COSMOS.resolve("wallhack_blocks.toml");
         GUI = COSMOS.resolve("gui.toml");
         KEYBINDS = COSMOS.resolve("keybinds.toml");
 
@@ -230,7 +228,6 @@ public class FileSystemUtil {
         createSystemFile(INFO, false);
         createSystemFile(SOCIAL, false);
         createSystemFile(ALTS, false);
-        createSystemFile(WALLHACK, false);
         createSystemFile(GUI, false);
     }
 }

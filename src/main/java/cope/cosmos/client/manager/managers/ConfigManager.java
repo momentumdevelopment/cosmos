@@ -15,6 +15,7 @@ import cope.cosmos.client.ui.altgui.AltEntry;
 import cope.cosmos.client.ui.altgui.AltManagerGUI;
 import cope.cosmos.util.file.FileSystemUtil;
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.util.math.Vec2f;
 
 import java.awt.*;
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -54,7 +56,6 @@ public class ConfigManager extends Manager {
 
         loadSocial();
         loadAlts();
-        loadWallhack();
         loadKeybinds();
 
         // add our shutdown hook
@@ -68,7 +69,6 @@ public class ConfigManager extends Manager {
             saveModules();
             saveSocial();
             saveAlts();
-            saveWallhack();
             saveGUI();
             saveKeybinds();
 
@@ -329,6 +329,80 @@ public class ConfigManager extends Manager {
                                         }
                                     }
 
+                                    else if (setting.getValue() instanceof List<?>) {
+
+                                        // list value
+                                        List<?> value = inputTOML.getList(identifier);
+
+                                        // check if the list exists
+                                        if (value != null) {
+
+                                            // list type
+                                            boolean itemList = false;
+                                            boolean blockList = false;
+
+                                            // lists
+                                            List<Item> items = new ArrayList<>();
+                                            List<Block> blocks = new ArrayList<>();
+
+                                            // iterate through the list
+                                            for (Object object : value) {
+
+                                                // check if the object is a string
+                                                if (object instanceof String) {
+
+                                                    // item list
+                                                    if (((String) object).contains("item-")) {
+
+                                                        // update type
+                                                        if (!itemList) {
+                                                            itemList = true;
+                                                        }
+
+                                                        // value of the object
+                                                        String objectValue = ((String) object).substring(5);
+
+                                                        // item value
+                                                        Item itemValue = Item.getByNameOrId(objectValue);
+
+                                                        // add to list
+                                                        if (itemValue != null) {
+                                                            items.add(itemValue);
+                                                        }
+                                                    }
+
+                                                    // block list
+                                                    else if (((String) object).contains("block-")) {
+
+                                                        // update type
+                                                        if (!blockList) {
+                                                            blockList = true;
+                                                        }
+
+                                                        // value of the object
+                                                        String objectValue = ((String) object).substring(6);
+
+                                                        // block value
+                                                        Block blockValue = Block.getBlockFromName(objectValue);
+
+                                                        // add to list
+                                                        if (blockValue != null) {
+                                                            blocks.add(blockValue);
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (itemList) {
+                                                ((Setting<List<?>>) setting).setValue(items);
+                                            }
+
+                                            else if (blockList) {
+                                                ((Setting<List<?>>) setting).setValue(blocks);
+                                            }
+                                        }
+                                    }
+
                                 } catch (Exception exception) {
                                     exception.printStackTrace();
                                 }
@@ -441,40 +515,6 @@ public class ConfigManager extends Manager {
         // notify user
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Alts were loaded successfully!");
-        }
-    }
-
-    private void loadWallhack() {
-        String content = FileSystemUtil.read(FileSystemUtil.WALLHACK, true);
-        if (content == null || content.isEmpty()) {
-            saveModules();
-        }
-
-        // clear out old wallhack blocks
-        WallhackModule.WHITELIST.clear();
-
-        // Input TOML
-        Toml toml = new Toml().read(content);
-
-        if (toml != null) {
-            if (toml.<String>getList("blocks") != null) {
-                toml.<String>getList("blocks").forEach((blockId) -> {
-                    Block block = Block.getBlockFromName(blockId);
-                    if (block != null) {
-                        WallhackModule.WHITELIST.add(block);
-                    }
-                });
-            }
-        }
-
-        // if our saved config didn't add any blocks, we'll add the default ones
-        if (WallhackModule.WHITELIST.isEmpty()) {
-            WallhackModule.WHITELIST.addAll(WallhackModule.DEFAULT_BLOCKS);
-        }
-
-        // notify user
-        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
-            System.out.println("[Cosmos] Wallhack blocks were loaded successfully!");
         }
     }
 
@@ -607,8 +647,9 @@ public class ConfigManager extends Manager {
 
                     module.getAllSettings().forEach(setting -> {
                         if (setting != null) {
+
                             // add the parent identifier if the setting is a subsetting
-                            {
+                            if (!setting.getName().equalsIgnoreCase("Bind")) {
                                 if (setting.hasParent()) {
                                     outputTOML.append(setting.getParentSetting().getName()).append("-").append(setting.getName());
                                 }
@@ -616,9 +657,9 @@ public class ConfigManager extends Manager {
                                 else {
                                     outputTOML.append(setting.getName());
                                 }
-                            }
 
-                            outputTOML.append(" = ");
+                                outputTOML.append(" = ");
+                            }
 
                             // write the setting value
                             {
@@ -638,13 +679,38 @@ public class ConfigManager extends Manager {
                                     }
                                 }
 
+                                else if (setting.getValue() instanceof List<?>) {
+                                    outputTOML.append("[ ");
+
+                                    for (Object object : ((List<?>) setting.getValue())) {
+                                        outputTOML.append("\"");
+
+                                        if (object instanceof Item) {
+                                            outputTOML.append("item-")
+                                                    .append(((Item) object).getRegistryName());
+                                        }
+
+                                        if (object instanceof Block) {
+                                            outputTOML.append("block-")
+                                                    .append(((Block) object).getRegistryName());
+                                        }
+
+                                        outputTOML.append("\"")
+                                                .append(", ");
+                                    }
+
+                                    outputTOML.append("]");
+                                }
+
                                 else {
                                     outputTOML.append(setting.getValue());
                                 }
                             }
 
                             // put the next setting on a new line
-                            outputTOML.append("\r\n");
+                            if (!setting.getName().equalsIgnoreCase("Bind")) {
+                                outputTOML.append("\r\n");
+                            }
                         }
                     });
 
@@ -735,40 +801,6 @@ public class ConfigManager extends Manager {
         // notify user
         if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
             System.out.println("[Cosmos] Alts were saved successfully!");
-        }
-    }
-
-    /**
-     * Writes the user's wallhack blocks to a TOML file
-     */
-    private void saveWallhack() {
-
-        // Output string
-        StringBuilder output = new StringBuilder("blocks = [");
-
-        // grab the list of blocks to save
-        List<Block> blocksToSave = WallhackModule.WHITELIST;
-
-        // if the blocks to use is empty, we'll go ahead and reset them
-        if (blocksToSave.isEmpty()) {
-            blocksToSave = WallhackModule.DEFAULT_BLOCKS;
-            WallhackModule.WHITELIST.addAll(WallhackModule.DEFAULT_BLOCKS);
-        }
-
-        // write our array
-        blocksToSave.forEach((block) -> output
-                .append("\"")
-                .append(block.getRegistryName())
-                .append("\"")
-                .append(","));
-
-        output.append("]");
-
-        FileSystemUtil.write(FileSystemUtil.WALLHACK, output.toString());
-
-        // notify user
-        if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
-            System.out.println("[Cosmos] Wallhack blocks were saved successfully!");
         }
     }
 

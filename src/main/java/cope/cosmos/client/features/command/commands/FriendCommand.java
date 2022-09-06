@@ -56,6 +56,18 @@ public class FriendCommand extends Command {
                     // command success
                     getCosmos().getChatManager().sendClientMessage("Removed friend with name " + ChatFormatting.GRAY + friend.getName());
                 }
+
+                else {
+
+                    // unrecognized arguments exception
+                    getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Action!", ChatFormatting.RED + "Please enter the correct action for this command.");
+                }
+            }
+
+            else {
+
+                // unrecognized player exception
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Player!", ChatFormatting.RED + "Player could not be found.");
             }
         }
 
@@ -82,6 +94,12 @@ public class FriendCommand extends Command {
 
                 // command success
                 getCosmos().getChatManager().sendClientMessage("Added friend with name " + ChatFormatting.GRAY + friend.getName());
+            }
+
+            else {
+
+                // unrecognized player exception
+                getCosmos().getChatManager().sendHoverableMessage(ChatFormatting.RED + "Unrecognized Player!", ChatFormatting.RED + "Player could not be found.");
             }
         }
 
