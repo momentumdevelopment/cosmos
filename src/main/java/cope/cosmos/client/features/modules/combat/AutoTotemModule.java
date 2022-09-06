@@ -1,7 +1,6 @@
 package cope.cosmos.client.features.modules.combat;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
-import cope.cosmos.client.events.combat.TotemPopEvent;
+import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
@@ -23,6 +22,7 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -71,7 +71,7 @@ public class AutoTotemModule extends Module {
     private final Timer offhandTimer = new Timer();
 
     @Override
-    public void onThread() {
+    public void onTick() {
 
         // can't switch while we are in a screen
         if (mc.currentScreen == null) {
@@ -359,24 +359,23 @@ public class AutoTotemModule extends Module {
     }
 
     @SubscribeEvent
-    public void onTotemPop(TotemPopEvent event) {
-
+    public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
         if (nullCheck()) {
 
-            // player has popped
-            if (event.getPopEntity().equals(mc.player)) {
+            // packet for totem pops
+            if (event.getPacket() instanceof SPacketEntityStatus && ((SPacketEntityStatus) event.getPacket()).getOpCode() == 35) {
 
-                // switch item
-                Item item = Items.TOTEM_OF_UNDYING;
+                // entity that popped
+                Entity entity = ((SPacketEntityStatus) event.getPacket()).getEntity(mc.world);
 
-                // already in offhand
-                if (!mc.player.getHeldItemOffhand().getItem().equals(item)) {
+                // player has popped
+                if (entity != null && entity.equals(mc.player)) {
 
                     // item slot
                     // find our item in our inventory
                     int itemSlot = -1;
                     for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
-                        if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
+                        if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(Items.TOTEM_OF_UNDYING)) {
                             itemSlot = i;
                             break;
                         }

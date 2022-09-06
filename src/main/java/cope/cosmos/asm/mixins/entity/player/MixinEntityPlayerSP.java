@@ -66,7 +66,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     @Shadow
     protected abstract boolean isCurrentViewEntity();
 
-    @Shadow public abstract void onUpdate();
+    @Shadow
+    public abstract void onUpdate();
 
     @Redirect(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"))
     public void move(AbstractClientPlayer player, MoverType type, double x, double y, double z) {
@@ -185,7 +186,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
         }
     }
 
-    @Inject(method = "onUpdate", at = @At(value = "INVOKE", target = "net/minecraft/client/entity/EntityPlayerSP.onUpdateWalkingPlayer()V", ordinal = 0, shift = At.Shift.AFTER))
+    @Inject(method = "onUpdate", at = @At(value = "INVOKE", target = "net/minecraft/client/entity/EntityPlayerSP.onUpdateWalkingPlayer()V", ordinal = 0, shift = At.Shift.AFTER), cancellable = true)
     public void onUpdateMovingPlayerPost(CallbackInfo info) {
 
         // event is locked
@@ -201,6 +202,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
         float pitch = getCosmos().getRotationManager().getRotation().isValid() ? getCosmos().getRotationManager().getRotation().getPitch() : mc.player.rotationPitch;
 
         if (updateWalkingPlayerEvent.isCanceled()) {
+
+            info.cancel();
 
             // idk
             if (updateWalkingPlayerEvent.getIterations() > 0) {

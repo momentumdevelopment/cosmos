@@ -1,6 +1,8 @@
 package cope.cosmos.asm.mixins.entity.player;
 
 import cope.cosmos.client.Cosmos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -18,10 +20,12 @@ public abstract class MixinInventoryPlayer {
 
     @Shadow public int currentItem;
 
+    @Shadow public EntityPlayer player;
+
     @Inject(method = "getCurrentItem", at = @At("HEAD"), cancellable = true)
     public void getCurrentItem(CallbackInfoReturnable<ItemStack> info) {
         Cosmos cosmos = Cosmos.INSTANCE;
-        if (cosmos != null && cosmos.getInventoryManager() != null) {
+        if (cosmos != null && cosmos.getInventoryManager() != null && player.equals(Minecraft.getMinecraft().player)) {
             int slot = cosmos.getInventoryManager().getServerSlot();
             if (slot == -1) {
                 slot = currentItem;

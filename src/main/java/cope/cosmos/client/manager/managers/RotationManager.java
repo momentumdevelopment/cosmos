@@ -25,7 +25,7 @@ public class RotationManager extends Manager implements Wrapper {
 
     // current rotation
     private Rotation rotation = new Rotation(Float.NaN, Float.NaN);
-    private long stay = 0L;
+    private long stay = 0;
 
     public RotationManager() {
         super("RotationManager", "Keeps track of server rotations");
@@ -34,7 +34,7 @@ public class RotationManager extends Manager implements Wrapper {
 
     @Override
     public void onTick() {
-        if (System.currentTimeMillis() - stay >= 250L && rotation.isValid()) {
+        if (System.currentTimeMillis() - stay >= 250 && rotation.isValid()) {
             rotation = new Rotation(Float.NaN, Float.NaN);
         }
     }
@@ -62,9 +62,6 @@ public class RotationManager extends Manager implements Wrapper {
     public void onMotionUpdate(MotionUpdateEvent event) {
         if (rotation.isValid()) {
 
-            // cancel, we'll send our own rotations
-            event.setCanceled(true);
-
             // assign vanilla values
             event.setOnGround(mc.player.onGround);
             event.setX(mc.player.posX);
@@ -74,6 +71,9 @@ public class RotationManager extends Manager implements Wrapper {
             // set the rotation to be our custom value
             event.setYaw(rotation.getYaw());
             event.setPitch(rotation.getPitch());
+
+            // cancel, we'll send our own rotations
+            event.setCanceled(true);
         }
     }
 

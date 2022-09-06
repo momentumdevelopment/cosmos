@@ -1,10 +1,8 @@
 package cope.cosmos.client.features.modules.combat;
 
 import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
-import cope.cosmos.asm.mixins.accessor.IEntityPlayerSP;
 import cope.cosmos.client.events.entity.player.RotationUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
-import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.player.SwingModule;
@@ -304,31 +302,31 @@ public class AuraModule extends Module {
                     // yaw and pitch to the angle vector
                     rotateAngles = AngleUtil.calculateAngles(angleVector);
 
-                    // rotation that we have serverside
-                    Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
+                    // yaw step requires slower rotations, so we ease into the target rotation, requires some silly math
+                    if (yawStep.getValue()) {
 
-                    // wrapped yaw value
-                    float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
+                        // rotation that we have serverside
+                        Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
 
-                    // difference between current and upcoming rotation
-                    float angleDifference = rotateAngles.getYaw() - yaw;
+                        // wrapped yaw value
+                        float yaw = MathHelper.wrapDegrees(serverRotation.getYaw());
 
-                    // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
-                    // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
-                    // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
-                    if (Math.abs(angleDifference) > 180) {
+                        // difference between current and upcoming rotation
+                        float angleDifference = rotateAngles.getYaw() - yaw;
 
-                        // adjust yaw
-                        float adjust = angleDifference > 0 ? -360 : 360;
-                        angleDifference += adjust;
-                    }
+                        // should never be over 180 since the angles are at max 180 and if it's greater than 180 this means we'll be doing a less than ideal turn
+                        // (i.e current = 180, required = -180 -> the turn will be 360 degrees instead of just no turn since 180 and -180 are equivalent)
+                        // at worst scenario, current = 90, required = -90 creates a turn of 180 degrees, so this will be our max
+                        if (Math.abs(angleDifference) > 180) {
 
-                    // use absolute angle diff
-                    // rotating too fast
-                    if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
+                            // adjust yaw
+                            float adjust = angleDifference > 0 ? -360 : 360;
+                            angleDifference += adjust;
+                        }
 
-                        // check if we need to yaw step
-                        if (yawStep.getValue()) {
+                        // use absolute angle diff
+                        // rotating too fast
+                        if (Math.abs(angleDifference) > yawStepThreshold.getValue()) {
 
                             // ideal rotation direction
                             int rotationDirection = angleDifference > 0 ? 1 : -1;
@@ -352,8 +350,22 @@ public class AuraModule extends Module {
                             // we need to wait till we reach our rotation
                             rotateTicks++;
                         }
+
+                        else {
+
+                            // update player rotations
+                            if (rotate.getValue().equals(Rotate.CLIENT)) {
+                                mc.player.rotationYaw = rotateAngles.getYaw();
+                                mc.player.rotationYawHead = rotateAngles.getYaw();
+                                mc.player.rotationPitch = rotateAngles.getPitch();
+                            }
+
+                            // add our rotation to our client rotations
+                            getCosmos().getRotationManager().setRotation(rotateAngles);
+                        }
                     }
 
+                    // rotate to target instantly
                     else {
 
                         // update player rotations
@@ -363,32 +375,9 @@ public class AuraModule extends Module {
                             mc.player.rotationPitch = rotateAngles.getPitch();
                         }
 
-                        // add our rotation to our client rotations, AutoCrystal has priority over all other rotations
+                        // add our rotation to our client rotations
                         getCosmos().getRotationManager().setRotation(rotateAngles);
                     }
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onRenderRotations(RenderRotationsEvent event) {
-
-        // packet rotations
-        if (rotate.getValue().equals(Rotate.PACKET)) {
-
-            // render angles if rotating
-            if (isActive()) {
-
-                // rotate only if we have an interaction vector to rotate to
-                if (rotateAngles != null) {
-
-                    // cancel the model rendering for rotations, we'll set it to our values
-                    event.setCanceled(true);
-
-                    // set our model angles; visual
-                    event.setYaw(rotateAngles.getYaw());
-                    event.setPitch(rotateAngles.getPitch());
                 }
             }
         }
@@ -481,15 +470,6 @@ public class AuraModule extends Module {
             return false;
         }
 
-        // wait for rotations
-        if (!rotate.getValue().equals(Rotate.NONE) && yawStep.getValue()) {
-
-            // check if we are facing the position
-            if (!isFacing(angleVector)) {
-                return false;
-            }
-        }
-
         // pause switch to account for actions
         if (PlayerUtil.isEating() || PlayerUtil.isMending() || PlayerUtil.isMining()) {
             autoSwitchTimer.resetTime();
@@ -536,11 +516,12 @@ public class AuraModule extends Module {
         if (stopSprint.getValue()) {
 
             // update sprint state
-            sprintState = mc.player.isSprinting() || ((IEntityPlayerSP) mc.player).getServerSprintState();
+            sprintState = mc.player.isSprinting();
 
             // stop sprinting when attacking an entity
             if (sprintState) {
                 mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.STOP_SPRINTING));
+                mc.player.setSprinting(false);
             }
         }
 
@@ -584,6 +565,7 @@ public class AuraModule extends Module {
         // reset sprint state
         if (sprintState) {
             mc.player.connection.sendPacket(new CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING));
+            mc.player.setSprinting(true);
         }
 
         return true;
@@ -600,26 +582,6 @@ public class AuraModule extends Module {
 
         // check if player is holding weapon
         return InventoryUtil.isHolding(weaponItem);
-    }
-
-    /**
-     * Checks if the player is facing a certain vector
-     * @return Whether the player is facing a certain vector
-     */
-    public boolean isFacing(Vec3d in) {
-
-        // yaw and pitch that we've sent to the server
-        Rotation serverRotation = getCosmos().getRotationManager().getServerRotation();
-
-        // target rotation
-        Rotation facingRotation = AngleUtil.calculateAngles(in);
-
-        // rotation diffs
-        float yaw = Math.abs(serverRotation.getYaw() - facingRotation.getYaw());
-        float pitch = Math.abs(serverRotation.getPitch() - facingRotation.getPitch());
-
-        // both yaw and pitch must be nearly equal to facing rotation
-        return yaw <= 0.1 & pitch <= 0.1;
     }
 
     public enum Raytrace {
