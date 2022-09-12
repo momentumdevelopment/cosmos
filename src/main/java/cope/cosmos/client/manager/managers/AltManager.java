@@ -20,6 +20,15 @@ public class AltManager extends Manager {
     }
 
     /**
+     * Gets the index of alt entries
+     * @param in The in
+     * @return Returns alt entry
+     */
+    public AltEntry indexOf(int in) {
+        return (AltEntry) altEntries.toArray()[in];
+    }
+
+    /**
      * Gets the alt entries
      * @return The alt entries
      */

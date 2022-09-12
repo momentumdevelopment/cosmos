@@ -1,10 +1,11 @@
 package cope.cosmos.client.features.modules.visual;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import cope.cosmos.asm.mixins.accessor.IEntityRenderer;
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.asm.mixins.accessor.IRenderManager;
 import cope.cosmos.asm.mixins.accessor.IShaderGroup;
+import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
@@ -23,7 +24,6 @@ import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
 import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.math.Timer;
-import cope.cosmos.util.player.RubberBand;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -67,7 +67,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * @author linustouchtips, Surge, aesthetical
+ * @author linustouchtips, Surge, aesthetical, oragejuice
  * @since 07/21/2021
  */
 public class ESPModule extends Module {
@@ -139,23 +139,17 @@ public class ESPModule extends Module {
     public static Setting<Boolean> lagESP = new Setting<>("Rubberband", false)
             .setDescription("shows your rubberbands");
 
-    public static Setting<Float> fadeSpeed = new Setting<>("FadeTime", 1F, 2F, 10F, 1)
+    public static Setting<Float> fadeSpeed = new Setting<>("FadeSpeed", 1F, 2F, 10F, 1)
             .setDescription("How long the rubber band should show for")
-            .setParent(lagESP)
             .setVisible(() -> lagESP.getValue());
 
     public static Setting<Float> rubberWidth = new Setting<>("LineWidth", 0.1F, 2F, 5F, 1)
             .setDescription("The width of the lines")
-            .setParent(lagESP)
             .setVisible(() -> lagESP.getValue());
 
     public static Setting<Boolean> reverse = new Setting<>("Inverse", false)
             .setDescription("Direction of fade")
-            .setParent(lagESP)
             .setVisible(() -> lagESP.getValue());
-
-
-
 
     // framebuffer
     private Framebuffer framebuffer;
@@ -173,7 +167,7 @@ public class ESPModule extends Module {
     private final List<Vec3d> chorusTeleports = new ArrayList<>();
 
     private final LinkedList<RubberBand> list = new LinkedList<>();
-    private Timer lastChorus = new Timer();
+    private final Timer lastChorus = new Timer();
 
     @Override
     public void onUpdate() {
@@ -246,9 +240,13 @@ public class ESPModule extends Module {
                 chorusTeleports.add(new Vec3d(packet.getX(), packet.getY(), packet.getZ()));
             }
         }
-        if (lagESP.getValue()) {
-            if (event.getPacket() instanceof SPacketPlayerPosLook) {
-                SPacketPlayerPosLook p = (SPacketPlayerPosLook) event.getPacket();
+
+        // packet for rubberbands
+        if (event.getPacket() instanceof SPacketPlayerPosLook) {
+            SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
+
+            // log rubberband
+            if (lagESP.getValue()) {
 
                 // if we have eaten a chorus recently, then the teleport is likely that of the chorus
                 if (!lastChorus.passedTime(400, Timer.Format.MILLISECONDS)) {
@@ -257,20 +255,22 @@ public class ESPModule extends Module {
 
                 //if the teleport (x and z values only) is telporting you more than 8 blocks
                 // then it is likely not a rubberband
-                if (mc.player.getPositionVector().distanceTo(new Vec3d(p.getX(), mc.player.posY, p.getZ())) > 16) {
+                if (mc.player.getPositionVector().distanceTo(new Vec3d(packet.getX(), mc.player.posY, packet.getZ())) > 16) {
                     return;
                 }
+
                 /* register that a rubberband happened */
-                list.add(new RubberBand(
-                        mc.player.getPositionVector(),
-                        new Vec3d(p.getX(), p.getY(), p.getZ()
-                        )));
-
+                list.add(new RubberBand(mc.player.getPositionVector(), new Vec3d(packet.getX(), packet.getY(), packet.getZ())));
             }
+        }
 
-            if (event.getPacket() instanceof CPacketPlayerTryUseItem) {
-                if (mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
-                    this.lastChorus.resetTime();
+        // packet for item use
+        if (event.getPacket() instanceof CPacketPlayerTryUseItem) {
+
+            // used chorus
+            if (mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
+                if (lagESP.getValue()) {
+                    lastChorus.resetTime();
                 }
             }
         }
@@ -298,7 +298,9 @@ public class ESPModule extends Module {
             });
         }
 
+        // render rubberband
         if (lagESP.getValue()){
+
             // Render positions
             list.forEach(r -> {
 
@@ -314,8 +316,6 @@ public class ESPModule extends Module {
                 mc.entityRenderer.disableLightmap();
 
                 glBegin(GL_LINE_STRIP);
-
-
 
                 // Set line colour
                 //starting position should always be clear
@@ -343,7 +343,6 @@ public class ESPModule extends Module {
                 // calculate intermediary point
                 r.calculateIntermediary();
 
-
                 //render to the intermadiary point
                 // draw line from starting initial position to intermediary point
                 glVertex3d(
@@ -359,6 +358,7 @@ public class ESPModule extends Module {
                         reverse.getValue() ? 0.1F : 1F
 
                 );
+
                 glVertex3d(
                         r.getTo().x - mc.getRenderManager().viewerPosX,
                         r.getTo().y - mc.getRenderManager().viewerPosY,
@@ -385,7 +385,6 @@ public class ESPModule extends Module {
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
-
         if (nullCheck()) {
 
             // render over hotbar
@@ -433,28 +432,39 @@ public class ESPModule extends Module {
 
                     // make sure render manager is not null this caused issues when launching game
                     if (mc.getRenderManager() != null) {
+                        try {
 
-                        // draw all entities
-                        mc.world.loadedEntityList.forEach(entity -> {
-                            if (entity != null && entity != mc.getRenderViewEntity() && hasHighlight(entity)) {
-                                mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
+                            // draw all entities
+                            for (Entity entity : mc.world.loadedEntityList) {
+
+                                // render entity if valid
+                                if (entity != null && entity != mc.getRenderViewEntity() && hasHighlight(entity)) {
+                                    mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), true);
+                                }
                             }
-                        });
-                    }
 
-                    // draw all storages
-                    mc.world.loadedTileEntityList.forEach(tileEntity -> {
-                        if (tileEntity != null && hasStorageHighlight(tileEntity)) {
+                            // draw all storages
+                            for (TileEntity tileEntity : mc.world.loadedTileEntityList)
 
-                            // get our render offsets.
-                            double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
-                            double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
-                            double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
+                                // draw tile entity if valid
+                                if (tileEntity != null && hasStorageHighlight(tileEntity)) {
 
-                            // render
-                            TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
+                                    // get our render offsets.
+                                    double renderX = ((IRenderManager) mc.getRenderManager()).getRenderX();
+                                    double renderY = ((IRenderManager) mc.getRenderManager()).getRenderY();
+                                    double renderZ = ((IRenderManager) mc.getRenderManager()).getRenderZ();
+
+                                    // render
+                                    TileEntityRendererDispatcher.instance.render(tileEntity, tileEntity.getPos().getX() - renderX, tileEntity.getPos().getY() - renderY, tileEntity.getPos().getZ() - renderZ, mc.getRenderPartialTicks());
+                                }
+                        } catch (Exception exception) {
+
+                            // show error if dev mode
+                            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
+                                exception.printStackTrace();
+                            }
                         }
-                    });
+                    }
 
                     // reset shadows
                     mc.gameSettings.entityShadows = previousShadows;
@@ -885,7 +895,6 @@ public class ESPModule extends Module {
     }
 
     /*
-
     @SubscribeEvent
     public void onRenderEntityItem(RenderEntityItemEvent event) {
         if (mode.getValue().equals(Mode.OUTLINE)) {
@@ -989,7 +998,6 @@ public class ESPModule extends Module {
             }
         }
     }
-
      */
 
     @SubscribeEvent
@@ -1003,9 +1011,6 @@ public class ESPModule extends Module {
             event.setCanceled(true);
         }
     }
-
-
-
 
     /**
      * Gets the color for a given entity
@@ -1070,6 +1075,102 @@ public class ESPModule extends Module {
         OUTLINE_FILL
     }
 
+    /**
+     * @author oragejuice
+     * @since 09/11/2022
+     */
+    public static class RubberBand {
+
+        //where the player was initially
+        private final Vec3d from;
+
+        //where they got rubberbanded to
+        private final Vec3d to;
+
+        // time of rubberband
+        private final long time;
+
+        // pos
+        private Vec3d intermediary;
+
+        public RubberBand(Vec3d from, Vec3d to) {
+            this.from = from;
+            this.to = to;
+            this.time = System.currentTimeMillis();
+            intermediary = from;
+        }
+
+        /**
+         * Gets the original position
+         * @return The original position
+         */
+        public Vec3d getFrom() {
+            return from;
+        }
+
+        /**
+         * Gets the rubberband position
+         * @return The rubberband position
+         */
+        public Vec3d getTo() {
+            return to;
+        }
+
+        /**
+         * Gets the intermediary position
+         * @return The intermediary position
+         */
+        public Vec3d getIntermediary() {
+            return intermediary;
+        }
+
+        /**
+         * Gets the time of the rubberband
+         * @return The time of the rubberband
+         */
+        public long getTime() {
+            return time;
+        }
+
+        /**
+         * calculate, update then return the intermedarity position for rendering
+         */
+        public void calculateIntermediary() {
+
+            // the difference in time between the creation and now
+            long timeDelta = System.currentTimeMillis() - time;
+            timeDelta = timeDelta == 0 ? 1 : timeDelta;
 
 
+            /*
+             * so normally i would use a higher order function for calcuting the interp,
+             * but im lazy and nobody will ever look at this. so i wont
+             */
+            if (reverse.getValue()) {
+
+                //calculate the difference
+                Vec3d d = from.subtract(to);
+
+                //set the position to be an interpolated value from `from` to `to`
+                intermediary = to.addVector(
+                        d.x * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
+                        d.y * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
+                        d.z * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000))
+                );
+            }
+
+            else {
+
+                //calculate the difference
+                Vec3d d = to.subtract(from);
+
+                //set the position to be an interpolated value from `from` to `to`
+                intermediary = from.addVector(
+                        d.x * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
+                        d.y * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
+                        d.z * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000))
+                );
+            }
+        }
+    }
 }

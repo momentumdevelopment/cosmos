@@ -68,6 +68,7 @@
         "render.tile.MixinTileEntityBeaconRenderer",
         "render.tile.MixinTileEntityEnchantmentTableRenderer",
         "render.tile.MixinTileEntityRenderDispatcher",
+        "render.renderer.MixinGlStateManager",
         "render.MixinBufferBuilder",
         "render.MixinRender",
         "render.MixinRenderGlobal",

@@ -3,17 +3,16 @@ package cope.cosmos.client.features.modules.combat;
 import cope.cosmos.asm.mixins.accessor.ICPacketPlayer;
 import cope.cosmos.asm.mixins.accessor.IEntity;
 import cope.cosmos.asm.mixins.accessor.INetworkManager;
-import cope.cosmos.client.events.combat.CriticalModifierEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
-import cope.cosmos.util.string.StringFormatter;
-import cope.cosmos.util.player.InventoryUtil;
-import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.entity.EntityUtil;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
-import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.player.InventoryUtil;
+import cope.cosmos.util.player.PlayerUtil;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
 import net.minecraft.init.MobEffects;
@@ -73,9 +72,6 @@ public class CriticalsModule extends Module {
             .setVisible(() -> mode.getValue().equals(Mode.MOTION));
 
     // **************************** general ****************************
-
-    public static Setting<Double> modifier = new Setting<>("Modifier", 0.0D, 1.5D, 10.0D, 2)
-            .setDescription("Modifies the damage done by a critical attack");
 
     public static Setting<Double> delay = new Setting<>("Delay", 0.0D, 200.0D, 2000.0D, 0)
             .setDescription("Delay between attacks to attempt criticals");
@@ -263,13 +259,6 @@ public class CriticalsModule extends Module {
                 }
             }
         }
-    }
-
-    @SubscribeEvent
-    public void onCriticalHit(CriticalModifierEvent event) {
-
-        // set the damage modifier for critical hits
-        event.setDamageModifier(modifier.getValue().floatValue());
     }
 
     public enum Mode {

@@ -2,7 +2,6 @@ package cope.cosmos.client.ui.altgui;
 
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.ui.util.ScissorStack;
-import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.render.RenderUtil;
 import net.minecraft.client.gui.GuiButton;
@@ -187,7 +186,7 @@ public class AltManagerGUI extends GuiScreen {
      * @return The first alt
      */
     private AltEntry getFirstAlt() {
-        return Cosmos.INSTANCE.getAltManager().getAltEntries().get(0);
+        return Cosmos.INSTANCE.getAltManager().indexOf(0);
     }
 
     /**
@@ -196,7 +195,7 @@ public class AltManagerGUI extends GuiScreen {
      * @return The last alt
      */
     private AltEntry getLastAlt() {
-        return Cosmos.INSTANCE.getAltManager().getAltEntries().get(Cosmos.INSTANCE.getAltManager().getAltEntries().size() - 1);
+        return Cosmos.INSTANCE.getAltManager().indexOf(Cosmos.INSTANCE.getAltManager().getAltEntries().size() - 1);
     }
 
     /**
