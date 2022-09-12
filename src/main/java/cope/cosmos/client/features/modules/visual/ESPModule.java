@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.visual;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import cope.cosmos.asm.mixins.accessor.IEntityRenderer;
 import cope.cosmos.asm.mixins.accessor.IRenderGlobal;
 import cope.cosmos.asm.mixins.accessor.IRenderManager;
@@ -21,6 +22,8 @@ import cope.cosmos.client.shader.shaders.FillShader;
 import cope.cosmos.client.shader.shaders.OutlineShader;
 import cope.cosmos.client.shader.shaders.RainbowOutlineShader;
 import cope.cosmos.util.entity.EntityUtil;
+import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.player.RubberBand;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
 import cope.cosmos.util.render.RenderUtil;
@@ -41,6 +44,9 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.ItemChorusFruit;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
+import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.network.play.server.SPacketSoundEffect;
 import net.minecraft.tileentity.*;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -54,6 +60,7 @@ import org.lwjgl.opengl.EXTPackedDepthStencil;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -129,6 +136,27 @@ public class ESPModule extends Module {
     public static Setting<Boolean> chorus = new Setting<>("Chorus", false)
             .setDescription("Highlights chorus teleports");
 
+    public static Setting<Boolean> lagESP = new Setting<>("Rubberband", false)
+            .setDescription("shows your rubberbands");
+
+    public static Setting<Float> fadeSpeed = new Setting<>("FadeTime", 1F, 2F, 10F, 1)
+            .setDescription("How long the rubber band should show for")
+            .setParent(lagESP)
+            .setVisible(() -> lagESP.getValue());
+
+    public static Setting<Float> rubberWidth = new Setting<>("LineWidth", 0.1F, 2F, 5F, 1)
+            .setDescription("The width of the lines")
+            .setParent(lagESP)
+            .setVisible(() -> lagESP.getValue());
+
+    public static Setting<Boolean> reverse = new Setting<>("Inverse", false)
+            .setDescription("Direction of fade")
+            .setParent(lagESP)
+            .setVisible(() -> lagESP.getValue());
+
+
+
+
     // framebuffer
     private Framebuffer framebuffer;
     private int lastScaleFactor;
@@ -143,6 +171,9 @@ public class ESPModule extends Module {
 
     // contains chorus fruit teleports
     private final List<Vec3d> chorusTeleports = new ArrayList<>();
+
+    private final LinkedList<RubberBand> list = new LinkedList<>();
+    private Timer lastChorus = new Timer();
 
     @Override
     public void onUpdate() {
@@ -215,6 +246,34 @@ public class ESPModule extends Module {
                 chorusTeleports.add(new Vec3d(packet.getX(), packet.getY(), packet.getZ()));
             }
         }
+        if (lagESP.getValue()) {
+            if (event.getPacket() instanceof SPacketPlayerPosLook) {
+                SPacketPlayerPosLook p = (SPacketPlayerPosLook) event.getPacket();
+
+                // if we have eaten a chorus recently, then the teleport is likely that of the chorus
+                if (!lastChorus.passedTime(400, Timer.Format.MILLISECONDS)) {
+                    return;
+                }
+
+                //if the teleport (x and z values only) is telporting you more than 8 blocks
+                // then it is likely not a rubberband
+                if (mc.player.getPositionVector().distanceTo(new Vec3d(p.getX(), mc.player.posY, p.getZ())) > 16) {
+                    return;
+                }
+                /* register that a rubberband happened */
+                list.add(new RubberBand(
+                        mc.player.getPositionVector(),
+                        new Vec3d(p.getX(), p.getY(), p.getZ()
+                        )));
+
+            }
+
+            if (event.getPacket() instanceof CPacketPlayerTryUseItem) {
+                if (mc.player.getHeldItemMainhand().getItem() instanceof ItemChorusFruit) {
+                    this.lastChorus.resetTime();
+                }
+            }
+        }
     }
 
     @Override
@@ -236,6 +295,90 @@ public class ESPModule extends Module {
                         .depth(true)
                         .texture()
                 );
+            });
+        }
+
+        if (lagESP.getValue()){
+            // Render positions
+            list.forEach(r -> {
+
+                glPushMatrix();
+                glDisable(GL_TEXTURE_2D);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glEnable(GL_LINE_SMOOTH);
+                glEnable(GL_BLEND);
+                glDisable(GL_DEPTH_TEST);
+                glLineWidth(rubberWidth.getValue());
+
+                // disable render lighting
+                mc.entityRenderer.disableLightmap();
+
+                glBegin(GL_LINE_STRIP);
+
+
+
+                // Set line colour
+                //starting position should always be clear
+                glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F,
+                        ColorUtil.getPrimaryColor().getGreen() / 255F,
+                        ColorUtil.getPrimaryColor().getBlue() / 255F,
+                        reverse.getValue() ? 1F : 0.1F
+                );
+
+                // draw line from starting inital position to intermediary point
+                glVertex3d(
+                        r.getFrom().x - mc.getRenderManager().viewerPosX,
+                        r.getFrom().y - mc.getRenderManager().viewerPosY,
+                        r.getFrom().z - mc.getRenderManager().viewerPosZ
+                );
+
+                //set the intermadiary point colour
+                glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F,
+                        ColorUtil.getPrimaryColor().getGreen() / 255F,
+                        ColorUtil.getPrimaryColor().getBlue() / 255F,
+                        reverse.getValue() ? 1F : 0.1F
+
+                );
+
+                // calculate intermediary point
+                r.calculateIntermediary();
+
+
+                //render to the intermadiary point
+                // draw line from starting initial position to intermediary point
+                glVertex3d(
+                        r.getIntermediary().x - mc.getRenderManager().viewerPosX,
+                        r.getIntermediary().y - mc.getRenderManager().viewerPosY,
+                        r.getIntermediary().z - mc.getRenderManager().viewerPosZ
+                );
+
+                // render to the final position
+                glColor4f(ColorUtil.getPrimaryColor().getRed() / 255F,
+                        ColorUtil.getPrimaryColor().getGreen() / 255F,
+                        ColorUtil.getPrimaryColor().getBlue() / 255F,
+                        reverse.getValue() ? 0.1F : 1F
+
+                );
+                glVertex3d(
+                        r.getTo().x - mc.getRenderManager().viewerPosX,
+                        r.getTo().y - mc.getRenderManager().viewerPosY,
+                        r.getTo().z - mc.getRenderManager().viewerPosZ
+                );
+
+                if (System.currentTimeMillis() - r.getTime() >= fadeSpeed.getValue() * 1000){
+                    list.remove(r);
+                }
+
+                // Reset colour
+                glColor4d(1, 1, 1, 1);
+
+                glEnd();
+                glEnable(GL_DEPTH_TEST);
+                glDisable(GL_LINE_SMOOTH);
+                glDisable(GL_BLEND);
+                glEnable(GL_TEXTURE_2D);
+                glPopMatrix();
+
             });
         }
     }
@@ -861,6 +1004,9 @@ public class ESPModule extends Module {
         }
     }
 
+
+
+
     /**
      * Gets the color for a given entity
      * @param in The entity
@@ -923,4 +1069,7 @@ public class ESPModule extends Module {
          */
         OUTLINE_FILL
     }
+
+
+
 }

@@ -2066,10 +2066,14 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
                 "ms, " +
                 getConfirmTime() +
                 ", " +
-                getAverageCrystalsPerSecond();// add crystals per second
+                getAverageCrystalsPerSecond() +
+                ", " +
+                placeDebug;// add crystals per second
 
         return debug.getValue() ? debugInfo : "";
     }
+
+    static String placeDebug = "none";
 
     /**
      * Gets the number of crystals in the last second
@@ -2188,6 +2192,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
 
             // if the entity will be removed the next tick, we can still place here
             if (entity == null || entity.isDead || deadCrystals.contains(entity.getEntityId())) {
+                placeDebug = "dead";
                 continue;
             }
 
@@ -2201,6 +2206,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
 
                 // we've attacked and haven't "failed" to break yet
                 if (attackedCrystals.containsKey(entity.getEntityId()) && entity.ticksExisted < 20) {
+                    placeDebug = "attacked";
                     continue;
                 }
 
