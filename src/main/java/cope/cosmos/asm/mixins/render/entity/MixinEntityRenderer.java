@@ -30,7 +30,7 @@ public abstract class MixinEntityRenderer {
         Cosmos.EVENT_BUS.post(renderWorldEvent);
     }
 
-    @Inject(method = "setupFog", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "setupFog", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;enableFog()V", shift = At.Shift.BEFORE), cancellable = true)
     public void onSetupFog(int startCoords, float partialTicks, CallbackInfo info) {
         RenderFogEvent renderFogEvent = new RenderFogEvent();
         Cosmos.EVENT_BUS.post(renderFogEvent);

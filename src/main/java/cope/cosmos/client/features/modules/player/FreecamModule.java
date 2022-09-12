@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.player;
 
 import com.mojang.authlib.GameProfile;
+import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
 import cope.cosmos.client.events.client.SettingUpdateEvent;
 import cope.cosmos.client.events.combat.DeathEvent;
@@ -26,7 +27,9 @@ import net.minecraft.util.MovementInputFromOptions;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.InputUpdateEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
@@ -64,7 +67,7 @@ public class FreecamModule extends Module {
 
     // camera entity
     private EntityOtherPlayerMP camera;
-    private EntityOtherPlayerMP serverPositionModel;
+    private EntityOtherPlayerMP playerModel;
 
     @Override
     public void onEnable() {
@@ -122,17 +125,17 @@ public class FreecamModule extends Module {
             if (mode.getValue().equals(Mode.CAMERA)) {
 
                 // visual model of last server position
-                serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+                playerModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
 
                 // match characteristics of player to model -> create a copy
-                serverPositionModel.copyLocationAndAnglesFrom(mc.player);
-                serverPositionModel.rotationYawHead = mc.player.rotationYaw;
-                serverPositionModel.inventory.copyInventory(mc.player.inventory);
-                serverPositionModel.setSneaking(mc.player.isSneaking());
-                serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
+                playerModel.copyLocationAndAnglesFrom(mc.player);
+                playerModel.rotationYawHead = mc.player.rotationYaw;
+                playerModel.inventory.copyInventory(mc.player.inventory);
+                playerModel.setSneaking(mc.player.isSneaking());
+                playerModel.setPrimaryHand(mc.player.getPrimaryHand());
 
                 // add model to world
-                mc.world.addEntityToWorld(-100, serverPositionModel);
+                mc.world.addEntityToWorld(-100, playerModel);
                 ((IMinecraft) mc).hookSetRenderViewEntity(camera);
             }
 
@@ -168,14 +171,10 @@ public class FreecamModule extends Module {
     }
 
     @SubscribeEvent
-    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+    public void onWorldUnload(WorldEvent.Unload event) {
 
-        // player logs out
-        if (event.player.equals(mc.player)) {
-
-            // disable on logout
-            disable(true);
-        }
+        // disable on logout
+        disable(true);
     }
 
     @Override
@@ -189,34 +188,37 @@ public class FreecamModule extends Module {
         }
 
         // sync server model
-        if (serverPositionModel != null) {
-            serverPositionModel.motionX = mc.player.motionX;
-            serverPositionModel.motionY = mc.player.motionY;
-            serverPositionModel.motionZ = mc.player.motionZ;
-            serverPositionModel.distanceWalkedModified = mc.player.distanceWalkedModified;
-            serverPositionModel.distanceWalkedOnStepModified = mc.player.distanceWalkedOnStepModified;
-            serverPositionModel.inventory.copyInventory(mc.player.inventory);
-            serverPositionModel.setSneaking(mc.player.isSneaking());
-            serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
-            serverPositionModel.setHealth(mc.player.getHealth());
-            serverPositionModel.setAbsorptionAmount(mc.player.getAbsorptionAmount());
-            serverPositionModel.swingProgress = mc.player.swingProgress;
-            serverPositionModel.swingingHand = mc.player.swingingHand;
-            serverPositionModel.isSwingInProgress = mc.player.isSwingInProgress;
-            serverPositionModel.prevSwingProgress = mc.player.prevSwingProgress;
-            serverPositionModel.swingProgressInt = mc.player.swingProgressInt;
-            serverPositionModel.ticksExisted = mc.player.ticksExisted;
-            serverPositionModel.posX = mc.player.posX;
-            serverPositionModel.posY = mc.player.posY;
-            serverPositionModel.posZ = mc.player.posZ;
-            serverPositionModel.setPosition(serverPositionModel.posX, serverPositionModel.posY, serverPositionModel.posZ);
-            serverPositionModel.lastTickPosX = mc.player.lastTickPosX;
-            serverPositionModel.lastTickPosY = mc.player.lastTickPosY;
-            serverPositionModel.lastTickPosZ = mc.player.lastTickPosZ;
-            serverPositionModel.limbSwing = mc.player.limbSwing;
-            serverPositionModel.limbSwingAmount = mc.player.limbSwingAmount;
-            serverPositionModel.prevLimbSwingAmount = mc.player.prevLimbSwingAmount;
-            serverPositionModel.move(MoverType.SELF, serverPositionModel.motionX, serverPositionModel.motionY, serverPositionModel.motionZ);
+        if (playerModel != null) {
+            playerModel.motionX = mc.player.motionX;
+            playerModel.motionY = mc.player.motionY;
+            playerModel.motionZ = mc.player.motionZ;
+            playerModel.distanceWalkedModified = mc.player.distanceWalkedModified;
+            playerModel.distanceWalkedOnStepModified = mc.player.distanceWalkedOnStepModified;
+            playerModel.inventory.copyInventory(mc.player.inventory);
+            playerModel.setSneaking(mc.player.isSneaking());
+            playerModel.setPrimaryHand(mc.player.getPrimaryHand());
+            playerModel.setHealth(mc.player.getHealth());
+            playerModel.setAbsorptionAmount(mc.player.getAbsorptionAmount());
+            playerModel.swingProgress = mc.player.swingProgress;
+            playerModel.swingingHand = mc.player.swingingHand;
+            playerModel.isSwingInProgress = mc.player.isSwingInProgress;
+            playerModel.prevSwingProgress = mc.player.prevSwingProgress;
+            playerModel.swingProgressInt = mc.player.swingProgressInt;
+            playerModel.ticksExisted = mc.player.ticksExisted;
+            playerModel.posX = mc.player.posX;
+            playerModel.posY = mc.player.posY;
+            playerModel.posZ = mc.player.posZ;
+            playerModel.setPosition(playerModel.posX, playerModel.posY, playerModel.posZ);
+            playerModel.lastTickPosX = mc.player.lastTickPosX;
+            playerModel.lastTickPosY = mc.player.lastTickPosY;
+            playerModel.lastTickPosZ = mc.player.lastTickPosZ;
+            playerModel.limbSwing = mc.player.limbSwing;
+            playerModel.limbSwingAmount = mc.player.limbSwingAmount;
+            playerModel.prevLimbSwingAmount = mc.player.prevLimbSwingAmount;
+            playerModel.hurtResistantTime = mc.player.hurtResistantTime;
+            playerModel.hurtTime = mc.player.hurtTime;
+            ((IEntityLivingBase) playerModel).setActivePotionMap(mc.player.getActivePotionMap());
+            playerModel.move(MoverType.SELF, playerModel.motionX, playerModel.motionY, playerModel.motionZ);
         }
     }
 
@@ -232,7 +234,7 @@ public class FreecamModule extends Module {
                 if (rotate.getValue()) {
 
                     // multitask
-                    if (!AutoCrystalModule.INSTANCE.isActive() && !AuraModule.INSTANCE.isActive() && !SpeedMineModule.INSTANCE.isActive()) {
+                    if (!AutoCrystalModule.INSTANCE.isActive() && !AuraModule.INSTANCE.isActive()) {
 
                         // check if the camera exists
                         if (camera != null) {
@@ -243,8 +245,20 @@ public class FreecamModule extends Module {
                                 // rotations to interactions
                                 Rotation rotation = null;
 
+                                // force rotations to mine
+                                if (SpeedMineModule.INSTANCE.isActive()) {
+
+                                    // interacting block position
+                                    BlockPos mine = SpeedMineModule.INSTANCE.getMinePosition();
+
+                                    // update rotations to interactions
+                                    if (mine != null) {
+                                        rotation = AngleUtil.calculateAngles(mine.add(0.5, 0.5, 0.5));
+                                    }
+                                }
+
                                 // block raytrace
-                                if (mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
+                                else if (mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.BLOCK)) {
 
                                     // interacting block position
                                     BlockPos interact = mc.objectMouseOver.getBlockPos();
@@ -271,9 +285,9 @@ public class FreecamModule extends Module {
 
                                     // update rotations
                                     mc.player.connection.sendPacket(new CPacketPlayer.Rotation(rotation.getYaw(), rotation.getPitch(), mc.player.onGround));
-                                    serverPositionModel.rotationYaw = rotation.getYaw();
-                                    serverPositionModel.rotationYawHead = rotation.getYaw();
-                                    serverPositionModel.rotationPitch = rotation.getPitch();
+                                    playerModel.rotationYaw = rotation.getYaw();
+                                    playerModel.rotationYawHead = rotation.getYaw();
+                                    playerModel.rotationPitch = rotation.getPitch();
                                 }
                             }
                         }
@@ -343,17 +357,17 @@ public class FreecamModule extends Module {
                     if (mode.getValue().equals(Mode.CAMERA)) {
 
                         // visual model of last server position
-                        serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
+                        playerModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
 
                         // match characteristics of player to model -> create a copy
-                        serverPositionModel.copyLocationAndAnglesFrom(mc.player);
-                        serverPositionModel.rotationYawHead = mc.player.rotationYaw;
-                        serverPositionModel.inventory.copyInventory(mc.player.inventory);
-                        serverPositionModel.setSneaking(mc.player.isSneaking());
-                        serverPositionModel.setPrimaryHand(mc.player.getPrimaryHand());
+                        playerModel.copyLocationAndAnglesFrom(mc.player);
+                        playerModel.rotationYawHead = mc.player.rotationYaw;
+                        playerModel.inventory.copyInventory(mc.player.inventory);
+                        playerModel.setSneaking(mc.player.isSneaking());
+                        playerModel.setPrimaryHand(mc.player.getPrimaryHand());
 
                         // add model to world
-                        mc.world.addEntityToWorld(-100, serverPositionModel);
+                        mc.world.addEntityToWorld(-100, playerModel);
                         ((IMinecraft) mc).hookSetRenderViewEntity(camera);
                     }
 

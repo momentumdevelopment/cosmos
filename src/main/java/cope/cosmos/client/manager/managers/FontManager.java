@@ -33,7 +33,7 @@ public class FontManager extends Manager {
      * @param size The size of the font
      * @return The loaded font
      */
-    private Font loadFont(String in, float size) {
+    private Font loadFont(String in, int size) {
         try {
 
             // font stream
@@ -52,7 +52,7 @@ public class FontManager extends Manager {
             }
 
             // default
-            return new Font("default", Font.PLAIN, (int) size);
+            return new Font("default", Font.PLAIN, size);
 
         } catch (Exception exception) {
 
@@ -69,7 +69,7 @@ public class FontManager extends Manager {
             }
 
             // load default
-            return new Font("default", Font.PLAIN, (int) size);
+            return new Font("default", Font.PLAIN, size);
         }
     }
 
@@ -78,7 +78,7 @@ public class FontManager extends Manager {
      * @return The current font
      */
     public FontRenderer getFontRenderer() {
-        return font;
+        return font != null ? font : new FontRenderer(new Font("default", Font.PLAIN, 40));
     }
 
     /**

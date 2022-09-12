@@ -13,7 +13,7 @@ import java.util.Map;
 public interface IEntityLivingBase {
 
     @Accessor("activePotionsMap")
-    Map<Potion, PotionEffect> getActivePotionMap();
+    void setActivePotionMap(Map<Potion, PotionEffect> in);
 
     @Invoker("onNewPotionEffect")
     void hookOnNewPotionEffect(PotionEffect potionEffectIn);
