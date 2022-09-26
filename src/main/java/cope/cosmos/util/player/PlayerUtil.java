@@ -6,12 +6,21 @@ import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemTool;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * @author linustouchtips, aesthetical
  * @since 05/07/2021
  */
 public class PlayerUtil implements Wrapper {
+
+    /**
+     * Gets the player's position
+     * @return The player's position
+     */
+    public static BlockPos getPosition() {
+        return new BlockPos(mc.player.posX, mc.player.posY, mc.player.posZ);
+    }
 
     /**
      * Gets the player's total health (i.e. health + absorption)

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinTileEntityBeaconRenderer {
 
     @Inject(method = "render", at = @At("INVOKE"), cancellable = true)
-    private void renderBeaconBeam(TileEntityBeacon tileEntityBeacon, double x, double y, double z, float partialTicks, int destroyStage, float alpha, CallbackInfo info) {
+    public void renderBeaconBeam(TileEntityBeacon tileEntityBeacon, double x, double y, double z, float partialTicks, int destroyStage, float alpha, CallbackInfo info) {
         RenderBeaconBeamEvent renderBeaconBeamEvent = new RenderBeaconBeamEvent();
         Cosmos.EVENT_BUS.post(renderBeaconBeamEvent);
 

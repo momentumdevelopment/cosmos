@@ -69,6 +69,9 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     @Shadow
     public abstract void onUpdate();
 
+    @Shadow
+    protected abstract void onUpdateWalkingPlayer();
+
     @Redirect(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;move(Lnet/minecraft/entity/MoverType;DDD)V"))
     public void move(AbstractClientPlayer player, MoverType type, double x, double y, double z) {
         MotionEvent motionEvent = new MotionEvent(type, x, y, z);
@@ -98,12 +101,13 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     }
 
     @Inject(method = "onUpdateWalkingPlayer", at = @At("HEAD"), cancellable = true)
-    public void onUpdateMovingPlayer(CallbackInfo info) {
+    public void onOnUpdateWalkingPlayer(CallbackInfo info) {
 
         // pre
         RotationUpdateEvent rotationUpdateEvent = new RotationUpdateEvent();
         Cosmos.EVENT_BUS.post(rotationUpdateEvent);
 
+        // prevent client from sending packets
         if (rotationUpdateEvent.isCanceled()) {
 
             // post
@@ -113,6 +117,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
             // prevent vanilla packets from sending
             info.cancel();
 
+            // send custom packets
             if (motionUpdateEvent.isCanceled()) {
                 positionUpdateTicks++;
 
@@ -187,7 +192,7 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
     }
 
     @Inject(method = "onUpdate", at = @At(value = "INVOKE", target = "net/minecraft/client/entity/EntityPlayerSP.onUpdateWalkingPlayer()V", ordinal = 0, shift = At.Shift.AFTER), cancellable = true)
-    public void onUpdateMovingPlayerPost(CallbackInfo info) {
+    public void onOnUpdatePost(CallbackInfo info) {
 
         // event is locked
         if (updateLock) {
@@ -197,12 +202,8 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
         UpdateWalkingPlayerEvent updateWalkingPlayerEvent = new UpdateWalkingPlayerEvent();
         Cosmos.EVENT_BUS.post(updateWalkingPlayerEvent);
 
-        // rots
-        float yaw = getCosmos().getRotationManager().getRotation().isValid() ? getCosmos().getRotationManager().getRotation().getYaw() : mc.player.rotationYaw;
-        float pitch = getCosmos().getRotationManager().getRotation().isValid() ? getCosmos().getRotationManager().getRotation().getPitch() : mc.player.rotationPitch;
-
+        // prevent player from updating
         if (updateWalkingPlayerEvent.isCanceled()) {
-
             info.cancel();
 
             // idk
@@ -214,77 +215,12 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer implement
                     // lock
                     updateLock = true;
 
+                    // run onUpdate, this updates motion
                     onUpdate();
 
                     // unlock
                     updateLock = false;
-
-                    boolean sprintUpdate = isSprinting();
-                    if (sprintUpdate != serverSprintState) {
-                        if (sprintUpdate) {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.START_SPRINTING));
-                        }
-
-                        else {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.STOP_SPRINTING));
-                        }
-
-                        serverSprintState = sprintUpdate;
-                    }
-
-                    boolean sneakUpdate = isSneaking();
-                    if (sneakUpdate != serverSneakState) {
-                        if (sneakUpdate) {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.START_SNEAKING));
-                        }
-
-                        else {
-                            mc.player.connection.sendPacket(new CPacketEntityAction(this, CPacketEntityAction.Action.STOP_SNEAKING));
-                        }
-
-                        serverSneakState = sneakUpdate;
-                    }
-
-                    if (isCurrentViewEntity()) {
-                        boolean movementUpdate = StrictMath.pow(mc.player.posX - lastReportedPosX, 2) + StrictMath.pow(mc.player.posY - lastReportedPosY, 2) + StrictMath.pow(mc.player.posZ - lastReportedPosZ, 2) > 9.0E-4D || positionUpdateTicks >= 20;
-                        boolean rotationUpdate = yaw - lastReportedYaw != 0.0D || pitch - lastReportedPitch != 0.0D;
-
-                        if (isRiding()) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(motionX, -999.0D, motionZ, yaw, pitch, mc.player.onGround));
-                            movementUpdate = false;
-                        }
-
-                        else if (movementUpdate && rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.PositionRotation(mc.player.posX, mc.player.posY, mc.player.posZ, yaw, pitch, mc.player.onGround));
-                        }
-
-                        else if (movementUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.onGround));
-                        }
-
-                        else if (rotationUpdate) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(yaw, pitch, mc.player.onGround));
-                        }
-
-                        else if (prevOnGround != mc.player.onGround) {
-                            mc.player.connection.sendPacket(new CPacketPlayer(mc.player.onGround));
-                        }
-
-                        if (movementUpdate) {
-                            lastReportedPosX = mc.player.posX;
-                            lastReportedPosY = mc.player.posY;
-                            lastReportedPosZ = mc.player.posZ;
-                            positionUpdateTicks = 0;
-                        }
-
-                        if (rotationUpdate) {
-                            lastReportedYaw = yaw;
-                            lastReportedPitch = pitch;
-                        }
-
-                        prevOnGround = mc.player.onGround;
-                        autoJumpEnabled = mc.gameSettings.autoJump;
-                    }
+                    onUpdateWalkingPlayer();
                 }
             }
         }

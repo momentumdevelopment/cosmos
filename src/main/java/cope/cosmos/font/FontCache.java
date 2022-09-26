@@ -21,7 +21,7 @@ public class FontCache {
     }
 
     /**
-     *
+     * Deletes display lists
      */
     public void finalize() {
         if (!deleted) {

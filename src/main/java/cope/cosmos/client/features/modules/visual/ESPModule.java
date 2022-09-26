@@ -550,6 +550,8 @@ public class ESPModule extends Module {
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEntityEvent event) {
         if (mode.getValue().equals(Mode.OUTLINE)) {
+            
+            // check if entity has highlight
             if (hasHighlight(event.getEntityLivingBase())) {
                 
                 // setup framebuffer
@@ -1133,14 +1135,13 @@ public class ESPModule extends Module {
         }
 
         /**
-         * calculate, update then return the intermedarity position for rendering
+         * calculate, update then return the intermediary position for rendering
          */
         public void calculateIntermediary() {
 
             // the difference in time between the creation and now
             long timeDelta = System.currentTimeMillis() - time;
             timeDelta = timeDelta == 0 ? 1 : timeDelta;
-
 
             /*
              * so normally i would use a higher order function for calcuting the interp,
@@ -1153,9 +1154,9 @@ public class ESPModule extends Module {
 
                 //set the position to be an interpolated value from `from` to `to`
                 intermediary = to.addVector(
-                        d.x * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
-                        d.y * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
-                        d.z * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000))
+                        d.x * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
+                        d.y * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
+                        d.z * ((timeDelta) / (fadeSpeed.getValue() * 1000))
                 );
             }
 
@@ -1166,9 +1167,9 @@ public class ESPModule extends Module {
 
                 //set the position to be an interpolated value from `from` to `to`
                 intermediary = from.addVector(
-                        d.x * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
-                        d.y * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000)),
-                        d.z * ((timeDelta) / (ESPModule.fadeSpeed.getValue() * 1000))
+                        d.x * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
+                        d.y * ((timeDelta) / (fadeSpeed.getValue() * 1000)),
+                        d.z * ((timeDelta) / (fadeSpeed.getValue() * 1000))
                 );
             }
         }

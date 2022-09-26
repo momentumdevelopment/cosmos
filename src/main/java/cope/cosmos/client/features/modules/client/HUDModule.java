@@ -12,6 +12,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.TickManager.TPS;
 import cope.cosmos.util.math.MathUtil;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -268,7 +269,7 @@ public class HUDModule extends Module {
                 StringBuilder coordinateString = new StringBuilder();
 
                 // checks if the player is in the nether
-                boolean inNether = (mc.world.getBiome(mc.player.getPosition()).getBiomeName().equalsIgnoreCase("Hell"));
+                boolean inNether = (mc.world.getBiome(PlayerUtil.getPosition()).getBiomeName().equalsIgnoreCase("Hell"));
 
                 // format
                 coordinateString.append("XYZ (")

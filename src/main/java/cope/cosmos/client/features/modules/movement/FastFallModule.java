@@ -63,7 +63,7 @@ public class FastFallModule extends Module {
     public void onUpdate() {
 
         // NCP will flag these as irregular movements
-        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
+        if (PlayerUtil.isInLiquid() || mc.player.isOverWater() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
             return;
         }
 
@@ -108,7 +108,7 @@ public class FastFallModule extends Module {
     public void onUpdateWalkingPlayer(UpdateWalkingPlayerEvent event) {
 
         // NCP will flag these as irregular movements
-        if (PlayerUtil.isInLiquid() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
+        if (PlayerUtil.isInLiquid() || mc.player.isOverWater() || mc.player.capabilities.isFlying || mc.player.isElytraFlying() || mc.player.isOnLadder()) {
             return;
         }
 

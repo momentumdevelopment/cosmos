@@ -3,8 +3,11 @@ package cope.cosmos.client.features.modules.player;
 import cope.cosmos.client.events.entity.player.interact.RightClickItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.movement.FlightModule;
+import cope.cosmos.client.features.modules.movement.PacketFlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.MotionUtil;
+import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -63,6 +66,13 @@ public class TickShiftModule extends Module {
 
                 // check if we are max allowed packets per boost
                 if (packets >= ticks.getValue() - 1) {
+
+                    // incompatibilities
+                    if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled()) {
+                        return;
+                    }
+
+                    // update timer
                     getCosmos().getTickManager().setClientTicks(1 + speed.getValue().floatValue());
                 }
             }

@@ -3,8 +3,9 @@ package cope.cosmos.asm.mixins.render.item;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.render.player.RenderEatingEvent;
 import cope.cosmos.client.events.render.player.RenderHeldItemEvent;
+import cope.cosmos.client.features.modules.visual.ViewModelModule;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHandSide;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,7 +20,6 @@ public class MixinItemRenderer {
     public void onTransformEat(float p_187454_1_, EnumHandSide handSide, ItemStack stack, CallbackInfo info) {
         RenderEatingEvent renderEatingEvent = new RenderEatingEvent();
         Cosmos.EVENT_BUS.post(renderEatingEvent);
-
         if (renderEatingEvent.isCanceled()) {
             info.cancel();
         }
@@ -44,5 +44,4 @@ public class MixinItemRenderer {
             info.cancel();
         }
     }
-
 }

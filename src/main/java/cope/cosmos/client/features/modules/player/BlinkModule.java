@@ -4,10 +4,10 @@ import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
-import cope.cosmos.client.features.modules.visual.BreadcrumbsModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.ColorUtil;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.network.Packet;
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glPopMatrix;
 
 /**
  * @author aesthetical, linustouchtips
@@ -66,14 +65,14 @@ public class BlinkModule extends Module {
 
     // List of positions
     // Would prefer to use a map, but ConcurrentHashMap does some weird shit when rendering the line, LinkedHashMap throws ConcurrentModificationExceptions, and there isn't a ConcurrentLinkedHashMap :(
-    private final LinkedList<BreadcrumbsModule.Position> positions = new LinkedList<>();
+    private final LinkedList<Position> positions = new LinkedList<>();
 
     @Override
     public void onEnable() {
         super.onEnable();
 
         // mark last server position
-        serverPosition = mc.player.getPosition();
+        serverPosition = PlayerUtil.getPosition();
 
         // visual model of last server position
         EntityOtherPlayerMP serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
@@ -124,11 +123,13 @@ public class BlinkModule extends Module {
 
         // Add the player's position
         // We are adding the player's last position so it is just behind the player, and will not be obvious on the screen (especially when elytra flying)
-        positions.add(new BreadcrumbsModule.Position(new Vec3d(mc.player.lastTickPosX, mc.player.lastTickPosY, mc.player.lastTickPosZ), System.currentTimeMillis()));
+        positions.add(new Position(new Vec3d(mc.player.lastTickPosX, mc.player.lastTickPosY, mc.player.lastTickPosZ), System.currentTimeMillis()));
     }
 
     @Override
     public void onUpdate() {
+
+        // apply packets
         switch (mode.getValue()) {
             case PULSE: {
                 if (packetTimer.passedTime(delay.getValue().longValue(), Format.SECONDS)) {
@@ -137,7 +138,7 @@ public class BlinkModule extends Module {
                     mc.world.removeEntityFromWorld(-100);
 
                     // mark new server position
-                    serverPosition = mc.player.getPosition();
+                    serverPosition = PlayerUtil.getPosition();
 
                     // visual model of new server position
                     EntityOtherPlayerMP serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
@@ -179,7 +180,7 @@ public class BlinkModule extends Module {
                     mc.world.removeEntityFromWorld(-100);
 
                     // mark new server position
-                    serverPosition = mc.player.getPosition();
+                    serverPosition = PlayerUtil.getPosition();
 
                     // visual model of new server position
                     EntityOtherPlayerMP serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());
@@ -218,7 +219,7 @@ public class BlinkModule extends Module {
                     mc.world.removeEntityFromWorld(-100);
 
                     // mark new server position
-                    serverPosition = mc.player.getPosition();
+                    serverPosition = PlayerUtil.getPosition();
 
                     // visual model of new server position
                     EntityOtherPlayerMP serverPositionModel = new EntityOtherPlayerMP(mc.world, mc.player.getGameProfile());

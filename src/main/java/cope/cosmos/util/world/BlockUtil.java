@@ -1,11 +1,8 @@
 package cope.cosmos.util.world;
 
 import cope.cosmos.util.Wrapper;
+import cope.cosmos.util.player.PlayerUtil;
 import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityEnderCrystal;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -126,7 +123,7 @@ public class BlockUtil implements Wrapper {
                     for (double z = StrictMath.floor(area.minZ); z <= StrictMath.ceil(area.maxZ); z++) {
 
                         // the current position
-                        BlockPos position = player.getPosition().add(x, y, z);
+                        BlockPos position = PlayerUtil.getPosition().add(x, y, z);
 
                         // check distance to block
                         if (getDistanceToCenter(player, position) >= area.maxX) {
