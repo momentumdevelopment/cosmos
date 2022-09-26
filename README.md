@@ -9,9 +9,10 @@ Cosmos is a free, open-source, Minecraft 1.12.2 Forge PvP Client aimed at the an
 
 ## Usage:
 - Download the .jar file from the [releases](https://github.com/momentumdevelopment/cosmos/releases/) tab
-- Put the .jar in your mods folder 
+- Put the .jar in your "mods" folder (Create one if it does not exist)
     - Windows: Press `Windows + R` and type in `%appdata%` open the `.minecraft/mods` folder.
     - MacOS: Open Finder and open the `minecraft/mods` folder.
+- Download and install [Forge 1.12.2 2855](https://adfoc.us/serve/sitelinks/?id=271228&url=https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2855/forge-1.12.2-14.23.5.2855-installer.jar)
 - Press `RSHIFT` to open the ClickGUI
 - The command prefix is `*`
 
