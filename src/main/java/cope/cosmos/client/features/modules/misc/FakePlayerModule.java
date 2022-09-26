@@ -1,14 +1,15 @@
 package cope.cosmos.client.features.modules.misc;
 
 import com.mojang.authlib.GameProfile;
-import cope.cosmos.client.events.entity.EntityWorldEvent;
-import cope.cosmos.client.events.network.DisconnectEvent;
+import cope.cosmos.client.events.combat.DeathEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -40,7 +41,7 @@ public class FakePlayerModule extends Module {
         super.onEnable();
 
         // create a fake player
-        EntityOtherPlayerMP fakePlayer = new EntityOtherPlayerMP(mc.world, new GameProfile(mc.player.getGameProfile().getId(), "FakePlayer"));
+        EntityOtherPlayerMP fakePlayer = new EntityOtherPlayerMP(mc.world, new GameProfile(new UUID(0, 0), "FakePlayer"));
 
         // copy rotations from player
         fakePlayer.copyLocationAndAnglesFrom(mc.player);
@@ -77,7 +78,7 @@ public class FakePlayerModule extends Module {
     }
 
     @SubscribeEvent
-    public void onEntityRemove(EntityWorldEvent.EntityRemoveEvent event) {
+    public void onDeath(DeathEvent event) {
         if (event.getEntity().equals(mc.player)) {
 
             // remove fake player from world
@@ -90,7 +91,7 @@ public class FakePlayerModule extends Module {
     }
 
     @SubscribeEvent
-    public void onDisconnect(DisconnectEvent event) {
+    public void onWorldUnload(WorldEvent.Unload event) {
 
         // disable module
         disable(true);

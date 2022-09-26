@@ -2066,9 +2066,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
                 "ms, " +
                 getConfirmTime() +
                 ", " +
-                getAverageCrystalsPerSecond() +
-                ", " +
-                placeDebug;// add crystals per second
+                getAverageCrystalsPerSecond(); // add crystals per second
 
         return debug.getValue() ? debugInfo : "";
     }

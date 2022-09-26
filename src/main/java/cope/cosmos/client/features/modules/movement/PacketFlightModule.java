@@ -15,6 +15,7 @@ import net.minecraft.network.play.client.CPacketConfirmTeleport;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -223,9 +224,9 @@ public class PacketFlightModule extends Module {
     }
 
     @SubscribeEvent
-    public void onDisconnect(DisconnectEvent event) {
+    public void onWorldUnload(WorldEvent.Unload event) {
 
-        // disable upon a disconnect to prevent kicks upon joining
+        // disable on logout
         disable(true);
     }
 
