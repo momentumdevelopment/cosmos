@@ -31,12 +31,13 @@ public class MixinPlayerControllerMP {
         BlockResetEvent blockResetEvent = new BlockResetEvent();
         Cosmos.EVENT_BUS.post(blockResetEvent);
 
-        if (blockResetEvent.isCanceled())
+        if (blockResetEvent.isCanceled()) {
             info.cancel();
+        }
     }
 
     @Inject(method = "getBlockReachDistance", at = @At("RETURN"), cancellable = true)
-    private void onGetReachDistance(final CallbackInfoReturnable<Float> info) {
+    private void onGetReachDistance(CallbackInfoReturnable<Float> info) {
         ReachEvent reachEvent = new ReachEvent();
         Cosmos.EVENT_BUS.post(reachEvent);
 

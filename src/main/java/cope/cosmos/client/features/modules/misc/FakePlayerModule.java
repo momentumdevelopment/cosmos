@@ -95,5 +95,14 @@ public class FakePlayerModule extends Module {
 
         // disable module
         disable(true);
+        id = -1;
+    }
+
+    /**
+     * Gets the fake player's id
+     * @return The fake player's id
+     */
+    public int getId() {
+        return id;
     }
 }
