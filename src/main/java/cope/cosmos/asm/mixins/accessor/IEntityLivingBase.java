@@ -23,4 +23,7 @@ public interface IEntityLivingBase {
 
     @Invoker("getArmSwingAnimationEnd")
     int hookGetArmSwingAnimationEnd();
+
+    @Invoker("getWaterSlowDown")
+    float hookGetWaterSlowDown();
 }

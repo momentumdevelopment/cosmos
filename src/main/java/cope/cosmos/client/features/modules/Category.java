@@ -7,24 +7,19 @@ package cope.cosmos.client.features.modules;
 public enum Category {
 
 	/**
-	 * Modules associated with client processes
-	 */
-	CLIENT,
-
-	/**
-	 * Modules used for combat (Ex: KillAura, AutoCrystal, etc.)
+	 * Modules used for combat (Ex: KillAura, AutoCrystal, Surround, etc.)
 	 */
 	COMBAT,
 
 	/**
-	 * Modules that are visual modifications (Ex: ESP, Nametags, HoleESP, etc.)
+	 * Modules that exploit certain anticheats to allow for "non-vanilla" behavior (Ex: AntiHunger, PacketFlight, Reach, etc.)
 	 */
-	VISUAL,
+	EXPLOITS,
 
 	/**
-	 * Modules that are modifications to player characteristics (Ex: AntiHunger, SpeedMine, FastUse, etc.)
+	 * Modules that don't fit in the other categories
 	 */
-	PLAYER,
+	MISCELLANEOUS,
 
 	/**
 	 * Modules that allow the player to move in unnatural ways (Ex: Flight, Speed, ReverseStep, etc.)
@@ -32,9 +27,19 @@ public enum Category {
 	MOVEMENT,
 
 	/**
-	 * Modules that don't fit in the other categories
+	 * Modules that are visual modifications (Ex: ESP, Nametags, HoleESP, etc.)
 	 */
-	MISC,
+	VISUAL,
+
+	/**
+	 * Modules that are modifications to world (Ex: Wallhack, SpeedMine, FastUse, etc.)
+	 */
+	WORLD,
+
+	/**
+	 * Modules associated with client processes
+	 */
+	CLIENT,
 
 	/**
 	 * Modules hidden from the ClickGUI

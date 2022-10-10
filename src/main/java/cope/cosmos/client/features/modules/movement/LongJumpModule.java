@@ -50,6 +50,9 @@ public class LongJumpModule extends Module {
     // cowabunga ticks
     private int airTicks;
     private int groundTicks;
+
+    // stage
+    private LongJumpStage stage = LongJumpStage.START;
     
     // cowabunga speed factor
     private final double[] speedFactor = new double[] {
@@ -132,9 +135,6 @@ public class LongJumpModule extends Module {
             0.237
     };
 
-    // stage
-    private LongJumpStage stage = LongJumpStage.START;
-
     @Override
     public void onDisable() {
         super.onDisable();
@@ -153,6 +153,7 @@ public class LongJumpModule extends Module {
         distance = Math.sqrt(StrictMath.pow(mc.player.posX - mc.player.prevPosX, 2) + StrictMath.pow(mc.player.posZ - mc.player.prevPosZ, 2));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     public void onMotion(MotionEvent event) {
 
@@ -218,19 +219,17 @@ public class LongJumpModule extends Module {
             }
 
             else {
-
                 // check for head space
                 if (!mc.world.getCollisionBoxes(mc.player, mc.player.getEntityBoundingBox().offset(0.0, mc.player.motionY, 0.0)).isEmpty() && mc.player.collidedVertically) {
                     stage = LongJumpStage.START;
                 }
 
-                moveSpeed = distance - distance / 159;
+                moveSpeed = distance - distance / 159.0;
             }
 
             // we want to min at our baseSpeed
             moveSpeed = Math.max(moveSpeed, baseSpeed);
 
-            // override vanilla motion
             event.setCanceled(true);
 
             // the current movement input values of the user
@@ -305,134 +304,138 @@ public class LongJumpModule extends Module {
                 distance = 0;
             }
 
-            // rotation
-            float yaw = mc.player.rotationYaw + (mc.player.moveForward < 0 ? 180 : 0) + (mc.player.moveStrafing > 0 ? -90 * (mc.player.moveForward < 0 ? -0.5F : (mc.player.moveForward > 0 ? 0.5F : 1)) : 0) - (mc.player.moveStrafing < 0 ? -90 * (mc.player.moveForward < 0 ? -0.5F : (mc.player.moveForward > 0 ? 0.5F : 1)) : 0);
-            
-            // direction based on rotations
-            double yawScaled = (yaw + 90) * 0.017453292;
-            double cos = Math.cos(yawScaled);
-            double sin = Math.sin(yawScaled);
+            // check if the player is moving
+            if (MotionUtil.isMoving()) {
 
-            if (!mc.player.collidedVertically) {
+                // rotation
+                float yaw = mc.player.rotationYaw + (mc.player.moveForward < 0 ? 180 : 0) + (mc.player.moveStrafing > 0 ? -90 * (mc.player.moveForward < 0 ? -0.5F : (mc.player.moveForward > 0 ? 0.5F : 1)) : 0) - (mc.player.moveStrafing < 0 ? -90 * (mc.player.moveForward < 0 ? -0.5F : (mc.player.moveForward > 0 ? 0.5F : 1)) : 0);
 
-                // update ticks we've been in the air
-                airTicks++;
+                // direction based on rotations
+                double yawScaled = (yaw + 90) * 0.017453292;
+                double cos = Math.cos(yawScaled);
+                double sin = Math.sin(yawScaled);
 
-                // ??? wtf is this for
-                if (mc.gameSettings.keyBindSneak.isKeyDown()) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(0, 2.147483647E9, 0, false));
-                }
-
-                // in air, so reset
-                groundTicks = 0;
-
-                // vertical motion
                 if (!mc.player.collidedVertically) {
 
-                    // ok real talk idk how the fuck Direkt devs got these values, but they work
-                    if (mc.player.motionY == -0.07190068807140403) {
-                        mc.player.motionY *= 0.3499999940395355;
+                    // update ticks we've been in the air
+                    airTicks++;
+
+                    // ??? wtf is this for
+                    if (mc.gameSettings.keyBindSneak.isKeyDown()) {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(0, 2.147483647E9, 0, false));
                     }
 
-                    else if (mc.player.motionY == -0.10306193759436909) {
-                        mc.player.motionY *= 0.550000011920929;
-                    }
-
-                    else if (mc.player.motionY == -0.13395038817442878) {
-                        mc.player.motionY *= 0.6700000166893005;
-                    }
-
-                    else if (mc.player.motionY == -0.16635183030382) {
-                        mc.player.motionY *= 0.6899999976158142;
-                    }
-
-                    else if (mc.player.motionY == -0.19088711097794803) {
-                        mc.player.motionY *= 0.7099999785423279;
-                    }
-
-                    else if (mc.player.motionY == -0.21121925191528862) {
-                        mc.player.motionY *= 0.20000000298023224;
-                    }
-
-                    else if (mc.player.motionY == -0.11979897632390576) {
-                        mc.player.motionY *= 0.9300000071525574;
-                    }
-
-                    else if (mc.player.motionY == -0.18758479151225355) {
-                        mc.player.motionY *= 0.7200000286102295;
-                    }
-
-                    else if (mc.player.motionY == -0.21075983825251726) {
-                        mc.player.motionY *= 0.7599999904632568;
-                    }
-
-                    if (mc.player.motionY < -0.2 && mc.player.motionY > -0.24) {
-                        mc.player.motionY *= 0.7;
-                    }
-
-                    if (mc.player.motionY < -0.25 && mc.player.motionY > -0.32) {
-                        mc.player.motionY *= 0.8;
-                    }
-
-                    if (mc.player.motionY < -0.35 && mc.player.motionY > -0.8) {
-                        mc.player.motionY *= 0.98;
-                    }
-
-                    if (mc.player.motionY < -0.8 && mc.player.motionY > -1.6) {
-                        mc.player.motionY *= 0.99;
-                    }
-                }
-
-                // slowdown timer, helps bypass
-                getCosmos().getTickManager().setClientTicks(0.8F);
-
-                // attempt jump
-                if (mc.gameSettings.keyBindForward.isKeyDown()) {
-                    try {
-                        
-                        // update horizontal motion
-                        mc.player.motionX = cos * speedFactor[airTicks - 1] * 3;
-                        mc.player.motionZ = sin * speedFactor[airTicks - 1] * 3;
-                    } catch (ArrayIndexOutOfBoundsException ignored) {
-
-                    }
-                }
-
-                // no movement
-                else {
-                    mc.player.motionX = 0;
-                    mc.player.motionZ = 0;
-                }
-            } 
-            
-            else {
-
-                // reset timer
-                getCosmos().getTickManager().setClientTicks(1);
-
-                // update ticks
-                airTicks = 0;
-                groundTicks++;
-
-                // drag
-                mc.player.motionX /= 13;
-                mc.player.motionZ /= 13;
-
-                // ?? not sure what this does
-                if (groundTicks == 1) {
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.onGround));
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + 0.0624, mc.player.posY, mc.player.posZ, mc.player.onGround));
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.419, mc.player.posZ, mc.player.onGround));
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + 0.0624, mc.player.posY, mc.player.posZ, mc.player.onGround));
-                    mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.419, mc.player.posZ, mc.player.onGround));
-                } 
-
-                // reset
-                else if (groundTicks > 2) {
+                    // in air, so reset
                     groundTicks = 0;
-                    mc.player.motionX = cos * 0.3;
-                    mc.player.motionZ = sin * 0.3;
-                    mc.player.motionY = 0.42399999499320984;
+
+                    // vertical motion
+                    if (!mc.player.collidedVertically) {
+
+                        // ok real talk idk how the fuck Direkt devs got these values, but they work
+                        if (mc.player.motionY == -0.07190068807140403) {
+                            mc.player.motionY *= 0.3499999940395355;
+                        }
+
+                        else if (mc.player.motionY == -0.10306193759436909) {
+                            mc.player.motionY *= 0.550000011920929;
+                        }
+
+                        else if (mc.player.motionY == -0.13395038817442878) {
+                            mc.player.motionY *= 0.6700000166893005;
+                        }
+
+                        else if (mc.player.motionY == -0.16635183030382) {
+                            mc.player.motionY *= 0.6899999976158142;
+                        }
+
+                        else if (mc.player.motionY == -0.19088711097794803) {
+                            mc.player.motionY *= 0.7099999785423279;
+                        }
+
+                        else if (mc.player.motionY == -0.21121925191528862) {
+                            mc.player.motionY *= 0.20000000298023224;
+                        }
+
+                        else if (mc.player.motionY == -0.11979897632390576) {
+                            mc.player.motionY *= 0.9300000071525574;
+                        }
+
+                        else if (mc.player.motionY == -0.18758479151225355) {
+                            mc.player.motionY *= 0.7200000286102295;
+                        }
+
+                        else if (mc.player.motionY == -0.21075983825251726) {
+                            mc.player.motionY *= 0.7599999904632568;
+                        }
+
+                        if (mc.player.motionY < -0.2 && mc.player.motionY > -0.24) {
+                            mc.player.motionY *= 0.7;
+                        }
+
+                        if (mc.player.motionY < -0.25 && mc.player.motionY > -0.32) {
+                            mc.player.motionY *= 0.8;
+                        }
+
+                        if (mc.player.motionY < -0.35 && mc.player.motionY > -0.8) {
+                            mc.player.motionY *= 0.98;
+                        }
+
+                        if (mc.player.motionY < -0.8 && mc.player.motionY > -1.6) {
+                            mc.player.motionY *= 0.99;
+                        }
+                    }
+
+                    // slowdown timer, helps bypass
+                    getCosmos().getTickManager().setClientTicks(0.8F);
+
+                    // attempt jump
+                    if (mc.gameSettings.keyBindForward.isKeyDown()) {
+                        try {
+
+                            // update horizontal motion
+                            mc.player.motionX = cos * speedFactor[airTicks - 1] * 3;
+                            mc.player.motionZ = sin * speedFactor[airTicks - 1] * 3;
+                        } catch (ArrayIndexOutOfBoundsException ignored) {
+
+                        }
+                    }
+
+                    // no movement
+                    else {
+                        mc.player.motionX = 0;
+                        mc.player.motionZ = 0;
+                    }
+                }
+
+                else {
+
+                    // reset timer
+                    getCosmos().getTickManager().setClientTicks(1);
+
+                    // update ticks
+                    airTicks = 0;
+                    groundTicks++;
+
+                    // drag
+                    mc.player.motionX /= 13;
+                    mc.player.motionZ /= 13;
+
+                    // ?? not sure what this does
+                    if (groundTicks == 1) {
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + 0.0624, mc.player.posY, mc.player.posZ, mc.player.onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.419, mc.player.posZ, mc.player.onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX + 0.0624, mc.player.posY, mc.player.posZ, mc.player.onGround));
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY + 0.419, mc.player.posZ, mc.player.onGround));
+                    }
+
+                    // reset
+                    else if (groundTicks > 2) {
+                        groundTicks = 0;
+                        mc.player.motionX = cos * 0.3;
+                        mc.player.motionY = 0.42399999499320984;
+                        mc.player.motionZ = sin * 0.3;
+                    }
                 }
             }
         }
@@ -453,6 +456,19 @@ public class LongJumpModule extends Module {
                 disable(true);
             }
         }
+    }
+
+    public enum Mode {
+
+        /**
+         * Preset jump motion (Direkt Longjump)
+         */
+        COWABUNGA,
+
+        /**
+         * Strafe boost long jump
+         */
+        NORMAL
     }
 
     public enum LongJumpStage {
@@ -476,18 +492,5 @@ public class LongJumpModule extends Module {
          * Checks for head space and slows down
          */
         COLLISION
-    }
-
-    public enum Mode {
-
-        /**
-         * Preset jump motion (Direkt Longjump)
-         */
-        COWABUNGA,
-
-        /**
-         * Strafe boost long jump
-         */
-        NORMAL
     }
 }

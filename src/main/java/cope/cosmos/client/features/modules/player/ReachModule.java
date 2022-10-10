@@ -21,7 +21,7 @@ public class ReachModule extends Module {
     public static ReachModule INSTANCE;
 
     public ReachModule() {
-        super("Reach", Category.PLAYER, "Extends your reach", () -> String.valueOf((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + reach.getValue().floatValue()));
+        super("Reach", Category.PLAYER, "Extends your reach", () -> String.valueOf(reach.getValue().floatValue()));
         INSTANCE = this;
     }
 
@@ -32,22 +32,22 @@ public class ReachModule extends Module {
 
     // **************************** hitbox ****************************
 
-    public static Setting<Boolean> hitBox = new Setting<>("HitBox", true)
+    public static Setting<Boolean> noHitbox = new Setting<>("NoHitbox", true)
             .setDescription("Ignores entity hitboxes");
 
-    public static Setting<Double> hitBoxExtend = new Setting<>("Extend", 0.0, 0.0, 2.0, 2)
+    public static Setting<Double> hitBoxExtend = new Setting<>("HitboxExtend", 0.0, 0.0, 2.0, 2)
             .setDescription("Entity hitbox extension")
-            .setVisible(() -> !hitBox.getValue());
+            .setVisible(() -> !noHitbox.getValue());
 
     public static Setting<Boolean> hitBoxPlayers = new Setting<>("PlayersOnly", false)
             .setDescription("Only ignores player hitboxes")
-            .setVisible(() -> hitBox.getValue());
+            .setVisible(() -> noHitbox.getValue());
 
     @Override
     public void onUpdate() {
 
         // ignore entity hitboxes
-        if (hitBox.getValue()) {
+        if (noHitbox.getValue()) {
 
             // mining at an entity hitbox
             if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit.equals(RayTraceResult.Type.ENTITY)) {
@@ -66,10 +66,14 @@ public class ReachModule extends Module {
                     // position of the mine
                     BlockPos minePos = mineResult.getBlockPos();
 
-                    // damage block
+                    // start mining
                     if (mc.gameSettings.keyBindAttack.isKeyDown()) {
+
+                        // break block
                         mc.playerController.onPlayerDamageBlock(minePos, EnumFacing.UP);
-                        mc.player.swingArm(EnumHand.MAIN_HAND);
+
+                        // swing player arm
+                        mc.player.swingArm(SwingModule.INSTANCE.isEnabled() ? SwingModule.INSTANCE.getHand() : EnumHand.MAIN_HAND);
                     }
                 }
             }
@@ -78,7 +82,9 @@ public class ReachModule extends Module {
 
     @SubscribeEvent
     public void onHitboxSize(EntityHitboxSizeEvent event) {
-        if (!hitBox.getValue()) {
+
+        // extend hitboxes
+        if (!noHitbox.getValue()) {
 
             // set hitbox size if we allow hitboxes
             event.setHitboxSize(hitBoxExtend.getValue().floatValue());
@@ -89,6 +95,15 @@ public class ReachModule extends Module {
     public void onReach(ReachEvent event) {
 
         // add reach on top of vanilla reach
-        event.setReach((mc.player.capabilities.isCreativeMode ? 5 : 4.5F) + reach.getValue().floatValue());
+        event.setCanceled(true);
+        event.setReach(getReachDistance() + reach.getValue().floatValue());
+    }
+
+    /**
+     * Gets the real player reach distance
+     * @return The real player reach distance
+     */
+    public float getReachDistance() {
+        return mc.playerController.isInCreativeMode() ? 5 : 4.5F;
     }
 }

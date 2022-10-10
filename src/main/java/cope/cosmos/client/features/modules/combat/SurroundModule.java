@@ -37,7 +37,7 @@ public class SurroundModule extends Module {
     public static SurroundModule INSTANCE;
 
     public SurroundModule() {
-        super("Surround", new String[] {"AutoObsidian", "FeetTrap", "AutoSurround"}, Category.COMBAT, "Surrounds your feet with obsidian");
+        super("Surround", new String[] {"AutoObsidian", "FeetTrap", "AutoSurround", "NoCrystal"}, Category.COMBAT, "Surrounds your feet with obsidian");
         INSTANCE = this;
     }
 
@@ -46,7 +46,7 @@ public class SurroundModule extends Module {
     public static Setting<Timing> timing = new Setting<>("Timing", Timing.SEQUENTIAL)
             .setDescription("When to place blocks");
 
-    public static Setting<Double> range = new Setting<>("Range", 0.0, 5.0, 6.0, 1)
+    public static Setting<Double> range = new Setting<>("Range",  0.0, 5.0, 6.0, 1)
             .setDescription("Range to place blocks");
 
     public static Setting<Rotate> rotate = new Setting<>("Rotation", Rotate.NONE)
@@ -91,7 +91,7 @@ public class SurroundModule extends Module {
     private int placed;
 
     // start info
-    private double startY;
+    private double start;
 
     // entities that are safe to place on
     private static final List<Class<? extends Entity>> SAFE_ENTITIES = Arrays.asList(EntityEnderCrystal.class, EntityItem.class, EntityXPOrb.class, EntityBoat.class, EntityMinecart.class);
@@ -101,7 +101,7 @@ public class SurroundModule extends Module {
         super.onEnable();
 
         // mark our starting height
-        startY = mc.player.posY;
+        start = mc.player.posY;
 
         // if we need to be centered
         if (!center.getValue().equals(Center.NONE)) {
@@ -158,7 +158,7 @@ public class SurroundModule extends Module {
         // we are no long in the same spot
         // to linus: if someone mines the block under us we want to keep surrounded, and the Math.abs will return the
         // absolute value, so i'll do this. has the same effect, but allows us to fall down.
-        if (mc.player.posY > startY && completion.getValue().equals(Completion.SHIFT)) {
+        if (mc.player.posY > start && completion.getValue().equals(Completion.SHIFT)) {
             toggle();
             return;
         }
@@ -239,7 +239,7 @@ public class SurroundModule extends Module {
                 }
 
                 // place block
-                if (placeBlock(position)) {
+                if (placeBlock(position, false)) {
 
                     // getCosmos().getChatManager().sendClientMessage("placed");
                     placed++;
@@ -322,7 +322,7 @@ public class SurroundModule extends Module {
                         }
 
                         // place block
-                        if (placeBlock(changePosition)) {
+                        if (placeBlock(changePosition, true)) {
                             // getCosmos().getChatManager().sendClientMessage("placed");
                             placed++;
                         }
@@ -377,7 +377,7 @@ public class SurroundModule extends Module {
                             }
 
                             // place block
-                            if (placeBlock(changePosition)) {
+                            if (placeBlock(changePosition, true)) {
                                 // getCosmos().getChatManager().sendClientMessage("placed");
                                 placed++;
                             }
@@ -427,7 +427,7 @@ public class SurroundModule extends Module {
                     }
 
                     // place block
-                    if (placeBlock(explosion)) {
+                    if (placeBlock(explosion, false)) {
                         // getCosmos().getChatManager().sendClientMessage("placed");
                         placed++;
                     }
@@ -445,10 +445,10 @@ public class SurroundModule extends Module {
      * Places a block at this position
      * @param in the position
      */
-    private boolean placeBlock(BlockPos in) {
+    private boolean placeBlock(BlockPos in, boolean force) {
 
         // check if block is replaceable
-        if (BlockUtil.isReplaceable(in)) {
+        if (force || BlockUtil.isReplaceable(in)) {
 
             // place block
             getCosmos().getInteractionManager().placeBlock(in, rotate.getValue(), strict.getValue(), SAFE_ENTITIES);

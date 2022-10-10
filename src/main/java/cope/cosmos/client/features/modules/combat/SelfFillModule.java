@@ -8,6 +8,7 @@ import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;
 import cope.cosmos.util.holder.Rotation.Rotate;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.world.BlockUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderCrystal;
@@ -18,6 +19,8 @@ import net.minecraft.item.Item;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * @author bon55, linustouchtips
@@ -48,12 +51,32 @@ public class SelfFillModule extends Module {
 	public static Setting<Mode> mode = new Setting<>("Mode", Mode.DYNAMIC)
 			.setDescription("Block to use when burrowing");
 
+	public static Setting<Completion> completion = new Setting<>("Completion", Completion.SHIFT)
+			.setDescription("When to disable the module");
+
 	public static Setting<Switch> autoSwitch = new Setting<>("Switch", Switch.NORMAL)
 			.setAlias("AutoSwitch", "Swap", "AutoSwap")
 			.setDescription("How to switch when placing blocks");
 
+	// start info
+	private BlockPos start;
+
+	@Override
+	public void onEnable() {
+		super.onEnable();
+
+		// mark our starting height
+		start = PlayerUtil.getPosition();
+	}
+
 	@Override
 	public void onUpdate() {
+
+		// we are no long in the same spot
+		if (!PlayerUtil.getPosition().equals(start) && completion.getValue().equals(Completion.SHIFT)) {
+			toggle();
+			return;
+		}
 
 		// original block position
 		BlockPos origin = new BlockPos(mc.player.posX, Math.round(mc.player.posY), mc.player.posZ);
@@ -149,9 +172,30 @@ public class SelfFillModule extends Module {
 				}
 
 				// auto disabling module
+				if (completion.getValue().equals(Completion.FILLED)) {
+					disable(true);
+				}
+			}
+
+			else if (completion.getValue().equals(Completion.FILLED)) {
+
+				// auto disabling module
 				disable(true);
 			}
 		}
+
+		else if (completion.getValue().equals(Completion.FILLED)) {
+
+			// auto disabling module
+			disable(true);
+		}
+	}
+
+	@SubscribeEvent
+	public void onWorldUnload(WorldEvent.Unload event) {
+
+		// disable on logout
+		disable(true);
 	}
 
 	/**
@@ -223,6 +267,24 @@ public class SelfFillModule extends Module {
 		}
 
 		return false;
+	}
+
+	public enum Completion {
+
+		/**
+		 * Toggles the module when you have moved out of the block
+		 */
+		SHIFT,
+
+		/**
+		 * Toggles the module if the player is in a burrow
+		 */
+		FILLED,
+
+		/**
+		 * Does not dynamically toggle the module
+		 */
+		PERSISTENT
 	}
 
 	public enum Mode {

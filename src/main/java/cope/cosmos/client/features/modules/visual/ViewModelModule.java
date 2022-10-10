@@ -1,14 +1,16 @@
 package cope.cosmos.client.features.modules.visual;
 
+import cope.cosmos.client.events.render.player.RenderEatingEvent;
 import cope.cosmos.client.events.render.player.RenderHeldItemEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.EnumHandSide;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author Surge
+ * @author Surge, linustouchtips
  * @since 31/03/2022
  */
 public class ViewModelModule extends Module {
@@ -100,5 +102,13 @@ public class ViewModelModule extends Module {
                 GlStateManager.rotate(rightRoll.getValue(), 0, 0, 1);
                 break;
         }
+    }
+
+    @SubscribeEvent
+    public void onEatingRender(RenderEatingEvent event) {
+
+        // Prevent the eating animation
+        event.setCanceled(true);
+        event.setScale(event.getHandSide().equals(EnumHandSide.LEFT) ? leftScale.getValue() : rightScale.getValue());
     }
 }

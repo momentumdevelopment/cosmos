@@ -1,7 +1,9 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.IEntity;
+import cope.cosmos.asm.mixins.accessor.INetHandlerPlayClient;
 import cope.cosmos.client.events.entity.player.UpdateWalkingPlayerEvent;
+import cope.cosmos.client.events.motion.movement.MotionEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -22,7 +24,7 @@ public class FastFallModule extends Module {
     public static FastFallModule INSTANCE;
 
     public FastFallModule() {
-        super("FastFall", new String[] {"ReverseStep"}, Category.MOVEMENT, "Falls faster");
+        super("FastFall", new String[] {"ReverseStep", "HoleTP"}, Category.MOVEMENT, "Falls faster");
         INSTANCE = this;
     }
 
@@ -31,7 +33,7 @@ public class FastFallModule extends Module {
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.MOTION)
             .setDescription("Mode for falling");
 
-    public static Setting<Double> speed = new Setting<>("Speed", 0.0, 1.0, 10.0, 2)
+    public static Setting<Double> speed = new Setting<>("Speed", 0.1, 1.0, 10.0, 2)
             .setDescription("Fall speed")
             .setVisible(() -> !mode.getValue().equals(Mode.PACKET));
 
@@ -51,6 +53,10 @@ public class FastFallModule extends Module {
     // fall timers
     private final Timer rubberbandTimer = new Timer();
     private final Timer strictTimer = new Timer();
+
+    // pause ticks
+    private int ticks;
+    private boolean stop;
 
     @Override
     public void onTick() {
@@ -134,7 +140,7 @@ public class FastFallModule extends Module {
             event.setCanceled(true);
 
             // falling down the side of a block
-            if (mc.player.motionY <= 0 && (previousOnGround && !mc.player.onGround)) {
+            if (mc.player.motionY < 0 && (previousOnGround && !mc.player.onGround)) {
 
                 // check all blocks within the height
                 for (double fallHeight = 0; fallHeight < height.getValue() + 0.5; fallHeight += 0.01) {
@@ -149,6 +155,8 @@ public class FastFallModule extends Module {
                             mc.player.motionX = 0;
                             mc.player.motionZ = 0;
                             event.setIterations(shiftTicks.getValue().intValue());
+                            stop = true;
+                            ticks = 0;
                             strictTimer.resetTime();
                             break;
                         }
@@ -159,11 +167,62 @@ public class FastFallModule extends Module {
     }
 
     @SubscribeEvent
+    public void onMotion(MotionEvent event) {
+
+        // needs pause
+        if (mode.getValue().equals(Mode.PACKET) && stop) {
+
+            // override motion
+            event.setCanceled(true);
+            event.setX(0);
+            event.setZ(0);
+            mc.player.motionX = 0;
+            mc.player.motionZ = 0;
+
+            // update pause ticks
+            ticks++;
+
+            // passed wait time
+            if (ticks > shiftTicks.getValue()) {
+                stop = false;
+                ticks = 0;
+            }
+        }
+    }
+
+    /*
+    @SubscribeEvent
+    public void onPacketSend(PacketEvent.PacketSendEvent event) {
+
+        // movement and rotations packet
+        if (event.getPacket() instanceof CPacketPlayer) {
+
+            // packet has movements
+            if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+
+                // motion paused
+                if (stop) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+     */
+
+    @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-        // packet for rubberbands
-        if (event.getPacket() instanceof SPacketPlayerPosLook) {
-            rubberbandTimer.resetTime();
+        if (nullCheck()) {
+
+            // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
+            if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
+                return;
+            }
+
+            // packet for rubberbands
+            if (event.getPacket() instanceof SPacketPlayerPosLook) {
+                rubberbandTimer.resetTime();
+            }
         }
     }
 

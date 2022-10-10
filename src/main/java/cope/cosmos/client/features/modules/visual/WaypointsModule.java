@@ -82,31 +82,38 @@ public class WaypointsModule extends Module {
     @Override
     public void onRender3D() {
 
-        // render all waypoints
-        getCosmos().getWaypointManager().getWaypoints().forEach((name, waypoint) -> {
+        // map of all waypoints
+        Map<String, Waypoint> waypoints = getCosmos().getWaypointManager().getWaypoints();
 
-            // waypoint's coords
-            Vec3d coordinates = waypoint.getCoordinates();
+        // check if waypoints exist
+        if (waypoints != null && !waypoints.isEmpty()) {
 
-            // check format
-            if (waypoint.getFormat().equals(Format.COORDINATE) || deaths.getValue() && waypoint.getFormat().equals(Format.DEATH) || logouts.getValue() && waypoint.getFormat().equals(Format.LOGOUT)) {
+            // render all waypoints
+            waypoints.forEach((name, waypoint) -> {
 
-                // draw box highlight
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(new AxisAlignedBB(coordinates.x - 0.3, coordinates.y, coordinates.z - 0.3, coordinates.x + 0.3, coordinates.y + 2.2, coordinates.z + 0.3))
-                        .color(ColorUtil.getPrimaryColor())
-                        .box(Box.OUTLINE)
-                        .setup()
-                        .line(lineWidth.getValue())
-                        .depth(true)
-                        .blend()
-                        .texture()
-                );
+                // waypoint's coords
+                Vec3d coordinates = waypoint.getCoordinates();
 
-                // draw info
-                RenderUtil.drawNametag(coordinates.addVector(0, 2.6, 0), name + " [X: " + coordinates.x + ", Y: " + coordinates.y + ", Z: " + coordinates.z + "]");
-            }
-        });
+                // check format
+                if (waypoint.getFormat().equals(Format.COORDINATE) || deaths.getValue() && waypoint.getFormat().equals(Format.DEATH) || logouts.getValue() && waypoint.getFormat().equals(Format.LOGOUT)) {
+
+                    // draw box highlight
+                    RenderUtil.drawBox(new RenderBuilder()
+                            .position(new AxisAlignedBB(coordinates.x - 0.3, coordinates.y, coordinates.z - 0.3, coordinates.x + 0.3, coordinates.y + 2.2, coordinates.z + 0.3))
+                            .color(ColorUtil.getPrimaryColor())
+                            .box(Box.OUTLINE)
+                            .setup()
+                            .line(lineWidth.getValue())
+                            .depth(true)
+                            .blend()
+                            .texture()
+                    );
+
+                    // draw info
+                    RenderUtil.drawNametag(coordinates.addVector(0, 2.6, 0), name + " [X: " + coordinates.x + ", Y: " + coordinates.y + ", Z: " + coordinates.z + "]");
+                }
+            });
+        }
     }
 
     @SubscribeEvent
