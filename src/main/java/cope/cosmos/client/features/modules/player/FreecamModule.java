@@ -199,6 +199,7 @@ public class FreecamModule extends Module {
             playerModel.setPrimaryHand(mc.player.getPrimaryHand());
             playerModel.setHealth(mc.player.getHealth());
             playerModel.setAbsorptionAmount(mc.player.getAbsorptionAmount());
+            playerModel.setInvisible(mc.player.isInvisible());
             playerModel.swingProgress = mc.player.swingProgress;
             playerModel.swingingHand = mc.player.swingingHand;
             playerModel.isSwingInProgress = mc.player.isSwingInProgress;

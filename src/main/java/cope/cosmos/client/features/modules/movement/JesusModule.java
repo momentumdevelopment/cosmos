@@ -6,6 +6,7 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
@@ -14,7 +15,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -75,7 +75,7 @@ public class JesusModule extends Module {
 
         // apply liquid deceleration to player
         if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
-            if (!isInLiquid() && isStandingOnLiquid()) {
+            if (!PlayerUtil.isInLiquid() && isStandingOnLiquid()) {
                 // Vec3d decelerationVector = block.modifyAcceleration(mc.world, position, mc.player, Vec3d.ZERO)
                 // mc.player.motionX += decelerationVector.x * 0.014;
                 // mc.player.motionY += decelerationVector.y * 0.014;
@@ -83,13 +83,15 @@ public class JesusModule extends Module {
             }
 
             // reset offset
-            if (isInLiquid() || mc.player.fallDistance > 3 || mc.player.isSneaking()) {
+            if (PlayerUtil.isInLiquid() || mc.player.fallDistance > 3 || mc.player.isSneaking()) {
                 floatOffset = 0;
             }
 
-            // float up
+            // check if we are not canceling the motion
             if (!mc.player.isSneaking() && !mc.gameSettings.keyBindJump.isKeyDown()) {
-                if (isInLiquid()) {
+
+                // float up
+                if (PlayerUtil.isInLiquid()) {
                     mc.player.motionY = 0.11;
 
                     // reset float stage
@@ -108,15 +110,15 @@ public class JesusModule extends Module {
 
         // floats up while in the water
         else if (mode.getValue().equals(Mode.DOLPHIN)) {
-            if (isInLiquid()) {
+            if (PlayerUtil.isInLiquid()) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
             }
         }
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     @SubscribeEvent
     public void onBoundingBoxCollision(CollisionBoundingBoxEvent event) {
-
         if (nullCheck()) {
 
             // incompatibilities
@@ -128,13 +130,13 @@ public class JesusModule extends Module {
             if (event.getEntity() != null && event.getEntity().equals(mc.player)) {
 
                 // check if the collision is with a liquid block
-                if (event.getBlock() instanceof BlockLiquid && !event.getBlock().equals(Blocks.FLOWING_LAVA) && !event.getBlock().equals(Blocks.FLOWING_WATER)) {
+                if (event.getBlock() instanceof BlockLiquid) {
 
                     // make the block solid
                     if (mode.getValue().equals(Mode.SOLID) || mode.getValue().equals(Mode.SOLID_STRICT)) {
 
                         // make sure the player is standing on liquid not inside liquid
-                        if (isInLiquid() || !isStandingOnLiquid()) {
+                        if (PlayerUtil.isInLiquid() || !isStandingOnLiquid()) {
                             return;
                         }
 
@@ -149,7 +151,7 @@ public class JesusModule extends Module {
                         }
 
                         // full box
-                        AxisAlignedBB fullCollisionBox = new AxisAlignedBB(0, 0, 0, 1, 0.921, 1).offset(event.getPosition());
+                        AxisAlignedBB fullCollisionBox = Block.FULL_BLOCK_AABB.offset(event.getPosition());
 
                         // add the full box to collision list
                         if (event.getCollisionBox().intersects(fullCollisionBox)) {
@@ -159,10 +161,10 @@ public class JesusModule extends Module {
 
                         // decelerate the player motion (simulate moving through liquid)
                         if (mode.getValue().equals(Mode.SOLID_STRICT)) {
-                            Vec3d decelerationVector = event.getBlock().modifyAcceleration(mc.world, event.getPosition(), mc.player, Vec3d.ZERO);
-                            mc.player.motionX += decelerationVector.x * 0.014;
-                            mc.player.motionY += decelerationVector.y * 0.014;
-                            mc.player.motionZ += decelerationVector.z * 0.014;
+                            // Vec3d decelerationVector = event.getBlock().modifyAcceleration(mc.world, event.getPosition(), mc.player, Vec3d.ZERO);
+                            // mc.player.motionX += decelerationVector.x * 0.014;
+                            // mc.player.motionY += decelerationVector.y * 0.014;
+                            // mc.player.motionZ += decelerationVector.z * 0.014;
                         }
                     }
                 }
@@ -180,7 +182,7 @@ public class JesusModule extends Module {
             if (((ICPacketPlayer) event.getPacket()).isMoving()) {
 
                 // check if user is standing in liquid
-                if (!isInLiquid() && isStandingOnLiquid()) {
+                if (!PlayerUtil.isInLiquid() && isStandingOnLiquid()) {
 
                     // wait for floating
                     if (mode.getValue().equals(Mode.SOLID) && floatTicks < 5) {
@@ -217,34 +219,21 @@ public class JesusModule extends Module {
     }
 
     /**
-     * Checks if the player is in liquid
-     * @return Whether the player is in liquid
-     */
-    public boolean isInLiquid() {
-
-        // player block
-        Block block = mc.world.getBlockState(mc.player.getPosition()).getBlock();
-
-        // check if liquid
-        return block instanceof BlockLiquid && !block.equals(Blocks.FLOWING_LAVA) && !block.equals(Blocks.FLOWING_WATER);
-    }
-
-    /**
      * Checks if the player is standing on a liquid block
      * @return Whether the player is standing on a liquid block
      */
     public boolean isStandingOnLiquid() {
 
         // check if we are inside a liquid
-        if (isInLiquid()) {
+        if (PlayerUtil.isInLiquid()) {
             return false;
         }
 
         // check below positions
-        for (double y = 0.0; y < 1; y += 0.1) {
+        for (double y = 0; y < 1; y += 0.1) {
 
             // below position
-            BlockPos position = new BlockPos(mc.player.posX, mc.player.posY - y, mc.player.posZ);
+            BlockPos position = new BlockPos(mc.player.posX, mc.player.getEntityBoundingBox().minY - y, mc.player.posZ);
 
             // below block
             Block block = mc.world.getBlockState(position).getBlock();

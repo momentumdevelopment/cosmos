@@ -1,5 +1,6 @@
 package cope.cosmos.client.features.modules.movement;
 
+import cope.cosmos.asm.mixins.accessor.INetHandlerPlayClient;
 import cope.cosmos.asm.mixins.accessor.INetworkManager;
 import cope.cosmos.asm.mixins.accessor.ISPacketPlayerPosLook;
 import cope.cosmos.client.events.motion.movement.MotionEvent;
@@ -29,16 +30,12 @@ import java.util.Map;
 public class PacketFlightModule extends Module {
     public static PacketFlightModule INSTANCE;
 
-    // 0.001 less than the server is checking for
-    private static final double CONCEAL = 0.0624;
-
-    // funny number shit
-    private static final double MOVE_FACTOR = 1.0 / StrictMath.sqrt(2.0);
-
     public PacketFlightModule() {
         super("PacketFlight", new String[] {"PacketFly"}, Category.MOVEMENT, "Funny 1.9+ exploit", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
+
+    // **************************** general ****************************
 
     public static Setting<Mode> mode = new Setting<>("Mode", Mode.FACTOR)
             .setDescription("How to handle flying");
@@ -71,6 +68,12 @@ public class PacketFlightModule extends Module {
 
     // the time to slow down to prevent NCP kicks
     private int lagTime = 0;
+
+    // 0.001 less than the server is checking for
+    private static final double CONCEAL = 0.0624;
+
+    // funny number shit
+    private static final double MOVE_FACTOR = 1.0 / StrictMath.sqrt(2.0);
 
     @Override
     public void onDisable() {
@@ -188,38 +191,46 @@ public class PacketFlightModule extends Module {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-        // if the server is lagging us back
-        if (event.getPacket() instanceof SPacketPlayerPosLook) {
-            SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
+        if (nullCheck()) {
 
-            // get the prediction for this server lagback
-            Vec3d prediction = predictions.get(packet.getTeleportId());
-            if (prediction != null) {
-
-                // these have to match PERFECTLY - all of them
-                if (prediction.x == packet.getX() && prediction.y == packet.getY() && prediction.z == packet.getZ()) {
-
-                    // if we are on FACTOR or FAST, cancel
-                    if (!mode.getValue().equals(Mode.SETBACK)) {
-                        event.setCanceled(true);
-                    }
-
-                    // confirm teleport, as we have canceled this teleport from being handled
-                    mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
-                    return;
-                }
+            // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
+            if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
+                return;
             }
 
-            // remove annoying rotation-resets
-            ((ISPacketPlayerPosLook) packet).setYaw(mc.player.rotationYaw);
-            ((ISPacketPlayerPosLook) packet).setPitch(mc.player.rotationPitch);
+            // if the server is lagging us back
+            if (event.getPacket() instanceof SPacketPlayerPosLook) {
+                SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
 
-            // accept this packet teleport
-            mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
+                // get the prediction for this server lagback
+                Vec3d prediction = predictions.get(packet.getTeleportId());
+                if (prediction != null) {
 
-            // slow down
-            lagTime = 10;
-            tpId = packet.getTeleportId();
+                    // these have to match PERFECTLY - all of them
+                    if (prediction.x == packet.getX() && prediction.y == packet.getY() && prediction.z == packet.getZ()) {
+
+                        // if we are on FACTOR or FAST, cancel
+                        if (!mode.getValue().equals(Mode.SETBACK)) {
+                            event.setCanceled(true);
+                        }
+
+                        // confirm teleport, as we have canceled this teleport from being handled
+                        mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
+                        return;
+                    }
+                }
+
+                // remove annoying rotation-resets
+                ((ISPacketPlayerPosLook) packet).setYaw(mc.player.rotationYaw);
+                ((ISPacketPlayerPosLook) packet).setPitch(mc.player.rotationPitch);
+
+                // accept this packet teleport
+                mc.player.connection.sendPacket(new CPacketConfirmTeleport(packet.getTeleportId()));
+
+                // slow down
+                lagTime = 10;
+                tpId = packet.getTeleportId();
+            }
         }
     }
 
@@ -230,6 +241,13 @@ public class PacketFlightModule extends Module {
         disable(true);
     }
 
+    /**
+     * Sends packets based on motion
+     * @param factor Packet factor
+     * @param moveSpeed Current moving speed
+     * @param motionY Current y movement
+     * @param antiKick Whether to prevent vanilla kick
+     */
     private void send(int factor, double moveSpeed, double motionY, boolean antiKick) {
 
         // if for some reason we have a 0 factor, null out velocity
@@ -306,6 +324,7 @@ public class PacketFlightModule extends Module {
     }
 
     public enum Mode {
+
         /**
          * Aka Desync, cancels server teleport packets if predictions are met via their teleport ids
          */
@@ -344,6 +363,7 @@ public class PacketFlightModule extends Module {
     }
 
     public enum Phase {
+
         /**
          * Does not attempt to phase easily
          */

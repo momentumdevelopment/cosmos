@@ -233,14 +233,9 @@ public class SpeedMineModule extends Module {
                     mineDamage += getBlockStrength(mc.world.getBlockState(minePosition), minePosition);
                 }
 
-                /*
                 else {
-                    minePosition = null; // not currently mining
-                    mineFacing = null;
-                    mineDamage = 0;
-                    mineBreaks = 0;
+                    mineDamage = 0; // not currently mining
                 }
-                 */
             }
 
             else if (mode.getValue().equals(Mode.VANILLA)) {
@@ -360,13 +355,18 @@ public class SpeedMineModule extends Module {
     @SubscribeEvent
     public void onRotationUpdate(RotationUpdateEvent event) {
 
-        if (nullCheck()) {
+        if (isActive() && nullCheck()) {
 
             // server-side update our rotations
             if (!rotate.getValue().equals(Rotate.NONE)) {
 
+                // incompatibilities
+                if (FreecamModule.INSTANCE.isInteracting()) {
+                    return;
+                }
+
                 // mine is complete
-                if (mineDamage > 0.95 || FreecamModule.INSTANCE.isInteracting()) {
+                if (mineDamage > 0.95) {
 
                     // cancel vanilla rotations, we'll send our own
                     event.setCanceled(true);
@@ -385,13 +385,7 @@ public class SpeedMineModule extends Module {
                         }
 
                         // send rotations
-                        if (FreecamModule.INSTANCE.isInteracting()) {
-                            mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mineRotation.getYaw(), mineRotation.getPitch(), mc.player.onGround));
-                        }
-
-                        else {
-                            getCosmos().getRotationManager().setRotation(mineRotation);
-                        }
+                        getCosmos().getRotationManager().setRotation(mineRotation);
                     }
                 }
             }
@@ -625,6 +619,14 @@ public class SpeedMineModule extends Module {
         }
 
         return destroySpeed;
+    }
+
+    /**
+     * Gets the current mine position
+     * @return The current mine position
+     */
+    public BlockPos getMinePosition() {
+        return minePosition;
     }
 
     public enum Mode {

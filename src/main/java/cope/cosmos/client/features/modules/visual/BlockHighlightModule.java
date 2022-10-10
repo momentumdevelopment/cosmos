@@ -27,8 +27,12 @@ public class BlockHighlightModule extends Module {
 
     // **************************** render ****************************
 
-    public static Setting<Box> renderMode = new Setting<>("RenderMode", Box.OUTLINE)
-            .setDescription("Style of the visual").setExclusion(Box.GLOW, Box.REVERSE, Box.NONE);
+    public static Setting<Box> renderMode = new Setting<>("Mode", Box.OUTLINE)
+            .setDescription("Style of the visual")
+            .setExclusion(Box.GLOW, Box.REVERSE, Box.NONE);
+
+    public static Setting<Boolean> entities = new Setting<>("Entities", false)
+            .setDescription("Highlights entity bounding boxes");
 
     public static Setting<Float> lineWidth = new Setting<>("Width", 0.1F, 1.5F, 5F, 1)
             .setAlias("LineWidth")
@@ -41,22 +45,36 @@ public class BlockHighlightModule extends Module {
         RayTraceResult mouseOver = mc.objectMouseOver;
 
         // check if we are focused on a block
-        if (mouseOver != null && mouseOver.typeOfHit.equals(Type.BLOCK)) {
+        if (mouseOver != null) {
 
             // box of the mouse over object
-            AxisAlignedBB mouseOverBox = mc.world.getBlockState(mouseOver.getBlockPos()).getSelectedBoundingBox(mc.world, mouseOver.getBlockPos());
+            AxisAlignedBB mouseOverBox = null;
 
-            // draw box highlight
-            RenderUtil.drawBox(new RenderBuilder()
-                    .position(mouseOverBox)
-                    .color(ColorUtil.getPrimaryAlphaColor(60))
-                    .box(renderMode.getValue())
-                    .setup()
-                    .line(lineWidth.getValue())
-                    .depth(true)
-                    .blend()
-                    .texture()
-            );
+            // mouse over block
+            if (mouseOver.typeOfHit.equals(Type.BLOCK)) {
+                mouseOverBox = mc.world.getBlockState(mouseOver.getBlockPos()).getSelectedBoundingBox(mc.world, mouseOver.getBlockPos());
+            }
+
+            // mouse over entity
+            else if (entities.getValue() && mouseOver.typeOfHit.equals(Type.ENTITY)) {
+                mouseOverBox = mouseOver.entityHit.getEntityBoundingBox();
+            }
+
+            // check if highlight exists
+            if (mouseOverBox != null) {
+
+                // draw box highlight
+                RenderUtil.drawBox(new RenderBuilder()
+                        .position(mouseOverBox)
+                        .color(ColorUtil.getPrimaryAlphaColor(60))
+                        .box(renderMode.getValue())
+                        .setup()
+                        .line(lineWidth.getValue())
+                        .depth(true)
+                        .blend()
+                        .texture()
+                );
+            }
         }
     }
 
