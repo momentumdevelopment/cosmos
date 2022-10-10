@@ -5,6 +5,7 @@ import cope.cosmos.client.events.motion.collision.CollisionBoundingBoxEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.exploits.PacketFlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.string.StringFormatter;
@@ -123,6 +124,11 @@ public class JesusModule extends Module {
 
             // incompatibilities
             if (PacketFlightModule.INSTANCE.isEnabled() || FlightModule.INSTANCE.isEnabled()) {
+                return;
+            }
+
+            // allow if we are spectating
+            if (mc.player.isSpectator()) {
                 return;
             }
 

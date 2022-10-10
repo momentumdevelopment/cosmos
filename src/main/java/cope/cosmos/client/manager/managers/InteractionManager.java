@@ -2,7 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import cope.cosmos.asm.mixins.accessor.IEntityLivingBase;
 import cope.cosmos.asm.mixins.accessor.IMinecraft;
-import cope.cosmos.client.features.modules.player.SwingModule;
+import cope.cosmos.client.features.modules.exploits.SwingModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.holder.Rotation;
 import cope.cosmos.util.holder.Rotation.Rotate;

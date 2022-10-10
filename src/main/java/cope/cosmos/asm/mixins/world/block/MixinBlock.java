@@ -1,6 +1,6 @@
 package cope.cosmos.asm.mixins.world.block;
 
-import cope.cosmos.client.features.modules.visual.WallhackModule;
+import cope.cosmos.client.features.modules.world.WallhackModule;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;

@@ -3,9 +3,10 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.modules.client.*;
 import cope.cosmos.client.features.modules.combat.*;
-import cope.cosmos.client.features.modules.misc.*;
+import cope.cosmos.client.features.modules.exploits.*;
+import cope.cosmos.client.features.modules.miscellaneous.*;
 import cope.cosmos.client.features.modules.movement.*;
-import cope.cosmos.client.features.modules.player.*;
+import cope.cosmos.client.features.modules.world.*;
 import cope.cosmos.client.features.modules.visual.*;
 import cope.cosmos.client.manager.Manager;
 
@@ -29,79 +30,61 @@ public class ModuleManager extends Manager {
 		// add all modules
 		modules = Arrays.asList(
 
-				// client
-				new ClickGUIModule(),
-				new ColorsModule(),
-				new DiscordPresenceModule(),
-				new FontModule(),
-				new HUDModule(),
-				new SocialModule(),
-				new StreamerModeModule(),
-
 				// combat
 				new AuraModule(),
 				new AutoArmorModule(),
 				new AutoBowReleaseModule(),
 				new AutoCrystalModule(),
+				new AutoDisconnectModule(),
 				new AutoTotemModule(),
 				// new AutoTrapModule(),
 				new CriticalsModule(),
-				new FastProjectileModule(),
 				new HoleFillModule(),
+				new ReplenishModule(),
 				// new SelfBowModule(),
 				new SelfFillModule(),
 				new SurroundModule(),
 
-				// misc
+				// exploits
+				new AntiHungerModule(),
+				new FastProjectileModule(),
+				new NewChunksModule(),
+				new PacketFlightModule(),
+				new PingSpoofModule(),
+				new PortalModule(),
+				new ReachModule(),
+				new SwingModule(),
+
+				// miscellaneous
 				new AntiAFKModule(),
 				new AntiAimModule(),
 				new AntiCrashModule(),
-				new AutoDisconnectModule(),
+				new AutoRespawnModule(),
 				new ChatModificationsModule(),
-				new ExtraTabModule(),
 				new FakePlayerModule(),
 				new MiddleClickModule(),
-				new MultiTaskModule(),
 				new NotifierModule(),
-				new PortalModule(),
 				new TimerModule(),
-				new TooltipsModule(),
 				new XCarryModule(),
 
 				// movement
+				new BlinkModule(),
 				new ElytraFlightModule(),
+				new EntityControlModule(),
 				new EntitySpeedModule(),
 				new FastFallModule(),
 				new FlightModule(),
 				new HighJumpModule(),
 				new JesusModule(),
 				new LongJumpModule(),
+				new NoFallModule(),
 				new NoSlowModule(),
-				new PacketFlightModule(),
-				new ScaffoldModule(),
 				new SpeedModule(),
 				new SprintModule(),
 				new StepModule(),
+				new TickShiftModule(),
 				new VelocityModule(),
 				new YawModule(),
-
-				// player
-				new AntiHungerModule(),
-				new AntiVoidModule(),
-				new AutoRespawnModule(),
-				new BlinkModule(),
-				new EntityControlModule(),
-				new FastUseModule(),
-				new FreecamModule(),
-				new InteractModule(),
-				new NoFallModule(),
-				new NoRotateModule(),
-				new PingSpoofModule(),
-				new ReachModule(),
-				new ReplenishModule(),
-				new SpeedMineModule(),
-				new SwingModule(),
-				new TickShiftModule(),
 
 				// visual
 				new BlockHighlightModule(),
@@ -110,27 +93,53 @@ public class ModuleManager extends Manager {
 				new CameraClipModule(),
 				new ChamsModule(),
 				new ESPModule(),
+				new ExtraTabModule(),
+				new FreecamModule(),
 				new FullBrightModule(),
 				new HoleESPModule(),
 				new NametagsModule(),
-				new NewChunksModule(),
 				new NoRenderModule(),
+				new NoRotateModule(),
 				new NoWeatherModule(),
 				new SkyboxModule(),
+				new TooltipsModule(),
 				new TracersModule(),
 				new ViewModelModule(),
+				new WaypointsModule(),
+
+				// world
+				new AvoidModule(),
+				new FastUseModule(),
+				new InteractModule(),
+				new MultiTaskModule(),
+				new ScaffoldModule(),
+				new SpeedMineModule(),
 				new WallhackModule(),
-				new WaypointsModule()
+
+				// client
+				new ClickGUIModule(),
+				new ColorsModule(),
+				new DiscordPresenceModule(),
+				new FontModule(),
+				new HUDModule(),
+				new SocialModule(),
+				new StreamerModeModule()
 		);
 	}
 
 	@Override
 	public void onThread() {
-		getCosmos().getModuleManager().getAllModules().forEach(module -> {
+
+		// check all modules for potential keybind presses
+		for (Module module : modules) {
+
+			// if the keybind is pressed
 			if (module.getBind().getValue().isPressed()) {
+
+				// toggle the module
 				module.toggle();
 			}
-		});
+		}
 	}
 
 	/**

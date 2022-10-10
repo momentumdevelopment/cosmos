@@ -12,7 +12,7 @@ import cope.cosmos.client.events.render.entity.RenderCrystalEvent;
 import cope.cosmos.client.events.render.entity.RenderRotationsEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.ServiceModule;
-import cope.cosmos.client.features.modules.player.SwingModule;
+import cope.cosmos.client.features.modules.exploits.SwingModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.managers.InventoryManager.InventoryRegion;
 import cope.cosmos.client.manager.managers.InventoryManager.Switch;

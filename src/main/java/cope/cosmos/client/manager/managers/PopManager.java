@@ -3,11 +3,9 @@ package cope.cosmos.client.manager.managers;
 import cope.cosmos.client.Cosmos;
 import cope.cosmos.client.events.combat.TotemPopEvent;
 import cope.cosmos.client.events.entity.EntityWorldEvent;
-import cope.cosmos.client.features.modules.misc.NotifierModule;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.util.Wrapper;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
