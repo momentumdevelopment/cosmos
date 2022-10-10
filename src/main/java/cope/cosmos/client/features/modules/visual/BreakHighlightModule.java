@@ -23,7 +23,7 @@ public class BreakHighlightModule extends Module {
     public static BreakHighlightModule INSTANCE;
 
     public BreakHighlightModule() {
-        super("BreakHighlight", Category.VISUAL, "Highlights blocks that are being broken");
+        super("BreakHighlight", new String[] {"BreakESP"}, Category.VISUAL, "Highlights blocks that are being broken");
         INSTANCE = this;
     }
 
@@ -41,11 +41,6 @@ public class BreakHighlightModule extends Module {
     public static Setting<Boolean> percent = new Setting<>("Percent", false)
             .setDescription("Show the percentage the block has been broken by");
 
-    // **************************** other ****************************
-
-    public static Setting<Float> range = new Setting<>("Range", 1F, 20F, 50F, 1)
-            .setDescription("The maximum distance a highlighted block can be");
-
     @Override
     public void onRender3D() {
 
@@ -62,7 +57,7 @@ public class BreakHighlightModule extends Module {
                 }
 
                 // Check block is within range
-                if (BlockUtil.getDistanceToCenter(mc.player, position) <= range.getValue()) {
+                if (BlockUtil.getDistanceToCenter(mc.player, position) <= 20) {
 
                     // Block damage. Clamping this as it can go above 8 for other players, breaking the colour and throwing an exception
                     int damage = MathHelper.clamp(progress.getPartialBlockDamage(), 0, 8);

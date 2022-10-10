@@ -16,6 +16,7 @@ import cope.cosmos.util.player.PlayerUtil;
 import cope.cosmos.util.render.FontUtil;
 import cope.cosmos.util.string.ColorUtil;
 import cope.cosmos.util.string.StringFormatter;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -193,11 +194,13 @@ public class HUDModule extends Module {
                             // potion formatted
                             StringBuilder potionFormatted = new StringBuilder(potionName);
 
+                            // potion effect amplifier
+                            int amplifier = potionEffect.getAmplifier() + 1;
+
                             // potion formatted
                             potionFormatted.append(" ")
-                                    .append(potionEffect.getAmplifier() + 1)
+                                    .append(amplifier > 1 ? amplifier + " " : "")
                                     .append(ChatFormatting.WHITE)
-                                    .append(" ")
                                     .append(Potion.getPotionDurationString(potionEffect, 1F));
 
                             // draw string
@@ -284,8 +287,6 @@ public class HUDModule extends Module {
                         .append(TextFormatting.WHITE)
                         .append(MathUtil.roundFloat(inNether ? mc.player.posX * 8 : mc.player.posX / 8, 1)) // nether
                         .append(", ")
-                        .append(MathUtil.roundFloat(mc.player.posY, 1))
-                        .append(", ")
                         .append(MathUtil.roundFloat(inNether ? mc.player.posZ * 8 : mc.player.posZ / 8, 1))
                         .append(TextFormatting.RESET)
                         .append("]");
@@ -315,7 +316,7 @@ public class HUDModule extends Module {
                         int yScaled = 0;
 
                         // if we're in the water, then the armor should render above the bubbles
-                        if (mc.player.isInWater()) {
+                        if (mc.player.isInsideOfMaterial(Material.WATER)) {
                             yScaled = 10;
                         }
 
@@ -328,6 +329,7 @@ public class HUDModule extends Module {
                         GlStateManager.pushMatrix();
                         RenderHelper.enableGUIStandardItemLighting();
 
+                        // render item
                         mc.getRenderItem().zLevel = 200;
                         mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - yScaled - 55);
                         mc.getRenderItem().renderItemOverlayIntoGUI(mc.fontRenderer, itemStack, (SCREEN_WIDTH / 2) + ((9 - armorOffset) * 16) - 78, SCREEN_HEIGHT - yScaled - 55, "");

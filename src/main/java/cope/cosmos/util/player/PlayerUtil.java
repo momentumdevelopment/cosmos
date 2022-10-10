@@ -3,6 +3,7 @@ package cope.cosmos.util.player;
 import cope.cosmos.client.features.modules.movement.FlightModule;
 import cope.cosmos.util.Wrapper;
 import cope.cosmos.util.world.BlockUtil;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemTool;
@@ -63,7 +64,7 @@ public class PlayerUtil implements Wrapper {
      * @return Whether the player is in liquid
      */
     public static boolean isInLiquid() {
-        return mc.player.isInLava() || mc.player.isInWater();
+        return mc.player.isInsideOfMaterial(Material.LAVA) || mc.player.isInsideOfMaterial(Material.WATER) || mc.player.isInWater() || mc.player.isInLava();
     }
 
     /**

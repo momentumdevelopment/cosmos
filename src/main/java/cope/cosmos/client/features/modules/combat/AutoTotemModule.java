@@ -105,7 +105,7 @@ public class AutoTotemModule extends Module {
                 if (lethal.getValue()) {
 
                     // SCENARIO #1: fall damage
-                    float fallDamage = ((mc.player.fallDistance - 3.0F) / 2.0F) + 3.5F;
+                    float fallDamage = ((mc.player.fallDistance - 3) / 2F) + 3.5F;
 
                     // fall damage will kill us
                     if (playerHealth - fallDamage < 0.5 && !mc.player.isOverWater()) {

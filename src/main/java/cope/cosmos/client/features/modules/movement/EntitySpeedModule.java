@@ -65,14 +65,12 @@ public class EntitySpeedModule extends Module {
                 return;
             }
 
-            // current speed
-            double moveSpeed = speed.getValue();
-
             // the current movement input values of the user
             float forward = mc.player.movementInput.moveForward;
             float strafe = mc.player.movementInput.moveStrafe;
             float yaw = mc.player.rotationYaw;
 
+            // remount
             if (strict.getValue()) {
 
                 // send remount packets
@@ -81,51 +79,29 @@ public class EntitySpeedModule extends Module {
                 }
             }
 
-            // if we're not inputting any movements, then we shouldn't be adding any motion
-            if (!MotionUtil.isMoving()) {
-                mc.player.getRidingEntity().motionX = 0;
-                mc.player.getRidingEntity().motionZ = 0;
-            }
-
             // prevent entity from moving into unloaded chunks
-            else if (mc.world.getChunkFromChunkCoords((int) (mc.player.getRidingEntity().posX + mc.player.getRidingEntity().motionX) >> 4, (int) (mc.player.getRidingEntity().posZ + mc.player.getRidingEntity().motionX) >> 4) instanceof EmptyChunk) {
+            if (mc.world.getChunkFromChunkCoords((int) (mc.player.getRidingEntity().posX + mc.player.getRidingEntity().motionX) >> 4, (int) (mc.player.getRidingEntity().posZ + mc.player.getRidingEntity().motionX) >> 4) instanceof EmptyChunk) {
                 mc.player.getRidingEntity().motionX = 0;
                 mc.player.getRidingEntity().motionZ = 0;
             }
 
             else {
 
-                // find the rotations and inputs based on our current movements
-                if (strafe > 0) {
-                    yaw += forward > 0 ? -45 : 45;
-                }
-
-                else if (strafe < 0) {
-                    yaw += forward > 0 ? 45 : -45;
-                }
-
-                strafe = 0;
-
-                if (forward > 0) {
-                    forward = 1;
-                }
-
-                else if (forward < 0) {
-                    forward = -1;
-                }
-
                 // our facing values, according to movement not rotations
                 double cos = Math.cos(Math.toRadians(yaw + 90));
                 double sin = Math.sin(Math.toRadians(yaw + 90));
 
-                // update the movements
-                mc.player.getRidingEntity().motionX = (forward * moveSpeed * cos) + (strafe * moveSpeed * sin);
-                mc.player.getRidingEntity().motionZ = (forward * moveSpeed * sin) - (strafe * moveSpeed * cos);
-
                 // if we're not inputting any movements, then we shouldn't be adding any motion
                 if (!MotionUtil.isMoving()) {
-                    mc.player.getRidingEntity().motionX = 0;
-                    mc.player.getRidingEntity().motionZ = 0;
+                    mc.player.motionX = 0;
+                    mc.player.motionZ = 0;
+                }
+
+                else {
+
+                    // update the movements
+                    mc.player.motionX = (forward * speed.getValue() * cos) + (strafe * speed.getValue() * sin);
+                    mc.player.motionZ = (forward * speed.getValue() * sin) - (strafe * speed.getValue() * cos);
                 }
             }
         }

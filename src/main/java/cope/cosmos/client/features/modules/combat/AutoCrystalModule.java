@@ -273,7 +273,8 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
             .setDescription("Renders the current process");
 
     public static Setting<Boolean> debug = new Setting<>("Debug", false)
-            .setDescription("Development info");
+            .setDescription("Development info")
+            .setVisible(() -> false);
 
     public static Setting<Text> renderText = new Setting<>("RenderText", Text.NONE)
             .setAlias("RenderInfo")

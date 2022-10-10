@@ -11,7 +11,10 @@ import cope.cosmos.client.events.render.gui.RenderOverlayEvent;
 import cope.cosmos.client.events.render.other.RenderEnchantmentTableBookEvent;
 import cope.cosmos.client.events.render.other.RenderMapEvent;
 import cope.cosmos.client.events.render.other.RenderParticleEvent;
-import cope.cosmos.client.events.render.player.*;
+import cope.cosmos.client.events.render.player.CrosshairBobEvent;
+import cope.cosmos.client.events.render.player.HurtCameraEvent;
+import cope.cosmos.client.events.render.player.ModifyFOVEvent;
+import cope.cosmos.client.events.render.player.RenderItemActivationEvent;
 import cope.cosmos.client.events.render.world.RenderFogEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -101,9 +104,6 @@ public class NoRenderModule extends Module {
 
     public static Setting<Boolean> noBob = new Setting<>("NoBob", true)
             .setDescription("Let's you have view bobbing on without the crosshair bobbing as well");
-
-    public static Setting<Boolean> eating = new Setting<>("Eating", false)
-            .setDescription("Removes the eating animation");
 
     @SubscribeEvent
     public void onRenderItem(RenderItemEvent event) {
@@ -282,15 +282,6 @@ public class NoRenderModule extends Module {
 
         // Lets the hand bobbing animation run without the crosshair bobbing as well
         if (noBob.getValue()) {
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
-    public void onEatingRender(RenderEatingEvent event) {
-
-        // Prevent the eating animation
-        if (eating.getValue()) {
             event.setCanceled(true);
         }
     }

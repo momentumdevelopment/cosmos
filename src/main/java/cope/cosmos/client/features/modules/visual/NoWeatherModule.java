@@ -4,6 +4,7 @@ import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
+import cope.cosmos.util.string.StringFormatter;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -15,7 +16,7 @@ public class NoWeatherModule extends Module {
     public static NoWeatherModule INSTANCE;
 
     public NoWeatherModule() {
-        super("NoWeather", Category.VISUAL, "Allows you to change the weather");
+        super("NoWeather", Category.VISUAL, "Allows you to change the weather", () -> StringFormatter.formatEnum(weather.getValue()));
         INSTANCE = this;
     }
 
