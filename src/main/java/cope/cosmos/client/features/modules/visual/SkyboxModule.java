@@ -12,11 +12,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
  * @author linustouchtips
  * @since 12/28/2021
  */
-public class SkyColorModule extends Module {
-    public static SkyColorModule INSTANCE;
+public class SkyboxModule extends Module {
+    public static SkyboxModule INSTANCE;
 
-    public SkyColorModule() {
-        super("SkyColor", Category.VISUAL, "Colors the sky");
+    public SkyboxModule() {
+        super("Skybox", Category.VISUAL, "Changes the skybox");
         INSTANCE = this;
     }
 
