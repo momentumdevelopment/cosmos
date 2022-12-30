@@ -51,7 +51,7 @@ public class SpeedMineModule extends Module {
     public static SpeedMineModule INSTANCE;
 
     public SpeedMineModule() {
-        super("SpeedMine", new String[] {"PacketMine", "SpeedyGonzales", "AutoMine"}, Category.WORLD, "Mines faster", () -> StringFormatter.formatEnum(mode.getValue()) + (mode.getValue().equals(Mode.PACKET) ? ", " + MathHelper.clamp(MathUtil.roundFloat(mineDamage, 2), 0, 1) : ""));
+        super("SpeedMine", new String[] {"PacketMine", "SpeedyGonzales", "AutoMine"}, Category.WORLD, "Mines faster", () -> mode.getValue().equals(Mode.PACKET) ? "" + MathHelper.clamp(MathUtil.roundFloat(mineDamage, 2), 0, 1) : "");
         INSTANCE = this;
     }
 

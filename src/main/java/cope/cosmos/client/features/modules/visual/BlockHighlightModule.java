@@ -3,6 +3,7 @@ package cope.cosmos.client.features.modules.visual;
 import cope.cosmos.client.events.render.player.RenderSelectionBoxEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.exploits.ClickTPModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.render.RenderBuilder;
 import cope.cosmos.util.render.RenderBuilder.Box;
@@ -41,39 +42,43 @@ public class BlockHighlightModule extends Module {
     @Override
     public void onRender3D() {
 
-        // raytrace to what we are facing
-        RayTraceResult mouseOver = mc.objectMouseOver;
+        // incompatible
+        if (!ClickTPModule.INSTANCE.isEnabled()) {
 
-        // check if we are focused on a block
-        if (mouseOver != null) {
+            // raytrace to what we are facing
+            RayTraceResult mouseOver = mc.objectMouseOver;
 
-            // box of the mouse over object
-            AxisAlignedBB mouseOverBox = null;
+            // check if we are focused on a block
+            if (mouseOver != null) {
 
-            // mouse over block
-            if (mouseOver.typeOfHit.equals(Type.BLOCK)) {
-                mouseOverBox = mc.world.getBlockState(mouseOver.getBlockPos()).getSelectedBoundingBox(mc.world, mouseOver.getBlockPos());
-            }
+                // box of the mouse over object
+                AxisAlignedBB mouseOverBox = null;
 
-            // mouse over entity
-            else if (entities.getValue() && mouseOver.typeOfHit.equals(Type.ENTITY)) {
-                mouseOverBox = mouseOver.entityHit.getEntityBoundingBox();
-            }
+                // mouse over block
+                if (mouseOver.typeOfHit.equals(Type.BLOCK)) {
+                    mouseOverBox = mc.world.getBlockState(mouseOver.getBlockPos()).getSelectedBoundingBox(mc.world, mouseOver.getBlockPos());
+                }
 
-            // check if highlight exists
-            if (mouseOverBox != null) {
+                // mouse over entity
+                else if (entities.getValue() && mouseOver.typeOfHit.equals(Type.ENTITY)) {
+                    mouseOverBox = mouseOver.entityHit.getEntityBoundingBox();
+                }
 
-                // draw box highlight
-                RenderUtil.drawBox(new RenderBuilder()
-                        .position(mouseOverBox)
-                        .color(ColorUtil.getPrimaryAlphaColor(60))
-                        .box(renderMode.getValue())
-                        .setup()
-                        .line(lineWidth.getValue())
-                        .depth(true)
-                        .blend()
-                        .texture()
-                );
+                // check if highlight exists
+                if (mouseOverBox != null) {
+
+                    // draw box highlight
+                    RenderUtil.drawBox(new RenderBuilder()
+                            .position(mouseOverBox)
+                            .color(ColorUtil.getPrimaryAlphaColor(60))
+                            .box(renderMode.getValue())
+                            .setup()
+                            .line(lineWidth.getValue())
+                            .depth(true)
+                            .blend()
+                            .texture()
+                    );
+                }
             }
         }
     }

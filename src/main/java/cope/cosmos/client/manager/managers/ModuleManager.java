@@ -47,6 +47,8 @@ public class ModuleManager extends Manager {
 
 				// exploits
 				new AntiHungerModule(),
+				new ChorusControlModule(),
+				new ClickTPModule(),
 				new FastProjectileModule(),
 				new NewChunksModule(),
 				new PacketFlightModule(),
@@ -56,14 +58,18 @@ public class ModuleManager extends Manager {
 				new SwingModule(),
 
 				// miscellaneous
+				new AnnouncerModule(),
 				new AntiAFKModule(),
 				new AntiAimModule(),
 				new AntiCrashModule(),
+				new AutoEatModule(),
+				new AutoFishModule(),
 				new AutoRespawnModule(),
 				new ChatModificationsModule(),
 				new FakePlayerModule(),
 				new MiddleClickModule(),
 				new NotifierModule(),
+				new SneakModule(),
 				new TimerModule(),
 				new XCarryModule(),
 
@@ -79,6 +85,7 @@ public class ModuleManager extends Manager {
 				new LongJumpModule(),
 				new NoFallModule(),
 				new NoSlowModule(),
+				new ParkourModule(),
 				new SpeedModule(),
 				new SprintModule(),
 				new StepModule(),

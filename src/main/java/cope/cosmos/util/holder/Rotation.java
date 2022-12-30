@@ -8,6 +8,9 @@ import cope.cosmos.util.Wrapper;
  */
 public class Rotation implements Wrapper {
 
+    // default invalid rotation value
+    public static final Rotation INVALID_ROTATION = new Rotation(Float.NaN, Float.NaN);
+
     // rotation values
     private float yaw, pitch;
 

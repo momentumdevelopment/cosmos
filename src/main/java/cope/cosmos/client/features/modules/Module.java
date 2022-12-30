@@ -8,6 +8,7 @@ import cope.cosmos.client.features.setting.Bind;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.ui.util.animation.Animation;
 import cope.cosmos.util.Wrapper;
+import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -335,6 +336,14 @@ public class Module extends Feature implements Wrapper {
 	 */
 	public String getInfo() {
 		return info != null ? info.get() : "";
+	}
+
+	/**
+	 * Gets the module's formatted name
+	 * @return The module's formatted name
+	 */
+	public String getFormattedName() {
+		return name + (!getInfo().equals("") ? TextFormatting.GRAY + " [" + TextFormatting.WHITE + getInfo() + TextFormatting.GRAY + "]" + TextFormatting.RESET : "");
 	}
 
 	/**

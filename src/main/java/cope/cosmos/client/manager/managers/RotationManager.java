@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * @author linustouchtips
+ * @author linustouchtips, aesthetical
  * @since 07/30/2021
  */
 public class RotationManager extends Manager implements Wrapper {
@@ -25,6 +25,8 @@ public class RotationManager extends Manager implements Wrapper {
 
     // current rotation
     private Rotation rotation = new Rotation(Float.NaN, Float.NaN);
+
+    // rotation stay time
     private long stay = 0;
 
     public RotationManager() {
@@ -34,6 +36,8 @@ public class RotationManager extends Manager implements Wrapper {
 
     @Override
     public void onTick() {
+
+        // reset after 250 ms
         if (System.currentTimeMillis() - stay >= 250 && rotation.isValid()) {
             rotation = new Rotation(Float.NaN, Float.NaN);
         }

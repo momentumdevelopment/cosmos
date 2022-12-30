@@ -9,7 +9,6 @@ import cope.cosmos.client.features.setting.Setting;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCactus;
 import net.minecraft.block.BlockFire;
-import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -21,7 +20,7 @@ public class AvoidModule extends Module {
     public static AvoidModule INSTANCE;
 
     public AvoidModule() {
-        super("Avoid", new String[] {"AntiVoid"}, Category.WORLD, "Prevents you from getting stuck in the void");
+        super("Avoid", new String[] {"AntiVoid", "NoVoid", "Static"}, Category.WORLD, "Avoids certain blocks");
         INSTANCE = this;
     }
 
@@ -34,6 +33,7 @@ public class AvoidModule extends Module {
             .setDescription("Prevents you from walking into fire");
 
     public static Setting<Boolean> cactus = new Setting<>("Cactus", true)
+            .setAlias("Cacti")
             .setDescription("Prevents you from walking into cacti");
 
     public static Setting<Boolean> unloaded = new Setting<>("Unloaded", true)
@@ -77,16 +77,20 @@ public class AvoidModule extends Module {
                     // full box
                     if (mode.getValue().equals(Mode.SOLID)) {
 
-                        // check if we need to avoid
-                        if (fire.getValue() && event.getBlock() instanceof BlockFire || cactus.getValue() && event.getBlock() instanceof BlockCactus || unloaded.getValue() && !mc.world.isBlockLoaded(event.getPosition(), false)) {
+                        // check collision side
+                        if (event.getPosition().getY() == mc.player.getEntityBoundingBox().minY) {
 
-                            // full box
-                            AxisAlignedBB fullCollisionBox = Block.FULL_BLOCK_AABB.offset(event.getPosition());
+                            // check if we need to avoid
+                            if (fire.getValue() && event.getBlock() instanceof BlockFire || cactus.getValue() && event.getBlock() instanceof BlockCactus || unloaded.getValue() && !mc.world.isBlockLoaded(event.getPosition(), false)) {
 
-                            // add the full box to collision list
-                            if (event.getCollisionBox().intersects(fullCollisionBox)) {
-                                event.getCollisionList().add(fullCollisionBox);
-                                event.setCanceled(true);
+                                // full box
+                                AxisAlignedBB fullCollisionBox = Block.FULL_BLOCK_AABB.offset(event.getPosition());
+
+                                // add the full box to collision list
+                                if (event.getCollisionBox().intersects(fullCollisionBox)) {
+                                    event.getCollisionList().add(fullCollisionBox);
+                                    event.setCanceled(true);
+                                }
                             }
                         }
                     }

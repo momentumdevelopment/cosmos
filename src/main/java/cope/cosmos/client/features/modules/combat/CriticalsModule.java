@@ -30,35 +30,7 @@ public class CriticalsModule extends Module {
     public static CriticalsModule INSTANCE;
 
     public CriticalsModule() {
-        super("Criticals", Category.COMBAT, "Ensures all hits are criticals", () -> {
-
-            // criticals info
-            StringBuilder info = new StringBuilder();
-
-            // mode info
-            info.append(StringFormatter.formatEnum(mode.getValue()));
-
-            // time info
-            if (!mode.getValue().equals(Mode.MOTION)) {
-
-                // time till next critical attempt
-                double timeTillCritical = (delay.getValue() - criticalTimer.getMilliseconds()) / 1000;
-
-                // clamp time till next critical
-                if (timeTillCritical < 0) {
-                    timeTillCritical = 0;
-                }
-
-                if (timeTillCritical > delay.getValue()) {
-                    timeTillCritical = delay.getValue();
-                }
-
-                info.append(", ").append(timeTillCritical);
-            }
-
-            return info.toString();
-        });
-
+        super("Criticals", Category.COMBAT, "Ensures all hits are criticals", () -> StringFormatter.formatEnum(mode.getValue()));
         INSTANCE = this;
     }
 
@@ -204,8 +176,13 @@ public class CriticalsModule extends Module {
             }
         }
 
+        // packet for player updates
         if (event.getPacket() instanceof CPacketPlayer) {
+
+            // check if packet is updating motion
             if (((ICPacketPlayer) event.getPacket()).isMoving()) {
+
+                // we have attacked an entity
                 if (criticalEntity != null) {
 
                     // make sure entity is hurt

@@ -5,7 +5,6 @@ import cope.cosmos.client.features.modules.client.ColorsModule;
 import cope.cosmos.client.features.modules.client.DiscordPresenceModule;
 import cope.cosmos.client.features.modules.client.FontModule;
 import cope.cosmos.client.features.modules.client.SocialModule;
-import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.client.manager.managers.*;
 import cope.cosmos.client.ui.clickgui.ClickGUIScreen;
@@ -79,7 +78,7 @@ public class Cosmos {
     private NotificationManager notificationManager;
     private ReloadManager reloadManager;
     private PatchManager patchManager;
-    private PopManager popManager;
+    private TotemManager totemManager;
     private InteractionManager interactionManager;
     private InventoryManager inventoryManager;
     private ItemManager itemManager;
@@ -174,8 +173,8 @@ public class Cosmos {
         progressManager.step("[Cosmos] Setting up Patch Helper");
 
         // sets up the pop manager
-        popManager = new PopManager();
-        managers.add(popManager);
+        totemManager = new TotemManager();
+        managers.add(totemManager);
         progressManager.step("[Cosmos] Setting up Pop Manager");
 
         // sets up the thread manager
@@ -375,8 +374,8 @@ public class Cosmos {
      * Gets the client pop manager
      * @return The client pop manager
      */
-    public PopManager getPopManager() {
-        return popManager;
+    public TotemManager getPopManager() {
+        return totemManager;
     }
 
     /**

@@ -31,9 +31,11 @@ public class SprintModule extends Module {
             .setDescription("Mode for sprint");
 
     public static Setting<Boolean> safe = new Setting<>("Safe", true)
+            .setAlias("Hunger")
             .setDescription("Stops sprinting when you don't have the required hunger");
 
     public static Setting<Boolean> strict = new Setting<>("Strict", false)
+            .setAlias("Slowdown")
             .setDescription("Stops sprinting when sneaking and using items");
 
     // speed to move at

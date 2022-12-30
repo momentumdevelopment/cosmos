@@ -841,7 +841,6 @@ public class ElytraFlightModule extends Module {
 
                 // show real pitch
                 event.setCanceled(true);
-                event.setYaw(yaw);
                 event.setPitch(pitch);
             }
         }

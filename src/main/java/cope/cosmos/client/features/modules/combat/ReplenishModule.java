@@ -4,6 +4,7 @@ import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
+import cope.cosmos.util.math.Timer.Format;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.ItemBlock;
@@ -33,8 +34,9 @@ public class ReplenishModule extends Module {
     public static Setting<Double> delay = new Setting<>("Delay", 0.0, 100.0, 1000.0, 1)
             .setDescription("The delay in ms before replenishing");
 
-    public static Setting<Boolean> wait = new Setting<>("Wait", false)
-            .setDescription("If the item is a crystal and a combat module is on, it will wait for the combat module to be turned off");
+    public static Setting<Boolean> multitask = new Setting<>("Multitask", true)
+            .setAlias("Wait")
+            .setDescription("Allow replenish while combat modules are active");
 
     // our cached hotbar
     private final Map<Integer, ItemStack> hotbar = new ConcurrentHashMap<>();
@@ -61,7 +63,7 @@ public class ReplenishModule extends Module {
         if (refillSlot == -1) {
 
             // go through the entire hotbar
-            for (int i = 0; i < 9; ++i) {
+            for (int i = 0; i < 9; i++) {
 
                 // get the stack from our hotbar cache
                 ItemStack stack = mc.player.inventory.getStackInSlot(i);
@@ -87,12 +89,12 @@ public class ReplenishModule extends Module {
                 if (percentage <= percent.getValue()) {
 
                     // if we are crystaling and the wait setting is on, wait for AC to be turned off
-                    if (stack.getItem().equals(Items.END_CRYSTAL) && wait.getValue() && AutoCrystalModule.INSTANCE.isEnabled()) {
+                    if (stack.getItem().equals(Items.END_CRYSTAL) && (!multitask.getValue() && AutoCrystalModule.INSTANCE.isActive())) {
                         continue;
                     }
 
                     // if we still have time to wait, queue the slot and stop
-                    if (!timer.passedTime(delay.getValue().longValue(), Timer.Format.MILLISECONDS)) {
+                    if (!timer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
 
                         // cache the slot we'd like to do after this timer has passed the time
                         refillSlot = i;
@@ -113,8 +115,9 @@ public class ReplenishModule extends Module {
         }
 
         else {
+
             // if the time has passed and we have a queued slot, we can handle that here.
-            if (timer.passedTime(delay.getValue().longValue(), Timer.Format.MILLISECONDS)) {
+            if (timer.passedTime(delay.getValue().longValue(), Format.MILLISECONDS)) {
 
                 // replenish
                 fillStack(refillSlot, hotbar.get(refillSlot));
@@ -133,13 +136,16 @@ public class ReplenishModule extends Module {
      */
     private void fillStack(int slot, ItemStack stack) {
 
-        // if the slot is null (-1) or the stack is null, don't bother handling
-        if (slot != -1 && stack != null) {
+        // if the slot is null (-1) or the stack is null or the stack cannot be stacked, don't bother handling
+        if (slot != -1 && stack != null && stack.isStackable()) {
+
             // find the inventory slot we're gonna use to merge with our hotbar slot
             int replenishSlot = -1;
 
             // loop through our inventory, after the hotbar
-            for (int i = 9; i < 36; ++i) {
+            for (int i = 9; i < 36; i++) {
+
+                // item
                 ItemStack itemStack = mc.player.inventory.getStackInSlot(i);
 
                 // if the slot found in the inventory isn't empty
@@ -154,6 +160,7 @@ public class ReplenishModule extends Module {
 
                     // if the stack from the hotbar is a block
                     if (stack.getItem() instanceof ItemBlock) {
+
                         // if the stack in the inventory is not a block
                         if (!(itemStack.getItem() instanceof ItemBlock)) {
                             continue;
@@ -170,6 +177,7 @@ public class ReplenishModule extends Module {
                     }
 
                     else {
+
                         // if the hotbar item is not a ItemBlock and the items don't match, move on
                         if (!stack.getItem().equals(itemStack.getItem())) {
                             continue;

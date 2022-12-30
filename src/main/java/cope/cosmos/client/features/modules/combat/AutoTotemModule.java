@@ -160,6 +160,8 @@ public class AutoTotemModule extends Module {
 
                 // search inventory
                 for (int i = 9; i < (hotbar.getValue() ? 45 : 36); i++) {
+
+                    // check item
                     if (mc.player.inventoryContainer.getSlot(i).getStack().getItem().equals(item)) {
 
                         // golden apple

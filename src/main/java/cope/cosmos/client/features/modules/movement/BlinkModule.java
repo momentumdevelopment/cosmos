@@ -4,6 +4,7 @@ import cope.cosmos.client.events.network.DisconnectEvent;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
+import cope.cosmos.client.features.modules.exploits.PacketFlightModule;
 import cope.cosmos.client.features.setting.Setting;
 import cope.cosmos.util.math.Timer;
 import cope.cosmos.util.math.Timer.Format;
@@ -92,6 +93,16 @@ public class BlinkModule extends Module {
     public void onDisable() {
         super.onDisable();
 
+        // can't blink while flying
+        if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled()) {
+            return;
+        }
+
+        // can't blink while riding
+        if (mc.player.isRiding()) {
+            return;
+        }
+
         // dump all player packets
         if (!playerPackets.isEmpty()) {
             playerPackets.forEach(packet -> {
@@ -114,6 +125,8 @@ public class BlinkModule extends Module {
 
     @Override
     public void onTick() {
+
+        // check world
         if (!nullCheck() || mc.player.ticksExisted <= 20) {
 
             // We may have just loaded into a world, so we need to clear the positions
@@ -128,6 +141,16 @@ public class BlinkModule extends Module {
 
     @Override
     public void onUpdate() {
+
+        // can't blink while flying
+        if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled()) {
+            return;
+        }
+
+        // can't blink while riding
+        if (mc.player.isRiding()) {
+            return;
+        }
 
         // apply packets
         switch (mode.getValue()) {
@@ -156,6 +179,8 @@ public class BlinkModule extends Module {
                     // dump all player packets
                     if (!playerPackets.isEmpty()) {
                         playerPackets.forEach(packet -> {
+
+                            // make sure packet exists
                             if (packet != null) {
                                 mc.player.connection.sendPacket(packet);
                             }
@@ -298,8 +323,18 @@ public class BlinkModule extends Module {
     @SubscribeEvent
     public void onPacketSend(PacketEvent.PacketSendEvent event) {
 
+        // can't blink while flying
+        if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled()) {
+            return;
+        }
+
+        // can't blink while riding
+        if (mc.player.isRiding()) {
+            return;
+        }
+
         // player packets
-        if ((!(event.getPacket() instanceof CPacketChatMessage || event.getPacket() instanceof CPacketConfirmTeleport || event.getPacket() instanceof CPacketKeepAlive || event.getPacket() instanceof CPacketTabComplete || event.getPacket() instanceof CPacketClientStatus))) {
+        if (!(event.getPacket() instanceof CPacketChatMessage || event.getPacket() instanceof CPacketConfirmTeleport || event.getPacket() instanceof CPacketKeepAlive || event.getPacket() instanceof CPacketTabComplete || event.getPacket() instanceof CPacketClientStatus)) {
 
             // check it's one of the packets we are dumping
             if (!playerPackets.contains(event.getPacket())) {

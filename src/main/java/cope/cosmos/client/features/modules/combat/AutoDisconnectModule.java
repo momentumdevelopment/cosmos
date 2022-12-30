@@ -23,7 +23,7 @@ public class AutoDisconnectModule extends Module {
     public static AutoDisconnectModule INSTANCE;
 
     public AutoDisconnectModule() {
-        super("AutoDisconnect", new String[] {"AutoLog"}, Category.COMBAT, "Automatically disconnects from servers when in danger");
+        super("AutoDisconnect", new String[] {"AutoLog", "AutoLogout"}, Category.COMBAT, "Automatically disconnects from servers when in danger");
         INSTANCE = this;
     }
 
@@ -40,6 +40,8 @@ public class AutoDisconnectModule extends Module {
 
     @Override
     public void onTick() {
+
+        // disconnect timer has waited at least 5 seconds
         if (disconnectTimer.passedTime(5, Format.SECONDS)) {
 
             // disconnect if health is too low
@@ -67,6 +69,7 @@ public class AutoDisconnectModule extends Module {
      * Disconnects the client from the current server and takes the user back to the Multiplayer Server Selector screen
      */
     public void disconnectClient() {
+
         // disable the module
         disable(false);
 

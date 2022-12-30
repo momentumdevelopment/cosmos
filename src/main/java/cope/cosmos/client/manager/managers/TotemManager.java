@@ -16,13 +16,13 @@ import java.util.Map;
  * @author linustouchtips
  * @since 09/22/2021
  */
-public class PopManager extends Manager implements Wrapper {
+public class TotemManager extends Manager implements Wrapper {
 
     // map of totem pops
     private final Map<Entity, Integer> totemPops = new HashMap<>();
 
-    public PopManager() {
-        super("PopManager", "Keeps track of all the totem pops");
+    public TotemManager() {
+        super("TotemManager", "Keeps track of all the totem pops");
         Cosmos.EVENT_BUS.register(this);
     }
 
@@ -43,12 +43,8 @@ public class PopManager extends Manager implements Wrapper {
     @SubscribeEvent
     public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
 
-        // check if the player logged out
-        if (event.player.equals(mc.player)) {
-
-            // clear on logout
-            totemPops.clear();
-        }
+        // clear on logout
+        totemPops.remove(event.player);
     }
 
     /**

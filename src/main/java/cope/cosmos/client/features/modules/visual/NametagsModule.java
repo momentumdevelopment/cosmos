@@ -306,11 +306,11 @@ public class NametagsModule extends Module {
                         // display durability of item
                         if (durability.getValue()) {
 
-                            // durability (percent) of the item
-                            int durability = (int) ((itemStack.getMaxDamage() - itemStack.getItemDamage()) / ((float) itemStack.getMaxDamage()) * 100);
-
                             // only tools and armor have durability
-                            if (itemStack.getItem().showDurabilityBar(itemStack) || durability == 100) {
+                            if (itemStack.getItem().isDamageable()) {
+
+                                // durability (percent) of the item
+                                int durability = (int) ((itemStack.getMaxDamage() - itemStack.getItemDamage()) / ((float) itemStack.getMaxDamage()) * 100);
 
                                 // should be above the point
                                 enchantOffset = -FontUtil.getFontHeight();

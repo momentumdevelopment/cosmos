@@ -230,6 +230,8 @@ public class ESPModule extends Module {
 
         // packet for world sound effects
         if (event.getPacket() instanceof SPacketSoundEffect) {
+
+            // current packet
             SPacketSoundEffect packet = (SPacketSoundEffect) event.getPacket();
 
             // if the sound being sent from the server is a chorus teleport, that means someone has eaten a chorus fruit
@@ -243,6 +245,8 @@ public class ESPModule extends Module {
 
         // packet for rubberbands
         if (event.getPacket() instanceof SPacketPlayerPosLook) {
+
+            // current packet
             SPacketPlayerPosLook packet = (SPacketPlayerPosLook) event.getPacket();
 
             // log rubberband
@@ -303,7 +307,6 @@ public class ESPModule extends Module {
 
             // Render positions
             list.forEach(r -> {
-
                 glPushMatrix();
                 glDisable(GL_TEXTURE_2D);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -314,7 +317,6 @@ public class ESPModule extends Module {
 
                 // disable render lighting
                 mc.entityRenderer.disableLightmap();
-
                 glBegin(GL_LINE_STRIP);
 
                 // Set line colour
@@ -378,7 +380,6 @@ public class ESPModule extends Module {
                 glDisable(GL_BLEND);
                 glEnable(GL_TEXTURE_2D);
                 glPopMatrix();
-
             });
         }
     }

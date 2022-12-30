@@ -32,7 +32,7 @@ public class WaypointsModule extends Module {
     public static WaypointsModule INSTANCE;
 
     public WaypointsModule() {
-        super("Waypoints", new String[]{"LogoutSpots", "DeathSpots"}, Category.VISUAL,"Shows all the client waypoints");
+        super("Waypoints", new String[] {"LogoutSpots", "DeathSpots"}, Category.VISUAL,"Shows all the client waypoints");
         INSTANCE = this;
     }
 

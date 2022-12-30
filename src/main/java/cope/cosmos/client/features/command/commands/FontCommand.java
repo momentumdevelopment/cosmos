@@ -2,7 +2,10 @@ package cope.cosmos.client.features.command.commands;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.features.command.Command;
-import cope.cosmos.util.render.FontUtil;
+import cope.cosmos.client.features.modules.client.FontModule;
+import cope.cosmos.client.features.modules.client.FontModule.FontType;
+
+import java.awt.*;
 
 /**
  * @author linustouchtips
@@ -25,7 +28,17 @@ public class FontCommand extends Command {
             String font = args[0];
 
             // loads a given font
-            getCosmos().getFontManager().loadFont(font.endsWith(".ttf") ? font : font + ".ttf");
+            getCosmos().getFontManager().loadFont(font.endsWith(".ttf") ? font : font + ".ttf", Font.PLAIN);
+        }
+
+        else if (args.length == 2) {
+
+            // font to load
+            String font = args[0];
+            FontType fontType = FontModule.INSTANCE.getType(args[1]);
+
+            // loads a given font
+            getCosmos().getFontManager().loadFont(font.endsWith(".ttf") ? font : font + ".ttf", fontType.getType());
         }
 
         else {

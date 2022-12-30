@@ -94,7 +94,13 @@ public class SurroundModule extends Module {
     private double start;
 
     // entities that are safe to place on
-    private static final List<Class<? extends Entity>> SAFE_ENTITIES = Arrays.asList(EntityEnderCrystal.class, EntityItem.class, EntityXPOrb.class, EntityBoat.class, EntityMinecart.class);
+    private static final List<Class<? extends Entity>> SAFE_ENTITIES = Arrays.asList(
+            EntityEnderCrystal.class,
+            EntityItem.class,
+            EntityXPOrb.class,
+            EntityBoat.class,
+            EntityMinecart.class
+    );
 
     @Override
     public void onEnable() {
@@ -612,6 +618,8 @@ public class SurroundModule extends Module {
 
         // check our placements if they have been removed, we need to replace them
         for (BlockPos position : placements) {
+
+            // replaceable check
             if (BlockUtil.isReplaceable(position)) {
                 replacements.add(position);
             }

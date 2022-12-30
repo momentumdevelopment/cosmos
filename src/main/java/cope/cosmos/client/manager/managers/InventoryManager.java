@@ -215,6 +215,7 @@ public class InventoryManager extends Manager {
      * @return The slot id of the given item
      */
     public int searchSlot(Class<? extends Item> in, InventoryRegion inventoryRegion) {
+
         // slot of the item
         int slot = -1;
 

@@ -83,7 +83,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
 
     // **************************** anticheat settings ****************************
 
-    public static Setting<Boolean> multiTask = new Setting<>("MultiTask", true)
+    public static Setting<Boolean> multitask = new Setting<>("Multitask", true)
             .setAlias("PauseEating", "PauseEat")
             .setDescription("Explodes only if we are not preforming any actions with our hands");
 
@@ -1594,7 +1594,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
         boolean offhand = mc.player.getHeldItemOffhand().getItem() instanceof ItemEndCrystal;
 
         // must be not doing anything
-        if ((PlayerUtil.isEating() && !offhand) && !multiTask.getValue()) {
+        if ((PlayerUtil.isEating() && !offhand) && !multitask.getValue()) {
             return false;
         }
 
@@ -1751,6 +1751,7 @@ public class AutoCrystalModule extends ServiceModule<EntityEnderCrystal> {
             deadCrystals.add(in);
         }
 
+        // clear queue
         queuedCrystals.clear();
 
         // attack was successful

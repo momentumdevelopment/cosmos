@@ -28,8 +28,10 @@ public class ReloadManager extends Manager implements Wrapper {
             // previously enabled modules
             List<Module> enabledModules = getCosmos().getModuleManager().getModules(Module::isEnabled);
 
-            // disable all modules (exempt property prevents modules from being reloaded)
+            // disable all modules
             getCosmos().getModuleManager().getAllModules().forEach(module -> {
+
+                // exempt property prevents modules from being reloaded
                 if (!module.isExempt()) {
                     module.disable(false);
                 }
@@ -37,6 +39,8 @@ public class ReloadManager extends Manager implements Wrapper {
 
             // re-enable previously enabled modules
             enabledModules.forEach(module -> {
+
+                // exempt property prevents modules from being reloaded
                 if (!module.isExempt()) {
                     module.enable(false);
                 }

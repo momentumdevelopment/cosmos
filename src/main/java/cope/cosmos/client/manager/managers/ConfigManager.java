@@ -195,9 +195,8 @@ public class ConfigManager extends Manager {
                         preset = toml.getString("Info.Preset");
                     }
 
-                    if (toml.contains("Info.Font")) {
-                        getCosmos().getFontManager().loadFont(toml.getString("Info.Font") + ".ttf");
-                    }
+                    // load font
+                    getCosmos().getFontManager().loadFont(toml.getString("Info.Font", Font.SANS_SERIF) + ".ttf", Math.toIntExact(toml.getLong("Info.FontStyle", (long) Font.PLAIN)));
                 }
 
                 // success c:
@@ -248,12 +247,12 @@ public class ConfigManager extends Manager {
                             boolean state = inputTOML.getBoolean(module.getName() + ".Enabled", false);
 
                             if (state) {
-                                module.enable(true);
+                                module.enable(false);
                                 module.getAnimation().setState(true);
                             }
 
                             else {
-                                module.disable(true);
+                                module.disable(false);
                                 module.getAnimation().setState(false);
                             }
                         }
@@ -611,6 +610,11 @@ public class ConfigManager extends Manager {
                 " \"" +
                 getCosmos().getFontManager().getFont() + // set to false by default, as we only setup once
                 "\"\n" +
+                "FontType" +
+                " " +
+                "= " +
+                getCosmos().getFontManager().getFontType() +
+                "\n" +
                 "Prefix" +
                 " " +
                 "=" +

@@ -112,7 +112,7 @@ public class PresenceManager extends Manager {
                     richPresence.smallImageKey = "cosmos";
                     richPresence.smallImageText = Cosmos.VERSION;
                     richPresence.details = mc.isIntegratedServerRunning() ? "SinglePlayer" : (mc.getCurrentServerData() != null ? mc.getCurrentServerData().serverIP.toLowerCase() : "Menus");
-                    richPresence.state = presenceDetails[new Random().nextInt(presenceDetails.length)];
+                    richPresence.state = presenceDetails[new Random().nextInt(presenceDetails.length - 1)];
                     discordPresence.Discord_UpdatePresence(richPresence);
 
                     // update every 3 seconds

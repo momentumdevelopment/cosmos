@@ -1,6 +1,7 @@
 package cope.cosmos.client.features.modules.movement;
 
 import cope.cosmos.asm.mixins.accessor.IEntity;
+import cope.cosmos.asm.mixins.accessor.INetHandlerPlayClient;
 import cope.cosmos.client.events.network.PacketEvent;
 import cope.cosmos.client.features.modules.Category;
 import cope.cosmos.client.features.modules.Module;
@@ -93,15 +94,15 @@ public class EntitySpeedModule extends Module {
 
                 // if we're not inputting any movements, then we shouldn't be adding any motion
                 if (!MotionUtil.isMoving()) {
-                    mc.player.motionX = 0;
-                    mc.player.motionZ = 0;
+                    mc.player.getRidingEntity().motionX = 0;
+                    mc.player.getRidingEntity().motionZ = 0;
                 }
 
                 else {
 
                     // update the movements
-                    mc.player.motionX = (forward * speed.getValue() * cos) + (strafe * speed.getValue() * sin);
-                    mc.player.motionZ = (forward * speed.getValue() * sin) - (strafe * speed.getValue() * cos);
+                    mc.player.getRidingEntity().motionX = (forward * speed.getValue() * cos) + (strafe * speed.getValue() * sin);
+                    mc.player.getRidingEntity().motionZ = (forward * speed.getValue() * sin) - (strafe * speed.getValue() * cos);
                 }
             }
         }
@@ -110,27 +111,35 @@ public class EntitySpeedModule extends Module {
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-        // make sure we are riding an entity
-        if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
+        if (nullCheck()) {
 
-            // make sure we are not dismounting
-            if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
+            // if the client is not done loading the surrounding terrain, DO NOT CANCEL MOVEMENT PACKETS!!!!
+            if (!((INetHandlerPlayClient) mc.player.connection).isDoneLoadingTerrain()) {
+                return;
+            }
 
-                // packet for server passenger updates
-                if (event.getPacket() instanceof SPacketSetPassengers) {
+            // make sure we are riding an entity
+            if (mc.player.isRiding() && mc.player.getRidingEntity() != null) {
 
-                    // cancel server passenger updates
-                    if (strict.getValue()) {
-                        event.setCanceled(true);
+                // make sure we are not dismounting
+                if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
+
+                    // packet for server passenger updates
+                    if (event.getPacket() instanceof SPacketSetPassengers) {
+
+                        // cancel server passenger updates
+                        if (strict.getValue()) {
+                            event.setCanceled(true);
+                        }
                     }
-                }
 
-                // packet for rubberbands
-                if (event.getPacket() instanceof SPacketPlayerPosLook) {
+                    // packet for rubberbands
+                    if (event.getPacket() instanceof SPacketPlayerPosLook) {
 
-                    // cancel rubberbands
-                    if (strict.getValue()) {
-                        event.setCanceled(true);
+                        // cancel rubberbands
+                        if (strict.getValue()) {
+                            event.setCanceled(true);
+                        }
                     }
                 }
             }

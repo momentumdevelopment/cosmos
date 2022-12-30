@@ -45,6 +45,12 @@ public class TickShiftModule extends Module {
     @Override
     public void onUpdate() {
 
+        // incompatibilities
+        if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled()) {
+            getCosmos().getTickManager().setClientTicks(1);
+            return;
+        }
+
         // check if player is moving
         if (MotionUtil.isMoving() || !mc.player.onGround) {
 
@@ -66,11 +72,6 @@ public class TickShiftModule extends Module {
 
                 // check if we are max allowed packets per boost
                 if (packets >= ticks.getValue() - 1) {
-
-                    // incompatibilities
-                    if (PlayerUtil.isFlying() || PacketFlightModule.INSTANCE.isEnabled() || FreecamModule.INSTANCE.isEnabled()) {
-                        return;
-                    }
 
                     // update timer
                     getCosmos().getTickManager().setClientTicks(1 + speed.getValue().floatValue());
@@ -109,7 +110,7 @@ public class TickShiftModule extends Module {
                     for (int i = 0; i < use; i++) {
 
                         // send player packet, this tells the server to move forward one tick
-                        mc.player.connection.sendPacket(new CPacketPlayer());
+                        mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, mc.player.posY, mc.player.posZ, mc.player.onGround));
                     }
 
                     // cancel eating animation and skip to the item finish state

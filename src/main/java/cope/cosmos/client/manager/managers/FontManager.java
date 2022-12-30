@@ -2,6 +2,7 @@ package cope.cosmos.client.manager.managers;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import cope.cosmos.client.Cosmos;
+import cope.cosmos.client.Cosmos.ClientType;
 import cope.cosmos.client.manager.Manager;
 import cope.cosmos.font.FontRenderer;
 import cope.cosmos.util.file.FileSystemUtil;
@@ -14,6 +15,7 @@ public class FontManager extends Manager {
 
     // client font
     private FontRenderer font;
+    private int fontType;
 
     public FontManager() {
         super("FontManager", "Manages and renders client fonts");
@@ -22,9 +24,11 @@ public class FontManager extends Manager {
     /**
      * Loads a given font
      * @param in The given font
+     * @param type Font type (bold, italicized, etc.)
      */
-    public void loadFont(String in) {
-        font = new FontRenderer(loadFont(in, 40));
+    public void loadFont(String in, int type) {
+        font = new FontRenderer(loadFont(in, 40, type));
+        fontType = type;
     }
 
     /**
@@ -33,7 +37,8 @@ public class FontManager extends Manager {
      * @param size The size of the font
      * @return The loaded font
      */
-    private Font loadFont(String in, int size) {
+    private Font loadFont(String in, int size, int type) {
+        fontType = type;
         try {
 
             // font stream
@@ -43,8 +48,8 @@ public class FontManager extends Manager {
             if (fontStream != null) {
 
                 // creates and derives the font
-                Font clientFont = Font.createFont(0, fontStream);
-                clientFont = clientFont.deriveFont(Font.PLAIN, size);
+                Font clientFont = Font.createFont(Font.TRUETYPE_FONT, fontStream);
+                clientFont = clientFont.deriveFont(type, size);
 
                 // close stream
                 fontStream.close();
@@ -52,12 +57,12 @@ public class FontManager extends Manager {
             }
 
             // default
-            return new Font("default", Font.PLAIN, size);
+            return new Font(Font.SANS_SERIF, type, size);
 
         } catch (Exception exception) {
 
             // print exception
-            if (Cosmos.CLIENT_TYPE.equals(Cosmos.ClientType.DEVELOPMENT)) {
+            if (Cosmos.CLIENT_TYPE.equals(ClientType.DEVELOPMENT)) {
                 exception.printStackTrace();
             }
 
@@ -69,7 +74,7 @@ public class FontManager extends Manager {
             }
 
             // load default
-            return new Font("default", Font.PLAIN, size);
+            return new Font(Font.SANS_SERIF, type, size);
         }
     }
 
@@ -78,7 +83,7 @@ public class FontManager extends Manager {
      * @return The current font
      */
     public FontRenderer getFontRenderer() {
-        return font != null ? font : new FontRenderer(new Font("default", Font.PLAIN, 40));
+        return font != null ? font : new FontRenderer(new Font(Font.SANS_SERIF, Font.PLAIN, 40));
     }
 
     /**
@@ -87,5 +92,13 @@ public class FontManager extends Manager {
      */
     public String getFont() {
         return font.getName();
+    }
+
+    /**
+     * Gets the current font type
+     * @return The current font type
+     */
+    public int getFontType() {
+        return fontType;
     }
 }

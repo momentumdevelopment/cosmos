@@ -30,13 +30,11 @@ public class MotionUtil implements Wrapper {
                 strafe = 0;
             }
 
-            if (forward > 0) {
+            if (forward > 0)
                 forward = 1;
-            }
 
-            else if (forward < 0) {
+            else if (forward < 0)
                 forward = -1;
-            }
         }
 
         double sin = Math.sin(Math.toRadians(yaw + 90));
@@ -44,7 +42,7 @@ public class MotionUtil implements Wrapper {
 
         double motionX = (double) forward * speed * cos + (double) strafe * speed * sin;
         double motionZ = (double) forward * speed * sin - (double) strafe * speed * cos;
-        
+
         return new double[] {motionX, motionZ};
     }
 

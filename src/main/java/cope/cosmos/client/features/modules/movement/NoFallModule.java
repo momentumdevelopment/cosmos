@@ -20,7 +20,7 @@ public class NoFallModule extends Module {
     public static NoFallModule INSTANCE;
 
     public NoFallModule() {
-        super("NoFall", new String[] {"AntiFall"},  Category.MOVEMENT, "Attempts to negate fall damage");
+        super("NoFall", new String[] {"AntiFall", "NoFallDamage"},  Category.MOVEMENT, "Attempts to negate fall damage");
         INSTANCE = this;
     }
 
@@ -51,9 +51,11 @@ public class NoFallModule extends Module {
 
     @Override
     public void onUpdate() {
+
         // make sure our fall distance is past our minimum distance
         if (shouldNegateFallDamage() && !mc.player.isOverWater()) {
 
+            // attempt to negate fall damage
             switch (mode.getValue()) {
                 case GLIDE:
                     // attempt to fall slower
@@ -77,6 +79,7 @@ public class NoFallModule extends Module {
 
                     break;
                 case RUBBERBAND:
+
                     // send an out of bounds packet
                     if (mc.player.dimension != 1) {
                         mc.player.connection.sendPacket(new CPacketPlayer.Position(mc.player.posX, 0, mc.player.posZ, true));

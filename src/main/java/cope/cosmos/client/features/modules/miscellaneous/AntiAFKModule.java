@@ -39,6 +39,10 @@ public class AntiAFKModule extends Module {
             .setAlias("Rotate")
             .setDescription("Rotates to avoid AFK detection");
 
+    public static Setting<Boolean> reply = new Setting<>("Reply", true)
+            .setAlias("AutoReply")
+            .setDescription("Replies to incoming messages");
+
     // timer keeping track of afk time
     private final Timer awayTimer = new Timer();
 
@@ -62,7 +66,7 @@ public class AntiAFKModule extends Module {
     public void onUpdate() {
 
         // if we are moving, then we should reset our away progress
-        if (MotionUtil.isMoving() || mc.player.movementInput.jump || mc.player.movementInput.sneak) {
+        if (MotionUtil.isMoving() || mc.player.movementInput.jump || mc.player.movementInput.sneak || mc.gameSettings.keyBindUseItem.isPressed()) {
             awayTimer.resetTime();
         }
 
@@ -123,20 +127,24 @@ public class AntiAFKModule extends Module {
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.PacketReceiveEvent event) {
 
-        // packet for server chat messages
-        if (event.getPacket() instanceof SPacketChat) {
+        // reply to messages
+        if (reply.getValue()) {
 
-            // message in the chat
-            String[] chatMessage = ((SPacketChat) event.getPacket()).getChatComponent().getUnformattedText().split(" ");
+            // packet for server chat messages
+            if (event.getPacket() instanceof SPacketChat) {
 
-            // make sure it's a system message
-            if (chat.getValue() && ((SPacketChat) event.getPacket()).getType().equals(ChatType.SYSTEM)) {
+                // message in the chat
+                String[] chatMessage = ((SPacketChat) event.getPacket()).getChatComponent().getUnformattedText().split(" ");
 
-                // if it's a direct message, reply that we are AFK at the moment
-                if (chatMessage[1].equals("whispers:")) {
+                // make sure it's a system message
+                if (chat.getValue() && ((SPacketChat) event.getPacket()).getType().equals(ChatType.SYSTEM)) {
 
-                    // send chat message
-                    getCosmos().getChatManager().sendChatMessage("/r [Cosmos] I am currently AFK. Please try messaging me later.");
+                    // if it's a direct message, reply that we are AFK at the moment
+                    if (chatMessage[1].equals("whispers:")) {
+
+                        // send chat message
+                        getCosmos().getChatManager().sendChatMessage("/r [Cosmos] I am currently AFK.");
+                    }
                 }
             }
         }

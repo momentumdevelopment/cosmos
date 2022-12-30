@@ -16,6 +16,7 @@ public class Timer implements Wrapper {
     private long ticks;
 
     public Timer() {
+
         // initialize the values
         milliseconds = -1;
         ticks = -1;
